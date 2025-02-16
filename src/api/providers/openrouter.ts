@@ -8,6 +8,7 @@ import { ApiHandlerOptions, ModelInfo, openRouterDefaultModelId, openRouterDefau
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
 import { convertToR1Format } from "../transform/r1-format"
+import { agentName, homePageUrl } from "../../shared/Configuration"
 
 export class OpenRouterHandler implements ApiHandler {
 	private options: ApiHandlerOptions
@@ -19,8 +20,8 @@ export class OpenRouterHandler implements ApiHandler {
 			baseURL: "https://openrouter.ai/api/v1",
 			apiKey: this.options.openRouterApiKey,
 			defaultHeaders: {
-				"HTTP-Referer": "https://cline.bot", // Optional, for including your app on openrouter.ai rankings.
-				"X-Title": "Cline", // Optional. Shows in rankings on openrouter.ai.
+				"HTTP-Referer": `${homePageUrl}`, // Optional, for including your app on openrouter.ai rankings.
+				"X-Title": `${agentName}`, // Optional. Shows in rankings on openrouter.ai.
 			},
 		})
 	}

@@ -1,9 +1,9 @@
 {
-	"name": "claude-dev",
-	"displayName": "Cline",
-	"description": "Autonomous coding agent right in your IDE, capable of creating/editing files, running commands, using the browser, and more with your permission every step of the way.",
-	"version": "3.4.5",
-	"icon": "assets/icons/icon.png",
+	"name": "astro",
+	"displayName": "Astro",
+	"description": "Autonomous coding agent.",
+	"version": "0.1.0",
+	"icon": "assets/icons/icon_color.png",
 	"galleryBanner": {
 		"color": "#617A91",
 		"theme": "dark"
@@ -12,15 +12,15 @@
 		"vscode": "^1.84.0"
 	},
 	"author": {
-		"name": "Cline Bot Inc."
+		"name": "Unievo"
 	},
 	"license": "Apache-2.0",
-	"publisher": "saoudrizwan",
+	"publisher": "Unievo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cline/cline"
+		"url": "https://github.com/unievo/astro"
 	},
-	"homepage": "https://cline.bot",
+	"homepage": "https://github.com/unievo/astro",
 	"categories": [
 		"AI",
 		"Chat",
@@ -30,7 +30,7 @@
 		"Testing"
 	],
 	"keywords": [
-		"cline",
+		"astro",
 		"claude",
 		"dev",
 		"mcp",
@@ -49,86 +49,86 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "claude-dev-ActivityBar",
-					"title": "Cline",
-					"icon": "assets/icons/icon.svg"
+					"id": "astro-ActivityBar",
+					"title": "Astro",
+					"icon": "assets/icons/icon_light.png"
 				}
 			]
 		},
 		"views": {
-			"claude-dev-ActivityBar": [
+			"astro-ActivityBar": [
 				{
 					"type": "webview",
-					"id": "claude-dev.SidebarProvider",
-					"name": ""
+					"id": "astro.SidebarProvider",
+					"name": "Dashboard"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "cline.plusButtonClicked",
+				"command": "astro.plusButtonClicked",
 				"title": "New Task",
 				"icon": "$(add)"
 			},
 			{
-				"command": "cline.mcpButtonClicked",
+				"command": "astro.mcpButtonClicked",
 				"title": "MCP Servers",
 				"icon": "$(extensions)"
 			},
 			{
-				"command": "cline.historyButtonClicked",
+				"command": "astro.historyButtonClicked",
 				"title": "History",
 				"icon": "$(history)"
 			},
 			{
-				"command": "cline.popoutButtonClicked",
+				"command": "astro.popoutButtonClicked",
 				"title": "Open in Editor",
 				"icon": "$(link-external)"
 			},
 			{
-				"command": "cline.settingsButtonClicked",
+				"command": "astro.settingsButtonClicked",
 				"title": "Settings",
 				"icon": "$(settings-gear)"
 			},
 			{
-				"command": "cline.openInNewTab",
+				"command": "astro.openInNewTab",
 				"title": "Open In New Tab",
-				"category": "Cline"
+				"category": "Astro"
 			}
 		],
 		"menus": {
 			"view/title": [
 				{
-					"command": "cline.plusButtonClicked",
+					"command": "astro.plusButtonClicked",
 					"group": "navigation@1",
-					"when": "view == claude-dev.SidebarProvider"
+					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "cline.mcpButtonClicked",
+					"command": "astro.mcpButtonClicked",
 					"group": "navigation@2",
-					"when": "view == claude-dev.SidebarProvider"
+					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "cline.historyButtonClicked",
+					"command": "astro.historyButtonClicked",
 					"group": "navigation@3",
-					"when": "view == claude-dev.SidebarProvider"
+					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "cline.popoutButtonClicked",
+					"command": "astro.popoutButtonClicked",
 					"group": "navigation@4",
-					"when": "view == claude-dev.SidebarProvider"
+					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "cline.settingsButtonClicked",
+					"command": "astro.settingsButtonClicked",
 					"group": "navigation@5",
-					"when": "view == claude-dev.SidebarProvider"
+					"when": "view == astro.SidebarProvider"
 				}
 			]
 		},
 		"configuration": {
-			"title": "Cline",
+			"title": "Astro",
 			"properties": {
-				"cline.vsCodeLmModelSelector": {
+				"astro.vsCodeLmModelSelector": {
 					"type": "object",
 					"properties": {
 						"vendor": {
@@ -142,7 +142,7 @@
 					},
 					"description": "Settings for VSCode Language Model API"
 				},
-				"cline.mcp.mode": {
+				"astro.mcp.mode": {
 					"type": "string",
 					"enum": [
 						"full",
@@ -157,17 +157,17 @@
 					"default": "full",
 					"description": "Controls MCP inclusion in prompts, reduces token usage if you only need access to certain functionality."
 				},
-				"cline.enableCheckpoints": {
+				"astro.enableCheckpoints": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables extension to save checkpoints of workspace throughout the task."
+					"description": "Enables extension to save checkpoints of workspace throughout the tasks."
 				},
-				"cline.disableBrowserTool": {
+				"astro.disableBrowserTool": {
 					"type": "boolean",
 					"default": false,
 					"description": "Disables extension from spawning browser session."
 				},
-				"cline.modelSettings.o3Mini.reasoningEffort": {
+				"astro.modelSettings.o3Mini.reasoningEffort": {
 					"type": "string",
 					"enum": [
 						"low",
@@ -177,43 +177,45 @@
 					"default": "medium",
 					"description": "Controls the reasoning effort when using the o3-mini model. Higher values may result in more thorough but slower responses."
 				},
-				"cline.chromeExecutablePath": {
+				"astro.chromeExecutablePath": {
 					"type": "string",
 					"default": null,
 					"description": "Path to Chrome executable for browser use functionality. If not set, the extension will attempt to find or download it automatically."
 				},
-				"cline.mcpMarketplace.enabled": {
+				"astro.mcpMarketplace.enabled": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Controls whether the MCP Marketplace is enabled."
 				}
 			}
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run package",
-		"compile": "npm run check-types && npm run lint && node esbuild.js",
-		"watch": "npm-run-all -p watch:*",
-		"watch:esbuild": "node esbuild.js --watch",
-		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-		"package": "npm run build:webview && npm run check-types && npm run lint && node esbuild.js --production",
-		"compile-tests": "tsc -p ./tsconfig.test.json --outDir out",
-		"watch-tests": "tsc -p . -w --outDir out",
-		"pretest": "npm run compile-tests && npm run compile && npm run lint",
+		"build": "npm run build:webview && npm run vsix",
+		"build:webview": "cd webview-ui && npm run build",
+		"changeset": "changeset",
 		"check-types": "tsc --noEmit",
-		"lint": "eslint src --ext ts",
+		"compile": "npm run check-types && npm run lint && node esbuild.js",
+		"compile-tests": "tsc -p ./tsconfig.test.json --outDir out",
 		"format": "prettier . --check",
 		"format:fix": "prettier . --write",
-		"test": "vscode-test",
 		"install:all": "npm install && cd webview-ui && npm install",
-		"start:webview": "cd webview-ui && npm run start",
-		"build:webview": "cd webview-ui && npm run build",
-		"test:webview": "cd webview-ui && npm run test",
+		"lint": "eslint src --ext ts",
+		"package": "npm run build:webview && npm run check-types && npm run lint && node esbuild.js --production",
+		"prepare": "husky",
+		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"publish:marketplace": "vsce publish && ovsx publish",
 		"publish:marketplace:prerelease": "vsce publish --pre-release && ovsx publish --pre-release",
-		"prepare": "husky",
-		"changeset": "changeset",
-		"version-packages": "changeset version"
+		"start:webview": "cd webview-ui && npm run start",
+		"test": "vscode-test",
+		"test:webview": "cd webview-ui && npm run test",
+		"version-packages": "changeset version",
+		"vscode:prepublish": "npm run package",
+		"vsix": "rimraf bin && mkdir bin && npx vsce package --out bin",
+		"watch": "npm-run-all -p watch:*",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"watch:esbuild": "node esbuild.js --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.12",

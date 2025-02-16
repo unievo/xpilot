@@ -7,8 +7,9 @@ import { formatResponse } from "../../core/prompts/responses"
 import { DecorationController } from "./DecorationController"
 import * as diff from "diff"
 import { diagnosticsToProblemsString, getNewDiagnostics } from "../diagnostics"
+import { agentName, productName } from "../../shared/Configuration"
 
-export const DIFF_VIEW_URI_SCHEME = "cline-diff"
+export const DIFF_VIEW_URI_SCHEME = `${productName}-diff`
 
 export class DiffViewProvider {
 	editType?: "create" | "modify"
@@ -319,7 +320,7 @@ export class DiffViewProvider {
 					query: Buffer.from(this.originalContent ?? "").toString("base64"),
 				}),
 				uri,
-				`${fileName}: ${fileExists ? "Original ↔ Cline's Changes" : "New File"} (Editable)`,
+				`${fileName}: ${fileExists ? `Original ↔ ${agentName}'s Changes` : "New File"} (Editable)`,
 			)
 			// This may happen on very slow machines ie project idx
 			setTimeout(() => {

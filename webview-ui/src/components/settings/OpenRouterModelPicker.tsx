@@ -10,6 +10,7 @@ import { vscode } from "../../utils/vscode"
 import { highlight } from "../history/HistoryView"
 import { ModelInfoView, normalizeApiConfiguration } from "./ApiOptions"
 import { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
+import { agentName } from "../../../../src/shared/Configuration"
 
 export interface OpenRouterModelPickerProps {
 	isPopup?: boolean
@@ -225,7 +226,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 						<VSCodeLink style={{ display: "inline", fontSize: "inherit" }} href="https://openrouter.ai/models">
 							OpenRouter.
 						</VSCodeLink>
-						If you're unsure which model to choose, Cline works best with{" "}
+						If you're unsure which model to choose, {agentName} works best with{" "}
 						<VSCodeLink
 							style={{ display: "inline", fontSize: "inherit" }}
 							onClick={() => handleModelChange("anthropic/claude-3.5-sonnet")}>

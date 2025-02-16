@@ -4,6 +4,7 @@ import { ApiHandler } from "../"
 import { ApiHandlerOptions, ModelInfo, openAiModelInfoSaneDefaults } from "../../shared/api"
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
+import { agentName } from "../../shared/Configuration"
 
 export class LmStudioHandler implements ApiHandler {
 	private options: ApiHandlerOptions
@@ -42,7 +43,7 @@ export class LmStudioHandler implements ApiHandler {
 		} catch (error) {
 			// LM Studio doesn't return an error code/body for now
 			throw new Error(
-				"Please check the LM Studio developer logs to debug what went wrong. You may need to load the model with a larger context length to work with Cline's prompts.",
+				`Please check the LM Studio developer logs to debug what went wrong. You may need to load the model with a larger context length to work with ${agentName}'s prompts.`,
 			)
 		}
 	}

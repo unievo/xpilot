@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
 import { convertTheme } from "monaco-vscode-textmate-theme-converter/lib/cjs"
+import { extensionId } from "../../shared/Configuration"
 
 const defaultThemes: Record<string, string> = {
 	"Default Dark Modern": "dark_modern",
@@ -137,5 +138,5 @@ export function mergeJson(
 }
 
 function getExtensionUri(): vscode.Uri {
-	return vscode.extensions.getExtension("saoudrizwan.claude-dev")!.extensionUri
+	return vscode.extensions.getExtension(extensionId)!.extensionUri
 }

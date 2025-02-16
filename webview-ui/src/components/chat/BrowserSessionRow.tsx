@@ -11,6 +11,7 @@ import { BrowserSettingsMenu } from "../browser/BrowserSettingsMenu"
 import { CheckpointControls } from "../common/CheckpointControls"
 import CodeBlock, { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
 import { ChatRowContent, ProgressIndicator } from "./ChatRow"
+import { agentName } from "../../../../src/shared/Configuration"
 
 interface BrowserSessionRowProps {
 	messages: ClineMessage[]
@@ -263,7 +264,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 						}}></span>
 				)}
 				<span style={{ fontWeight: "bold" }}>
-					<>{isAutoApproved ? "Cline is using the browser:" : "Cline wants to use the browser:"}</>
+					<>{isAutoApproved ? `${agentName} is using the browser:` : `${agentName} wants to use the browser:`}</>
 				</span>
 			</div>
 			<div

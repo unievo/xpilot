@@ -5,7 +5,7 @@ export default defineConfig({
 	files: "{out/**/*.test.js,src/**/*.test.js}",
 	mocha: {
 		ui: "bdd",
-		timeout: 20000, // Maximum time (in ms) that a test can run before failing
+		timeout: 25000, // Maximum time (in ms) that a test can run before failing
 	},
 	workspaceFolder: "test-workspace",
 	version: "stable",

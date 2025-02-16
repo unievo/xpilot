@@ -5,6 +5,7 @@ import { useExtensionState } from "../../context/ExtensionStateContext"
 import { AutoApprovalSettings } from "../../../../src/shared/AutoApprovalSettings"
 import { vscode } from "../../utils/vscode"
 import { getAsVar, VSC_FOREGROUND, VSC_TITLEBAR_INACTIVE_FOREGROUND, VSC_DESCRIPTION_FOREGROUND } from "../../utils/vscStyles"
+import { agentName } from "../../../../src/shared/Configuration"
 
 interface AutoApproveMenuProps {
 	style?: React.CSSProperties
@@ -217,8 +218,8 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 							color: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 							fontSize: "12px",
 						}}>
-						Auto-approve allows Cline to perform the following actions without asking for permission. Please use with
-						caution and only enable if you understand the risks.
+						Auto-approve allows {agentName} to perform the following actions without asking for permission. Please use
+						with caution and only enable if you understand the risks.
 					</div>
 					{ACTION_METADATA.map((action) => (
 						<div key={action.id} style={{ margin: "6px 0" }}>
@@ -285,7 +286,8 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 							fontSize: "12px",
 							marginBottom: "10px",
 						}}>
-						Cline will automatically make this many API requests before asking for approval to proceed with the task.
+						{agentName} will automatically make this many API requests before asking for approval to proceed with the
+						task.
 					</div>
 					<div style={{ margin: "6px 0" }}>
 						<VSCodeCheckbox
@@ -302,7 +304,8 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 								color: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 								fontSize: "12px",
 							}}>
-							Receive system notifications when Cline requires approval to proceed or when a task is completed.
+							Receive system notifications when {agentName} requires approval to proceed or when a task is
+							completed.
 						</div>
 					</div>
 				</div>

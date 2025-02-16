@@ -2,6 +2,7 @@ import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { memo } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "../../utils/vscStyles"
 import { vscode } from "../../utils/vscode"
+import { agentName } from "../../../../src/shared/Configuration"
 
 interface AnnouncementProps {
 	version: string
@@ -27,9 +28,16 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
 			<h3 style={{ margin: "0 0 8px" }}>
-				🎉{"  "}New in v{minorVersion}
+				⭐️{"  "}Release v{minorVersion}
 			</h3>
-			<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+			{
+				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+					<li>
+						<b>This is where new features of {agentName} will be announced.</b>
+					</li>
+				</ul>
+
+				/* <ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				<li>
 					<b>Introducing MCP Marketplace:</b> Discover and install the best MCP servers right from the extension, with
 					new servers added regularly! Get started by going to the{" "}
@@ -55,11 +63,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					New visual indicator for checkpoints after edits & commands, and automatic checkpoint at the start of each
 					task.
 				</li>
-			</ul>
-			<VSCodeLink href="https://x.com/sdrzn/status/1892262424881090721" style={{ display: "inline" }}>
-				See a demo of the changes here!
-			</VSCodeLink>
-			{/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+			</ul> */
+				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				 <li>
 					OpenRouter now supports prompt caching! They also have much higher rate limits than other providers,
 					so I recommend trying them out.
@@ -105,7 +110,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					When Cline runs commands, you can now type directly in the terminal (+ support for Python
 					environments)
 				</li>
-			</ul>*/}
+			</ul>*/
+			}
 			<div
 				style={{
 					height: "1px",
@@ -114,11 +120,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					margin: "8px 0",
 				}}
 			/>
-			<p style={{ margin: "0" }}>
-				Join us on{" "}
-				<VSCodeLink style={{ display: "inline" }} href="https://x.com/cline">
-					X,
-				</VSCodeLink>{" "}
+			{/* <p style={{ margin: "0" }}>
+				Join our{" "}
 				<VSCodeLink style={{ display: "inline" }} href="https://discord.gg/cline">
 					discord,
 				</VSCodeLink>{" "}
@@ -127,7 +130,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					r/cline
 				</VSCodeLink>
 				for more updates!
-			</p>
+			</p> */}
 		</div>
 	)
 }

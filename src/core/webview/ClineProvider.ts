@@ -29,7 +29,22 @@ import { getUri } from "./getUri"
 import { AutoApprovalSettings, DEFAULT_AUTO_APPROVAL_SETTINGS } from "../../shared/AutoApprovalSettings"
 import { BrowserSettings, DEFAULT_BROWSER_SETTINGS } from "../../shared/BrowserSettings"
 import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "../../shared/ChatSettings"
-import { DIFF_VIEW_URI_SCHEME } from "../../integrations/editor/DiffViewProvider"
+import {
+	agentName,
+	productName,
+	publisherName,
+	sideBarId,
+	tabPanelId,
+	rulesFile,
+	uiMessagesFile,
+	mcpSettingsFile,
+	modelSettingsO3Mini,
+	openRouterModelsFile,
+	apiConversationHistoryFile,
+	latestAnnouncementId,
+	extensionId,
+	apiBaseUrl,
+} from "../../shared/Configuration"
 import { searchCommits } from "../../utils/git"
 import { ChatContent } from "../../shared/ChatContent"
 
@@ -95,24 +110,24 @@ type GlobalStateKey =
 	| "mcpMarketplaceCatalog"
 
 export const GlobalFileNames = {
-	apiConversationHistory: "api_conversation_history.json",
-	uiMessages: "ui_messages.json",
-	openRouterModels: "openrouter_models.json",
-	mcpSettings: "cline_mcp_settings.json",
-	clineRules: ".clinerules",
+	apiConversationHistory: `${apiConversationHistoryFile}`,
+	uiMessages: `${uiMessagesFile}`,
+	openRouterModels: `${openRouterModelsFile}`,
+	mcpSettings: `${mcpSettingsFile}`,
+	clineRules: `${rulesFile}`,
 }
 
 export class ClineProvider implements vscode.WebviewViewProvider {
-	public static readonly sideBarId = "claude-dev.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
-	public static readonly tabPanelId = "claude-dev.TabPanelProvider"
+	public static readonly sideBarId = `${sideBarId}` // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
+	public static readonly tabPanelId = `${tabPanelId}`
 	private static activeInstances: Set<ClineProvider> = new Set()
 	private disposables: vscode.Disposable[] = []
 	private view?: vscode.WebviewView | vscode.WebviewPanel
 	private cline?: Cline
 	workspaceTracker?: WorkspaceTracker
 	mcpHub?: McpHub
-	private authManager: FirebaseAuthManager
-	private latestAnnouncementId = "feb-19-2025" // update to some unique identifier when we add a new announcement
+	// private authManager: FirebaseAuthManager
+	private latestAnnouncementId = `${latestAnnouncementId}` // update to some unique identifier when we add a new announcement
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -122,7 +137,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 		ClineProvider.activeInstances.add(this)
 		this.workspaceTracker = new WorkspaceTracker(this)
 		this.mcpHub = new McpHub(this)
-		this.authManager = new FirebaseAuthManager(this)
+		// this.authManager = new FirebaseAuthManager(this)
 	}
 
 	/*
@@ -148,7 +163,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 		this.workspaceTracker = undefined
 		this.mcpHub?.dispose()
 		this.mcpHub = undefined
-		this.authManager.dispose()
+		// this.authManager.dispose()
 		this.outputChannel.appendLine("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 	}
@@ -156,8 +171,8 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 	// Auth methods
 	async handleSignOut() {
 		try {
-			await this.authManager.signOut()
-			vscode.window.showInformationMessage("Successfully logged out of Cline")
+			// await this.authManager.signOut()
+			vscode.window.showInformationMessage(`Successfully logged out of ${agentName}`)
 		} catch (error) {
 			vscode.window.showErrorMessage("Logout failed")
 		}
@@ -250,7 +265,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 						text: JSON.stringify(await getTheme()),
 					})
 				}
-				if (e && e.affectsConfiguration("cline.mcpMarketplace.enabled")) {
+				if (e && e.affectsConfiguration(`${productName}.mcpMarketplace.enabled`)) {
 					// Update state when marketplace tab setting changes
 					await this.postStateToWebview()
 				}
@@ -367,7 +382,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
             <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} https: data:; script-src 'nonce-${nonce}';">
             <link rel="stylesheet" type="text/css" href="${stylesUri}">
 			<link href="${codiconsUri}" rel="stylesheet" />
-            <title>Cline</title>
+            <title>${agentName}</title>
           </head>
           <body>
             <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -654,7 +669,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 							await pWaitFor(() => this.cline?.isInitialized === true, {
 								timeout: 3_000,
 							}).catch(() => {
-								console.error("Failed to init new cline instance")
+								console.error(`Failed to init new ${productName} instance`)
 							})
 							// NOTE: cancelTask awaits abortTask, which awaits diffViewProvider.revertChanges, which reverts any edited files, allowing us to reset to a checkpoint rather than running into a state where the revertChanges function is called alongside or after the checkpoint reset
 							await this.cline?.restoreCheckpoint(message.number, message.text! as ClineCheckpointRestore)
@@ -687,10 +702,11 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 
 						const uriScheme = vscode.env.uriScheme
 
-						const authUrl = vscode.Uri.parse(
-							`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://saoudrizwan.claude-dev/auth`)}`,
+						/* const authUrl = vscode.Uri.parse(
+							`${apiBaseUrl}/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://${extensionId}/auth`)}`,
 						)
-						vscode.env.openExternal(authUrl)
+						vscode.env.openExternal(authUrl)  */
+
 						break
 					}
 					case "accountLogoutClicked": {
@@ -722,7 +738,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 
 							// 2. Enable MCP settings if disabled
 							// Enable MCP mode if disabled
-							const mcpConfig = vscode.workspace.getConfiguration("cline.mcp")
+							const mcpConfig = vscode.workspace.getConfiguration(`${productName}.mcp`)
 							if (mcpConfig.get<string>("mode") !== "full") {
 								await mcpConfig.update("mode", "full", true)
 							}
@@ -824,7 +840,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 						const settingsFilter = message.text || ""
 						await vscode.commands.executeCommand(
 							"workbench.action.openSettings",
-							`@ext:saoudrizwan.claude-dev ${settingsFilter}`.trim(), // trim whitespace if no settings filter
+							`@ext:${extensionId} ${settingsFilter}`.trim(), // trim whitespace if no settings filter
 						)
 						break
 					}
@@ -950,18 +966,18 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 		this.postMessageToWebview({ type: "emailSubscribed" })
 		// Currently ignoring errors to this endpoint, but after accounts we'll remove this anyways
 		try {
-			const response = await axios.post(
-				"https://app.cline.bot/api/mailing-list",
-				{
-					email: email,
-				},
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-				},
-			)
-			console.log("Email subscribed successfully. Response:", response.data)
+			// const response = await axios.post(
+			// 	"https://app.cline.bot/api/mailing-list",
+			// 	{
+			// 		email: email,
+			// 	},
+			// 	{
+			// 		headers: {
+			// 			"Content-Type": "application/json",
+			// 		},
+			// 	},
+			// )
+			// console.log("Email subscribed successfully. Response:", response.data)
 		} catch (error) {
 			console.error("Failed to subscribe email:", error)
 		}
@@ -1028,11 +1044,11 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 
 	async ensureMcpServersDirectoryExists(): Promise<string> {
 		const userDocumentsPath = await this.getDocumentsPath()
-		const mcpServersDir = path.join(userDocumentsPath, "Cline", "MCP")
+		const mcpServersDir = path.join(userDocumentsPath, `${agentName}`, "MCP")
 		try {
 			await fs.mkdir(mcpServersDir, { recursive: true })
 		} catch (error) {
-			return "~/Documents/Cline/MCP" // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+			return `~/Documents/${agentName}/MCP` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
 		}
 		return mcpServersDir
 	}
@@ -1107,15 +1123,14 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 	async handleAuthCallback(token: string) {
 		try {
 			// First sign in with Firebase to trigger auth state change
-			await this.authManager.signInWithCustomToken(token)
-
+			//await this.authManager.signInWithCustomToken(token)
 			// Then store the token securely
-			await this.storeSecret("authToken", token)
-			await this.postStateToWebview()
-			vscode.window.showInformationMessage("Successfully logged in to Cline")
+			// await this.storeSecret("authToken", token)
+			// await this.postStateToWebview()
+			// vscode.window.showInformationMessage(`Successfully logged in to ${agentName}`)
 		} catch (error) {
 			console.error("Failed to handle auth callback:", error)
-			vscode.window.showErrorMessage("Failed to log in to Cline")
+			vscode.window.showErrorMessage(`Failed to log in to ${agentName}`)
 		}
 	}
 
@@ -1247,7 +1262,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 
 			// Create task with context from README
 			const task = `Set up the MCP server from ${mcpDetails.githubUrl}. 
-Use "${mcpDetails.mcpId}" as the server name in cline_mcp_settings.json.
+Use "${mcpDetails.mcpId}" as the server name in mcp_settings.json.
 Once installed, demonstrate the server's capabilities by using one of its tools.
 Here is the project's README to help you get started:\n\n${mcpDetails.readmeContent}\n${mcpDetails.llmsInstallationContent}`
 
@@ -1778,11 +1793,9 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 			}
 		}
 
-		const o3MiniReasoningEffort = vscode.workspace
-			.getConfiguration("cline.modelSettings.o3Mini")
-			.get("reasoningEffort", "medium")
+		const o3MiniReasoningEffort = vscode.workspace.getConfiguration(modelSettingsO3Mini).get("reasoningEffort", "medium")
 
-		const mcpMarketplaceEnabled = vscode.workspace.getConfiguration("cline").get<boolean>("mcpMarketplace.enabled", true)
+		const mcpMarketplaceEnabled = vscode.workspace.getConfiguration(productName).get<boolean>("mcpMarketplace.enabled", true)
 
 		return {
 			apiConfiguration: {

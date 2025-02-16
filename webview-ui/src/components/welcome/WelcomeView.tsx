@@ -6,6 +6,7 @@ import { vscode } from "../../utils/vscode"
 import ApiOptions from "../settings/ApiOptions"
 import { useEvent } from "react-use"
 import { ExtensionMessage } from "../../../../src/shared/ExtensionMessage"
+import { agentName } from "../../../../src/shared/Configuration"
 
 const WelcomeView = () => {
 	const { apiConfiguration } = useExtensionState()
@@ -56,22 +57,23 @@ const WelcomeView = () => {
 					padding: "0 20px",
 					overflow: "auto",
 				}}>
-				<h2>Hi, I'm Cline</h2>
+				<h2>Hi, I'm {agentName}</h2>
 				<p>
-					I can do all kinds of tasks thanks to the latest breakthroughs in{" "}
+					I can do all kinds of tasks{" "}
+					{/* thanks to the latest breakthroughs in{" "}
 					<VSCodeLink
 						href="https://www-cdn.anthropic.com/fed9cc193a14b84131812372d8d5857f8f304c52/Model_Card_Claude_3_Addendum.pdf"
 						style={{ display: "inline" }}>
 						Claude 3.5 Sonnet's agentic coding capabilities
-					</VSCodeLink>{" "}
-					and access to tools that let me create & edit files, explore complex projects, use the browser, and execute
+					</VSCodeLink>{" "} */}
+					and access tools that let me create & edit files, explore complex projects, use the browser, and execute
 					terminal commands (with your permission, of course). I can even use MCP to create new tools and extend my own
 					capabilities.
 				</p>
 
-				<b>To get started, this extension needs an API provider for Claude 3.5 Sonnet.</b>
+				<b>To get started, I need access to an AI API provider.</b>
 
-				<div
+				{/* <div
 					style={{
 						marginTop: "15px",
 						padding: isSubscribed ? "5px 15px 5px 15px" : "12px",
@@ -104,7 +106,7 @@ const WelcomeView = () => {
 							</div>
 						</>
 					)}
-				</div>
+				</div> */}
 
 				<div style={{ marginTop: "15px" }}>
 					<ApiOptions showModelOptions={false} />

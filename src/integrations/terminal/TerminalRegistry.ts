@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { agentName, extensionIconDarkPathSegments, extensionIconLightPathSegments, extensionId } from "../../shared/Configuration"
 
 export interface TerminalInfo {
 	terminal: vscode.Terminal
@@ -14,10 +15,18 @@ export class TerminalRegistry {
 	private static nextTerminalId = 1
 
 	static createTerminal(cwd?: string | vscode.Uri | undefined): TerminalInfo {
-		const terminal = vscode.window.createTerminal({
+		const extensionUri = vscode.extensions.getExtension(extensionId)?.extensionUri
+		const terminal = vscode.window.createTerminal(<vscode.TerminalOptions>{
 			cwd,
-			name: "Cline",
-			iconPath: new vscode.ThemeIcon("robot"),
+			name: agentName,
+			iconPath: {
+				light: extensionUri
+					? vscode.Uri.joinPath(extensionUri, ...extensionIconLightPathSegments)
+					: new vscode.ThemeIcon("terminal"),
+				dark: extensionUri
+					? vscode.Uri.joinPath(extensionUri, ...extensionIconDarkPathSegments)
+					: new vscode.ThemeIcon("terminal"),
+			},
 		})
 		const newInfo: TerminalInfo = {
 			terminal,

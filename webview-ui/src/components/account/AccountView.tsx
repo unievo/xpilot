@@ -72,7 +72,7 @@ const AccountView = ({ onDone }: AccountViewProps) => {
 							<VSCodeButton onClick={handleLogout}>Log out</VSCodeButton>
 						</>
 					) : (
-						<VSCodeButton onClick={handleLogin}>Log in to Cline</VSCodeButton>
+						<VSCodeButton onClick={handleLogin}>Log in</VSCodeButton>
 					)}
 				</div>
 			</div>

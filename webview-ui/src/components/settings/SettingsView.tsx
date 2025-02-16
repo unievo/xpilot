@@ -5,6 +5,7 @@ import { validateApiConfiguration, validateModelId } from "../../utils/validate"
 import { vscode } from "../../utils/vscode"
 import ApiOptions from "./ApiOptions"
 import SettingsButton from "../common/SettingsButton"
+import { repoUrl } from "../../../../src/shared/Configuration"
 const IS_DEV = false // FIXME: use flags when packaging
 
 type SettingsViewProps = {
@@ -162,8 +163,8 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 							padding: 0,
 						}}>
 						If you have any questions or feedback, feel free to open an issue at{" "}
-						<VSCodeLink href="https://github.com/cline/cline" style={{ display: "inline" }}>
-							https://github.com/cline/cline
+						<VSCodeLink href={repoUrl} style={{ display: "inline" }}>
+							{repoUrl}
 						</VSCodeLink>
 					</p>
 					<p

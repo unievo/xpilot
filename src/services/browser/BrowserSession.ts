@@ -9,6 +9,7 @@ import delay from "delay"
 import { fileExistsAtPath } from "../../utils/fs"
 import { BrowserActionResult } from "../../shared/ExtensionMessage"
 import { BrowserSettings } from "../../shared/BrowserSettings"
+import { productName } from "../../shared/Configuration"
 // import * as chromeLauncher from "chrome-launcher"
 
 interface PCRStats {
@@ -42,7 +43,7 @@ export class BrowserSession {
 			await fs.mkdir(puppeteerDir, { recursive: true })
 		}
 
-		const chromeExecutablePath = vscode.workspace.getConfiguration("cline").get<string>("chromeExecutablePath")
+		const chromeExecutablePath = vscode.workspace.getConfiguration(productName).get<string>("chromeExecutablePath")
 		if (chromeExecutablePath && !(await fileExistsAtPath(chromeExecutablePath))) {
 			throw new Error(`Chrome executable not found at path: ${chromeExecutablePath}`)
 		}

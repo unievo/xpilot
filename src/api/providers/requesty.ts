@@ -5,6 +5,7 @@ import { ApiHandlerOptions, ModelInfo, openAiModelInfoSaneDefaults } from "../..
 import { ApiHandler } from "../index"
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
+import { agentName, homePageUrl } from "../../shared/Configuration"
 
 export class RequestyHandler implements ApiHandler {
 	private options: ApiHandlerOptions
@@ -16,8 +17,8 @@ export class RequestyHandler implements ApiHandler {
 			baseURL: "https://router.requesty.ai/v1",
 			apiKey: this.options.requestyApiKey,
 			defaultHeaders: {
-				"HTTP-Referer": "https://cline.bot",
-				"X-Title": "Cline",
+				"HTTP-Referer": `${homePageUrl}`,
+				"X-Title": `${agentName}`,
 			},
 		})
 	}

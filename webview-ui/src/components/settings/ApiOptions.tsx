@@ -42,6 +42,7 @@ import OpenRouterModelPicker, { ModelDescriptionMarkdown } from "./OpenRouterMod
 import styled from "styled-components"
 import * as vscodemodels from "vscode"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND } from "../../utils/vscStyles"
+import { agentName, extensionId } from "../../../../src/shared/Configuration"
 
 interface ApiOptionsProps {
 	showModelOptions: boolean
@@ -824,8 +825,8 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 							color: "var(--vscode-descriptionForeground)",
 						}}>
 						<span style={{ color: "var(--vscode-errorForeground)" }}>
-							(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude
-							models. Less capable models may not work as expected.)
+							(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with
+							Claude models. Less capable models may not work as expected.)
 						</span>
 					</p>
 				</div>
@@ -855,8 +856,8 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 							color: "var(--vscode-descriptionForeground)",
 						}}>
 						<span style={{ color: "var(--vscode-errorForeground)" }}>
-							(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude
-							models. Less capable models may not work as expected.)
+							(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with
+							Claude models. Less capable models may not work as expected.)
 						</span>
 					</p>
 				</div>
@@ -886,8 +887,8 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 							color: "var(--vscode-descriptionForeground)",
 						}}>
 						<span style={{ color: "var(--vscode-errorForeground)" }}>
-							(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude
-							models. Less capable models may not work as expected.)
+							(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with
+							Claude models. Less capable models may not work as expected.)
 						</span>
 					</p>
 				</div>
@@ -1014,8 +1015,8 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 						</VSCodeLink>{" "}
 						feature to use it with this extension.{" "}
 						<span style={{ color: "var(--vscode-errorForeground)" }}>
-							(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude
-							models. Less capable models may not work as expected.)
+							(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with
+							Claude models. Less capable models may not work as expected.)
 						</span>
 					</p>
 				</div>
@@ -1115,8 +1116,8 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 							quickstart guide.
 						</VSCodeLink>
 						<span style={{ color: "var(--vscode-errorForeground)" }}>
-							(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude
-							models. Less capable models may not work as expected.)
+							(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with
+							Claude models. Less capable models may not work as expected.)
 						</span>
 					</p>
 				</div>
@@ -1181,7 +1182,7 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 }
 
 export function getOpenRouterAuthUrl(uriScheme?: string) {
-	return `https://openrouter.ai/auth?callback_url=${uriScheme || "vscode"}://saoudrizwan.claude-dev/openrouter`
+	return `https://openrouter.ai/auth?callback_url=${uriScheme || "vscode"}://${extensionId}/openrouter`
 }
 
 export const formatPrice = (price: number) => {

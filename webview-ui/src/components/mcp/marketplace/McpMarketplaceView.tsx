@@ -277,7 +277,7 @@ const McpMarketplaceView = () => {
 				) : (
 					filteredItems.map((item) => <McpMarketplaceCard key={item.mcpId} item={item} installedServers={mcpServers} />)
 				)}
-				<McpSubmitCard />
+				{/* <McpSubmitCard /> */}
 			</div>
 		</div>
 	)
