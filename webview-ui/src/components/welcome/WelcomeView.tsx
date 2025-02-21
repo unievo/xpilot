@@ -59,16 +59,15 @@ const WelcomeView = () => {
 				}}>
 				<h2>Hi, I'm {agentName}</h2>
 				<p>
-					I can do all kinds of tasks{" "}
-					{/* thanks to the latest breakthroughs in{" "}
-					<VSCodeLink
-						href="https://www-cdn.anthropic.com/fed9cc193a14b84131812372d8d5857f8f304c52/Model_Card_Claude_3_Addendum.pdf"
-						style={{ display: "inline" }}>
-						Claude 3.5 Sonnet's agentic coding capabilities
-					</VSCodeLink>{" "} */}
-					and access tools that let me create & edit files, explore complex projects, use the browser, and execute
-					terminal commands (with your permission, of course). I can even use MCP to create new tools and extend my own
-					capabilities.
+					I'm here to help you build on
+					<VSCodeLink href="https://www.multiversx.com" style={{ display: "inline" }}>
+						MultiversX
+					</VSCodeLink>
+				</p>
+				<p>
+					I can access tools that let me create and edit files, solve problems and even execute commands in the terminal
+					(with your approval).
+					<br />I can also use external tools and APIs using the Model Context Protocol (MCP).
 				</p>
 
 				<b>To get started, I need access to an AI API provider.</b>
@@ -89,8 +88,7 @@ const WelcomeView = () => {
 					) : (
 						<>
 							<p style={{ margin: 0, marginBottom: "8px" }}>
-								While Cline currently requires you bring your own API key, we are working on an official accounts
-								system with additional capabilities. Subscribe to our mailing list to get updates!
+								Subscribe to our mailing list to get updates!
 							</p>
 							<div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 								<VSCodeTextField

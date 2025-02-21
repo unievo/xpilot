@@ -1,7 +1,7 @@
 {
-	"name": "astro",
-	"displayName": "Astro",
-	"description": "Autonomous coding agent.",
+	"name": "xpilot",
+	"displayName": "xPilot",
+	"description": "xPilot is an autonomous AI software engineer with a mission to accelerate application development on [MultiversX](https://multiversx.com/)",
 	"version": "0.1.0",
 	"icon": "assets/icons/icon_color.png",
 	"galleryBanner": {
@@ -18,9 +18,9 @@
 	"publisher": "Unievo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/unievo/astro"
+		"url": "https://github.com/unievo/xpilot"
 	},
-	"homepage": "https://github.com/unievo/astro",
+	"homepage": "https://github.com/unievo/xpilot",
 	"categories": [
 		"AI",
 		"Chat",
@@ -30,7 +30,7 @@
 		"Testing"
 	],
 	"keywords": [
-		"astro",
+		"xpilot",
 		"claude",
 		"dev",
 		"mcp",
@@ -49,86 +49,86 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "astro-ActivityBar",
-					"title": "Astro",
+					"id": "xpilot-ActivityBar",
+					"title": "xPilot",
 					"icon": "assets/icons/icon_light.png"
 				}
 			]
 		},
 		"views": {
-			"astro-ActivityBar": [
+			"xpilot-ActivityBar": [
 				{
 					"type": "webview",
-					"id": "astro.SidebarProvider",
+					"id": "xpilot.SidebarProvider",
 					"name": "Dashboard"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "astro.plusButtonClicked",
+				"command": "xpilot.plusButtonClicked",
 				"title": "New Task",
 				"icon": "$(add)"
 			},
 			{
-				"command": "astro.mcpButtonClicked",
+				"command": "xpilot.mcpButtonClicked",
 				"title": "MCP Servers",
 				"icon": "$(extensions)"
 			},
 			{
-				"command": "astro.historyButtonClicked",
+				"command": "xpilot.historyButtonClicked",
 				"title": "History",
 				"icon": "$(history)"
 			},
 			{
-				"command": "astro.popoutButtonClicked",
+				"command": "xpilot.popoutButtonClicked",
 				"title": "Open in Editor",
 				"icon": "$(link-external)"
 			},
 			{
-				"command": "astro.settingsButtonClicked",
+				"command": "xpilot.settingsButtonClicked",
 				"title": "Settings",
 				"icon": "$(settings-gear)"
 			},
 			{
-				"command": "astro.openInNewTab",
+				"command": "xpilot.openInNewTab",
 				"title": "Open In New Tab",
-				"category": "Astro"
+				"category": "xPilot"
 			}
 		],
 		"menus": {
 			"view/title": [
 				{
-					"command": "astro.plusButtonClicked",
+					"command": "xpilot.plusButtonClicked",
 					"group": "navigation@1",
-					"when": "view == astro.SidebarProvider"
+					"when": "view == xpilot.SidebarProvider"
 				},
 				{
-					"command": "astro.mcpButtonClicked",
+					"command": "xpilot.mcpButtonClicked",
 					"group": "navigation@2",
-					"when": "view == astro.SidebarProvider"
+					"when": "view == xpilot.SidebarProvider"
 				},
 				{
-					"command": "astro.historyButtonClicked",
+					"command": "xpilot.historyButtonClicked",
 					"group": "navigation@3",
-					"when": "view == astro.SidebarProvider"
+					"when": "view == xpilot.SidebarProvider"
 				},
 				{
-					"command": "astro.popoutButtonClicked",
+					"command": "xpilot.popoutButtonClicked",
 					"group": "navigation@4",
-					"when": "view == astro.SidebarProvider"
+					"when": "view == xpilot.SidebarProvider"
 				},
 				{
-					"command": "astro.settingsButtonClicked",
+					"command": "xpilot.settingsButtonClicked",
 					"group": "navigation@5",
-					"when": "view == astro.SidebarProvider"
+					"when": "view == xpilot.SidebarProvider"
 				}
 			]
 		},
 		"configuration": {
-			"title": "Astro",
+			"title": "xPilot",
 			"properties": {
-				"astro.vsCodeLmModelSelector": {
+				"xpilot.vsCodeLmModelSelector": {
 					"type": "object",
 					"properties": {
 						"vendor": {
@@ -142,7 +142,7 @@
 					},
 					"description": "Settings for VSCode Language Model API"
 				},
-				"astro.mcp.mode": {
+				"xpilot.mcp.mode": {
 					"type": "string",
 					"enum": [
 						"full",
@@ -157,17 +157,17 @@
 					"default": "full",
 					"description": "Controls MCP inclusion in prompts, reduces token usage if you only need access to certain functionality."
 				},
-				"astro.enableCheckpoints": {
+				"xpilot.enableCheckpoints": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables extension to save checkpoints of workspace throughout the tasks."
 				},
-				"astro.disableBrowserTool": {
+				"xpilot.disableBrowserTool": {
 					"type": "boolean",
 					"default": false,
 					"description": "Disables extension from spawning browser session."
 				},
-				"astro.modelSettings.o3Mini.reasoningEffort": {
+				"xpilot.modelSettings.o3Mini.reasoningEffort": {
 					"type": "string",
 					"enum": [
 						"low",
@@ -177,12 +177,12 @@
 					"default": "medium",
 					"description": "Controls the reasoning effort when using the o3-mini model. Higher values may result in more thorough but slower responses."
 				},
-				"astro.chromeExecutablePath": {
+				"xpilot.chromeExecutablePath": {
 					"type": "string",
 					"default": null,
 					"description": "Path to Chrome executable for browser use functionality. If not set, the extension will attempt to find or download it automatically."
 				},
-				"astro.mcpMarketplace.enabled": {
+				"xpilot.mcpMarketplace.enabled": {
 					"type": "boolean",
 					"default": false,
 					"description": "Controls whether the MCP Marketplace is enabled."
