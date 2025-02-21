@@ -1,10 +1,10 @@
 // Product
-export const agentName = "Astro"
-export const productName = "astro"
+export const agentName = "xPilot"
+export const productName = "xpilot"
 export const publisherName = "unievo"
-export const repoUrl = "https://github.com/unievo/astro"
-export const homePageUrl = "https://github.com/unievo/astro"
-export const apiBaseUrl = "https://api.astro.unievo.com/v1"
+export const repoUrl = "https://github.com/unievo/xpilot"
+export const homePageUrl = "https://github.com/unievo/xpilot"
+export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
 export const latestAnnouncementId = "0.1"
 
 // Files

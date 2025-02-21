@@ -1,4 +1,3 @@
-## Project Astro
+# xPilot
 
-Project Astro is an adaptation of [Cline](https://cline.bot/) for specific frameworks and use cases.
-
+xPilot is an autonomous AI software engineer with a mission to accelerate application development on [MultiversX](https://multiversx.com/)
