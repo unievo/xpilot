@@ -2,6 +2,7 @@
 export const agentName = "Astro"
 export const productName = "astro"
 export const publisherName = "unievo"
+export const initializationPrompt = `You are ${agentName}, an expert software engineer. You specialize in programming languages, frameworks, and tools.`
 export const repoUrl = "https://github.com/unievo/astro"
 export const homePageUrl = "https://github.com/unievo/astro"
 export const apiBaseUrl = "https://api.astro.unievo.com/v1"
