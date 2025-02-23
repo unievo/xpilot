@@ -2,6 +2,7 @@
 export const agentName = "xPilot"
 export const productName = "xpilot"
 export const publisherName = "unievo"
+export const initializationPrompt = `You are ${agentName}, an expert software engineer. You specialize in programming languages, frameworks, and tools.`
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
