@@ -17,7 +17,7 @@ type McpViewProps = {
 
 const McpView = ({ onDone }: McpViewProps) => {
 	const { mcpServers: servers, mcpMarketplaceEnabled } = useExtensionState()
-	const [activeTab, setActiveTab] = useState(mcpMarketplaceEnabled ? "marketplace" : "installed")
+	const [activeTab, setActiveTab] = useState("installed") //useState(mcpMarketplaceEnabled ? "marketplace" : "installed")
 
 	const handleTabChange = (tab: string) => {
 		setActiveTab(tab)
@@ -68,14 +68,14 @@ const McpView = ({ onDone }: McpViewProps) => {
 						padding: "0 20px 0 20px",
 						borderBottom: "1px solid var(--vscode-panel-border)",
 					}}>
+					<TabButton isActive={activeTab === "installed"} onClick={() => handleTabChange("installed")}>
+						Installed
+					</TabButton>
 					{mcpMarketplaceEnabled && (
 						<TabButton isActive={activeTab === "marketplace"} onClick={() => handleTabChange("marketplace")}>
 							Marketplace
 						</TabButton>
 					)}
-					<TabButton isActive={activeTab === "installed"} onClick={() => handleTabChange("installed")}>
-						Installed
-					</TabButton>
 				</div>
 
 				{/* Content container */}
@@ -95,7 +95,8 @@ const McpView = ({ onDone }: McpViewProps) => {
 									Model Context Protocol
 								</VSCodeLink>{" "}
 								enables communication with locally running MCP servers that provide additional tools and resources
-								to extend {agentName}'s capabilities. You can use{" "}
+								to extend {agentName}'s capabilities.{" "}
+								{/* You can use{" "}
 								<VSCodeLink href="https://github.com/modelcontextprotocol/servers" style={{ display: "inline" }}>
 									community-made servers
 								</VSCodeLink>{" "}
@@ -103,7 +104,7 @@ const McpView = ({ onDone }: McpViewProps) => {
 								latest npm docs").{" "}
 								<VSCodeLink href="https://x.com/sdrzn/status/1867271665086074969" style={{ display: "inline" }}>
 									See a demo here.
-								</VSCodeLink>
+								</VSCodeLink> */}
 							</div>
 
 							{servers.length > 0 ? (
