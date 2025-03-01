@@ -37,16 +37,16 @@ const ACTION_METADATA: {
 			"Allows execution of safe terminal commands. If the model determines a command is potentially destructive, it will still require approval.",
 	},
 	{
-		id: "useBrowser",
-		label: "Use the browser",
-		shortName: "Browser",
-		description: "Allows ability to launch and interact with any website in a headless browser.",
-	},
-	{
 		id: "useMcp",
 		label: "Use MCP servers",
 		shortName: "MCP",
 		description: "Allows use of configured MCP servers which may modify filesystem or interact with APIs.",
+	},
+	{
+		id: "useBrowser",
+		label: "Use the browser",
+		shortName: "Browser",
+		description: "Allows capable models to launch and interact with any website in a headless browser.",
 	},
 ]
 
@@ -218,8 +218,8 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 							color: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 							fontSize: "12px",
 						}}>
-						Auto-approve allows {agentName} to perform the following actions without asking for permission. Please use
-						with caution and only enable if you understand the risks.
+						Auto-approve allows the selected model to perform the following actions without asking for permission.
+						Please use with caution and only enable actions you want to be performed without your pre-approval.
 					</div>
 					{ACTION_METADATA.map((action) => (
 						<div key={action.id} style={{ margin: "6px 0" }}>
