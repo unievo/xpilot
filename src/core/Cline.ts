@@ -1263,7 +1263,7 @@ export class Cline {
 			throw new Error("MCP hub not available")
 		}
 
-		const disableBrowserTool = vscode.workspace.getConfiguration(productName).get<boolean>("disableBrowserTool") ?? false
+		const disableBrowserTool = !(vscode.workspace.getConfiguration(productName).get<boolean>("enableBrowserTool") ?? false)
 		const modelSupportsComputerUse = this.api.getModel().info.supportsComputerUse ?? false
 
 		const supportsComputerUse = modelSupportsComputerUse && !disableBrowserTool // only enable computer use if the model supports it and the user hasn't disabled it
