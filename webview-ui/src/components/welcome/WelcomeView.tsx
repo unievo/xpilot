@@ -57,20 +57,32 @@ const WelcomeView = () => {
 					padding: "0 20px",
 					overflow: "auto",
 				}}>
-				<h2>Hi, I'm {agentName}</h2>
+				<h2>Hi, I'm xPilot!</h2>
 				<p>
-					I'm here to help you build on
+					I'm an AI software engineering agent with a mission to help you build on
 					<VSCodeLink href="https://www.multiversx.com" style={{ display: "inline" }}>
 						MultiversX
 					</VSCodeLink>
 				</p>
 				<p>
-					I can access tools that let me create and edit files, solve problems and even execute commands in the terminal
-					(with your approval).
-					<br />I can also use external tools and APIs using the Model Context Protocol (MCP).
+					I can use AI models to plan and execute tasks, create and edit files, read terminal output and even execute
+					commands in the terminal. I'm also able to access external tools, resources and APIs using the Model Context
+					Protocol (MCP).
 				</p>
-
-				<b>To get started, I need access to an AI API provider.</b>
+				<p>
+					I can work with models with different capabilities, though I achieve best results with agentic models that
+					understand coding, tools and tool use, and I prefer Claude Sonnet. Feel free to experiment with different
+					models.
+				</p>
+				<p>
+					If you already have{" "}
+					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+						Copilot
+					</VSCodeLink>{" "}
+					installed, or other VS Code extensions that provide a language model API, I can use that so you don't need to
+					configure another API key. Just select it from the VS Code provider below.
+				</p>
+				<b>To get started, select an AI API provider.</b>
 
 				{/* <div
 					style={{
