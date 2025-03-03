@@ -793,19 +793,13 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					<div style={{ padding: "0 20px", flexShrink: 0 }}>
 						<h2>How can I help?</h2>
 						{
-							<p> Usage details...</p>
-							/* <p>
-							Thanks to{" "}
-							<VSCodeLink
-								href="https://www-cdn.anthropic.com/fed9cc193a14b84131812372d8d5857f8f304c52/Model_Card_Claude_3_Addendum.pdf"
-								style={{ display: "inline" }}>
-								Claude 3.5 Sonnet's agentic coding capabilities,
-							</VSCodeLink>{" "}
-							I can handle complex software development tasks step-by-step. With tools that let me create & edit
-							files, explore complex projects, use the browser, and execute terminal commands (after you grant
-							permission), I can assist you in ways that go beyond code completion or tech support. I can even use
-							MCP to create new tools and extend my own capabilities.
-						</p> */
+							<p>
+								{" "}
+								<span className="codicon codicon-info" style={{ fontSize: "16px" }}></span> Start a new task each
+								time you want to switch to a new context. Each task accumulates content in a context window that
+								is sent to the model with each new request. To optimize context window length and model token
+								usage you can switch between previous tasks in history at any time.{" "}
+							</p>
 						}
 					</div>
 					{taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}

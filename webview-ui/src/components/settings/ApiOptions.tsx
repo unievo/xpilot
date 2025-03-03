@@ -180,6 +180,7 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 						minWidth: 130,
 						position: "relative",
 					}}>
+					<VSCodeOption value="vscode-lm">VS Code</VSCodeOption>
 					<VSCodeOption value="openrouter">OpenRouter</VSCodeOption>
 					<VSCodeOption value="vscode-lm">VS Code</VSCodeOption>
 					<VSCodeOption value="anthropic">Anthropic</VSCodeOption>
@@ -950,7 +951,7 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 								color: "var(--vscode-descriptionForeground)",
 								fontWeight: 500,
 							}}>
-							NOTE: Some models may not work as expected. For best results use Claude models.
+							NOTE: Some models work better than others. For best results use Claude Sonnet models.
 						</p>
 					</DropdownContainer>
 				</div>

@@ -1137,6 +1137,14 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 	// MCP Marketplace
 
 	private async fetchMcpMarketplaceFromApi(silent: boolean = false): Promise<McpMarketplaceCatalog | undefined> {
+		//// Temporary disable marketplace
+		const catalog: McpMarketplaceCatalog = {
+			items: [],
+		}
+		await this.updateGlobalState("mcpMarketplaceCatalog", catalog)
+		return undefined
+		////
+
 		try {
 			const response = await axios.get("https://api.cline.bot/v1/mcp/marketplace", {
 				headers: {
