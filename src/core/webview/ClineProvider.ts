@@ -32,7 +32,6 @@ import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "../../shared/ChatSettings"
 import {
 	agentName,
 	productName,
-	publisherName,
 	sideBarId,
 	tabPanelId,
 	rulesFile,
@@ -44,6 +43,7 @@ import {
 	latestAnnouncementId,
 	extensionId,
 	apiBaseUrl,
+	mcpServersPathSegments,
 } from "../../shared/Configuration"
 import { searchCommits } from "../../utils/git"
 import { ChatContent } from "../../shared/ChatContent"
@@ -1044,11 +1044,11 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 
 	async ensureMcpServersDirectoryExists(): Promise<string> {
 		const userDocumentsPath = await this.getDocumentsPath()
-		const mcpServersDir = path.join(userDocumentsPath, `${agentName}`, "MCP")
+		const mcpServersDir = path.join(userDocumentsPath, ...mcpServersPathSegments)
 		try {
 			await fs.mkdir(mcpServersDir, { recursive: true })
 		} catch (error) {
-			return `~/Documents/${agentName}/MCP` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+			return `~/Documents/${agentName}/mcp/servers` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
 		}
 		return mcpServersDir
 	}
