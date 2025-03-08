@@ -9,14 +9,15 @@ export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
 export const latestAnnouncementId = "0.1.0"
 
 // Files
-export const extensionIconLightPathSegments = ["assets", "icons", "icon_light.png"]
-export const extensionIconDarkPathSegments = ["assets", "icons", "icon_dark.png"]
-export const uiMessagesFile = `ui_messages.json`
-export const apiConversationHistoryFile = `api_conversation_history.json`
-export const openRouterModelsFile = `open_router_models.json`
 export const mcpSettingsFile = `mcp_settings.json`
+export const mcpServersPathSegments = [`${agentName}`, "mcp", "servers"]
 export const rulesFile = `.${productName}rules.json`
 export const ignoreFile = `.${productName}ignore`
+export const openRouterModelsFile = `open_router_models.json`
+export const uiMessagesFile = `ui_messages.json`
+export const apiConversationHistoryFile = `api_conversation_history.json`
+export const extensionIconLightPathSegments = ["assets", "icons", "icon_light.png"]
+export const extensionIconDarkPathSegments = ["assets", "icons", "icon_dark.png"]
 
 // Extension
 export const extensionId = `${publisherName}.${productName}`
