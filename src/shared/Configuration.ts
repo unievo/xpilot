@@ -15,7 +15,7 @@ export const uiMessagesFile = `ui_messages.json`
 export const apiConversationHistoryFile = `api_conversation_history.json`
 export const openRouterModelsFile = `open_router_models.json`
 export const mcpSettingsFile = `mcp_settings.json`
-export const rulesFile = `.${productName}rules.json`
+export const rulesFile = `.${productName}rules`
 export const ignoreFile = `.${productName}ignore`
 
 // Extension
