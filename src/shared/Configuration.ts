@@ -11,7 +11,7 @@ export const latestAnnouncementId = "0.1.0"
 // Files
 export const mcpSettingsFile = `mcp_settings.json`
 export const mcpServersPathSegments = [`${agentName}`, "mcp", "servers"]
-export const rulesFile = `.${productName}rules.json`
+export const rulesFile = `.${productName}rules`
 export const ignoreFile = `.${productName}ignore`
 export const openRouterModelsFile = `open_router_models.json`
 export const uiMessagesFile = `ui_messages.json`
