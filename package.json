@@ -154,18 +154,18 @@
 						"Enable MCP server use only (excludes instructions about building MCP servers)",
 						"Disable all MCP functionality"
 					],
-					"default": "full",
+					"default": "server-use-only",
 					"description": "Controls MCP inclusion in prompts, reduces token usage if you only need access to certain functionality."
 				},
 				"astro.enableCheckpoints": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables extension to save checkpoints of workspace throughout the tasks."
+					"description": "Enables extension to save checkpoints of workspace throughout the tasks (requires Git installed)."
 				},
-				"astro.disableBrowserTool": {
+				"astro.enableBrowserTool": {
 					"type": "boolean",
 					"default": false,
-					"description": "Disables extension from spawning browser session."
+					"description": "Enables use of browser session on supporting models."
 				},
 				"astro.modelSettings.o3Mini.reasoningEffort": {
 					"type": "string",

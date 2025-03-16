@@ -57,21 +57,27 @@ const WelcomeView = () => {
 					padding: "0 20px",
 					overflow: "auto",
 				}}>
-				<h2>Hi, I'm {agentName}</h2>
+				<h2>Hi, I'm {agentName}!</h2>
+				<p>I'm an AI software engineering agent.</p>
 				<p>
-					I can do all kinds of tasks{" "}
-					{/* thanks to the latest breakthroughs in{" "}
-					<VSCodeLink
-						href="https://www-cdn.anthropic.com/fed9cc193a14b84131812372d8d5857f8f304c52/Model_Card_Claude_3_Addendum.pdf"
-						style={{ display: "inline" }}>
-						Claude 3.5 Sonnet's agentic coding capabilities
-					</VSCodeLink>{" "} */}
-					and access tools that let me create & edit files, explore complex projects, use the browser, and execute
-					terminal commands (with your permission, of course). I can even use MCP to create new tools and extend my own
-					capabilities.
+					I can use AI models to plan and execute tasks, create and edit files, read terminal output and even execute
+					commands in the terminal. I'm also able to access external tools, resources and APIs using the Model Context
+					Protocol (MCP).
 				</p>
-
-				<b>To get started, I need access to an AI API provider.</b>
+				<p>
+					I can work with models with different capabilities, though I achieve best results with agentic models that
+					understand coding, tools and tool use, and I prefer Claude Sonnet. Feel free to experiment with different
+					models.
+				</p>
+				<p>
+					If you already have{" "}
+					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+						Copilot
+					</VSCodeLink>{" "}
+					installed, or other VS Code extensions that provide a language model API, I can use that so you don't need to
+					configure another API key. Just select it from the VS Code provider below.
+				</p>
+				<b>To get started, select an AI API provider.</b>
 
 				{/* <div
 					style={{

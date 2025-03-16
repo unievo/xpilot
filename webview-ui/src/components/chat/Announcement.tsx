@@ -32,9 +32,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</h3>
 			{
 				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
-					<li>
-						<b>This is where new features of {agentName} will be announced.</b>
-					</li>
+					Welcome to the initial release of <b>{agentName}</b>! This is where new features will be announced.
 				</ul>
 
 				/* <ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
