@@ -103,7 +103,7 @@ const McpView = ({ onDone }: McpViewProps) => {
 									Model Context Protocol
 								</VSCodeLink>{" "}
 								enables communication with locally running MCP servers that provide additional tools and resources
-								to extend {agentName}'s capabilities. 
+								to extend {agentName}'s capabilities.
 								{/* You can use{" "}
 								<VSCodeLink href="https://github.com/modelcontextprotocol/servers" style={{ display: "inline" }}>
 									community-made servers
