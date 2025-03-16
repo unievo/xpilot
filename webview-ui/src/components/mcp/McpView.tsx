@@ -1,7 +1,15 @@
-import { VSCodeButton, VSCodeLink, VSCodePanels, VSCodePanelTab, VSCodePanelView } from "@vscode/webview-ui-toolkit/react"
+import {
+	VSCodeButton,
+	VSCodeLink,
+	VSCodePanels,
+	VSCodePanelTab,
+	VSCodePanelView,
+	VSCodeDropdown,
+	VSCodeOption,
+} from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState } from "react"
 import styled from "styled-components"
-import { McpServer } from "../../../../src/shared/mcp"
+import { DEFAULT_MCP_TIMEOUT_SECONDS, McpServer } from "../../../../src/shared/mcp"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { getMcpServerDisplayName } from "../../utils/mcp"
 import { vscode } from "../../utils/vscode"
@@ -95,7 +103,7 @@ const McpView = ({ onDone }: McpViewProps) => {
 									Model Context Protocol
 								</VSCodeLink>{" "}
 								enables communication with locally running MCP servers that provide additional tools and resources
-								to extend {agentName}'s capabilities.{" "}
+								to extend {agentName}'s capabilities.
 								{/* You can use{" "}
 								<VSCodeLink href="https://github.com/modelcontextprotocol/servers" style={{ display: "inline" }}>
 									community-made servers
@@ -182,7 +190,15 @@ const StyledTabButton = styled.button<{ isActive: boolean }>`
 	}
 `
 
-const TabButton = ({ children, isActive, onClick }: { children: React.ReactNode; isActive: boolean; onClick: () => void }) => (
+export const TabButton = ({
+	children,
+	isActive,
+	onClick,
+}: {
+	children: React.ReactNode
+	isActive: boolean
+	onClick: () => void
+}) => (
 	<StyledTabButton isActive={isActive} onClick={onClick}>
 		{children}
 	</StyledTabButton>
@@ -210,6 +226,36 @@ const ServerRow = ({ server }: { server: McpServer }) => {
 		if (!server.error) {
 			setIsExpanded(!isExpanded)
 		}
+	}
+
+	const [timeoutValue, setTimeoutValue] = useState<string>(() => {
+		try {
+			const config = JSON.parse(server.config)
+			return config.timeout?.toString() || DEFAULT_MCP_TIMEOUT_SECONDS.toString()
+		} catch {
+			return DEFAULT_MCP_TIMEOUT_SECONDS.toString()
+		}
+	})
+
+	const timeoutOptions = [
+		{ value: "30", label: "30 seconds" },
+		{ value: "60", label: "1 minute" },
+		{ value: "300", label: "5 minutes" },
+		{ value: "600", label: "10 minutes" },
+		{ value: "1800", label: "30 minutes" },
+		{ value: "3600", label: "1 hour" },
+	]
+
+	const handleTimeoutChange = (e: any) => {
+		const select = e.target as HTMLSelectElement
+		const value = select.value
+		const num = parseInt(value)
+		setTimeoutValue(value)
+		vscode.postMessage({
+			type: "updateMcpTimeout",
+			serverName: server.name,
+			timeout: num,
+		})
 	}
 
 	const handleRestart = () => {
@@ -412,6 +458,16 @@ const ServerRow = ({ server }: { server: McpServer }) => {
 							</VSCodePanelView>
 						</VSCodePanels>
 
+						<div style={{ margin: "10px 7px" }}>
+							<label style={{ display: "block", marginBottom: "4px", fontSize: "13px" }}>Request Timeout</label>
+							<VSCodeDropdown style={{ width: "100%" }} value={timeoutValue} onChange={handleTimeoutChange}>
+								{timeoutOptions.map((option) => (
+									<VSCodeOption key={option.value} value={option.value}>
+										{option.label}
+									</VSCodeOption>
+								))}
+							</VSCodeDropdown>
+						</div>
 						<VSCodeButton
 							appearance="secondary"
 							onClick={handleRestart}
