@@ -32,10 +32,24 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</h3>
 			{
 				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
-					Welcome to the initial release of <b>{agentName}</b>! This is where new features will be announced.
+					<li>Cline v3.7.0 features update</li>
+					<li>
+						Added Romanian{" "}
+						<VSCodeLink
+							onClick={() => {
+								vscode.postMessage({
+									type: "openExtensionSettings",
+									text: "preferred language",
+								})
+							}}
+							style={{ fontSize: "12px" }}>
+							preferred language
+						</VSCodeLink>{" "}
+						support
+					</li>
 				</ul>
-
-				/* <ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				<li>
 					<b>Introducing MCP Marketplace:</b> Discover and install the best MCP servers right from the extension, with
 					new servers added regularly! Get started by going to the{" "}

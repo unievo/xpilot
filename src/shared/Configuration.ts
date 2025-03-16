@@ -6,7 +6,7 @@ export const initializationPrompt = `You are ${agentName}, an expert software en
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
-export const latestAnnouncementId = "0.1.0"
+export const latestAnnouncementId = "0.2.0"
 
 // Files
 export const mcpSettingsFile = `mcp_settings.json`
