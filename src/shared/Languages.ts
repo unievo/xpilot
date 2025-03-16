@@ -12,6 +12,7 @@ export type LanguageKey =
 	| "ko"
 	| "pl"
 	| "pt-PT"
+	| "ro"
 	| "ru"
 	| "zh-CN"
 	| "es"
@@ -32,6 +33,7 @@ export type LanguageDisplay =
 	| "Korean - 한국어"
 	| "Polish - Polski"
 	| "Portuguese - Português (Portugal)"
+	| "Romanian - Română"
 	| "Russian - Русский"
 	| "Simplified Chinese - 简体中文"
 	| "Spanish - Español"
@@ -54,6 +56,7 @@ export const languageOptions: { key: LanguageKey; display: LanguageDisplay }[] =
 	{ key: "ko", display: "Korean - 한국어" },
 	{ key: "pl", display: "Polish - Polski" },
 	{ key: "pt-PT", display: "Portuguese - Português (Portugal)" },
+	{ key: "ro", display: "Romanian - Română" },
 	{ key: "ru", display: "Russian - Русский" },
 	{ key: "zh-CN", display: "Simplified Chinese - 简体中文" },
 	{ key: "es", display: "Spanish - Español" },
