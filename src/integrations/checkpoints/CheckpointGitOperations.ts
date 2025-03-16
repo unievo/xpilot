@@ -5,6 +5,7 @@ import simpleGit, { SimpleGit } from "simple-git"
 import { fileExistsAtPath } from "../../utils/fs"
 import { getLfsPatterns, writeExcludesFile } from "./CheckpointExclusions"
 import { telemetryService } from "../../services/telemetry/TelemetryService"
+import { agentName } from "../../shared/Configuration"
 
 interface CheckpointAddResult {
 	success: boolean
@@ -83,8 +84,8 @@ export class GitOperations {
 		// Configure repo with git settings
 		await git.addConfig("core.worktree", cwd)
 		await git.addConfig("commit.gpgSign", "false")
-		await git.addConfig("user.name", "Cline Checkpoint")
-		await git.addConfig("user.email", "checkpoint@cline.bot")
+		await git.addConfig("user.name", `${agentName} Checkpoint`)
+		await git.addConfig("user.email", "noreply@example.com")
 
 		// Set up LFS patterns
 		const lfsPatterns = await getLfsPatterns(cwd)

@@ -1288,7 +1288,7 @@ export class Cline {
 
 		let settingsCustomInstructions = this.customInstructions?.trim()
 		const preferredLanguage = getLanguageKey(
-			vscode.workspace.getConfiguration("cline").get<LanguageDisplay>("preferredLanguage"),
+			vscode.workspace.getConfiguration(productName).get<LanguageDisplay>("preferredLanguage"),
 		)
 		const preferredLanguageInstructions =
 			preferredLanguage && preferredLanguage !== DEFAULT_LANGUAGE_SETTINGS
