@@ -732,10 +732,10 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 
 						const uriScheme = vscode.env.uriScheme
 
-						/* const authUrl = vscode.Uri.parse(
-							`${apiBaseUrl}/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://${extensionId}/auth`)}`,
+						const authUrl = vscode.Uri.parse(
+							`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://${extensionId}/auth`)}`,
 						)
-						vscode.env.openExternal(authUrl)  */
+						vscode.env.openExternal(authUrl)
 
 						break
 					}
