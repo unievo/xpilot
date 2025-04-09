@@ -11,7 +11,7 @@ export const McpServerUsePrompt = async (
 
 The Model Context Protocol (MCP) enables communication with MCP servers that provide additional capabilities.
 
-## Connected MCP Servers
+## Connected MCP Servers List
 
 ${
 	mcpHub.getServers().length > 0
@@ -42,11 +42,13 @@ ${
 
 					return (
 						`### ${server.name} (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` +
-						(tools ? `\n\n#### Additional tools accessible using the "use_mcp_tool" \n${tools}` : "") +
-						(templates
-							? `\n\n#### Resource templates accessible using the "access_mcp_resource" \n${templates}`
+						(tools ? `\n\n#### ATL (Additional tools list) accessible using the "use_mcp_tool" \n\n${tools}` : "") +
+						(resources
+							? `\n\n#### RL (Resources list) accessible using the "access_mcp_resource" \n\n${resources}`
 							: "") +
-						(resources ? `\n\n#### Resources accessible using the "access_mcp_resource" \n${resources}` : "")
+						(templates
+							? `\n\n#### RTL (Resource templates list) accessible using the "access_mcp_resource" \n\n${templates}`
+							: "")
 					)
 				})
 				.join("\n\n")}`
