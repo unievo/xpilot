@@ -2,7 +2,7 @@
 	"name": "xpilot",
 	"displayName": "xPilot",
 	"description": "xPilot is an AI software engineering agent for MultiversX",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"icon": "assets/icons/icon_color.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -31,17 +31,15 @@
 	],
 	"keywords": [
 		"xpilot",
-		"claude",
-		"dev",
-		"mcp",
-		"openrouter",
+		"multiversx",
+		"ai",
+		"autonomous",
 		"coding",
 		"agent",
-		"autonomous",
+		"claude",
 		"chatgpt",
-		"sonnet",
-		"ai",
-		"llama"
+		"copilot",
+		"mcp"
 	],
 	"activationEvents": [],
 	"main": "./dist/extension.js",
