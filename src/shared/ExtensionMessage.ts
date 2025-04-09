@@ -8,6 +8,7 @@ import { ChatSettings } from "./ChatSettings"
 import { HistoryItem } from "./HistoryItem"
 import { McpServer, McpMarketplaceCatalog, McpMarketplaceItem, McpDownloadResponse } from "./mcp"
 import { TelemetrySetting } from "./TelemetrySetting"
+import type { BalanceResponse, UsageTransaction, PaymentTransaction } from "../shared/ClineAccount"
 
 // webview will hold state
 export interface ExtensionMessage {
@@ -34,7 +35,21 @@ export interface ExtensionMessage {
 		| "openGraphData"
 		| "isImageUrlResult"
 		| "didUpdateSettings"
+		| "addRemoteServerResult"
+		| "userCreditsBalance"
+		| "userCreditsUsage"
+		| "userCreditsPayments"
+		| "totalTasksSize"
+		| "addToInput"
+		| "browserConnectionResult"
+		| "browserConnectionInfo"
+		| "detectedChromePath"
+		| "scrollToSettings"
+		| "browserRelaunchResult"
+		| "relativePathsResponse" // Handles single and multiple path responses
+		| "fileSearchResults"
 	text?: string
+	paths?: (string | null)[] // Used for relativePathsResponse
 	action?:
 		| "chatButtonClicked"
 		| "mcpButtonClicked"
@@ -43,6 +58,7 @@ export interface ExtensionMessage {
 		| "didBecomeVisible"
 		| "accountLoginClicked"
 		| "accountLogoutClicked"
+		| "accountButtonClicked"
 	invoke?: Invoke
 	state?: ExtensionState
 	images?: string[]
@@ -69,6 +85,27 @@ export interface ExtensionMessage {
 	}
 	url?: string
 	isImage?: boolean
+	userCreditsBalance?: BalanceResponse
+	userCreditsUsage?: UsageTransaction[]
+	userCreditsPayments?: PaymentTransaction[]
+	totalTasksSize?: number | null
+	success?: boolean
+	endpoint?: string
+	isBundled?: boolean
+	isConnected?: boolean
+	isRemote?: boolean
+	host?: string
+	mentionsRequestId?: string
+	results?: Array<{
+		path: string
+		type: "file" | "folder"
+		label?: string
+	}>
+	addRemoteServerResult?: {
+		success: boolean
+		serverName: string
+		error?: string
+	}
 }
 
 export type Invoke = "sendMessage" | "primaryButtonClick" | "secondaryButtonClick"
@@ -78,27 +115,28 @@ export type Platform = "aix" | "darwin" | "freebsd" | "linux" | "openbsd" | "sun
 export const DEFAULT_PLATFORM = "unknown"
 
 export interface ExtensionState {
-	version: string
 	apiConfiguration?: ApiConfiguration
-	customInstructions?: string
-	uriScheme?: string
-	currentTaskItem?: HistoryItem
-	checkpointTrackerErrorMessage?: string
-	clineMessages: ClineMessage[]
-	taskHistory: HistoryItem[]
-	shouldShowAnnouncement: boolean
 	autoApprovalSettings: AutoApprovalSettings
 	browserSettings: BrowserSettings
+	remoteBrowserHost?: string
 	chatSettings: ChatSettings
+	checkpointTrackerErrorMessage?: string
+	clineMessages: ClineMessage[]
+	currentTaskItem?: HistoryItem
+	customInstructions?: string
+	mcpMarketplaceEnabled?: boolean
+	planActSeparateModelsSetting: boolean
 	platform: Platform
+	shouldShowAnnouncement: boolean
+	taskHistory: HistoryItem[]
+	telemetrySetting: TelemetrySetting
+	uriScheme?: string
 	userInfo?: {
 		displayName: string | null
 		email: string | null
 		photoURL: string | null
 	}
-	mcpMarketplaceEnabled?: boolean
-	telemetrySetting: TelemetrySetting
-	planActSeparateModelsSetting: boolean
+	version: string
 	vscMachineId: string
 }
 
@@ -119,7 +157,7 @@ export interface ClineMessage {
 
 export type ClineAsk =
 	| "followup"
-	| "plan_mode_response"
+	| "plan_mode_respond"
 	| "command"
 	| "command_output"
 	| "completion_result"
@@ -131,6 +169,7 @@ export type ClineAsk =
 	| "auto_approval_max_req_reached"
 	| "browser_action_launch"
 	| "use_mcp_server"
+	| "new_task"
 
 export type ClineSay =
 	| "task"
@@ -191,6 +230,12 @@ export type BrowserActionResult = {
 	currentMousePosition?: string
 }
 
+export interface BrowserConnectionInfo {
+	isConnected: boolean
+	isRemote: boolean
+	host?: string
+}
+
 export interface ClineAskUseMcpServer {
 	serverName: string
 	type: "use_mcp_tool" | "access_mcp_resource"
@@ -209,6 +254,10 @@ export interface ClineAskQuestion {
 	question: string
 	options?: string[]
 	selected?: string
+}
+
+export interface ClineAskNewTask {
+	context: string
 }
 
 export interface ClineApiReqInfo {

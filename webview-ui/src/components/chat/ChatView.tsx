@@ -11,22 +11,22 @@ import {
 	ClineSayBrowserAction,
 	ClineSayTool,
 	ExtensionMessage,
-} from "../../../../src/shared/ExtensionMessage"
-import { findLast } from "../../../../src/shared/array"
-import { combineApiRequests } from "../../../../src/shared/combineApiRequests"
-import { combineCommandSequences } from "../../../../src/shared/combineCommandSequences"
-import { getApiMetrics } from "../../../../src/shared/getApiMetrics"
-import { useExtensionState } from "../../context/ExtensionStateContext"
-import { vscode } from "../../utils/vscode"
-import HistoryPreview from "../history/HistoryPreview"
-import { normalizeApiConfiguration } from "../settings/ApiOptions"
-import Announcement from "./Announcement"
-import AutoApproveMenu from "./AutoApproveMenu"
-import BrowserSessionRow from "./BrowserSessionRow"
-import ChatRow from "./ChatRow"
-import ChatTextArea from "./ChatTextArea"
-import TaskHeader from "./TaskHeader"
-import TelemetryBanner from "../common/TelemetryBanner"
+} from "@shared/ExtensionMessage"
+import { findLast } from "@shared/array"
+import { combineApiRequests } from "@shared/combineApiRequests"
+import { combineCommandSequences } from "@shared/combineCommandSequences"
+import { getApiMetrics } from "@shared/getApiMetrics"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { vscode } from "@/utils/vscode"
+import HistoryPreview from "@/components/history/HistoryPreview"
+import { normalizeApiConfiguration } from "@/components/settings/ApiOptions"
+import Announcement from "@/components/chat/Announcement"
+import AutoApproveMenu from "@/components/chat/AutoApproveMenu"
+import BrowserSessionRow from "@/components/chat/BrowserSessionRow"
+import ChatRow from "@/components/chat/ChatRow"
+import ChatTextArea from "@/components/chat/ChatTextArea"
+import TaskHeader from "@/components/chat/TaskHeader"
+import TelemetryBanner from "@/components/common/TelemetryBanner"
 
 interface ChatViewProps {
 	isHidden: boolean
@@ -119,9 +119,9 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							// setPrimaryButtonText(undefined)
 							// setSecondaryButtonText(undefined)
 							break
-						case "plan_mode_response":
+						case "plan_mode_respond":
 							setTextAreaDisabled(isPartial)
-							setClineAsk("plan_mode_response")
+							setClineAsk("plan_mode_respond")
 							setEnableButtons(false)
 							// setPrimaryButtonText(undefined)
 							// setSecondaryButtonText(undefined)
@@ -194,6 +194,13 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							setPrimaryButtonText("Start New Task")
 							setSecondaryButtonText(undefined)
 							setDidClickCancel(false)
+							break
+						case "new_task":
+							setTextAreaDisabled(isPartial)
+							setClineAsk("new_task")
+							setEnableButtons(!isPartial)
+							setPrimaryButtonText("Start New Task with Context")
+							setSecondaryButtonText(undefined)
 							break
 					}
 					break
@@ -285,7 +292,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				} else if (clineAsk) {
 					switch (clineAsk) {
 						case "followup":
-						case "plan_mode_response":
+						case "plan_mode_respond":
 						case "tool":
 						case "browser_action_launch":
 						case "command": // user can provide feedback to a tool or command use
@@ -295,6 +302,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						case "resume_task":
 						case "resume_completed_task":
 						case "mistake_limit_reached":
+						case "new_task": // user can provide feedback or reject the new task suggestion
 							vscode.postMessage({
 								type: "askResponse",
 								askResponse: "messageResponse",
@@ -360,6 +368,13 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					// extension waiting for feedback. but we can just present a new task button
 					startNewTask()
 					break
+				case "new_task":
+					console.info("new task button clicked!", { lastMessage, messages, clineAsk, text })
+					vscode.postMessage({
+						type: "newTask",
+						text: lastMessage?.text,
+					})
+					break
 			}
 			setTextAreaDisabled(true)
 			setClineAsk(undefined)
@@ -368,7 +383,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 			// setSecondaryButtonText(undefined)
 			disableAutoScrollRef.current = false
 		},
-		[clineAsk, startNewTask],
+		[clineAsk, startNewTask, lastMessage],
 	)
 
 	const handleSecondaryButtonClick = useCallback(
@@ -452,6 +467,21 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					if (newImages.length > 0) {
 						setSelectedImages((prevImages) => [...prevImages, ...newImages].slice(0, MAX_IMAGES_PER_MESSAGE))
 					}
+					break
+				case "addToInput":
+					setInputValue((prevValue) => {
+						const newText = message.text ?? ""
+						const newTextWithNewline = newText + "\n"
+						return prevValue ? `${prevValue}\n${newTextWithNewline}` : newTextWithNewline
+					})
+					// Add scroll to bottom after state update
+					// Auto focus the input and start the cursor on a new linefor easy typing
+					setTimeout(() => {
+						if (textAreaRef.current) {
+							textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight
+							textAreaRef.current.focus()
+						}
+					}, 0)
 					break
 				case "invoke":
 					switch (message.invoke!) {

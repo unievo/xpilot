@@ -8,6 +8,7 @@ import { TelemetrySetting } from "./TelemetrySetting"
 
 export interface WebviewMessage {
 	type:
+		| "addRemoteServer"
 		| "apiConfiguration"
 		| "webviewDidLaunch"
 		| "newTask"
@@ -34,6 +35,10 @@ export interface WebviewMessage {
 		| "deleteMcpServer"
 		| "autoApprovalSettings"
 		| "browserSettings"
+		| "discoverBrowser"
+		| "testBrowserConnection"
+		| "browserConnectionResult"
+		| "browserRelaunchResult"
 		| "togglePlanActMode"
 		| "checkpointDiff"
 		| "checkpointRestore"
@@ -45,6 +50,7 @@ export interface WebviewMessage {
 		| "getLatestState"
 		| "accountLoginClicked"
 		| "accountLogoutClicked"
+		| "showAccountViewClicked"
 		| "authStateChanged"
 		| "authCallback"
 		| "fetchMcpMarketplace"
@@ -61,9 +67,20 @@ export interface WebviewMessage {
 		| "invoke"
 		| "updateSettings"
 		| "clearAllTaskHistory"
+		| "fetchUserCreditsData"
 		| "optionsResponse"
+		| "requestTotalTasksSize"
+		| "relaunchChromeDebugMode"
+		| "taskFeedback"
+		| "getBrowserConnectionInfo"
+		| "getDetectedChromePath"
+		| "detectedChromePath"
+		| "scrollToSettings"
+		| "getRelativePaths" // Handles single and multiple URI resolution
+		| "searchFiles"
 	// | "relaunchChromeDebugMode"
 	text?: string
+	uris?: string[] // Used for getRelativePaths
 	disabled?: boolean
 	askResponse?: ClineAskResponse
 	apiConfiguration?: ApiConfiguration
@@ -78,7 +95,8 @@ export interface WebviewMessage {
 	timeout?: number
 	// For toggleToolAutoApprove
 	serverName?: string
-	toolName?: string
+	serverUrl?: string
+	toolNames?: string[]
 	autoApprove?: boolean
 
 	// For auth
@@ -89,8 +107,14 @@ export interface WebviewMessage {
 	planActSeparateModelsSetting?: boolean
 	telemetrySetting?: TelemetrySetting
 	customInstructionsSetting?: string
+	// For task feedback
+	feedbackType?: TaskFeedbackType
+	mentionsRequestId?: string
+	query?: string
 }
 
 export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "messageResponse"
 
 export type ClineCheckpointRestore = "task" | "workspace" | "taskAndWorkspace"
+
+export type TaskFeedbackType = "thumbs_up" | "thumbs_down"

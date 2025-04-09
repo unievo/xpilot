@@ -1,15 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { useEvent } from "react-use"
-import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "../../../src/shared/AutoApprovalSettings"
-import { ExtensionMessage, ExtensionState, DEFAULT_PLATFORM } from "../../../src/shared/ExtensionMessage"
-import { ApiConfiguration, ModelInfo, openRouterDefaultModelId, openRouterDefaultModelInfo } from "../../../src/shared/api"
-import { findLastIndex } from "../../../src/shared/array"
+import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
+import { ExtensionMessage, ExtensionState, DEFAULT_PLATFORM } from "@shared/ExtensionMessage"
+import { ApiConfiguration, ModelInfo, openRouterDefaultModelId, openRouterDefaultModelInfo } from "@shared/api"
+import { findLastIndex } from "@shared/array"
 import { McpMarketplaceCatalog, McpServer } from "../../../src/shared/mcp"
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
 import { vscode } from "../utils/vscode"
-import { DEFAULT_BROWSER_SETTINGS } from "../../../src/shared/BrowserSettings"
-import { DEFAULT_CHAT_SETTINGS } from "../../../src/shared/ChatSettings"
-import { TelemetrySetting } from "../../../src/shared/TelemetrySetting"
+import { DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
+import { DEFAULT_CHAT_SETTINGS } from "@shared/ChatSettings"
+import { TelemetrySetting } from "@shared/TelemetrySetting"
 
 interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
@@ -20,6 +20,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	mcpServers: McpServer[]
 	mcpMarketplaceCatalog: McpMarketplaceCatalog
 	filePaths: string[]
+	totalTasksSize: number | null
 	setApiConfiguration: (config: ApiConfiguration) => void
 	setCustomInstructions: (value?: string) => void
 	setTelemetrySetting: (value: TelemetrySetting) => void
@@ -52,6 +53,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [openRouterModels, setOpenRouterModels] = useState<Record<string, ModelInfo>>({
 		[openRouterDefaultModelId]: openRouterDefaultModelInfo,
 	})
+	const [totalTasksSize, setTotalTasksSize] = useState<number | null>(null)
 
 	const [openAiModels, setOpenAiModels] = useState<string[]>([])
 	const [mcpServers, setMcpServers] = useState<McpServer[]>([])
@@ -78,6 +80,7 @@ export const ExtensionStateContextProvider: React.FC<{
 							config.requestyApiKey,
 							config.togetherApiKey,
 							config.qwenApiKey,
+							config.doubaoApiKey,
 							config.mistralApiKey,
 							config.vsCodeLmModelSelector,
 							config.clineApiKey,
@@ -137,6 +140,10 @@ export const ExtensionStateContextProvider: React.FC<{
 				}
 				break
 			}
+			case "totalTasksSize": {
+				setTotalTasksSize(message.totalTasksSize ?? null)
+				break
+			}
 		}
 	}, [])
 
@@ -156,6 +163,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		mcpServers,
 		mcpMarketplaceCatalog,
 		filePaths,
+		totalTasksSize,
 		setApiConfiguration: (value) =>
 			setState((prevState) => ({
 				...prevState,
