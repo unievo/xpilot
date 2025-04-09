@@ -1399,6 +1399,10 @@ export class Cline {
 			this.conversationHistoryDeletedRange,
 		)
 
+		if (process.env.IS_DEV && process.env.IS_DEV !== "false") {
+			await this.saveMessages(systemPrompt, truncatedConversationHistory)
+		}
+
 		let stream = this.api.createMessage(systemPrompt, truncatedConversationHistory)
 
 		const iterator = stream[Symbol.asyncIterator]()
@@ -1436,6 +1440,47 @@ export class Cline {
 		// (needs to be placed outside of try/catch since it we want caller to handle errors not with api_req_failed as that is reserved for first chunk failures only)
 		// this delegates to another generator or iterable object. In this case, it's saying "yield all remaining values from this iterator". This effectively passes along all subsequent chunks from the original stream.
 		yield* iterator
+	}
+
+	async saveMessages(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]) {
+		fs.writeFile(path.join(cwd, `.${agentName}Prompt.md`), systemPrompt)
+		if (messages.length > 0) {
+			fs.writeFile(
+				path.join(cwd, `.${agentName}History.md`),
+				messages
+					.map((m) => {
+						if (typeof m.content === "string") {
+							return m.content
+						} else if (Array.isArray(m.content)) {
+							return m.content
+								.map((item) => {
+									switch (item.type) {
+										case "text":
+											return item.text
+										case "tool_use":
+											return `Tool use: ${item.input}`
+										case "tool_result":
+											return `Tool result: ${item.content?.toString()}`
+										case "document":
+											return `Document: ${item.source}`
+										case "image":
+											return `Image: ${item.source}`
+										case "thinking":
+											return `Thinking: ${item.thinking}`
+										case "redacted_thinking":
+											return `Redacted thinking: ${item.data.toString()}`
+										default:
+											return ""
+									}
+								})
+								.join("\n")
+						} else {
+							return "" // Ensure all code paths return a value
+						}
+					})
+					.join("\n"),
+			)
+		}
 	}
 
 	async presentAssistantMessage() {

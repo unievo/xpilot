@@ -2,7 +2,6 @@
 export const agentName = "Astro"
 export const productName = "astro"
 export const publisherName = "unievo"
-export const initializationPrompt = `You are ${agentName}, an expert software engineer. You specialize in programming languages, frameworks, and tools.`
 export const repoUrl = "https://github.com/unievo/astro"
 export const homePageUrl = "https://github.com/unievo/astro"
 export const apiBaseUrl = "https://api.astro.unievo.com/v1"
@@ -33,3 +32,12 @@ export const accountLoginCommand = `${productName}.accountLoginClicked`
 
 // Settings
 export const modelSettingsO3Mini = `${productName}.modelSettings.o3Mini`
+
+// Prompts
+export const initializationPrompt = `You are ${agentName}, an expert software engineer.`
+
+export const dataDisplayPrompt = `
+`
+
+export const mcpServersInfo = `
+`
