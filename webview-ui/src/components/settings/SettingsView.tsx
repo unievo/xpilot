@@ -12,7 +12,7 @@ import { useExtensionState } from "../../context/ExtensionStateContext"
 import { validateApiConfiguration, validateModelId } from "../../utils/validate"
 import { vscode } from "../../utils/vscode"
 import SettingsButton from "../common/SettingsButton"
-import { agentName, repoUrl } from "../../../../src/shared/Configuration"
+import { agentName, ignoreFile, repoUrl, rulesFile } from "../../../../src/shared/Configuration"
 import ApiOptions from "./ApiOptions"
 import { TabButton } from "../mcp/McpView"
 import { useEvent } from "react-use"
@@ -279,7 +279,36 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 						for more details.
 					</p>
 				</div> */}
-
+				{
+					<div>
+						<p
+							style={{
+								fontSize: "13px",
+								marginTop: "5px",
+								color: "var(--vscode-description)",
+							}}>
+							Special files and folders
+						</p>
+						<p
+							style={{
+								fontSize: "12px",
+								marginTop: "5px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Use the {rulesFile} file (or folder containing multiple files with rules) in the current working
+							directory to specify project and workspace rules.
+						</p>
+						<p
+							style={{
+								fontSize: "12px",
+								marginTop: "5px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Use the {ignoreFile} file in the current working directory to specify files or folders that must not
+							be accessed.
+						</p>
+					</div>
+				}
 				{IS_DEV && (
 					<>
 						<div style={{ marginTop: "10px", marginBottom: "4px" }}>Debug</div>

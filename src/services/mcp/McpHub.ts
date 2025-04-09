@@ -71,7 +71,7 @@ export class McpHub {
 	}
 
 	getMode(): McpMode {
-		return vscode.workspace.getConfiguration(`${productName}.mcp.mode`).get<McpMode>("mode", "server-use-only")
+		return vscode.workspace.getConfiguration(`${productName}.mcp`).get<McpMode>("mode", "server-use-only")
 	}
 
 	async getMcpServersPath(): Promise<string> {
