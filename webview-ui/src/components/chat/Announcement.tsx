@@ -112,7 +112,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					When Cline runs commands, you can now type directly in the terminal (+ support for Python
 					environments)
 				</li>
-			</ul>*/}
+			</ul>*/
+			}
 			{/* <div style={hrStyle} />
 			<p style={linkContainerStyle}>
 				Join us on{" "}

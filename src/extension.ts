@@ -12,11 +12,15 @@ import {
 	openNewTabCommand,
 	settingsButtonCommand,
 	historyButtonCommand,
-	accountLoginCommand,
 	extensionIconLightPathSegments,
 	extensionIconDarkPathSegments,
 	accountButtonCommand,
 	isDevMode,
+	addToChatCommand,
+	addTerminalOutputToChatCommand,
+	addToAgentCodeActionName,
+	fixWithAgentCodeActionName,
+	fixWithAgentCommand,
 } from "./shared/Configuration"
 import "./utils/path" // necessary to have access to String.prototype.toPosix
 import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
@@ -43,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	Logger.initialize(outputChannel)
 	Logger.log(`${agentName} extension activated`)
-	
+
 	const sidebarWebview = new WebviewProvider(context, outputChannel)
 
 	vscode.commands.executeCommand("setContext", `${isDevMode}`, IS_DEV && IS_DEV === "true")
@@ -253,7 +257,7 @@ export function activate(context: vscode.ExtensionContext) {
 			.then((module) => {
 				const devTaskCommands = module.registerTaskCommands(context, sidebarWebview.controller)
 				context.subscriptions.push(...devTaskCommands)
-				Logger.log("Cline dev task commands registered")
+				Logger.log(`${agentName} task commands registered`)
 			})
 			.catch((error) => {
 				Logger.log("Failed to register dev task commands: " + error)
@@ -261,7 +265,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.addToChat", async (range?: vscode.Range, diagnostics?: vscode.Diagnostic[]) => {
+		vscode.commands.registerCommand(addToChatCommand, async (range?: vscode.Range, diagnostics?: vscode.Diagnostic[]) => {
 			const editor = vscode.window.activeTextEditor
 			if (!editor) {
 				return
@@ -291,7 +295,7 @@ export function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.addTerminalOutputToChat", async () => {
+		vscode.commands.registerCommand(addTerminalOutputToChatCommand, async () => {
 			const terminal = vscode.window.activeTerminal
 			if (!terminal) {
 				return
@@ -361,17 +365,17 @@ export function activate(context: vscode.ExtensionContext) {
 						document.lineAt(Math.min(document.lineCount - 1, range.end.line + 3)).text.length,
 					)
 
-					const addAction = new vscode.CodeAction("Add to Cline", vscode.CodeActionKind.QuickFix)
+					const addAction = new vscode.CodeAction(addToAgentCodeActionName, vscode.CodeActionKind.QuickFix)
 					addAction.command = {
-						command: "cline.addToChat",
-						title: "Add to Cline",
+						command: addToChatCommand,
+						title: addToAgentCodeActionName,
 						arguments: [expandedRange, context.diagnostics],
 					}
 
-					const fixAction = new vscode.CodeAction("Fix with Cline", vscode.CodeActionKind.QuickFix)
+					const fixAction = new vscode.CodeAction(fixWithAgentCodeActionName, vscode.CodeActionKind.QuickFix)
 					fixAction.command = {
-						command: "cline.fixWithCline",
-						title: "Fix with Cline",
+						command: fixWithAgentCommand,
+						title: fixWithAgentCodeActionName,
 						arguments: [expandedRange, context.diagnostics],
 					}
 
@@ -391,7 +395,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register the command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.fixWithCline", async (range: vscode.Range, diagnostics: any[]) => {
+		vscode.commands.registerCommand(fixWithAgentCommand, async (range: vscode.Range, diagnostics: any[]) => {
 			const editor = vscode.window.activeTextEditor
 			if (!editor) {
 				return

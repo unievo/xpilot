@@ -944,7 +944,7 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 							</div>
 						</>
 					)
-				case "clineignore_error":
+				case "ignorefile_error":
 					return (
 						<>
 							<div

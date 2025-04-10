@@ -10,6 +10,7 @@ import { BrowserSettings } from "../../shared/BrowserSettings"
 import { ChatSettings } from "../../shared/ChatSettings"
 import { TelemetrySetting } from "../../shared/TelemetrySetting"
 import { UserInfo } from "../../shared/UserInfo"
+import { o3MiniModelConfiguration, productName } from "../../shared/Configuration"
 /*
 	Storage
 	https://dev.to/kompotkot/how-to-use-secretstorage-in-your-vscode-extensions-2hco
@@ -199,9 +200,9 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		}
 	}
 
-	const o3MiniReasoningEffort = vscode.workspace.getConfiguration("cline.modelSettings.o3Mini").get("reasoningEffort", "medium")
+	const o3MiniReasoningEffort = vscode.workspace.getConfiguration(o3MiniModelConfiguration).get("reasoningEffort", "medium")
 
-	const mcpMarketplaceEnabled = vscode.workspace.getConfiguration("cline").get<boolean>("mcpMarketplace.enabled", true)
+	const mcpMarketplaceEnabled = vscode.workspace.getConfiguration(productName).get<boolean>("mcpMarketplace.enabled", true)
 
 	// Plan/Act separate models setting is a boolean indicating whether the user wants to use different models for plan and act. Existing users expect this to be enabled, while we want new users to opt in to this being disabled by default.
 	// On win11 state sometimes initializes as empty string instead of undefined

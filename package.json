@@ -56,7 +56,8 @@
 				{
 					"type": "webview",
 					"id": "astro.SidebarProvider",
-					"name": "Dashboard"
+					"name": "Dashboard",
+					"icon": "assets/icons/icon_light.png"
 				}
 			]
 		},
@@ -80,11 +81,6 @@
 				"command": "astro.popoutButtonClicked",
 				"title": "Open in Editor",
 				"icon": "$(link-external)"
-			},
-			{
-				"command": "astro.accountButtonClicked",
-				"title": "Account",
-				"icon": "$(account)"
 			},
 			{
 				"command": "astro.settingsButtonClicked",
@@ -113,7 +109,7 @@
 				"category": "Astro"
 			},
 			{
-				"command": "astro.fixWithAstro",
+				"command": "astro.fixWithAgent",
 				"title": "Fix with Astro",
 				"category": "Astro"
 			}
@@ -151,13 +147,8 @@
 					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "astro.accountButtonClicked",
-					"group": "navigation@5",
-					"when": "view == astro.SidebarProvider"
-				},
-				{
 					"command": "astro.settingsButtonClicked",
-					"group": "navigation@6",
+					"group": "navigation@5",
 					"when": "view == astro.SidebarProvider"
 				}
 			],
@@ -183,13 +174,8 @@
 					"when": "activeWebviewPanelId == astro.TabPanelProvider"
 				},
 				{
-					"command": "astro.accountButtonClicked",
-					"group": "navigation@5",
-					"when": "activeWebviewPanelId == astro.TabPanelProvider"
-				},
-				{
 					"command": "astro.settingsButtonClicked",
-					"group": "navigation@6",
+					"group": "navigation@5",
 					"when": "activeWebviewPanelId == astro.TabPanelProvider"
 				}
 			],
@@ -311,6 +297,7 @@
 		"format:fix": "prettier . --write",
 		"install:all": "npm install && cd webview-ui && npm install",
 		"dev:webview": "cd webview-ui && npm run dev",
+		"package": "npm run build:webview && npm run check-types && npm run lint && node esbuild.js --production",
 		"publish:marketplace": "vsce publish && ovsx publish",
 		"publish:marketplace:prerelease": "vsce publish --pre-release && ovsx publish --pre-release",
 		"start:webview": "cd webview-ui && npm run start",

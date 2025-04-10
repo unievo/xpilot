@@ -14,6 +14,8 @@ export const rulesFile = `.${productName}rules`
 export const ignoreFile = `.${productName}ignore`
 export const openRouterModelsFile = `open_router_models.json`
 export const uiMessagesFile = `ui_messages.json`
+export const taskMetadataFile = `task_metadata.json`
+export const contextHistoryFile = `context_history.json`
 export const apiConversationHistoryFile = `api_conversation_history.json`
 export const extensionIconLightPathSegments = ["assets", "icons", "icon_light.png"]
 export const extensionIconDarkPathSegments = ["assets", "icons", "icon_dark.png"]
@@ -28,10 +30,18 @@ export const popupButtonCommand = `${productName}.popoutButtonClicked`
 export const openNewTabCommand = `${productName}.openInNewTab`
 export const settingsButtonCommand = `${productName}.settingsButtonClicked`
 export const historyButtonCommand = `${productName}.historyButtonClicked`
-export const accountLoginCommand = `${productName}.accountLoginClicked`
+export const accountButtonCommand = `${productName}.accountButtonClicked`
+export const isDevMode = `${productName}.isDevMode`
+export const createTestTasksCommand = `${productName}.dev.createTestTasks`
+export const addToAgentCodeActionName = `Add to ${agentName}`
+export const addToChatCommand = `${productName}.addToChat`
+export const fixWithAgentCommand = `${productName}.fixWithAgent`
+export const fixWithAgentCodeActionName = `Fix with ${agentName}`
+export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputToChat`
 
 // Settings
-export const modelSettingsO3Mini = `${productName}.modelSettings.o3Mini`
+export const mcpConfiguration = `${productName}.mcp`
+export const o3MiniModelConfiguration = `${productName}.modelSettings.o3Mini`
 
 // Prompts
 export const initializationPrompt = `You are ${agentName}, an expert software engineer.`

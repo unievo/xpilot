@@ -5,7 +5,7 @@ import { validateApiConfiguration } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
 import ApiOptions from "@/components/settings/ApiOptions"
 import { agentName } from "../../../../src/shared/Configuration"
-import ClineLogoWhite from "@/assets/ClineLogoWhite"
+import AgentLogoWhite from "@/assets/ClineLogoWhite"
 
 const WelcomeView = memo(() => {
 	const { apiConfiguration } = useExtensionState()
@@ -31,7 +31,7 @@ const WelcomeView = memo(() => {
 			<div className="h-full px-5 overflow-auto">
 				<h2>Hi, I'm {agentName}!</h2>
 				<div className="flex justify-left my-5">
-					<ClineLogoWhite className="size-16" />
+					<AgentLogoWhite className="size-16" />
 				</div>
 				<p>I'm an AI software engineering agent.</p>
 				<p>

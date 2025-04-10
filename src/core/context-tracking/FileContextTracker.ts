@@ -82,7 +82,7 @@ export class FileContextTracker {
 
 	// Tracks a file operation in metadata and sets up a watcher for the file
 	// This is the main entry point for FileContextTracker and is called when a file is passed to Cline via a tool, mention, or edit.
-	async trackFileContext(filePath: string, operation: "read_tool" | "user_edited" | "cline_edited" | "file_mentioned") {
+	async trackFileContext(filePath: string, operation: "read_tool" | "user_edited" | "agent_edited" | "file_mentioned") {
 		try {
 			const cwd = this.getCwd()
 			if (!cwd) {
@@ -133,8 +133,8 @@ export class FileContextTracker {
 				path: filePath,
 				record_state: "active",
 				record_source: source,
-				cline_read_date: getLatestDateForField(filePath, "cline_read_date"),
-				cline_edit_date: getLatestDateForField(filePath, "cline_edit_date"),
+				agent_read_date: getLatestDateForField(filePath, "agent_read_date"),
+				agent_edit_date: getLatestDateForField(filePath, "agent_edit_date"),
 				user_edit_date: getLatestDateForField(filePath, "user_edit_date"),
 			}
 
@@ -145,16 +145,16 @@ export class FileContextTracker {
 					this.recentlyModifiedFiles.add(filePath)
 					break
 
-				// cline_edited: Cline has edited the file
-				case "cline_edited":
-					newEntry.cline_read_date = now
-					newEntry.cline_edit_date = now
+				// agent_edited: Agent has edited the file
+				case "agent_edited":
+					newEntry.agent_read_date = now
+					newEntry.agent_edit_date = now
 					break
 
 				// read_tool/file_mentioned: Cline has read the file via a tool or file mention
 				case "read_tool":
 				case "file_mentioned":
-					newEntry.cline_read_date = now
+					newEntry.agent_read_date = now
 					break
 			}
 

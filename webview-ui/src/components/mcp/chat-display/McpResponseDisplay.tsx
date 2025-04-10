@@ -115,7 +115,7 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 	const [displayMode, setDisplayMode] = useState<"rich" | "plain">(() => {
 		// Get saved preference from localStorage, default to 'rich'
 		const savedMode = localStorage.getItem("mcpDisplayMode")
-		return savedMode === "plain" ? "plain" : "rich"
+		return savedMode === "rich" ? "rich" : "plain"
 	})
 	const [urlMatches, setUrlMatches] = useState<UrlMatch[]>([])
 	const [error, setError] = useState<string | null>(null)

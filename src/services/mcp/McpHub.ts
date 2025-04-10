@@ -28,7 +28,7 @@ import {
 } from "../../shared/mcp"
 import { fileExistsAtPath } from "../../utils/fs"
 import { arePathsEqual } from "../../utils/path"
-import { agentName, productName } from "../../shared/Configuration"
+import { agentName, mcpConfiguration, productName } from "../../shared/Configuration"
 import { secondsToMs } from "../../utils/time"
 import { GlobalFileNames } from "../../core/storage/disk"
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js"
@@ -96,7 +96,7 @@ export class McpHub {
 	}
 
 	getMode(): McpMode {
-		return vscode.workspace.getConfiguration(`${productName}.mcp`).get<McpMode>("mode", "server-use-only")
+		return vscode.workspace.getConfiguration(mcpConfiguration).get<McpMode>("mode", "server-use-only")
 	}
 
 	async getMcpServersPath(): Promise<string> {

@@ -1677,7 +1677,7 @@ export class Task {
 
 						const accessAllowed = this.clineIgnoreController.validateAccess(relPath)
 						if (!accessAllowed) {
-							await this.say("clineignore_error", relPath)
+							await this.say("ignorefile_error", relPath)
 							pushToolResult(formatResponse.toolError(formatResponse.clineIgnoreError(relPath)))
 
 							break
@@ -1890,7 +1890,7 @@ export class Task {
 								this.didEditFile = true // used to determine if we should wait for busy terminal to update before sending api request
 
 								// Track file edit operation
-								await this.fileContextTracker.trackFileContext(relPath, "cline_edited")
+								await this.fileContextTracker.trackFileContext(relPath, "agent_edited")
 
 								if (userEdits) {
 									// Track file edit operation
@@ -1972,7 +1972,7 @@ export class Task {
 
 								const accessAllowed = this.clineIgnoreController.validateAccess(relPath)
 								if (!accessAllowed) {
-									await this.say("clineignore_error", relPath)
+									await this.say("ignorefile_error", relPath)
 									pushToolResult(formatResponse.toolError(formatResponse.clineIgnoreError(relPath)))
 
 									break
@@ -2416,7 +2416,7 @@ export class Task {
 							block.params.command = fixModelHtmlEscaping(block.params.command)
 							block.params.command = removeInvalidChars(block.params.command)
 						}
-						
+
 						let command: string | undefined = block.params.command
 						const requiresApprovalRaw: string | undefined = block.params.requires_approval
 						const requiresApprovalPerLLM = requiresApprovalRaw?.toLowerCase() === "true"
@@ -2460,7 +2460,7 @@ export class Task {
 
 								const ignoredFileAttemptedToAccess = this.clineIgnoreController.validateCommand(command)
 								if (ignoredFileAttemptedToAccess) {
-									await this.say("clineignore_error", ignoredFileAttemptedToAccess)
+									await this.say("ignorefile_error", ignoredFileAttemptedToAccess)
 									pushToolResult(
 										formatResponse.toolError(formatResponse.clineIgnoreError(ignoredFileAttemptedToAccess)),
 									)
@@ -2814,8 +2814,8 @@ export class Task {
 
 								if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
 									showSystemNotification({
-										subtitle: "Cline wants to start a new task...",
-										message: `Cline is suggesting to start a new task with: ${context}`,
+										subtitle: `${agentName} wants to start a new task...`,
+										message: `${agentName} is suggesting to start a new task with: ${context}`,
 									})
 								}
 
@@ -2865,7 +2865,7 @@ export class Task {
 
 								// if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
 								// 	showSystemNotification({
-								// 		subtitle: "Cline has a response...",
+								// 		subtitle: `${agentName} has a response...`,
 								// 		message: response.replace(/\n/g, " "),
 								// 	})
 								// }

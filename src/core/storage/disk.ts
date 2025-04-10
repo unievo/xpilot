@@ -4,13 +4,22 @@ import fs from "fs/promises"
 import { Anthropic } from "@anthropic-ai/sdk"
 import { fileExistsAtPath } from "../../utils/fs"
 import { ClineMessage } from "../../shared/ExtensionMessage"
+import {
+	apiConversationHistoryFile,
+	contextHistoryFile,
+	mcpSettingsFile,
+	openRouterModelsFile,
+	rulesFile,
+	taskMetadataFile,
+	uiMessagesFile,
+} from "../../shared/Configuration"
 
 export interface FileMetadataEntry {
 	path: string
 	record_state: "active" | "stale"
-	record_source: "read_tool" | "user_edited" | "cline_edited" | "file_mentioned"
-	cline_read_date: number | null
-	cline_edit_date: number | null
+	record_source: "read_tool" | "user_edited" | "agent_edited" | "file_mentioned"
+	agent_read_date: number | null
+	agent_edit_date: number | null
 	user_edit_date?: number | null
 }
 
@@ -19,13 +28,13 @@ export interface TaskMetadata {
 }
 
 export const GlobalFileNames = {
-	apiConversationHistory: "api_conversation_history.json",
-	contextHistory: "context_history.json",
-	uiMessages: "ui_messages.json",
-	openRouterModels: "openrouter_models.json",
-	mcpSettings: "cline_mcp_settings.json",
-	clineRules: ".clinerules",
-	taskMetadata: "task_metadata.json",
+	apiConversationHistory: apiConversationHistoryFile,
+	contextHistory: contextHistoryFile,
+	uiMessages: uiMessagesFile,
+	openRouterModels: openRouterModelsFile,
+	mcpSettings: mcpSettingsFile,
+	clineRules: rulesFile,
+	taskMetadata: taskMetadataFile,
 }
 
 export async function ensureTaskDirectoryExists(context: vscode.ExtensionContext, taskId: string): Promise<string> {

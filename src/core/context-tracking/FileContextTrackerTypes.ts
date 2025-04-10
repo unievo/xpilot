@@ -4,9 +4,9 @@ import * as vscode from "vscode"
 export interface FileMetadataEntry {
 	path: string
 	record_state: "active" | "stale"
-	record_source: "read_tool" | "user_edited" | "cline_edited" | "file_mentioned"
-	cline_read_date: number | null
-	cline_edit_date: number | null
+	record_source: "read_tool" | "user_edited" | "agent_edited" | "file_mentioned"
+	agent_read_date: number | null
+	agent_edit_date: number | null
 	user_edit_date?: number | null
 }
 

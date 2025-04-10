@@ -48,6 +48,7 @@ import { GlobalFileNames } from "../storage/disk"
 import { discoverChromeInstances } from "../../services/browser/BrowserDiscovery"
 import { searchWorkspaceFiles } from "../../services/search/file-search"
 import { getWorkspacePath } from "../../utils/path"
+import { agentName, extensionId, mcpConfiguration, mcpServersPathSegments, sideBarId } from "../../shared/Configuration"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -61,7 +62,7 @@ export class Controller {
 	workspaceTracker?: WorkspaceTracker
 	mcpHub?: McpHub
 	accountService?: ClineAccountService
-	private latestAnnouncementId = "april-7-2025" // update to some unique identifier when we add a new announcement
+	private latestAnnouncementId = "0.1.0" // update to some unique identifier when we add a new announcement
 	private webviewProviderRef: WeakRef<WebviewProvider>
 
 	constructor(
@@ -69,7 +70,7 @@ export class Controller {
 		private readonly outputChannel: vscode.OutputChannel,
 		webviewProvider: WebviewProvider,
 	) {
-		this.outputChannel.appendLine("ClineProvider instantiated")
+		this.outputChannel.appendLine("Controller instantiated")
 		this.webviewProviderRef = new WeakRef(webviewProvider)
 
 		this.workspaceTracker = new WorkspaceTracker(this)
@@ -114,7 +115,7 @@ export class Controller {
 			await updateGlobalState(this.context, "userInfo", undefined)
 			await updateGlobalState(this.context, "apiProvider", "openrouter")
 			await this.postStateToWebview()
-			vscode.window.showInformationMessage("Successfully logged out of Cline")
+			vscode.window.showInformationMessage("Successfully logged out")
 		} catch (error) {
 			vscode.window.showErrorMessage("Logout failed")
 		}
@@ -557,7 +558,7 @@ export class Controller {
 				const uriScheme = vscode.env.uriScheme
 
 				const authUrl = vscode.Uri.parse(
-					`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://saoudrizwan.claude-dev/auth`)}`,
+					`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://${extensionId}/auth`)}`,
 				)
 				vscode.env.openExternal(authUrl)
 				break
@@ -599,7 +600,7 @@ export class Controller {
 
 					// 2. Enable MCP settings if disabled
 					// Enable MCP mode if disabled
-					const mcpConfig = vscode.workspace.getConfiguration("cline.mcp")
+					const mcpConfig = vscode.workspace.getConfiguration(mcpConfiguration)
 					if (mcpConfig.get<string>("mode") !== "full") {
 						await mcpConfig.update("mode", "full", true)
 					}
@@ -727,7 +728,7 @@ export class Controller {
 				const settingsFilter = message.text || ""
 				await vscode.commands.executeCommand(
 					"workbench.action.openSettings",
-					`@ext:saoudrizwan.claude-dev ${settingsFilter}`.trim(), // trim whitespace if no settings filter
+					`@ext:${extensionId} ${settingsFilter}`.trim(), // trim whitespace if no settings filter
 				)
 				break
 			}
@@ -1110,11 +1111,11 @@ export class Controller {
 
 	async ensureMcpServersDirectoryExists(): Promise<string> {
 		const userDocumentsPath = await this.getDocumentsPath()
-		const mcpServersDir = path.join(userDocumentsPath, "Cline", "MCP")
+		const mcpServersDir = path.join(userDocumentsPath, ...mcpServersPathSegments)
 		try {
 			await fs.mkdir(mcpServersDir, { recursive: true })
 		} catch (error) {
-			return "~/Documents/Cline/MCP" // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+			return `~/Documents/${agentName}/mcp/servers` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
 		}
 		return mcpServersDir
 	}
@@ -1227,10 +1228,10 @@ export class Controller {
 			}
 
 			await this.postStateToWebview()
-			// vscode.window.showInformationMessage("Successfully logged in to Cline")
+			// vscode.window.showInformationMessage(`Successfully logged in to ${agentName}`)
 		} catch (error) {
 			console.error("Failed to handle auth callback:", error)
-			vscode.window.showErrorMessage("Failed to log in to Cline")
+			vscode.window.showErrorMessage(`Failed to log in to ${agentName}`)
 			// Even on login failure, we preserve any existing tokens
 			// Only clear tokens on explicit logout
 		}
@@ -1613,7 +1614,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 	// 'Add to Cline' context menu in editor and code action
 	async addSelectedCodeToChat(code: string, filePath: string, languageId: string, diagnostics?: vscode.Diagnostic[]) {
 		// Ensure the sidebar view is visible
-		await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+		await vscode.commands.executeCommand(`${sideBarId}.focus`)
 		await setTimeoutPromise(100)
 
 		// Post message to webview with the selected code
@@ -1636,7 +1637,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 	// 'Add to Cline' context menu in Terminal
 	async addSelectedTerminalOutputToChat(output: string, terminalName: string) {
 		// Ensure the sidebar view is visible
-		await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+		await vscode.commands.executeCommand(`${sideBarId}.focus`)
 		await setTimeoutPromise(100)
 
 		// Post message to webview with the selected terminal output
@@ -1657,7 +1658,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 	// 'Fix with Cline' in code actions
 	async fixWithCline(code: string, filePath: string, languageId: string, diagnostics: vscode.Diagnostic[]) {
 		// Ensure the sidebar view is visible
-		await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+		await vscode.commands.executeCommand(`${sideBarId}.focus`)
 		await setTimeoutPromise(100)
 
 		const fileMention = this.getFileMentionFromPath(filePath)
@@ -1666,7 +1667,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 			`Fix the following code in ${fileMention}\n\`\`\`\n${code}\n\`\`\`\n\nProblems:\n${problemsString}`,
 		)
 
-		console.log("fixWithCline", code, filePath, languageId, diagnostics, problemsString)
+		console.log("fixWithAgent", code, filePath, languageId, diagnostics, problemsString)
 	}
 
 	convertDiagnosticsToProblemsString(diagnostics: vscode.Diagnostic[]) {

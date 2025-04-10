@@ -89,10 +89,10 @@ describe("FileContextTracker", () => {
 		expect(fileEntry.cline_edit_date).to.be.null
 	})
 
-	it("should add a record when a file is edited by Cline", async () => {
+	it("should add a record when a file is edited by agent", async () => {
 		const filePath = "src/test-file.ts"
 
-		await tracker.trackFileContext(filePath, "cline_edited")
+		await tracker.trackFileContext(filePath, "agent_edited")
 
 		// Verify saveTaskMetadata was called with the correct data
 		expect(saveTaskMetadataStub.calledOnce).to.be.true
@@ -112,7 +112,7 @@ describe("FileContextTracker", () => {
 		// Now check the properties of the active entry
 		expect(activeEntry.path).to.equal(filePath)
 		expect(activeEntry.record_state).to.equal("active")
-		expect(activeEntry.record_source).to.equal("cline_edited")
+		expect(activeEntry.record_source).to.equal("agent_edited")
 		expect(activeEntry.cline_read_date).to.be.a("number")
 		expect(activeEntry.cline_edit_date).to.be.a("number")
 	})
@@ -161,14 +161,14 @@ describe("FileContextTracker", () => {
 				path: filePath,
 				record_state: "active",
 				record_source: "read_tool",
-				cline_read_date: Date.now() - 1000, // 1 second ago
-				cline_edit_date: null,
+				agent_read_date: Date.now() - 1000, // 1 second ago
+				agent_edit_date: null,
 				user_edit_date: null,
 			},
 		]
 
 		// Track a new operation on the same file
-		await tracker.trackFileContext(filePath, "cline_edited")
+		await tracker.trackFileContext(filePath, "agent_edited")
 
 		// Verify the metadata now has two entries - one stale and one active
 		const savedMetadata = saveTaskMetadataStub.firstCall.args[2]
@@ -180,7 +180,7 @@ describe("FileContextTracker", () => {
 		// New entry should be active
 		const newEntry = savedMetadata.files_in_context[1]
 		expect(newEntry.record_state).to.equal("active")
-		expect(newEntry.record_source).to.equal("cline_edited")
+		expect(newEntry.record_source).to.equal("agent_edited")
 	})
 
 	it("should setup a file watcher for tracked files", async () => {

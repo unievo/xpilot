@@ -194,7 +194,7 @@ export type ClineSay =
 	| "use_mcp_server"
 	| "diff_error"
 	| "deleted_api_reqs"
-	| "clineignore_error"
+	| "ignorefile_error"
 	| "checkpoint_created"
 
 export interface ClineSayTool {

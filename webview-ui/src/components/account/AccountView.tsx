@@ -3,8 +3,7 @@ import { memo, useEffect, useState } from "react"
 import { useFirebaseAuth } from "@/context/FirebaseAuthContext"
 import { vscode } from "@/utils/vscode"
 import VSCodeButtonLink from "../common/VSCodeButtonLink"
-import ClineLogoWhite from "../../assets/ClineLogoWhite"
-import CountUp from "react-countup"
+import AgentLogoWhite from "../../assets/ClineLogoWhite"
 import CreditsHistoryTable from "./CreditsHistoryTable"
 import { UsageTransaction, PaymentTransaction } from "@shared/ClineAccount"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -17,7 +16,7 @@ const AccountView = ({ onDone }: AccountViewProps) => {
 	return (
 		<div className="fixed inset-0 flex flex-col overflow-hidden pt-[10px] pl-[20px]">
 			<div className="flex justify-between items-center mb-[17px] pr-[17px]">
-				<h3 className="text-[var(--vscode-foreground)] m-0">Account</h3>
+				<h3 className="text-[var(--vscode-foreground)] m-0">Cline account</h3>
 				<VSCodeButton onClick={onDone}>Done</VSCodeButton>
 			</div>
 			<div className="flex-grow overflow-hidden pr-[8px] flex flex-col">
@@ -127,7 +126,7 @@ export const ClineAccountView = () => {
 							) : (
 								<>
 									<span>$</span>
-									<CountUp end={balance} duration={0.66} decimals={2} />
+									{balance}
 									<VSCodeButton
 										appearance="icon"
 										className="mt-1"
@@ -153,7 +152,7 @@ export const ClineAccountView = () => {
 				</div>
 			) : (
 				<div className="flex flex-col items-center pr-3">
-					<ClineLogoWhite className="size-16 mb-4" />
+					{/* <AgentLogoWhite className="size-16 mb-4" /> */}
 
 					<p style={{}}>
 						Sign up for an account to get access to the latest models, billing dashboard to view usage and credits,
