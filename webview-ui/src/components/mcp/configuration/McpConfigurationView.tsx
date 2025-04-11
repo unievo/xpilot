@@ -64,17 +64,17 @@ const McpConfigurationView = ({ onDone }: McpViewProps) => {
 						padding: "0 20px 0 20px",
 						borderBottom: "1px solid var(--vscode-panel-border)",
 					}}>
+					<TabButton isActive={activeTab === "installed"} onClick={() => handleTabChange("installed")}>
+						Installed
+					</TabButton>
+					<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
+						Remote Servers
+					</TabButton>
 					{mcpMarketplaceEnabled && (
 						<TabButton isActive={activeTab === "marketplace"} onClick={() => handleTabChange("marketplace")}>
 							Marketplace
 						</TabButton>
 					)}
-					<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
-						Remote Servers
-					</TabButton>
-					<TabButton isActive={activeTab === "installed"} onClick={() => handleTabChange("installed")}>
-						Installed
-					</TabButton>
 				</div>
 
 				{/* Content container */}

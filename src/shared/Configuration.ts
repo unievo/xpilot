@@ -32,6 +32,7 @@ export const settingsButtonCommand = `${productName}.settingsButtonClicked`
 export const historyButtonCommand = `${productName}.historyButtonClicked`
 export const accountButtonCommand = `${productName}.accountButtonClicked`
 export const isDevMode = `${productName}.isDevMode`
+export const isTestMode = `${productName}.isTestMode`
 export const createTestTasksCommand = `${productName}.dev.createTestTasks`
 export const addToAgentCodeActionName = `Add to ${agentName}`
 export const addToChatCommand = `${productName}.addToChat`

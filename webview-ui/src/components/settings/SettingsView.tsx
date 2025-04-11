@@ -177,6 +177,36 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 					display: "flex",
 					flexDirection: "column",
 				}}>
+				{
+					<div>
+						<p
+							style={{
+								fontSize: "14px",
+								marginTop: "5px",
+								color: "var(--vscode-description)",
+							}}>
+							Special files and folders
+						</p>
+						<p
+							style={{
+								fontSize: "12px",
+								marginTop: "5px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Use the {rulesFile} file (or folder containing multiple files) in the current working directory, to
+							specify workspace and project instructions that are read automatically.
+						</p>
+						<p
+							style={{
+								fontSize: "12px",
+								marginTop: "5px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Use the {ignoreFile} file in the current working directory to specify files or folders that must not
+							be accessed (similar to .gitignore).
+						</p>
+					</div>
+				}
 				{/* Tabs container */}
 				{planActSeparateModelsSetting ? (
 					<div
@@ -291,38 +321,8 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 						for more details.
 					</p>
 				</div> */}
-				{
-					<div>
-						<p
-							style={{
-								fontSize: "13px",
-								marginTop: "5px",
-								color: "var(--vscode-description)",
-							}}>
-							Special files and folders
-						</p>
-						<p
-							style={{
-								fontSize: "12px",
-								marginTop: "5px",
-								color: "var(--vscode-descriptionForeground)",
-							}}>
-							Use the {rulesFile} file (or folder containing multiple files with rules) in the current working
-							directory to specify project and workspace rules.
-						</p>
-						<p
-							style={{
-								fontSize: "12px",
-								marginTop: "5px",
-								color: "var(--vscode-descriptionForeground)",
-							}}>
-							Use the {ignoreFile} file in the current working directory to specify files or folders that must not
-							be accessed.
-						</p>
-					</div>
-				}
-				{/* Browser Settings Section */}
 				<BrowserSettingsSection />
+				{/* Browser Settings Section */}
 
 				<div
 					style={{

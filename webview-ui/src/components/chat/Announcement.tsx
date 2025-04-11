@@ -49,6 +49,15 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 
 				/* <ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				<li>
+					<b>Redesigned Checkpoints:</b> Checkpoints are now created more often through the task, and will appear as
+					line indicators on the left edge of chat. Hover over them to expand and see details like when they were
+					created!
+				</li>
+			</ul>
+			<h4 style={{ margin: "5px 0 5px" }}>From v3.10:</h4>
+
+			<ul style={ulStyle}>
+				<li>
 					<b>Browser Tool Upgrades:</b> Use your local Chrome browser for session-based browsing, enabling debugging and
 					productivity workflows tied to your actual browser state!
 				</li>

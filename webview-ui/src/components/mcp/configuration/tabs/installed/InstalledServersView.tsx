@@ -2,7 +2,7 @@ import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import ServersToggleList from "./ServersToggleList"
-import { agentName, mcpConfiguration } from "@shared/Configuration"
+import { mcpConfiguration } from "@shared/Configuration"
 const InstalledServersView = () => {
 	const { mcpServers: servers } = useExtensionState()
 
@@ -19,8 +19,7 @@ const InstalledServersView = () => {
 				<VSCodeLink href="https://github.com/modelcontextprotocol" style={{ display: "inline" }}>
 					Model Context Protocol
 				</VSCodeLink>{" "}
-				enables communication with locally running MCP servers that provide additional tools and resources to extend{" "}
-				{agentName}'s capabilities.
+				enables communication with locally running MCP servers that provide additional tools and resources.{" "}
 				{/* You can use{" "}
 				<VSCodeLink href="https://github.com/modelcontextprotocol/servers" style={{ display: "inline" }}>
 					community-made servers

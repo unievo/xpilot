@@ -5,6 +5,7 @@ import { BROWSER_VIEWPORT_PRESETS } from "../../../../src/shared/BrowserSettings
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { vscode } from "../../utils/vscode"
 import styled from "styled-components"
+import { agentName } from "@shared/Configuration"
 
 const ConnectionStatusIndicator = ({
 	isChecking,
@@ -250,7 +251,7 @@ export const BrowserSettingsSection: React.FC = () => {
 						color: "var(--vscode-descriptionForeground)",
 						margin: "0 0 6px 0px",
 					}}>
-					Enable Cline to use your Chrome
+					Enable {agentName} to use your Chrome
 					{isBundled ? "(not detected on your machine)" : detectedChromePath ? ` (${detectedChromePath})` : ""}. This
 					requires starting Chrome in debug mode
 					{browserSettings.remoteBrowserEnabled ? (
