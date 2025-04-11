@@ -2,7 +2,7 @@
 	"name": "xpilot",
 	"displayName": "xPilot",
 	"description": "xPilot is an AI software engineering agent for MultiversX",
-	"version": "0.1.0",
+	"version": "0.2.1",
 	"icon": "assets/icons/icon_color.png",
 	"engines": {
 		"vscode": "^1.84.0"
@@ -27,17 +27,15 @@
 	],
 	"keywords": [
 		"xpilot",
-		"claude",
-		"dev",
-		"mcp",
-		"openrouter",
+		"multiversx",
+		"ai",
+		"autonomous",
 		"coding",
 		"agent",
-		"autonomous",
+		"claude",
 		"chatgpt",
-		"sonnet",
-		"ai",
-		"llama"
+		"copilot",
+		"mcp"
 	],
 	"activationEvents": [],
 	"main": "./dist/extension.js",
@@ -274,7 +272,7 @@
 						"Turkish - Türkçe"
 					],
 					"default": "English",
-					"description": "The language that should be used for communication."
+					"description": "The preferred language for model communication."
 				},
 				"xpilot.mcpMarketplace.enabled": {
 					"type": "boolean",
@@ -299,12 +297,12 @@
 		"build:webview:test": "cd webview-ui && IS_TEST=true npm run build",
 		"watch:test": "IS_TEST=true npm-run-all -p watch:tsc watch:esbuild:test",
 		"compile-tests": "tsc -p ./tsconfig.test.json --outDir out",
-		"pretest": "npm run compile-tests && npm run compile && npm run lint",
-		"lint": "eslint src --ext ts && eslint webview-ui/src --ext ts",
+		"dev:webview": "cd webview-ui && npm run dev",
 		"format": "prettier . --check",
 		"format:fix": "prettier . --write",
 		"install:all": "npm install && cd webview-ui && npm install",
-		"dev:webview": "cd webview-ui && npm run dev",
+		"lint": "eslint src --ext ts && eslint webview-ui/src --ext ts",
+		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"publish:marketplace": "vsce publish && ovsx publish",
 		"publish:marketplace:prerelease": "vsce publish --pre-release && ovsx publish --pre-release",
 		"start:webview": "cd webview-ui && npm run start",

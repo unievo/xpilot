@@ -108,7 +108,7 @@ export class McpHub {
 	}
 
 	getMode(): McpMode {
-		return vscode.workspace.getConfiguration("cline.mcp").get<McpMode>("mode", "full")
+		return vscode.workspace.getConfiguration(`${productName}.mcp`).get<McpMode>("mode", "server-use-only")
 	}
 
 	async getMcpSettingsFilePath(): Promise<string> {

@@ -1,6 +1,7 @@
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
+import { vscode } from "../../utils/vscode"
 import { agentName } from "../../../../src/shared/Configuration"
 
 interface AnnouncementProps {
@@ -44,10 +45,24 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</h3>
 			{
 				<ul style={ulStyle}>
-					Welcome to the initial release of <b>{agentName}</b>! This is where new features will be announced.
+					<li>Cline v3.7.0 features update</li>
+					<li>
+						Added Romanian{" "}
+						<VSCodeLink
+							onClick={() => {
+								vscode.postMessage({
+									type: "openExtensionSettings",
+									text: "preferred language",
+								})
+							}}
+							style={{ fontSize: "12px" }}>
+							preferred language
+						</VSCodeLink>{" "}
+						support
+					</li>
 				</ul>
-
-				/* <ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				<li>
 					<b>Redesigned Checkpoints:</b> Checkpoints are now created more often through the task, and will appear as
 					line indicators on the left edge of chat. Hover over them to expand and see details like when they were
