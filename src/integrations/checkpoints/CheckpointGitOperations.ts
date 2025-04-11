@@ -5,6 +5,7 @@ import simpleGit, { SimpleGit } from "simple-git"
 import { fileExistsAtPath } from "../../utils/fs"
 import { getLfsPatterns, writeExcludesFile } from "./CheckpointExclusions"
 import { telemetryService } from "../../services/telemetry/TelemetryService"
+import { agentName } from "../../shared/Configuration"
 
 interface CheckpointAddResult {
 	success: boolean
@@ -83,14 +84,18 @@ export class GitOperations {
 		// Configure repo with git settings
 		await git.addConfig("core.worktree", cwd)
 		await git.addConfig("commit.gpgSign", "false")
-		await git.addConfig("user.name", "Cline Checkpoint")
-		await git.addConfig("user.email", "checkpoint@cline.bot")
+		await git.addConfig("user.name", `${agentName} Checkpoint`)
+		await git.addConfig("user.email", "noreply@example.com")
 
 		// Set up LFS patterns
 		const lfsPatterns = await getLfsPatterns(cwd)
 		await writeExcludesFile(gitPath, lfsPatterns)
 
-		await this.addCheckpointFiles(git)
+		const addFilesResult = await this.addCheckpointFiles(git)
+		if (!addFilesResult.success) {
+			console.error("Failed to add at least one file(s) to checkpoints shadow git")
+			throw new Error("Failed to add at least one file(s) to checkpoints shadow git")
+		}
 
 		// Initial commit only on first repo creation
 		await git.commit("initial commit", { "--allow-empty": null })
@@ -142,6 +147,7 @@ export class GitOperations {
 			ignore: [".git"], // Ignore root level .git
 			dot: true,
 			markDirectories: false,
+			suppressErrors: true,
 		})
 
 		// For each nested .git directory, rename it based on operation
@@ -190,18 +196,18 @@ export class GitOperations {
 			await this.renameNestedGitRepos(true)
 			console.info("Starting checkpoint add operation...")
 
+			// Attempt to add all files. Any files with permissions errors will not be added,
+			// but the process will proceed and add the rest (--ignore-errors).
 			try {
-				await git.add(".")
+				await git.add([".", "--ignore-errors"])
 				const durationMs = Math.round(performance.now() - startTime)
 				console.debug(`Checkpoint add operation completed in ${durationMs}ms`)
 				return { success: true }
 			} catch (error) {
-				console.error("Checkpoint add operation failed:", error)
-				throw error
+				return { success: false }
 			}
 		} catch (error) {
-			console.error("Failed to add files to checkpoint", error)
-			throw error
+			return { success: false }
 		} finally {
 			await this.renameNestedGitRepos(false)
 		}

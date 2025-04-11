@@ -59,13 +59,13 @@ weather-server/
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
-  CallToolRequestSchema,
-  ErrorCode,
+  ListToolsRequestSchema,
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
-  ListToolsRequestSchema,
-  McpError,
+  CallToolRequestSchema,
   ReadResourceRequestSchema,
+  McpError,
+  ErrorCode,
 } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 

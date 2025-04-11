@@ -4,10 +4,6 @@
 	"description": "xPilot is an AI software engineering agent for MultiversX",
 	"version": "0.1.0",
 	"icon": "assets/icons/icon_color.png",
-	"galleryBanner": {
-		"color": "#617A91",
-		"theme": "dark"
-	},
 	"engines": {
 		"vscode": "^1.84.0"
 	},
@@ -60,7 +56,8 @@
 				{
 					"type": "webview",
 					"id": "xpilot.SidebarProvider",
-					"name": "Dashboard"
+					"name": "Dashboard",
+					"icon": "assets/icons/icon_light.png"
 				}
 			]
 		},
@@ -73,7 +70,7 @@
 			{
 				"command": "xpilot.mcpButtonClicked",
 				"title": "MCP Servers",
-				"icon": "$(extensions)"
+				"icon": "$(server)"
 			},
 			{
 				"command": "xpilot.historyButtonClicked",
@@ -94,6 +91,37 @@
 				"command": "xpilot.openInNewTab",
 				"title": "Open In New Tab",
 				"category": "xPilot"
+			},
+			{
+				"command": "xpilot.dev.createTestTasks",
+				"title": "Create Test Tasks",
+				"category": "xPilot",
+				"when": "xpilot.isDevMode"
+			},
+			{
+				"command": "xpilot.addToChat",
+				"title": "Add to xPilot",
+				"category": "xPilot"
+			},
+			{
+				"command": "xpilot.addTerminalOutputToChat",
+				"title": "Add to xPilot",
+				"category": "xPilot"
+			},
+			{
+				"command": "xpilot.fixWithAgent",
+				"title": "Fix with xPilot",
+				"category": "xPilot"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "xpilot.addToChat",
+				"key": "cmd+'",
+				"mac": "cmd+'",
+				"win": "ctrl+'",
+				"linux": "ctrl+'",
+				"when": "editorHasSelection"
 			}
 		],
 		"menus": {
@@ -122,6 +150,46 @@
 					"command": "xpilot.settingsButtonClicked",
 					"group": "navigation@5",
 					"when": "view == xpilot.SidebarProvider"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "xpilot.plusButtonClicked",
+					"group": "navigation@1",
+					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
+				},
+				{
+					"command": "xpilot.mcpButtonClicked",
+					"group": "navigation@2",
+					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
+				},
+				{
+					"command": "xpilot.historyButtonClicked",
+					"group": "navigation@3",
+					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
+				},
+				{
+					"command": "xpilot.popoutButtonClicked",
+					"group": "navigation@4",
+					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
+				},
+				{
+					"command": "xpilot.settingsButtonClicked",
+					"group": "navigation@5",
+					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "xpilot.addToChat",
+					"group": "navigation",
+					"when": "editorHasSelection"
+				}
+			],
+			"terminal/context": [
+				{
+					"command": "xpilot.addTerminalOutputToChat",
+					"group": "navigation"
 				}
 			]
 		},
@@ -222,6 +290,14 @@
 		"changeset": "changeset",
 		"check-types": "tsc --noEmit",
 		"compile": "npm run check-types && npm run lint && node esbuild.js",
+		"watch": "npm-run-all -p watch:*",
+		"watch:esbuild": "node esbuild.js --watch",
+		"watch:esbuild:test": "IS_TEST=true node esbuild.js --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+		"package": "npm run build:webview && npm run check-types && npm run lint && node esbuild.js --production",
+		"package:test": "IS_TEST=true npm run build:webview:test && npm run check-types && npm run lint && IS_TEST=true node esbuild.js --production",
+		"build:webview:test": "cd webview-ui && IS_TEST=true npm run build",
+		"watch:test": "IS_TEST=true npm-run-all -p watch:tsc watch:esbuild:test",
 		"compile-tests": "tsc -p ./tsconfig.test.json --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts && eslint webview-ui/src --ext ts",
@@ -232,24 +308,30 @@
 		"publish:marketplace": "vsce publish && ovsx publish",
 		"publish:marketplace:prerelease": "vsce publish --pre-release && ovsx publish --pre-release",
 		"start:webview": "cd webview-ui && npm run start",
-		"test": "vscode-test",
+		"test": "npm-run-all test:unit test:integration",
+		"test:ci": "node scripts/test-ci.js",
+		"test:integration": "vscode-test",
+		"test:unit": "TS_NODE_PROJECT='./tsconfig.unit-test.json' mocha",
+		"test:coverage": "vscode-test --coverage",
 		"test:webview": "cd webview-ui && npm run test",
 		"version-packages": "changeset version",
 		"vscode:prepublish": "npm run package",
 		"vsix": "rimraf bin && mkdir bin && npx vsce package --out bin",
-		"watch": "npm-run-all -p watch:*",
-		"watch-tests": "tsc -p . -w --outDir out",
-		"watch:esbuild": "node esbuild.js --watch",
-		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json"
+		"watch-tests": "tsc -p . -w --outDir out"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.12",
 		"@types/chai": "^5.0.1",
+		"@types/clone-deep": "^4.0.4",
 		"@types/diff": "^5.2.1",
+		"@types/get-folder-size": "^3.0.4",
 		"@types/mocha": "^10.0.7",
 		"@types/node": "20.x",
+		"@types/pdf-parse": "^1.1.4",
+		"@types/proxyquire": "^1.3.31",
 		"@types/should": "^11.2.0",
 		"@types/sinon": "^17.0.4",
+		"@types/turndown": "^5.0.5",
 		"@types/vscode": "^1.84.0",
 		"@typescript-eslint/eslint-plugin": "^7.14.1",
 		"@typescript-eslint/parser": "^7.11.0",
@@ -261,8 +343,10 @@
 		"husky": "^9.1.7",
 		"npm-run-all": "^4.1.5",
 		"prettier": "^3.3.3",
+		"proxyquire": "^2.1.3",
 		"should": "^13.2.3",
 		"sinon": "^19.0.2",
+		"ts-node": "^10.9.2",
 		"typescript": "^5.4.5"
 	},
 	"dependencies": {
@@ -273,22 +357,26 @@
 		"@google-cloud/vertexai": "^1.9.3",
 		"@google/generative-ai": "^0.18.0",
 		"@mistralai/mistralai": "^1.5.0",
-		"@modelcontextprotocol/sdk": "^1.0.1",
-		"@types/clone-deep": "^4.0.4",
-		"@types/get-folder-size": "^3.0.4",
-		"@types/pdf-parse": "^1.1.4",
-		"@types/turndown": "^5.0.5",
+		"@modelcontextprotocol/sdk": "^1.7.0",
+		"@opentelemetry/api": "^1.4.1",
+		"@opentelemetry/exporter-trace-otlp-http": "^0.39.1",
+		"@opentelemetry/resources": "^1.30.1",
+		"@opentelemetry/sdk-node": "^0.39.1",
+		"@opentelemetry/sdk-trace-node": "^1.30.1",
+		"@opentelemetry/semantic-conventions": "^1.30.0",
+		"@sentry/browser": "^9.12.0",
 		"@vscode/codicons": "^0.0.36",
 		"axios": "^1.8.2",
 		"cheerio": "^1.0.0",
 		"chokidar": "^4.0.1",
+		"chrome-launcher": "^1.1.2",
 		"clone-deep": "^4.0.1",
 		"default-shell": "^2.2.0",
-		"delay": "^6.0.0",
 		"diff": "^5.2.0",
 		"execa": "^9.5.2",
 		"fast-deep-equal": "^3.1.3",
 		"firebase": "^11.2.0",
+		"fzf": "^0.5.2",
 		"get-folder-size": "^5.0.0",
 		"globby": "^14.0.2",
 		"ignore": "^7.0.3",

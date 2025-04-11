@@ -3,9 +3,10 @@ import os from "os"
 import * as path from "path"
 import simpleGit, { SimpleGit } from "simple-git"
 import * as vscode from "vscode"
-import { ClineProvider } from "../../core/webview/ClineProvider"
+import { Controller as ClineProvider } from "../../core/controller"
 import { fileExistsAtPath } from "../../utils/fs"
 import { globby } from "globby"
+import { agentName, productName } from "../../shared/Configuration"
 
 class CheckpointTracker {
 	private providerRef: WeakRef<ClineProvider>
@@ -28,7 +29,7 @@ class CheckpointTracker {
 			}
 
 			// Check if checkpoints are disabled in VS Code settings
-			const enableCheckpoints = vscode.workspace.getConfiguration("cline").get<boolean>("enableCheckpoints") ?? true
+			const enableCheckpoints = vscode.workspace.getConfiguration(productName).get<boolean>("enableCheckpoints") ?? true
 			if (!enableCheckpoints) {
 				return undefined // Don't create tracker when disabled
 			}
@@ -53,7 +54,7 @@ class CheckpointTracker {
 	private static async getWorkingDirectory(): Promise<string> {
 		const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0)
 		if (!cwd) {
-			throw new Error("No workspace detected. Please open Cline in a workspace to use checkpoints.")
+			throw new Error(`No workspace detected. Please open ${agentName} in a workspace to use checkpoints.`)
 		}
 		const homedir = os.homedir()
 		const desktopPath = path.join(homedir, "Desktop")
@@ -227,7 +228,7 @@ class CheckpointTracker {
 			)
 
 			// Set up git identity (git throws an error if user.name or user.email is not set)
-			await git.addConfig("user.name", "Cline Checkpoint")
+			await git.addConfig("user.name", `${agentName} Checkpoint`)
 			await git.addConfig("user.email", "noreply@example.com")
 
 			await this.addAllFiles(git)

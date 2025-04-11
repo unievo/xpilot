@@ -13,10 +13,7 @@ export const SystemInformationPrompt = async (
 # SYSTEM INFORMATION
 
 Operating System: ${osName()}
-
 Default Shell: ${getShell()}
-
 Home Directory: ${os.homedir().toPosix()}
-
 Current Working Directory: ${cwd.toPosix()}
 `

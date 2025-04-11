@@ -1,22 +1,16 @@
-import {
-	VSCodeButton,
-	VSCodeCheckbox,
-	VSCodeLink,
-	VSCodeTextArea,
-	VSCodePanels,
-	VSCodePanelTab,
-	VSCodePanelView,
-} from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeCheckbox, VSCodeLink, VSCodeTextArea } from "@vscode/webview-ui-toolkit/react"
 import { memo, useCallback, useEffect, useState } from "react"
-import { useExtensionState } from "../../context/ExtensionStateContext"
-import { validateApiConfiguration, validateModelId } from "../../utils/validate"
-import { vscode } from "../../utils/vscode"
-import SettingsButton from "../common/SettingsButton"
-import { agentName, repoUrl } from "../../../../src/shared/Configuration"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { validateApiConfiguration, validateModelId } from "@/utils/validate"
+import { vscode } from "@/utils/vscode"
+import SettingsButton from "@/components/common/SettingsButton"
+import { agentName, ignoreFile, repoUrl, rulesFile } from "../../../../src/shared/Configuration"
 import ApiOptions from "./ApiOptions"
-import { TabButton } from "../mcp/McpView"
+import { TabButton } from "../mcp/configuration/McpConfigurationView"
 import { useEvent } from "react-use"
-import { ExtensionMessage } from "../../../../src/shared/ExtensionMessage"
+import { ExtensionMessage } from "@shared/ExtensionMessage"
+import BrowserSettingsSection from "./BrowserSettingsSection"
+
 const { IS_DEV } = process.env
 
 type SettingsViewProps = {
@@ -114,6 +108,24 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 						setPendingTabChange(null)
 					}
 					break
+				case "scrollToSettings":
+					setTimeout(() => {
+						const elementId = message.text
+						if (elementId) {
+							const element = document.getElementById(elementId)
+							if (element) {
+								element.scrollIntoView({ behavior: "smooth" })
+
+								element.style.transition = "background-color 0.5s ease"
+								element.style.backgroundColor = "var(--vscode-textPreformat-background)"
+
+								setTimeout(() => {
+									element.style.backgroundColor = "transparent"
+								}, 1200)
+							}
+						}
+					}, 300)
+					break
 			}
 		},
 		[pendingTabChange],
@@ -165,6 +177,36 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 					display: "flex",
 					flexDirection: "column",
 				}}>
+				{
+					<div>
+						<p
+							style={{
+								fontSize: "14px",
+								marginTop: "5px",
+								color: "var(--vscode-description)",
+							}}>
+							Special files and folders
+						</p>
+						<p
+							style={{
+								fontSize: "12px",
+								marginTop: "5px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Use the {rulesFile} file (or folder containing multiple files) in the current working directory, to
+							specify workspace and project instructions that are read automatically.
+						</p>
+						<p
+							style={{
+								fontSize: "12px",
+								marginTop: "5px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Use the {ignoreFile} file in the current working directory to specify files or folders that must not
+							be accessed (similar to .gitignore).
+						</p>
+					</div>
+				}
 				{/* Tabs container */}
 				{planActSeparateModelsSetting ? (
 					<div
@@ -279,6 +321,25 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 						for more details.
 					</p>
 				</div> */}
+				<BrowserSettingsSection />
+				{/* Browser Settings Section */}
+
+				<div
+					style={{
+						marginTop: "auto",
+						paddingRight: 8,
+						display: "flex",
+						justifyContent: "center",
+					}}>
+					<SettingsButton
+						onClick={() => vscode.postMessage({ type: "openExtensionSettings" })}
+						style={{
+							margin: "0 0 16px 0",
+						}}>
+						<i className="codicon codicon-settings-gear" />
+						Advanced Settings
+					</SettingsButton>
+				</div>
 
 				{IS_DEV && (
 					<>
@@ -299,27 +360,12 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 
 				<div
 					style={{
-						marginTop: "auto",
-						paddingRight: 8,
-						display: "flex",
-						justifyContent: "center",
-					}}>
-					<SettingsButton
-						onClick={() => vscode.postMessage({ type: "openExtensionSettings" })}
-						style={{
-							margin: "0 0 16px 0",
-						}}>
-						<i className="codicon codicon-settings-gear" />
-						Advanced Settings
-					</SettingsButton>
-				</div>
-				<div
-					style={{
 						textAlign: "center",
 						color: "var(--vscode-descriptionForeground)",
 						fontSize: "12px",
 						lineHeight: "1.2",
 						padding: "0 8px 15px 0",
+						marginTop: "auto",
 					}}>
 					<p
 						style={{

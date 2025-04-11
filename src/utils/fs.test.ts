@@ -4,9 +4,10 @@ import * as os from "os"
 import * as path from "path"
 import "should"
 import { createDirectoriesForFile, fileExistsAtPath, isDirectory } from "./fs"
+import { productName } from "../shared/Configuration"
 
 describe("Filesystem Utilities", () => {
-	const tmpDir = path.join(os.tmpdir(), "cline-test-" + Math.random().toString(36).slice(2))
+	const tmpDir = path.join(os.tmpdir(), `${productName}-test-` + Math.random().toString(36).slice(2))
 
 	// Clean up after tests
 	after(async () => {
