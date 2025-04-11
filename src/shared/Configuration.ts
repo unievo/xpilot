@@ -42,7 +42,7 @@ export const dataDisplayPrompt = `
 - Do not include fields containing over 100 characters.
 - Display timestamps in standard UTC datetime, only if value > 0.
 - When displaying token quantities (amounts, balances, minted, burned, etc) show the denominated values based on token decimals. 
-- For values >= 1 show only 2 decimals.
+- For values >= 1 show only 2 decimals, for values < 1 display decimals until two are not zero.
 - Use delimiters for numbers with more than 3 digits.
 - Replace base64 encoded strings with their values decoded.
 - Format URLs, links, etc as clickable links.
