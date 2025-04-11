@@ -4,7 +4,7 @@ import fs from "fs/promises"
 import { Anthropic } from "@anthropic-ai/sdk"
 import { fileExistsAtPath } from "../../utils/fs"
 import { ClineMessage } from "../../shared/ExtensionMessage"
-import type { TaskMetadata } from "../context-tracking/ContextTrackerTypes"
+import { TaskMetadata } from "../context/context-tracking/ContextTrackerTypes"
 import {
 	apiConversationHistoryFile,
 	contextHistoryFile,
@@ -14,7 +14,6 @@ import {
 	taskMetadataFile,
 	uiMessagesFile,
 } from "../../shared/Configuration"
-
 export const GlobalFileNames = {
 	apiConversationHistory: apiConversationHistoryFile,
 	contextHistory: contextHistoryFile,
