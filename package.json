@@ -210,7 +210,7 @@
 					},
 					"description": "Settings for VSCode Language Model API"
 				},
-				"cline.enableCheckpoints": {
+				"astro.enableCheckpoints": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables extension to save checkpoints of workspace throughout the task. Uses git under the hood which may not work well with large workspaces."
