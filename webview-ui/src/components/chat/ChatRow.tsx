@@ -635,7 +635,7 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 				<div
 					style={{
 						background: "var(--vscode-textCodeBlock-background)",
-						borderRadius: "3px",
+						//borderRadius: "3px",
 						padding: "8px 10px",
 						marginTop: "8px",
 					}}>
@@ -677,17 +677,26 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 										style={{
 											marginBottom: "4px",
 											opacity: 0.8,
-											fontSize: "12px",
-											textTransform: "uppercase",
-										}}>
-										Arguments
+											fontSize: "13px",
+											//textTransform: "uppercase",
+											display: "flex",
+											alignItems: "center",
+											cursor: "pointer",
+										}}
+										onClick={onToggleExpand}>
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
+											style={{ marginRight: "4px" }}></span>
+										<span style={{ color: "var(--vscode-textLink-foreground)" }}>Arguments</span>
 									</div>
-									<CodeAccordian
-										code={useMcpServer.arguments}
-										language="json"
-										isExpanded={true}
-										onToggleExpand={onToggleExpand}
-									/>
+									{isExpanded && (
+										<CodeAccordian
+											code={useMcpServer.arguments}
+											language="json"
+											isExpanded={true}
+											onToggleExpand={onToggleExpand}
+										/>
+									)}
 								</div>
 							)}
 						</>
@@ -1027,7 +1036,7 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 							</div>
 							<div
 								style={{
-									color: "var(--vscode-charts-green)",
+									color: "var(--vscode-charts-white)",
 									paddingTop: 10,
 								}}>
 								<Markdown markdown={text} />
@@ -1255,7 +1264,9 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 										color: normalColor,
 										marginBottom: "-1.5px",
 									}}></span>
-								<span style={{ color: normalColor, fontWeight: "bold" }}>Cline wants to start a new task:</span>
+								<span style={{ color: normalColor, fontWeight: "bold" }}>
+									{agentName} wants to start a new task:
+								</span>
 							</div>
 							<NewTaskPreview context={message.text || ""} />
 						</>
