@@ -253,7 +253,10 @@ Parameters:
 Usage:
 <plan_mode_response>
 <response>Your response here</response>
-</plan_mode_response>
+<options>
+Array of options here (optional), e.g. ["Option 1", "Option 2", "Option 3"]
+</options>
+</plan_mode_respond>
 
 ## Tool Use Examples
 
