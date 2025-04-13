@@ -194,19 +194,13 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 	if (storedApiProvider) {
 		apiProvider = storedApiProvider
 	} else {
-		// Either new user or legacy user that doesn't have the apiProvider stored in state
-		// (If they're using OpenRouter or Bedrock, then apiProvider state will exist)
-		if (apiKey) {
-			apiProvider = "anthropic"
-		} else {
-			// New users should default to openrouter, since they've opted to use an API key instead of signing in
-			apiProvider = "openrouter"
-		}
+		// New users should default to vscode-lm instead of openrouter
+		apiProvider = "vscode-lm"
 	}
 
 	const o3MiniReasoningEffort = vscode.workspace.getConfiguration(o3MiniModelConfiguration).get("reasoningEffort", "medium")
 
-	const mcpMarketplaceEnabled = vscode.workspace.getConfiguration(productName).get<boolean>("mcpMarketplace.enabled", true)
+	const mcpMarketplaceEnabled = vscode.workspace.getConfiguration(productName).get<boolean>("mcpMarketplace.enabled", false)
 
 	// Plan/Act separate models setting is a boolean indicating whether the user wants to use different models for plan and act. Existing users expect this to be enabled, while we want new users to opt in to this being disabled by default.
 	// On win11 state sometimes initializes as empty string instead of undefined
