@@ -827,15 +827,12 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 					<div style={{ padding: "0 20px", flexShrink: 0 }}>
 						<h2>How can I help?</h2>
-						{
-							<p>
-								{" "}
-								<span className="codicon codicon-info" style={{ fontSize: "16px" }}></span> Start a new task each
-								time you want to switch to a new context. Each task accumulates content in a context window that
-								is sent to the model with each new request. To optimize context window length and model token
-								usage you can switch between previous tasks in history at any time.{" "}
-							</p>
-						}
+						<p>
+							{" "}
+							<span className="codicon codicon-info" style={{ fontSize: "16px" }}></span> Start a new task each time
+							you have a new context. Each task accumulates context in the context window used by the model with
+							each request. You can switch between tasks in history at any time.
+						</p>
 					</div>
 					{taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}
 				</div>
