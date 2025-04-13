@@ -7,7 +7,7 @@ export const EditingFilesPrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
-# EDITING FILES
+EDITING FILES
 
 You have access to two tools for working with files: **write_to_file** and **replace_in_file**. Understanding their roles and selecting the right one for the job will help ensure efficient and accurate modifications.
 

@@ -7,7 +7,7 @@ export const ActModePlanModePrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
-# ACT MODE V.S. PLAN MODE
+ACT MODE V.S. PLAN MODE
 
 In each user message, the environment_details will specify the current mode. There are two modes:
 

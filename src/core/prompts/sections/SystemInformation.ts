@@ -10,7 +10,7 @@ export const SystemInformationPrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
-# SYSTEM INFORMATION
+SYSTEM INFORMATION
 
 Operating System: ${osName()}
 Default Shell: ${getShell()}

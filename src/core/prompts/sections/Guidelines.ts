@@ -11,12 +11,6 @@ export const GuidelinesPrompt = async (
 # GUIDELINES
 
 ALWAYS follow these guidelines:
-${
-	mcpHub.getMode() !== "off"
-		? `
-	${mcpServersInfo}
-	${dataDisplayPrompt}
-	`
-		: ""
-}
+${mcpServersInfo}
+${dataDisplayPrompt}
 `

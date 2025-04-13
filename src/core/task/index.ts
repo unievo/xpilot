@@ -6,6 +6,7 @@ import os from "os"
 import pTimeout from "p-timeout"
 import pWaitFor from "p-wait-for"
 import * as path from "path"
+import * as fs from "fs"
 import { serializeError } from "serialize-error"
 import * as vscode from "vscode"
 import { ApiHandler, buildApiHandler } from "../../api"
@@ -62,7 +63,8 @@ import { constructNewFileContent } from ".././assistant-message/diff"
 import { ClineIgnoreController } from ".././ignore/ClineIgnoreController"
 import { parseMentions } from ".././mentions"
 import { formatResponse } from ".././prompts/responses"
-import { addUserInstructions, SYSTEM_PROMPT } from ".././prompts/system"
+import { SYSTEM_PROMPT } from "../prompts/systemSections"
+import { addUserInstructions } from ".././prompts/userInstructions"
 import { getContextWindowInfo } from "../context/context-management/context-window-utils"
 import { FileContextTracker } from "../context/context-tracking/FileContextTracker"
 import { ModelContextTracker } from "../context/context-tracking/ModelContextTracker"
@@ -1399,7 +1401,11 @@ export class Task {
 	}
 
 	async saveMessages(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]) {
-		fs.writeFile(path.join(cwd, `.${agentName}Prompt.md`), systemPrompt)
+		fs.writeFile(path.join(cwd, `.${agentName}Prompt.md`), systemPrompt, (err) => {
+			if (err) {
+				console.error(`Failed to write file: ${err.message}`)
+			}
+		})
 		if (messages.length > 0) {
 			fs.writeFile(
 				path.join(cwd, `.${agentName}History.md`),
@@ -1435,6 +1441,11 @@ export class Task {
 						}
 					})
 					.join("\n"),
+				(err) => {
+					if (err) {
+						console.error(`Failed to write file: ${err.message}`)
+					}
+				},
 			)
 		}
 	}
