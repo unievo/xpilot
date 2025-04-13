@@ -13,12 +13,12 @@ const ResponseHeader = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 9px 10px;
-	color: var(--vscode-descriptionForeground);
+	padding: 7px 10px;
+	//color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	user-select: none;
-	border-bottom: 1px dashed var(--vscode-editorGroup-border);
-	margin-bottom: 8px;
+	//border-bottom: 1px dashed var(--vscode-editorGroup-border);
+	//margin-bottom: 8px;
 
 	.header-title {
 		display: flex;
@@ -72,12 +72,11 @@ const ToggleSwitch = styled.div`
 
 const ResponseContainer = styled.div`
 	position: relative;
-	font-family: var(--vscode-editor-font-family, monospace);
+	//font-family: var(--vscode-editor-font-family, monospace);
 	font-size: var(--vscode-editor-font-size, 12px);
-	background-color: ${CODE_BLOCK_BG_COLOR};
+	background-color: var(--vscode-textCodeBlock-background);
 	color: var(--vscode-editor-foreground, #d4d4d4);
 	border-radius: 3px;
-	border: 1px solid var(--vscode-editorGroup-border);
 	overflow: hidden;
 
 	.response-content {
@@ -121,6 +120,7 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 	const [error, setError] = useState<string | null>(null)
 	// Add a counter state for forcing re-renders to make toggling run smoother
 	const [forceUpdateCounter, setForceUpdateCounter] = useState(0)
+	const [isExpanded, setIsExpanded] = useState(false)
 
 	const toggleDisplayMode = useCallback(() => {
 		const newMode = displayMode === "rich" ? "plain" : "rich"
@@ -141,6 +141,10 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 			console.log("Switching to rich mode - will start URL processing")
 		}
 	}, [displayMode])
+
+	const toggleExpand = useCallback(() => {
+		setIsExpanded((prev) => !prev)
+	}, [])
 
 	// Find all URLs in the text and determine if they're images
 	useEffect(() => {
@@ -385,17 +389,43 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 	try {
 		return (
 			<ResponseContainer>
-				<ResponseHeader>
-					<span className="header-title">Response</span>
-					<ToggleSwitch>
-						<span className="toggle-label">{displayMode === "rich" ? "Rich Display" : "Plain Text"}</span>
-						<div className={`toggle-container ${displayMode === "rich" ? "active" : ""}`} onClick={toggleDisplayMode}>
-							<div className="toggle-handle"></div>
-						</div>
-					</ToggleSwitch>
+				<ResponseHeader onClick={toggleExpand}>
+					<div
+						style={{
+							//marginBottom: "4px",
+							opacity: 0.8,
+							fontSize: "13px",
+							//textTransform: "uppercase",
+							display: "flex",
+							alignItems: "center",
+							cursor: "pointer",
+						}}>
+						<span
+							className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
+							style={{ marginRight: "4px" }}></span>
+						<span style={{ color: "var(--vscode-textLink-foreground)" }}>Response</span>
+					</div>
 				</ResponseHeader>
 
-				<div className="response-content">{renderContent()}</div>
+				{isExpanded && (
+					<div className="response-content">
+						<div className="toggle-switch">
+							<ToggleSwitch>
+								<div style={{ display: "flex", width: "100%", justifyContent: "flex-end", alignItems: "center" }}>
+									<span className="toggle-label" style={{ marginRight: "8px" }}>
+										{displayMode === "rich" ? "Rich Display" : "Plain Text"}
+									</span>
+									<div
+										className={`toggle-container ${displayMode === "rich" ? "active" : ""}`}
+										onClick={toggleDisplayMode}>
+										<div className="toggle-handle" />
+									</div>
+								</div>
+							</ToggleSwitch>
+						</div>
+						{displayMode === "rich" ? renderContent() : <UrlText>{responseText}</UrlText>}
+					</div>
+				)}
 			</ResponseContainer>
 		)
 	} catch (error) {
