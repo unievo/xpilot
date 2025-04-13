@@ -5,7 +5,7 @@ import { validateApiConfiguration } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
 import ApiOptions from "@/components/settings/ApiOptions"
 import { agentName } from "../../../../src/shared/Configuration"
-import AgentLogoWhite from "@/assets/ClineLogoWhite"
+import AgentLogo from "@/assets/AgentLogo"
 
 const WelcomeView = memo(() => {
 	const { apiConfiguration } = useExtensionState()
@@ -29,28 +29,32 @@ const WelcomeView = memo(() => {
 	return (
 		<div className="fixed inset-0 p-0 flex flex-col">
 			<div className="h-full px-5 overflow-auto">
-				<h2>Hi, I'm {agentName}!</h2>
-				<div className="flex justify-left my-5">
-					<AgentLogoWhite className="size-16" />
+				<div className="flex justify-center my-5">
+					<AgentLogo className="size-16" />
 				</div>
+				<h2 className="flex justify-center my-5">Hi, I am {agentName}!</h2>
 				<p>I'm an AI software engineering agent.</p>
 				<p>
-					I can use AI models to plan and execute tasks, create and edit files, read terminal output and even execute
-					commands in the terminal. I'm also able to access external tools, resources and APIs using the Model Context
-					Protocol (MCP).
+					I can use AI models to plan and execute many coding tasks and I'm able to access external tools and data using
+					the Model Context Protocol.
 				</p>
 				<p>
-					I can work with models with different capabilities, though I achieve best results with agentic models that
-					understand coding, tools and tool use, and I prefer Claude Sonnet. Feel free to experiment with different
-					models.
+					I can work with different models, but I achieve the best results with models trained for coding and tool use,
+					such as Claude Sonnet.
+				</p>
+				<p>To access an AI model I need to use an AI API Provider.</p>
+				<p>
+					I can use many different providers and you can use your own API key if you already have one. Or you can use
+					providers such as Cline or Open Router which offer many models, by selecting them from the provider list.
 				</p>
 				<p>
-					If you already have{" "}
-					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+					{" "}
+					I can also use available models in VS Code, Cursor, or Windsurf. If you have{" "}
+					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						Copilot
 					</VSCodeLink>{" "}
-					installed, or other VS Code extensions that provide a language model API, I can use that so you don't need to
-					configure another API key. Just select VS Code from the provider list below.
+					installed, I can use the same models, so you don't need another API key or subscription. Select VS Code from
+					the provider list.
 				</p>
 				<p></p>
 

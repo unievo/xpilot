@@ -288,7 +288,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
 					<meta http-equiv="Content-Security-Policy" content="${csp.join("; ")}">
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<link href="${codiconsUri}" rel="stylesheet" />
-					<title>Cline</title>
+					<title>${agentName}</title>
 				</head>
 				<body>
 					<div id="root"></div>
