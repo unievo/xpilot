@@ -210,22 +210,7 @@
 					},
 					"description": "Settings for VSCode Language Model API"
 				},
-				"astro.mcp.mode": {
-					"type": "string",
-					"enum": [
-						"full",
-						"server-use-only",
-						"off"
-					],
-					"enumDescriptions": [
-						"Enable all MCP functionality (server use and build instructions)",
-						"Enable MCP server use only (excludes instructions about building MCP servers)",
-						"Disable all MCP functionality"
-					],
-					"default": "server-use-only",
-					"description": "Controls MCP inclusion in prompts, reduces token usage if you only need access to certain functionality."
-				},
-				"astro.enableCheckpoints": {
+				"cline.enableCheckpoints": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables extension to save checkpoints of workspace throughout the task. Uses git under the hood which may not work well with large workspaces."
