@@ -1,28 +1,19 @@
-import { McpHub } from "../../../services/mcp/McpHub"
-import { BrowserSettings } from "../../../shared/BrowserSettings"
+import { McpHub } from "../../services/mcp/McpHub"
 
-export const McpServerCreatePrompt = async (
-	cwd: string,
-	supportsComputerUse: boolean,
-	mcpHub: McpHub,
-	browserSettings: BrowserSettings,
-) => `
-# CREATING AN MCP SERVER
-
-The user may ask you to add tools that do some function, in other words to create an MCP server that provides tools and resources that may connect to external APIs for example. You have the ability to create an MCP server and add it to a configuration file that will then expose the tools and resources for you to use with \`use_mcp_tool\` and \`access_mcp_resource\`.
+export async function loadMcpDocumentation(mcpHub: McpHub) {
+	return `## Creating an MCP Server
 
 When creating MCP servers, it's important to understand that they operate in a non-interactive environment. The server cannot initiate OAuth flows, open browser windows, or prompt for user input during runtime. All credentials and authentication tokens must be provided upfront through environment variables in the MCP settings configuration. For example, Spotify's API uses OAuth to get a refresh token for the user, but the MCP server cannot initiate this flow. While you can walk the user through obtaining an application client ID and secret, you may have to create a separate one-time setup script (like get-refresh-token.js) that captures and logs the final piece of the puzzle: the user's refresh token (i.e. you might run the script using execute_command which would open a browser for authentication, and then log the refresh token so that you can see it in the command output for you to use in the MCP settings configuration).
 
 Unless the user specifies otherwise, new MCP servers should be created in: ${await mcpHub.getMcpServersPath()}
 
-## Example MCP Server
+### Example MCP Server
 
 For example, if the user wanted to give you the ability to retrieve weather information, you could create an MCP server that uses the OpenWeather API to get weather information, add it to the MCP settings configuration file, and then notice that you now have access to new tools and resources in the system prompt that you might use to show the user your new capabilities.
 
-The following example demonstrates how to build an MCP server that provides weather data functionality. This example shows how to implement resources, resource templates, and tools. In practice, when parameters need to be passed, it is better to use tools since they are more flexible and can handle dynamic parameters. The resource and resource template implementations are included here mainly for demonstration purposes of the different MCP capabilities.
-(The following steps are for macOS)
+The following example demonstrates how to build an MCP server that provides weather data functionality. While this example shows how to implement resources, resource templates, and tools, in practice you should prefer using tools since they are more flexible and can handle dynamic parameters. The resource and resource template implementations are included here mainly for demonstration purposes of the different MCP capabilities, but a real weather server would likely just expose tools for fetching weather data. (The following steps are for macOS)
 
-1. Create a new directory in the default MCP servers directory:
+1. Use the \`create-typescript-server\` tool to bootstrap a new project in the default MCP servers directory:
 
 \`\`\`bash
 cd ${await mcpHub.getMcpServersPath()}
@@ -59,13 +50,13 @@ weather-server/
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
-  ListToolsRequestSchema,
+  CallToolRequestSchema,
+  ErrorCode,
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
-  CallToolRequestSchema,
-  ReadResourceRequestSchema,
+  ListToolsRequestSchema,
   McpError,
-  ErrorCode,
+  ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 
@@ -84,8 +75,9 @@ interface OpenWeatherResponse {
   dt_txt?: string;
 }
 
-const isValidForecastArgs = (args: any):
-  args is { city: string; days?: number } =>
+const isValidForecastArgs = (
+  args: any
+): args is { city: string; days?: number } =>
   typeof args === 'object' &&
   args !== null &&
   typeof args.city === 'string' &&
@@ -128,24 +120,27 @@ class WeatherServer {
     });
   }
 
-  // MCP Resources represent any kind of UTF-8 encoded data that an MCP server wants to make available to clients, such as documentation, database records, API responses, log files, and more. Servers define direct resources with a static URI or dynamic resources with a URI template that follows the format \`[protocol]://[host]/[path]\`.
+  // MCP Resources represent any kind of UTF-8 encoded data that an MCP server wants to make available to clients, such as database records, API responses, log files, and more. Servers define direct resources with a static URI or dynamic resources with a URI template that follows the format \`[protocol]://[host]/[path]\`.
   private setupResourceHandlers() {
     // For static resources, servers can expose a list of resources:
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       resources: [
-        // This demonstrates how to define a static resource
+        // This is a poor example since you could use the resource template to get the same information but this demonstrates how to define a static resource
         {
-          uri: \`weather://San-Francisco/current\`, // Unique identifier for San Francisco weather resource
+          uri: \`weather://San Francisco/current\`, // Unique identifier for San Francisco weather resource
           name: \`Current weather in San Francisco\`, // Human-readable name
           mimeType: 'application/json', // Optional MIME type
           // Optional description
-          description:'Real-time weather data for San Francisco including temperature, conditions, humidity, and wind speed',
+          description:
+            'Real-time weather data for San Francisco including temperature, conditions, humidity, and wind speed',
         },
       ],
     }));
 
     // For dynamic resources, servers can expose resource templates:
-    this.server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({
+    this.server.setRequestHandler(
+      ListResourceTemplatesRequestSchema,
+      async () => ({
         resourceTemplates: [
           {
             uriTemplate: 'weather://{city}/current', // URI template (RFC 6570)
@@ -158,7 +153,9 @@ class WeatherServer {
     );
 
     // ReadResourceRequestSchema is used for both static resources and dynamic resource templates
-    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    this.server.setRequestHandler(
+      ReadResourceRequestSchema,
+      async (request) => {
         const match = request.params.uri.match(
           /^weather:\/\/([^/]+)\/current$/
         );
@@ -212,10 +209,10 @@ class WeatherServer {
     );
   }
 
-// MCP Tools enable servers to expose executable functionality to the system. Through these tools, you can interact with external systems, perform computations, and take actions in the real world.
-// - Like resources, tools are identified by unique names and can include descriptions to guide their usage. However, unlike resources, tools represent dynamic operations that can modify state or interact with external systems.
-// - While resources and tools are similar, you should prefer to create tools over resources when possible as they provide more flexibility.
-
+  /* MCP Tools enable servers to expose executable functionality to the system. Through these tools, you can interact with external systems, perform computations, and take actions in the real world.
+   * - Like resources, tools are identified by unique names and can include descriptions to guide their usage. However, unlike resources, tools represent dynamic operations that can modify state or interact with external systems.
+   * - While resources and tools are similar, you should prefer to create tools over resources when possible as they provide more flexibility.
+   */
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
@@ -309,7 +306,7 @@ const server = new WeatherServer();
 server.run().catch(console.error);
 \`\`\`
 
-(Remember: This is just an example, you may use different dependencies, break the implementation up into multiple files, etc.)
+(Remember: This is just an example–you may use different dependencies, break the implementation up into multiple files, etc.)
 
 3. Build and compile the executable JavaScript file
 
@@ -342,24 +339,23 @@ IMPORTANT: Regardless of what else you see in the MCP settings file, you must de
 
 6. After you have edited the MCP settings configuration file, the system will automatically run all the servers and expose the available tools and resources in the 'Connected MCP Servers' section. (Note: If you encounter a 'not connected' error when testing a newly installed mcp server, a common cause is an incorrect build path in your MCP settings configuration. Since compiled JavaScript files are commonly output to either 'dist/' or 'build/' directories, double-check that the build path in your MCP settings matches where your files are actually being compiled. E.g. If you assumed 'build' as the folder, check tsconfig.json to see if it's using 'dist' instead.)
 
-7. Now that you have access to these new tools and resources, you may suggest ways the user can prompt you to invoke them - for example, with this new weather tool now available, you can invite the user to ask "what's the weather in San Francisco?"
+7. Now that you have access to these new tools and resources, you may suggest ways the user can command you to invoke them - for example, with this new weather tool now available, you can invite the user to ask "what's the weather in San Francisco?"
 
 ## Editing MCP Servers
 
-The user may ask to add tools or resources that may make sense to add to an existing MCP server (listed under 'Connected MCP Servers': ${
-	mcpHub
-		.getServers()
-		.filter((server) => server.status === "connected")
-		.map((server) => server.name)
-		.join(", ") || "(None running currently)"
-}
-            , for example if it would use the same API. This would be possible if you can locate the MCP server repository on the user's system by looking at the server arguments for a filepath. You might then use list_files and read_file to explore the files in the repository, and use replace_in_file to make changes to the files.
+The user may ask to add tools or resources that may make sense to add to an existing MCP server (listed under 'Connected MCP Servers' below: ${
+		mcpHub
+			.getServers()
+			.filter((server) => server.status === "connected")
+			.map((server) => server.name)
+			.join(", ") || "(None running currently)"
+	}, e.g. if it would use the same API. This would be possible if you can locate the MCP server repository on the user's system by looking at the server arguments for a filepath. You might then use list_files and read_file to explore the files in the repository, and use replace_in_file to make changes to the files.
 
 However some MCP servers may be running from installed packages rather than a local repository, in which case it may make more sense to create a new MCP server.
 
-## MCP Servers Are Not Always Necessary
+# MCP Servers Are Not Always Necessary
 
 The user may not always request the use or creation of MCP servers. Instead, they might provide tasks that can be completed with existing tools. While using the MCP SDK to extend your capabilities can be useful, it's important to understand that this is just one specialized type of task you can accomplish. You should only implement MCP servers when the user explicitly requests it (e.g., "add a tool that...").
 
-Remember: The MCP documentation and example provided above are to help you understand and work with existing MCP servers or create new ones when requested by the user. You already have access to tools and capabilities that can be used to accomplish a wide range of tasks.
-`
+Remember: The MCP documentation and example provided above are to help you understand and work with existing MCP servers or create new ones when requested by the user. You already have access to tools and capabilities that can be used to accomplish a wide range of tasks.`
+}

@@ -1,5 +1,6 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import axios from "axios"
+import type { AxiosRequestConfig } from "axios"
 import crypto from "crypto"
 import { execa } from "execa"
 import fs from "fs/promises"
@@ -62,7 +63,7 @@ https://github.com/KumarVariable/vscode-extension-sidebar-html/blob/master/src/c
 */
 
 export class Controller {
-	private postMessage: (message: any) => Thenable<boolean> | undefined
+	private postMessage: (message: ExtensionMessage) => Thenable<boolean> | undefined
 
 	private disposables: vscode.Disposable[] = []
 	private task?: Task
@@ -74,7 +75,7 @@ export class Controller {
 	constructor(
 		readonly context: vscode.ExtensionContext,
 		private readonly outputChannel: vscode.OutputChannel,
-		postMessage: (message: any) => Thenable<boolean> | undefined,
+		postMessage: (message: ExtensionMessage) => Thenable<boolean> | undefined,
 	) {
 		this.outputChannel.appendLine("Controller instantiated")
 		this.postMessage = postMessage
@@ -613,14 +614,7 @@ export class Controller {
 						await this.togglePlanActModeWithChatSettings({ mode: "act" })
 					}
 
-					// 2. Enable MCP settings if disabled
-					// Enable MCP mode if disabled
-					const mcpConfig = vscode.workspace.getConfiguration(mcpConfiguration)
-					if (mcpConfig.get<string>("mode") !== "full") {
-						await mcpConfig.update("mode", "full", true)
-					}
-
-					// 3. download MCP
+					// 2. download MCP
 					await this.downloadMcp(message.mcpId)
 				}
 				break
@@ -951,6 +945,7 @@ export class Controller {
 			previousModeModelInfo: newModelInfo,
 			previousModeVsCodeLmModelSelector: newVsCodeLmModelSelector,
 			previousModeThinkingBudgetTokens: newThinkingBudgetTokens,
+			previousModeReasoningEffort: newReasoningEffort,
 			planActSeparateModelsSetting,
 		} = await getAllExtensionState(this.context)
 
@@ -960,6 +955,7 @@ export class Controller {
 			// Save the last model used in this mode
 			await updateGlobalState(this.context, "previousModeApiProvider", apiConfiguration.apiProvider)
 			await updateGlobalState(this.context, "previousModeThinkingBudgetTokens", apiConfiguration.thinkingBudgetTokens)
+			await updateGlobalState(this.context, "previousModeReasoningEffort", apiConfiguration.reasoningEffort)
 			switch (apiConfiguration.apiProvider) {
 				case "anthropic":
 				case "bedrock":
@@ -969,6 +965,7 @@ export class Controller {
 				case "openai-native":
 				case "qwen":
 				case "deepseek":
+				case "xai":
 					await updateGlobalState(this.context, "previousModeModelId", apiConfiguration.apiModelId)
 					break
 				case "openrouter":
@@ -1004,9 +1001,16 @@ export class Controller {
 			}
 
 			// Restore the model used in previous mode
-			if (newApiProvider || newModelId || newThinkingBudgetTokens !== undefined || newVsCodeLmModelSelector) {
+			if (
+				newApiProvider ||
+				newModelId ||
+				newThinkingBudgetTokens !== undefined ||
+				newReasoningEffort ||
+				newVsCodeLmModelSelector
+			) {
 				await updateGlobalState(this.context, "apiProvider", newApiProvider)
 				await updateGlobalState(this.context, "thinkingBudgetTokens", newThinkingBudgetTokens)
+				await updateGlobalState(this.context, "reasoningEffort", newReasoningEffort)
 				switch (newApiProvider) {
 					case "anthropic":
 					case "bedrock":
@@ -1016,6 +1020,7 @@ export class Controller {
 					case "openai-native":
 					case "qwen":
 					case "deepseek":
+					case "xai":
 						await updateGlobalState(this.context, "apiModelId", newModelId)
 						break
 					case "openrouter":
@@ -1405,9 +1410,10 @@ export class Controller {
 
 			// Create task with context from README and added guidelines for MCP server installation
 			const task = `Set up the MCP server from ${mcpDetails.githubUrl} while adhering to these MCP server installation rules:
+- Start by loading the MCP documentation.
 - Use "${mcpDetails.mcpId}" as the server name in ${mcpSettingsFile}.
 - Create the directory for the new MCP server before starting installation.
-- Make sure you read the user's existing cline_mcp_settings.json file before editing it with this new mcp, to not overwrite any existing servers.
+- Make sure you read the user's existing ${mcpSettingsFile} file before editing it with this new mcp, to not overwrite any existing servers.
 - Use commands aligned with the user's shell and operating system best practices.
 - The following README may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
 - Once installed, demonstrate the server's capabilities by using one of its tools.
@@ -1458,7 +1464,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 				return []
 			}
 
-			const config: Record<string, any> = {}
+			const config: AxiosRequestConfig = {}
 			if (apiKey) {
 				config["headers"] = { Authorization: `Bearer ${apiKey}` }
 			}

@@ -7,11 +7,13 @@ export const McpServerUsePrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
-# MCP SERVER USE
+MCP SERVERS
 
-The Model Context Protocol (MCP) enables communication with MCP servers that provide additional capabilities.
+The Model Context Protocol (MCP) enables communication between the system and locally running MCP servers that provide additional tools and resources to extend your capabilities.
 
-## Connected MCP Servers List
+# Connected MCP Servers
+
+When a server is connected, you can use the server's tools via the \`use_mcp_tool\` tool, and access the server's resources via the \`access_mcp_resource\` tool.
 
 ${
 	mcpHub.getServers().length > 0
@@ -41,14 +43,10 @@ ${
 					const config = JSON.parse(server.config)
 
 					return (
-						`### ${server.name} (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` +
-						(tools ? `\n\n#### ATL (Additional tools list) accessible using the "use_mcp_tool" \n\n${tools}` : "") +
-						(resources
-							? `\n\n#### RL (Resources list) accessible using the "access_mcp_resource" \n\n${resources}`
-							: "") +
-						(templates
-							? `\n\n#### RTL (Resource templates list) accessible using the "access_mcp_resource" \n\n${templates}`
-							: "")
+						`## ${server.name} (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` +
+						(tools ? `\n\n### Available Tools\n${tools}` : "") +
+						(templates ? `\n\n### Resource Templates\n${templates}` : "") +
+						(resources ? `\n\n### Direct Resources\n${resources}` : "")
 					)
 				})
 				.join("\n\n")}`

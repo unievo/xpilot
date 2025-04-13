@@ -199,6 +199,7 @@ export type ClineSay =
 	| "deleted_api_reqs"
 	| "ignorefile_error"
 	| "checkpoint_created"
+	| "load_mcp_documentation"
 
 export interface ClineSayTool {
 	tool:

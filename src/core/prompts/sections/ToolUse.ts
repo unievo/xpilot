@@ -7,7 +7,7 @@ export const ToolUsePrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
-# TOOL USE
+TOOL USE
 
 You have access to a set of tools that are executed upon the user's approval. You can use one tool per message, and will receive the result of that tool use in the user's response. You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
 
@@ -171,9 +171,6 @@ Usage:
 		: ""
 }
 
-${
-	mcpHub.getMode() !== "off"
-		? `
 ## use_mcp_tool
 Description: Request to use a tool provided by a connected MCP server. Each MCP server can provide multiple tools with different capabilities. Tools have defined input schemas that specify required and optional parameters.
 Parameters:
@@ -202,9 +199,6 @@ Usage:
 <server_name>server name here</server_name>
 <uri>resource URI here</uri>
 </access_mcp_resource>
-`
-		: ""
-}
 
 ## ask_followup_question
 Description: Ask the user a question to gather additional information needed to complete the task. This tool should be used when you encounter ambiguities, need clarification, or require more details to proceed effectively. It allows for interactive problem-solving by enabling direct communication with the user. Use this tool judiciously to maintain a balance between gathering necessary information and avoiding excessive back-and-forth.
@@ -251,13 +245,9 @@ Usage:
 Description: Respond to the user's inquiry in an effort to plan a solution to the user's task. This tool should be used when you need to provide a response to a question or statement from the user about how you plan to accomplish the task. This tool is only available in PLAN MODE. The environment_details will specify the current mode, if it is not PLAN MODE then you should not use this tool. Depending on the user's message, you may ask questions to get clarification about the user's request, architect a solution to the task, and to brainstorm ideas with the user. For example, if the user's task is to create a website, you may start by asking some clarifying questions, then present a detailed plan for how you will accomplish the task given the context, and perhaps engage in a back and forth to finalize the details before the user switches you to ACT MODE to implement the solution.
 Parameters:
 - response: (required) The response to provide to the user. Do not try to use tools in this parameter, this is simply a chat response. (You MUST use the response parameter, do not simply place the response text directly within <plan_mode_respond> tags.)
-- options: (optional) An array of 2-5 options for the user to choose from. Each option should be a string describing a possible choice or path forward in the planning process. This can help guide the discussion and make it easier for the user to provide input on key decisions. You may not always need to provide options, but it may be helpful in many cases where it can save the user from having to type out a response manually. Do NOT present an option to toggle to Act mode, as this will be something you need to direct the user to do manually themselves.
 Usage:
 <plan_mode_respond>
 <response>Your response here</response>
-<options>
-Array of options here (optional), e.g. ["Option 1", "Option 2", "Option 3"]
-</options>
 </plan_mode_respond>
 
 # Tool Use Examples
@@ -291,7 +281,25 @@ Array of options here (optional), e.g. ["Option 1", "Option 2", "Option 3"]
 </content>
 </write_to_file>
 
-## Example 3: Requesting to make targeted edits to a file
+## Example 3: Creating a new task
+
+<new_task>
+<context>
+Authentication System Implementation:
+- We've implemented the basic user model with email/password
+- Password hashing is working with bcrypt
+- Login endpoint is functional with proper validation
+- JWT token generation is implemented
+
+Next Steps:
+- Implement refresh token functionality
+- Add token validation middleware
+- Create password reset flow
+- Implement role-based access control
+</context>
+</new_task>
+
+## Example 4: Requesting to make targeted edits to a file
 
 <replace_in_file>
 <path>src/components/App.tsx</path>
@@ -325,11 +333,8 @@ return (
 >>>>>>> REPLACE
 </diff>
 </replace_in_file>
-${
-	mcpHub.getMode() !== "off"
-		? `
 
-## Example 4: Requesting to use an MCP tool
+## Example 5: Requesting to use an MCP tool
 
 <use_mcp_tool>
 <server_name>weather-server</server_name>
@@ -341,13 +346,6 @@ ${
 }
 </arguments>
 </use_mcp_tool>
-
-## Example 5: Requesting to access an MCP resource
-
-<access_mcp_resource>
-<server_name>weather-server</server_name>
-<uri>weather://san-francisco/current</uri>
-</access_mcp_resource>
 
 ## Example 6: Another example of using an MCP tool (where the server name is a unique identifier such as a URL)
 
@@ -364,9 +362,7 @@ ${
   "assignees": ["octocat"]
 }
 </arguments>
-</use_mcp_tool>`
-		: ""
-}
+</use_mcp_tool>
 
 # Tool Use Guidelines
 

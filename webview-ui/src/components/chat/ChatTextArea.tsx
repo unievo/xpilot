@@ -41,6 +41,13 @@ interface ChatTextAreaProps {
 	onHeightChange?: (height: number) => void
 }
 
+interface GitCommit {
+	type: ContextMenuOptionType.Git
+	value: string
+	label: string
+	description: string
+}
+
 const PLAN_MODE_COLOR = "var(--vscode-inputValidation-warningBorder)"
 
 const SwitchOption = styled.div<{ isActive: boolean }>`
@@ -220,7 +227,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 	) => {
 		const { filePaths, chatSettings, apiConfiguration, openRouterModels, platform } = useExtensionState()
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
-		const [gitCommits, setGitCommits] = useState<any[]>([])
+		const [gitCommits, setGitCommits] = useState<GitCommit[]>([])
 
 		const [thumbnailsHeight, setThumbnailsHeight] = useState(0)
 		const [textAreaBaseHeight, setTextAreaBaseHeight] = useState<number | undefined>(undefined)
@@ -265,8 +272,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			const message: ExtensionMessage = event.data
 			switch (message.type) {
 				case "commitSearchResults": {
-					const commits =
-						message.commits?.map((commit: any) => ({
+					const commits: GitCommit[] =
+						message.commits?.map((commit) => ({
 							type: ContextMenuOptionType.Git,
 							value: commit.hash,
 							label: commit.subject,
