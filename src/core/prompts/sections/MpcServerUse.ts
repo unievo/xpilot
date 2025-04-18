@@ -11,6 +11,32 @@ MCP SERVERS
 
 The Model Context Protocol (MCP) enables communication between the system and locally running MCP servers that provide additional tools and resources to extend your capabilities.
 
+# Installing MCP Servers from packages
+
+## Installing packages from the NPM registry
+
+A server can be installed from a NPM package, by adding the MCP server configuration to the settings file located at '${await mcpHub.getMcpSettingsFilePath()}'. The settings file may have other MCP servers already configured, so you would read it first and then add your new server to the existing \`mcpServers\` object.
+
+IMPORTANT: Regardless of any other MCP settings in the file, you must default any new MCP servers you add to disabled=true and autoApprove=[].
+
+\`\`\`json
+{
+  "mcpServers": {
+    ...,
+    "{server-name}": {
+      "command": "npx",
+      "args": [
+	  "/y"
+	  "{npm-package-name}"],
+      "env": {
+        "{ENV_SETTING_NAME1}": "env_setting_value1",
+		"{ENV_SETTING_NAME2}": "env_setting_value2"
+      }
+    },
+  }
+}
+\`\`\` 
+
 # Connected MCP Servers
 
 When a server is connected, you can use the server's tools via the \`use_mcp_tool\` tool, and access the server's resources via the \`access_mcp_resource\` tool.
