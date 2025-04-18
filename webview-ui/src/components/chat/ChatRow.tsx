@@ -122,6 +122,19 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 	const { mcpServers, mcpMarketplaceCatalog } = useExtensionState()
 	const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 
+	// Get saved expanded state from webview state or default to false
+	const savedState = (vscode.getState() as { mcpArgumentsExpanded?: boolean }) || {}
+	const [mcpArgumentsExpanded, setMcpArgumentsExpanded] = useState(savedState.mcpArgumentsExpanded || false)
+
+	// Update the saved state when the expanded state changes
+	useEffect(() => {
+		const currentState = (vscode.getState() as Record<string, any>) || {}
+		vscode.setState({
+			...currentState,
+			mcpArgumentsExpanded,
+		})
+	}, [mcpArgumentsExpanded])
+
 	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage] = useMemo(() => {
 		if (message.text != null && message.say === "api_req_started") {
 			const info: ClineApiReqInfo = JSON.parse(message.text)
@@ -659,13 +672,13 @@ export const ChatRowContent = ({ message, isExpanded, onToggleExpand, lastModifi
 											alignItems: "center",
 											cursor: "pointer",
 										}}
-										onClick={onToggleExpand}>
+										onClick={() => setMcpArgumentsExpanded(!mcpArgumentsExpanded)}>
 										<span
-											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
+											className={`codicon codicon-chevron-${mcpArgumentsExpanded ? "down" : "right"}`}
 											style={{ marginRight: "4px" }}></span>
 										<span style={{ color: "var(--vscode-textLink-foreground)" }}>Arguments</span>
 									</div>
-									{isExpanded && (
+									{mcpArgumentsExpanded && (
 										<CodeAccordian
 											code={useMcpServer.arguments}
 											language="json"

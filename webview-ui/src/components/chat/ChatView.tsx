@@ -27,6 +27,7 @@ import ChatRow from "@/components/chat/ChatRow"
 import ChatTextArea from "@/components/chat/ChatTextArea"
 import TaskHeader from "@/components/chat/TaskHeader"
 import TelemetryBanner from "@/components/common/TelemetryBanner"
+import { agentName } from "@shared/Configuration"
 
 interface ChatViewProps {
 	isHidden: boolean
@@ -833,14 +834,21 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 					{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
 
-					<div style={{ padding: "0 20px", flexShrink: 0 }}>
+					<div style={{ padding: "0 20px" }}>
 						<h2>How can I help?</h2>
-						<p>
-							{" "}
-							<span className="codicon codicon-info" style={{ fontSize: "16px" }}></span> Start a new task each time
-							you have a new context. Each task accumulates context in the context window used by the model with
-							each request. You can switch between tasks in history at any time.
-						</p>
+					</div>
+					<div style={{ padding: "0 20px" }}>
+						<ul style={{ listStyleType: "disc", paddingLeft: 10 }}>
+							<li>
+								Start a new task each time you want a new context. Tasks accumulate data in the context window
+								with each request. Keep your context specific to the same scope.
+							</li>
+							<li>
+								You can create new tasks with the same context as the current task by asking {agentName} to start
+								a new task with a new scope.
+							</li>
+							<li>Use the task history to view previous tasks and to switch between them at any time.</li>
+						</ul>
 					</div>
 					{taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}
 				</div>
