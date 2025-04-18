@@ -85,7 +85,7 @@ import {
 	saveClineMessages,
 } from "../storage/disk"
 import { getGlobalState } from "../storage/state"
-import { agentName, productName, rulesFile } from "../../shared/Configuration"
+import { agentName, productName } from "../../shared/Configuration"
 
 const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0) ?? path.join(os.homedir(), "Desktop") // may or may not exist but fs checking existence would immediately ask for permission which would be bad UX, need to come up with a better solution
 

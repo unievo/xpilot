@@ -7,10 +7,12 @@ export const homePageUrl = "https://github.com/unievo/astro"
 export const apiBaseUrl = "https://api.astro.unievo.com/v1"
 export const latestAnnouncementId = "0.1.0"
 
-// Files
+// Files & Folders
+export const settingsDirectoryName = `settings`
+export const mcpDirectoryName = `mcp`
+export const mcpServersDirectoryName = `servers`
 export const mcpSettingsFile = `mcp_settings.json`
-export const mcpServersPathSegments = [`${agentName}`, "mcp", "servers"]
-export const rulesFile = `.${productName}rules`
+export const instructionsFileOrDirectoryName = `.${productName}instructions`
 export const ignoreFile = `.${productName}ignore`
 export const openRouterModelsFile = `open_router_models.json`
 export const uiMessagesFile = `ui_messages.json`
@@ -43,12 +45,3 @@ export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputT
 // Settings
 export const mcpConfiguration = `${productName}.mcp`
 export const o3MiniModelConfiguration = `${productName}.modelSettings.o3Mini`
-
-// Prompts
-export const initializationPrompt = `You are ${agentName}, an expert software engineer.`
-
-export const dataDisplayPrompt = `
-`
-
-export const mcpServersInfo = `
-`
