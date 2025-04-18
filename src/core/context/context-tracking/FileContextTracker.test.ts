@@ -221,7 +221,7 @@ describe("FileContextTracker", () => {
 		expect(modifiedFiles).to.include(filePath)
 	})
 
-	it("should not track Cline edits as user edits", async () => {
+	it("should not track agent edits as user edits", async () => {
 		const filePath = "src/test-file.ts"
 
 		// First track the file to set up the watcher
