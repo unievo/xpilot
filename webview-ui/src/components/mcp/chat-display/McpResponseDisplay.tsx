@@ -5,6 +5,7 @@ import styled from "styled-components"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import ChatErrorBoundary from "@/components/chat/ChatErrorBoundary"
 import { isUrl, isLocalhostUrl, formatUrlForOpening, checkIfImageUrl } from "./utils/mcpRichUtil"
+import { vscode } from "@/utils/vscode"
 
 // Maximum number of URLs to process in total, per response
 export const MAX_URLS = 50
@@ -93,7 +94,7 @@ const UrlText = styled.div`
 	word-break: break-all;
 	overflow-wrap: break-word;
 	font-family: var(--vscode-editor-font-family, monospace);
-	font-size: var(--vscode-editor-font-size, 12px);
+	font-size: 11px; // var(--vscode-editor-font-size, 12px);
 `
 
 interface McpResponseDisplayProps {
@@ -120,7 +121,11 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 	const [error, setError] = useState<string | null>(null)
 	// Add a counter state for forcing re-renders to make toggling run smoother
 	const [forceUpdateCounter, setForceUpdateCounter] = useState(0)
-	const [isExpanded, setIsExpanded] = useState(false)
+	const [isExpanded, setIsExpanded] = useState(() => {
+		// Get saved expanded state from localStorage, default to false
+		const savedExpandedState = localStorage.getItem("mcpResponseExpandedState")
+		return savedExpandedState === "true"
+	})
 
 	const toggleDisplayMode = useCallback(() => {
 		const newMode = displayMode === "rich" ? "plain" : "rich"
@@ -143,7 +148,11 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 	}, [displayMode])
 
 	const toggleExpand = useCallback(() => {
-		setIsExpanded((prev) => !prev)
+		setIsExpanded((prev) => {
+			const newState = !prev
+			localStorage.setItem("mcpResponseExpandedState", newState.toString())
+			return newState
+		})
 	}, [])
 
 	// Find all URLs in the text and determine if they're images
