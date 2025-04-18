@@ -4,7 +4,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
 import SettingsButton from "@/components/common/SettingsButton"
-import { agentName, ignoreFile, repoUrl, rulesFile } from "../../../../src/shared/Configuration"
+import { ignoreFile, repoUrl, instructionsFileOrDirectoryName } from "../../../../src/shared/Configuration"
 import ApiOptions from "./ApiOptions"
 import { TabButton } from "../mcp/configuration/McpConfigurationView"
 import { useEvent } from "react-use"
@@ -193,8 +193,8 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 								marginTop: "5px",
 								color: "var(--vscode-descriptionForeground)",
 							}}>
-							Use the {rulesFile} file (or folder containing multiple files) in the current working directory, to
-							specify workspace and project instructions that are read automatically.
+							Use the {instructionsFileOrDirectoryName} file (or folder containing multiple files) in the current
+							working directory, to specify workspace and project instructions that are read automatically.
 						</p>
 						<p
 							style={{

@@ -50,9 +50,13 @@ import { Task } from "../task"
 import {
 	agentName,
 	extensionId,
-	mcpConfiguration,
-	mcpServersPathSegments,
+	latestAnnouncementId,
+	mcpDirectoryName,
+	mcpServersDirectoryName,
 	mcpSettingsFile,
+	productName,
+	publisherName,
+	settingsDirectoryName,
 	sideBarId,
 } from "../../shared/Configuration"
 
@@ -70,7 +74,7 @@ export class Controller {
 	workspaceTracker: WorkspaceTracker
 	mcpHub: McpHub
 	accountService: ClineAccountService
-	private latestAnnouncementId = "0.1.0" // update to some unique identifier when we add a new announcement
+	private latestAnnouncementId = latestAnnouncementId // update to some unique identifier when we add a new announcement
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -1152,19 +1156,33 @@ export class Controller {
 		return path.join(os.homedir(), "Documents")
 	}
 
+	async getUserProductDirectoryPath(): Promise<string> {
+		const userProductPath = path.join(os.homedir(), `.${publisherName}`, productName)
+		return userProductPath
+	}
+
+	async getUserMcpDirectoryPath(): Promise<string> {
+		const mcpDir = path.join(await this.getUserProductDirectoryPath(), mcpDirectoryName)
+		return mcpDir
+	}
+
+	async getUserMcpServersPath(): Promise<string> {
+		const mcpServersDir = path.join(await this.getUserMcpDirectoryPath(), mcpServersDirectoryName)
+		return mcpServersDir
+	}
+
 	async ensureMcpServersDirectoryExists(): Promise<string> {
-		const userDocumentsPath = await this.getDocumentsPath()
-		const mcpServersDir = path.join(userDocumentsPath, ...mcpServersPathSegments)
+		const mcpServersDir = await this.getUserMcpServersPath()
 		try {
 			await fs.mkdir(mcpServersDir, { recursive: true })
 		} catch (error) {
-			return `~/Documents/${agentName}/mcp/servers` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+			return `~/.${publisherName}/${productName}/mcp/servers` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
 		}
 		return mcpServersDir
 	}
 
 	async ensureSettingsDirectoryExists(): Promise<string> {
-		const settingsDir = path.join(this.context.globalStorageUri.fsPath, "settings")
+		const settingsDir = path.join(await this.getUserProductDirectoryPath(), settingsDirectoryName)
 		await fs.mkdir(settingsDir, { recursive: true })
 		return settingsDir
 	}
@@ -1410,7 +1428,7 @@ export class Controller {
 
 			// Create task with context from README and added guidelines for MCP server installation
 			const task = `Set up the MCP server from ${mcpDetails.githubUrl} while adhering to these MCP server installation rules:
-- Start by loading the MCP documentation.
+- Start by loading the MCP documentation using the load_mcp_documentation tool.
 - Use "${mcpDetails.mcpId}" as the server name in ${mcpSettingsFile}.
 - Create the directory for the new MCP server before starting installation.
 - Make sure you read the user's existing ${mcpSettingsFile} file before editing it with this new mcp, to not overwrite any existing servers.

@@ -3,6 +3,7 @@ import { GlobalFileNames } from "../../../storage/disk"
 import { fileExistsAtPath, isDirectory, readDirectory } from "../../../../utils/fs"
 import { formatResponse } from "../../../prompts/responses"
 import fs from "fs/promises"
+import { instructionsFileOrDirectoryName } from "../../../../shared/Configuration"
 
 export const getClineRules = async (cwd: string) => {
 	const clineRulesFilePath = path.resolve(cwd, GlobalFileNames.clineRules)
@@ -16,7 +17,7 @@ export const getClineRules = async (cwd: string) => {
 				const rulesFilesTotalContent = await getClineRulesFilesTotalContent(rulesFilePaths, cwd)
 				clineRulesFileInstructions = formatResponse.clineRulesDirectoryInstructions(cwd, rulesFilesTotalContent)
 			} catch {
-				console.error(`Failed to read .clinerules directory at ${clineRulesFilePath}`)
+				console.error(`Failed to read ${instructionsFileOrDirectoryName} directory at ${clineRulesFilePath}`)
 			}
 		} else {
 			try {
@@ -25,7 +26,7 @@ export const getClineRules = async (cwd: string) => {
 					clineRulesFileInstructions = formatResponse.clineRulesFileInstructions(cwd, ruleFileContent)
 				}
 			} catch {
-				console.error(`Failed to read .clinerules file at ${clineRulesFilePath}`)
+				console.error(`Failed to read ${instructionsFileOrDirectoryName} file at ${clineRulesFilePath}`)
 			}
 		}
 	}

@@ -1,3 +1,3 @@
-import { initializationPrompt } from "../../../shared/Configuration"
+import { initializationPrompt } from "../customPrompts"
 
 export const InitialisationPrompt = () => `${initializationPrompt}`

@@ -2,7 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
-import { ignoreFile, rulesFile } from "../../shared/Configuration"
+import { ignoreFile, instructionsFileOrDirectoryName } from "../../shared/Configuration"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
@@ -203,13 +203,13 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`Tool [${toolName}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
 
 	clineIgnoreInstructions: (content: string) =>
-		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${rulesFile}`,
+		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsFileOrDirectoryName}`,
 
 	clineRulesDirectoryInstructions: (cwd: string, content: string) =>
-		`# ${rulesFile}/\n\nThe following is provided by a root-level ${rulesFile}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# ${rulesFile}\n\nThe following is provided by a root-level ${rulesFile} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# ${instructionsFileOrDirectoryName}\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 }
 
 // to avoid circular dependency

@@ -10,7 +10,7 @@ import {
 	contextHistoryFile,
 	mcpSettingsFile,
 	openRouterModelsFile,
-	rulesFile,
+	instructionsFileOrDirectoryName,
 	taskMetadataFile,
 	uiMessagesFile,
 } from "../../shared/Configuration"
@@ -20,7 +20,7 @@ export const GlobalFileNames = {
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
 	mcpSettings: mcpSettingsFile,
-	clineRules: rulesFile,
+	clineRules: instructionsFileOrDirectoryName,
 	taskMetadata: taskMetadataFile,
 }
 
