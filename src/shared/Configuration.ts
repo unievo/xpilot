@@ -2,6 +2,7 @@
 export const agentName = "xPilot"
 export const productName = "xpilot"
 export const publisherName = "unievo"
+export const xUrl = "https://x.com/xPilotAI"
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"

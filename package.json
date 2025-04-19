@@ -2,7 +2,7 @@
 	"name": "xpilot",
 	"displayName": "xPilot",
 	"description": "xPilot is an AI software engineering agent for MultiversX",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"icon": "assets/icons/icon_color.png",
 	"engines": {
 		"vscode": "^1.84.0"

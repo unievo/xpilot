@@ -4,7 +4,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
 import SettingsButton from "@/components/common/SettingsButton"
-import { ignoreFile, repoUrl, instructionsFileOrDirectoryName } from "../../../../src/shared/Configuration"
+import { ignoreFile, repoUrl, instructionsFileOrDirectoryName, xUrl } from "../../../../src/shared/Configuration"
 import ApiOptions from "./ApiOptions"
 import { TabButton } from "../mcp/configuration/McpConfigurationView"
 import { useEvent } from "react-use"
@@ -367,6 +367,17 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 						padding: "0 8px 15px 0",
 						marginTop: "auto",
 					}}>
+					<p
+						style={{
+							wordWrap: "break-word",
+							margin: 0,
+							padding: 0,
+						}}>
+						Find us on:{" "}
+						<VSCodeLink href={xUrl} style={{ display: "inline" }}>
+							{xUrl}
+						</VSCodeLink>
+					</p>
 					<p
 						style={{
 							wordWrap: "break-word",
