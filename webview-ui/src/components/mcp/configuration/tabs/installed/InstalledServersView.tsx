@@ -7,41 +7,34 @@ const InstalledServersView = () => {
 	const { mcpServers: servers } = useExtensionState()
 
 	return (
-		<div style={{ padding: "16px 20px" }}>
+		<div style={{ padding: "0px 20px" }}>
 			<div
 				style={{
-					color: "var(--vscode-foreground)",
-					fontSize: "13px",
-					marginBottom: "16px",
-					marginTop: "5px",
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "left",
+					textAlign: "left",
 				}}>
-				The{" "}
-				<VSCodeLink href="https://github.com/modelcontextprotocol" style={{ display: "inline" }}>
-					Model Context Protocol
-				</VSCodeLink>{" "}
-				enables communication with locally running MCP servers that provide additional tools and resources.{" "}
-				{/* You can use{" "}
-				<VSCodeLink href="https://github.com/modelcontextprotocol/servers" style={{ display: "inline" }}>
-					community-made servers
-				</VSCodeLink>{" "}
-				or ask {agentName} to create new tools specific to your workflow (e.g., "add a tool that gets the latest npm docs").{" "} */}
+				<p style={{ fontSize: "13px", margin: 0 }}>
+					<ul style={{ listStyleType: "disc", paddingLeft: 15, paddingRight: 10 }}>
+						<li>Metadata for enabled servers is sent with every chat request.</li>
+						<li>Enable or disable servers as needed from the chat window footer.</li>
+						<li>Keep enabled only servers that you are using in the current task.</li>
+					</ul>
+				</p>
 			</div>
-
-			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={false} />
-
+			<VSCodeButton
+				appearance="secondary"
+				style={{ width: "100%", marginBottom: "20px" }}
+				onClick={() => {
+					vscode.postMessage({ type: "openMcpSettings" })
+				}}>
+				<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
+				Configure MCP Servers
+			</VSCodeButton>
 			{/* Settings Section */}
-			<div style={{ marginBottom: "20px", marginTop: 10 }}>
-				<VSCodeButton
-					appearance="secondary"
-					style={{ width: "100%", marginBottom: "5px" }}
-					onClick={() => {
-						vscode.postMessage({ type: "openMcpSettings" })
-					}}>
-					<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
-					Configure MCP Servers
-				</VSCodeButton>
-
-				<div style={{ textAlign: "center" }}>
+			{/* <div style={{ marginBottom: "10px", marginTop: 3 }}>
+				<div style={{ textAlign: "right" }}>
 					<VSCodeLink
 						onClick={() => {
 							vscode.postMessage({
@@ -53,7 +46,8 @@ const InstalledServersView = () => {
 						Advanced MCP Settings
 					</VSCodeLink>
 				</div>
-			</div>
+			</div> */}
+			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={false} />
 		</div>
 	)
 }

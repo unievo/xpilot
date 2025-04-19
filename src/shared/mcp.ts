@@ -106,4 +106,36 @@ export interface McpDownloadResponse {
 	requiresApiKey: boolean
 }
 
-export type McpViewTab = "marketplace" | "addRemote" | "installed"
+export interface McpLibraryItem {
+	mcpId: string
+	githubUrl: string
+	npmPackage?: string
+	name: string
+	author: string
+	description: string
+	codiconIcon: string
+	logoUrl: string
+	category: string
+	tags: string[]
+	requiresApiKey: boolean
+	isRecommended: boolean
+	createdAt: string
+	updatedAt: string
+
+	// Optional fields
+	readmeContent?: string
+	llmsInstallationContent?: string
+}
+
+export interface McpInstallResponse {
+	mcpId: string
+	githubUrl: string
+	name: string
+	author: string
+	description: string
+	readmeContent: string
+	llmsInstallationContent: string
+	requiresApiKey: boolean
+}
+
+export type McpViewTab = "installed" | "addRemote" | "library" | "marketplace"

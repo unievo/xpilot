@@ -110,12 +110,12 @@ const ServerRow = ({
 	}
 
 	return (
-		<div style={{ marginBottom: "10px" }}>
+		<div style={{ marginBottom: "5px" }}>
 			<div
 				style={{
 					display: "flex",
 					alignItems: "center",
-					padding: "8px",
+					padding: "5px",
 					background: "var(--vscode-textCodeBlock-background)",
 
 					cursor: server.error ? "default" : isExpandable ? "pointer" : "default",
