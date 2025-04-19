@@ -35,11 +35,11 @@ const WelcomeView = memo(() => {
 				<h2 className="flex justify-center my-5">Hi, I am {agentName}!</h2>
 				<p>I'm an AI software engineering agent.</p>
 				<p>
-					I can use AI models to plan and execute many coding tasks and I'm able to access external tools and data using
-					the Model Context Protocol.
+					I can use AI models to plan and execute many tasks and I'm able to access external tools and data using the
+					Model Context Protocol.
 				</p>
 				<p>
-					I can work with different models, but I achieve the best results with models trained for coding and tool use,
+					I can work with different models and I achieve the best results with models trained for coding and tool use,
 					such as Claude Sonnet.
 				</p>
 				<p>To access an AI model I need to use an AI API Provider.</p>
@@ -49,12 +49,16 @@ const WelcomeView = memo(() => {
 				</p>
 				<p>
 					{" "}
-					I can also use available models in VS Code, Cursor, or Windsurf. If you have{" "}
+					I can also use supported AI models in VS Code, or any VS Code based IDE. You can{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
-						Copilot
+						set up GitHub Copilot
 					</VSCodeLink>{" "}
-					installed, I can use the same models, so you don't need another API key or subscription. Select VS Code from
-					the provider list.
+					and
+					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+						enable the Copilot models
+					</VSCodeLink>{" "}
+					so I can use them without another API key or subscription, by selecting VS Code from the AI API providers
+					list.
 				</p>
 				<p></p>
 
