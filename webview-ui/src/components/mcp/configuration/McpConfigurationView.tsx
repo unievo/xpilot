@@ -7,6 +7,7 @@ import AddRemoteServerForm from "./tabs/add-server/AddRemoteServerForm"
 import McpMarketplaceView from "./tabs/marketplace/McpMarketplaceView"
 import InstalledServersView from "./tabs/installed/InstalledServersView"
 import { McpViewTab } from "@shared/mcp"
+import McpLibraryView from "./tabs/library/McpLibraryView"
 
 type McpViewProps = {
 	onDone: () => void
@@ -15,7 +16,7 @@ type McpViewProps = {
 
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	const { mcpMarketplaceEnabled } = useExtensionState()
-	const [activeTab, setActiveTab] = useState<McpViewTab>(initialTab || (mcpMarketplaceEnabled ? "marketplace" : "installed"))
+	const [activeTab, setActiveTab] = useState<McpViewTab>(initialTab || "installed") // (mcpMarketplaceEnabled ? "marketplace" : "installed"))
 
 	const handleTabChange = (tab: McpViewTab) => {
 		setActiveTab(tab)
@@ -69,14 +70,17 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					<TabButton isActive={activeTab === "installed"} onClick={() => handleTabChange("installed")}>
 						Installed
 					</TabButton>
-					<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
-						Remote Servers
+					<TabButton isActive={activeTab === "library"} onClick={() => handleTabChange("library")}>
+						Library
 					</TabButton>
 					{mcpMarketplaceEnabled && (
 						<TabButton isActive={activeTab === "marketplace"} onClick={() => handleTabChange("marketplace")}>
 							Marketplace
 						</TabButton>
 					)}
+					<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
+						Remote Servers
+					</TabButton>
 				</div>
 
 				{/* Content container */}
@@ -84,6 +88,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					{mcpMarketplaceEnabled && activeTab === "marketplace" && <McpMarketplaceView />}
 					{activeTab === "addRemote" && <AddRemoteServerForm onServerAdded={() => handleTabChange("installed")} />}
 					{activeTab === "installed" && <InstalledServersView />}
+					{activeTab === "library" && <McpLibraryView />}
 				</div>
 			</div>
 		</div>

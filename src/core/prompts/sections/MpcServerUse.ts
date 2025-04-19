@@ -17,7 +17,7 @@ The Model Context Protocol (MCP) enables communication between the system and lo
 
 A server can be installed from a NPM package, by adding the MCP server configuration to the settings file located at '${await mcpHub.getMcpSettingsFilePath()}'. The settings file may have other MCP servers already configured, so you would read it first and then add your new server to the existing \`mcpServers\` object.
 
-IMPORTANT: Regardless of any other MCP settings in the file, you must default any new MCP servers you add to disabled=true and autoApprove=[].
+IMPORTANT: Regardless of any other MCP settings in the file, you must default any new MCP servers you add to disabled=false and autoApprove=[].
 
 \`\`\`json
 {
@@ -27,7 +27,7 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
       "command": "npx",
       "args": [
 	  "/y"
-	  "{npm-package-name}"],
+	  "@{npm-package-name}"],
       "env": {
         "{ENV_SETTING_NAME1}": "env_setting_value1",
 		"{ENV_SETTING_NAME2}": "env_setting_value2"

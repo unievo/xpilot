@@ -5,7 +5,7 @@ import { ChatSettings } from "./ChatSettings"
 import { UserInfo } from "./UserInfo"
 import { ChatContent } from "./ChatContent"
 import { TelemetrySetting } from "./TelemetrySetting"
-import { McpViewTab } from "./mcp"
+import { McpLibraryItem, McpViewTab } from "./mcp"
 
 export interface WebviewMessage {
 	type:
@@ -57,6 +57,7 @@ export interface WebviewMessage {
 		| "authCallback"
 		| "fetchMcpMarketplace"
 		| "downloadMcp"
+		| "installLibraryMcp"
 		| "silentlyRefreshMcpMarketplace"
 		| "searchCommits"
 		| "showMcpView"
@@ -95,6 +96,7 @@ export interface WebviewMessage {
 	chatSettings?: ChatSettings
 	chatContent?: ChatContent
 	mcpId?: string
+	mcpLibraryItem?: McpLibraryItem
 	timeout?: number
 	tab?: McpViewTab
 	// For toggleToolAutoApprove

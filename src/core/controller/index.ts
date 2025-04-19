@@ -28,7 +28,7 @@ import { ChatContent } from "../../shared/ChatContent"
 import { ChatSettings } from "../../shared/ChatSettings"
 import { ExtensionMessage, ExtensionState, Invoke, Platform } from "../../shared/ExtensionMessage"
 import { HistoryItem } from "../../shared/HistoryItem"
-import { McpDownloadResponse, McpMarketplaceCatalog, McpServer } from "../../shared/mcp"
+import { McpDownloadResponse, McpLibraryItem, McpMarketplaceCatalog, McpServer } from "../../shared/mcp"
 import { TelemetrySetting } from "../../shared/TelemetrySetting"
 import { ClineCheckpointRestore, WebviewMessage } from "../../shared/WebviewMessage"
 import { fileExistsAtPath } from "../../utils/fs"
@@ -620,6 +620,19 @@ export class Controller {
 
 					// 2. download MCP
 					await this.downloadMcp(message.mcpId)
+				}
+				break
+			}
+			case "installLibraryMcp": {
+				if (message.mcpLibraryItem) {
+					// 1. Toggle to act mode if we are in plan mode
+					const { chatSettings } = await this.getStateToPostToWebview()
+					if (chatSettings.mode === "plan") {
+						await this.togglePlanActModeWithChatSettings({ mode: "act" })
+					}
+
+					// 2. install MCP
+					await this.installLibraryMcp(message.mcpLibraryItem)
 				}
 				break
 			}
@@ -1465,6 +1478,69 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 			vscode.window.showErrorMessage(errorMessage)
 			await this.postMessageToWebview({
 				type: "mcpDownloadDetails",
+				error: errorMessage,
+			})
+		}
+	}
+
+	private async installLibraryMcp(libraryItem: McpLibraryItem) {
+		try {
+			console.log(`[installLibraryMcp] Installing custom library MCP: ${libraryItem.mcpId}`)
+
+			// Check if we already have this MCP server installed
+			const servers = this.mcpHub?.getServers() || []
+			const isInstalled = servers.some((server: McpServer) => server.name === libraryItem.mcpId)
+
+			if (isInstalled) {
+				throw new Error("This MCP server is already installed")
+			}
+
+			// Create task with context from README and added guidelines for MCP server installation
+			const task = `Install this MCP server while following these installation rules:
+- Use "${libraryItem.mcpId}" as the server name in ${mcpSettingsFile}.
+- Make sure you read the user's existing ${mcpSettingsFile} file before editing, to not overwrite any existing configuration.
+- Use commands aligned with the user's shell and operating system.
+${
+	libraryItem.npmPackage
+		? `- The NPM package name is "${libraryItem.npmPackage}".`
+		: `- Start by loading the MCP documentation using the load_mcp_documentation tool.
+- Create the directory for the new MCP server before starting installation.`
+}
+${
+	libraryItem.readmeContent
+		? `- The following README may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
+\n\n${libraryItem.readmeContent}\n${libraryItem.llmsInstallationContent}
+`
+		: ``
+}
+- Once installed, demonstrate the server's capabilities by using one of its tools.`
+
+			//let response : McpInstallResponse =
+
+			// Send success notification
+			await this.postMessageToWebview({
+				type: "mcpLibraryInstall",
+				mcpInstallDetails: libraryItem,
+			})
+
+			// Initialize task and show chat view
+			await this.initTask(task)
+			await this.postMessageToWebview({
+				type: "action",
+				action: "chatButtonClicked",
+			})
+		} catch (error) {
+			console.error("Failed to install library MCP:", error)
+			let errorMessage = "Failed to install library MCP"
+
+			if (error instanceof Error) {
+				errorMessage = error.message
+			}
+
+			// Show error in both notification and UI
+			vscode.window.showErrorMessage(errorMessage)
+			await this.postMessageToWebview({
+				type: "mcpLibraryInstall",
 				error: errorMessage,
 			})
 		}
