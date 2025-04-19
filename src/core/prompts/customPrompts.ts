@@ -7,7 +7,8 @@ export const mcpServersInfo = `
 ## Additional context for task completion
 - Connected MCP Servers can expose resources in the resources list (RL) that have descriptions applicable to the current step in a task. Always read relevant resources using "access_mcp_resource" that can help accomplish the current task.
 
-## For all the *mx-api-* mcp servers ALWAYS follow these rules:
+## For all connected *mx-api-* mcp servers ALWAYS follow these rules:
+- Always use only connected *mx-api-* mcp servers. If no connected servers are available that provide the necessary tools, do not try to install any servers and ask the user to install and connect the necessary *mx-api-* mcp servers.
 - Each *mx-api-* server has its own get_network and set_network tool. If the current network is not specified and not known, ALWAYS ask the user to confirm the correct network before continuing, using an array of options "use/switch". When the network is known, if a different network is required, use the set_network tool for first time use on each new *mx-api-* mcp server, to set the correct network. Only set again on the same server if network change is needed.
 - Always use set_network for each new *mx-api-* mcp server you call.
 - Always call the set_network tool again on any previously used servers to set it to the one you used before a task was interrupted.
