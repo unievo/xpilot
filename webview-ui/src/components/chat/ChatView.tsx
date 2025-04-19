@@ -828,28 +828,53 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						overflowY: "auto",
 						display: "flex",
 						flexDirection: "column",
-						paddingBottom: "10px",
+						paddingBottom: "1px",
 					}}>
 					{telemetrySetting === "disabled" && <TelemetryBanner />}
 
 					{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
 
-					<div style={{ padding: "0 20px" }}>
+					<div style={{ paddingLeft: "20px" }}>
 						<h2>How can I help?</h2>
 					</div>
-					<div style={{ padding: "0 20px" }}>
-						<ul style={{ listStyleType: "disc", paddingLeft: 10 }}>
-							<li>
-								Start a new task each time you want a new context. Tasks accumulate data in the context window
-								with each request. Keep your context specific to the same scope.
-							</li>
-							<li>
-								You can create new tasks with the same context as the current task by asking {agentName} to start
-								a new task with a new scope.
-							</li>
-							<li>Use the task history to view previous tasks and to switch between them at any time.</li>
-						</ul>
+					<div
+						style={{
+							//display: "flex",
+							flexDirection: "column",
+							alignItems: "left",
+							textAlign: "left",
+							paddingLeft: "15px",
+							paddingRight: "15px",
+							paddingTop: "1px",
+							paddingBottom: "1px",
+							marginLeft: "20px",
+							marginRight: "20px",
+							//backgroundColor: "var(--vscode-editor-background)",
+							borderRadius: "10px",
+						}}>
+						{/* <i className="codicon codicon-lightbulb" style={{ fontSize: "18px" }} /> */}
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "left",
+								textAlign: "left",
+								//maxWidth: "480px",
+							}}>
+							<p style={{ fontSize: "13px", margin: 0 }}>
+								<ul style={{ listStyleType: "disc", paddingLeft: 0 }}>
+									<li>Start a new task each time you have a different scope.</li>
+									<li>Keep your context window specific to the same scope.</li>
+									<li>Use history to switch between tasks at any time.</li>
+									<li>
+										Type "Start new task to (new scope)" to create a new task from a previous task context.
+									</li>
+									<li>Use task checkpoints to restore changes to any previous state.</li>
+								</ul>
+							</p>
+						</div>
 					</div>
+
 					{taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}
 				</div>
 			)}

@@ -1,7 +1,8 @@
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
-import { agentName } from "../../../../src/shared/Configuration"
+import { vscode } from "../../utils/vscode"
+import { agentName, xUrl } from "../../../../src/shared/Configuration"
 
 interface AnnouncementProps {
 	version: string
@@ -10,14 +11,14 @@ interface AnnouncementProps {
 
 const containerStyle: CSSProperties = {
 	backgroundColor: getAsVar(VSC_INACTIVE_SELECTION_BACKGROUND),
-	borderRadius: "3px",
+	borderRadius: "10px",
 	padding: "12px 16px",
 	margin: "5px 15px 5px 15px",
 	position: "relative",
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "0 0 8px" }
+const h3TitleStyle: CSSProperties = { margin: "5px 10px 8px" }
 const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "12px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
@@ -26,7 +27,7 @@ const hrStyle: CSSProperties = {
 	opacity: 0.1,
 	margin: "8px 0",
 }
-const linkContainerStyle: CSSProperties = { margin: "0" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px" }
 const linkStyle: CSSProperties = { display: "inline" }
 
 /*
@@ -39,9 +40,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<VSCodeButton appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
-			<h3 style={h3TitleStyle}>
-				⭐️{"  "}Release v{minorVersion}
-			</h3>
+			<span className="codicon codicon-info" style={{ marginLeft: "8px", fontSize: "24px" }}></span>
+			<h3 style={h3TitleStyle}>Release v{version}</h3>
 			{
 				<ul style={ulStyle}>
 					Welcome to the initial release of <b>{agentName}</b>! This is where new features will be announced.
@@ -122,21 +122,20 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 				</li>
 			</ul>*/
 			}
-			{/* <div style={hrStyle} />
+			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
-				Join us on{" "}
-				<VSCodeLink style={linkStyle} href="https://x.com/cline">
-					X,
+				<VSCodeLink style={linkStyle} href={xUrl}>
+					Join us on X{" "}
 				</VSCodeLink>{" "}
-				<VSCodeLink style={linkStyle} href="https://discord.gg/cline">
+				{/* <VSCodeLink style={linkStyle} href="https://discord.gg/cline">
 					discord,
 				</VSCodeLink>{" "}
 				or{" "}
 				<VSCodeLink style={linkStyle} href="https://www.reddit.com/r/cline/">
 					r/cline
-				</VSCodeLink>
+				</VSCodeLink> */}
 				for more updates!
-			</p> */}
+			</p>
 		</div>
 	)
 }

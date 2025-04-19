@@ -2,6 +2,7 @@
 export const agentName = "Astro"
 export const productName = "astro"
 export const publisherName = "unievo"
+export const xUrl = "https://x.com/"
 export const repoUrl = "https://github.com/unievo/astro"
 export const homePageUrl = "https://github.com/unievo/astro"
 export const apiBaseUrl = "https://api.astro.unievo.com/v1"
