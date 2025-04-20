@@ -462,6 +462,13 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 								textAreaRef.current?.focus()
 							}
 							break
+						case "focusChatInput":
+							textAreaRef.current?.focus()
+							if (isHidden) {
+								// Send message back to extension to show chat view
+								vscode.postMessage({ type: "showChatView" })
+							}
+							break
 					}
 					break
 				case "selectedImages":
@@ -569,6 +576,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				"browser_action",
 				"browser_action_result",
 				"checkpoint_created",
+				"reasoning",
 			].includes(message.say!)
 		}
 		return false
@@ -790,10 +798,12 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					lastModifiedMessage={modifiedMessages.at(-1)}
 					isLast={index === groupedMessages.length - 1}
 					onHeightChange={handleRowHeightChange}
+					inputValue={inputValue}
+					sendMessageFromChatRow={handleSendMessage}
 				/>
 			)
 		},
-		[expandedRows, modifiedMessages, groupedMessages.length, toggleRowExpansion, handleRowHeightChange],
+		[expandedRows, modifiedMessages, groupedMessages.length, toggleRowExpansion, handleRowHeightChange, inputValue],
 	)
 
 	return (

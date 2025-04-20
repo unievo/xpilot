@@ -31,7 +31,7 @@ const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px" }
 const linkStyle: CSSProperties = { display: "inline" }
 
 /*
-You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with whats in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
+You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with what's in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
 */
 const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
@@ -60,21 +60,9 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					<b>New Auto-Approve Options:</b> Turn off Cline's ability to read and edit files outside your workspace.
 				</li>
 			</ul>
-			<h4 style={{ margin: "5px 0 5px" }}>Previous Updates:</h4>
-
-			<ul style={ulStyle}>
-				<li>
-					<b>Browser Tool Upgrades:</b> Use your local Chrome browser for session-based browsing, enabling debugging and
-					productivity workflows tied to your actual browser state.
-				</li>
-				<li>
-					<b>Auto-Approve Commands:</b> New option to automatically approve <b>ALL</b> commands (use at your own risk!)
-				</li>
-				<li>
-					<b>Easily Toggle MCP's:</b> New popover in the chat area to easily enable/disable MCP servers.
-				</li>
-			</ul> */
-				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
+			{/*
+			// Leave this here for an example of how to structure the announcement
+			<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				 <li>
 					OpenRouter now supports prompt caching! They also have much higher rate limits than other providers,
 					so I recommend trying them out.

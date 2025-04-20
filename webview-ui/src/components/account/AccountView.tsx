@@ -126,7 +126,7 @@ export const ClineAccountView = () => {
 							) : (
 								<>
 									<span>$</span>
-									{balance}
+									{balance.toFixed(2)}
 									<VSCodeButton
 										appearance="icon"
 										className="mt-1"

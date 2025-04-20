@@ -34,6 +34,7 @@ export const openNewTabCommand = `${productName}.openInNewTab`
 export const settingsButtonCommand = `${productName}.settingsButtonClicked`
 export const historyButtonCommand = `${productName}.historyButtonClicked`
 export const accountButtonCommand = `${productName}.accountButtonClicked`
+export const focusChatInputCommand = `${productName}.focusChatInput`
 export const isDevMode = `${productName}.isDevMode`
 export const isTestMode = `${productName}.isTestMode`
 export const createTestTasksCommand = `${productName}.dev.createTestTasks`

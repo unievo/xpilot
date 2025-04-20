@@ -22,6 +22,7 @@ import {
 	fixWithAgentCodeActionName,
 	fixWithAgentCommand,
 	isTestMode,
+	focusChatInputCommand,
 } from "./shared/Configuration"
 import "./utils/path" // necessary to have access to String.prototype.toPosix
 import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
@@ -413,6 +414,24 @@ export function activate(context: vscode.ExtensionContext) {
 			// Send to sidebar provider with diagnostics
 			const visibleWebview = WebviewProvider.getVisibleInstance()
 			await visibleWebview?.controller.fixWithCline(selectedText, filePath, languageId, diagnostics)
+		}),
+	)
+
+	// Register the focusChatInput command handler
+	context.subscriptions.push(
+		vscode.commands.registerCommand(focusChatInputCommand, () => {
+			let visibleWebview = WebviewProvider.getVisibleInstance()
+			if (!visibleWebview) {
+				vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+				visibleWebview = WebviewProvider.getSidebarInstance()
+				// showing the extension will call didBecomeVisible which focuses it already
+				// but it doesn't focus if a tab is selected which focusChatInput accounts for
+			}
+
+			visibleWebview?.controller.postMessageToWebview({
+				type: "action",
+				action: "focusChatInput",
+			})
 		}),
 	)
 
