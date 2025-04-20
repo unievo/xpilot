@@ -853,14 +853,14 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							flexDirection: "column",
 							alignItems: "left",
 							textAlign: "left",
-							paddingLeft: "15px",
-							paddingRight: "15px",
+							paddingLeft: "0px",
+							paddingRight: "5px",
 							paddingTop: "1px",
 							paddingBottom: "1px",
 							marginLeft: "20px",
-							marginRight: "20px",
+							marginRight: "0px",
 							//backgroundColor: "var(--vscode-editor-background)",
-							borderRadius: "10px",
+							borderRadius: "0px",
 						}}>
 						{/* <i className="codicon codicon-lightbulb" style={{ fontSize: "18px" }} /> */}
 						<div
@@ -871,15 +871,20 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 								textAlign: "left",
 								//maxWidth: "480px",
 							}}>
-							<p style={{ fontSize: "13px", margin: 0 }}>
-								<ul style={{ listStyleType: "disc", paddingLeft: 0 }}>
-									<li>Start a new task each time you have a different scope.</li>
-									<li>Keep your context window specific to the same scope.</li>
-									<li>Use history to switch between tasks at any time.</li>
+							<p style={{ fontSize: "11px", margin: 0, opacity: 0.7 }}>
+								<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 20 }}>
 									<li>
-										Type "Start new task to (new scope)" to create a new task from a previous task context.
+										Start a new task each time you have a new scope. Keep your task context window specific to
+										the same scope as your context window grows.
 									</li>
-									<li>Use task checkpoints to restore changes to any previous state.</li>
+									<li>
+										Type "/newtask" in the current task to start a new one with the context summary. Use task
+										history to switch between previous tasks at any time.
+									</li>
+									<li>
+										Use the task checkpoints to undo context changes and/or file changes to any previous
+										state. Edit a previous message to restart from that point.
+									</li>
 								</ul>
 							</p>
 						</div>

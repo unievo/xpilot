@@ -267,10 +267,29 @@ const ServerRow = ({
 					<div
 						style={{
 							background: "var(--vscode-textCodeBlock-background)",
-							padding: "0 10px 10px 10px",
+							padding: "1px 10px 10px 10px",
 							fontSize: "13px",
 							borderRadius: "0 0 4px 4px",
 						}}>
+						<div style={{ margin: "10px 7px" }}>
+							<label style={{ display: "block", marginBottom: "4px", fontSize: "13px" }}>Request Timeout</label>
+							<VSCodeDropdown style={{ width: "100%" }} value={timeoutValue} onChange={handleTimeoutChange}>
+								{TimeoutOptions}
+							</VSCodeDropdown>
+						</div>
+						<div style={{ display: "flex", gap: "10px", margin: "0 7px 3px 7px" }}>
+							<VSCodeButton
+								appearance="secondary"
+								onClick={handleRestart}
+								disabled={server.status === "connecting"}
+								style={{ flex: 1 }}>
+								{server.status === "connecting" ? "Restarting..." : "Restart Server"}
+							</VSCodeButton>
+							<DangerButton style={{ flex: 1 }} disabled={isDeleting} onClick={handleDelete}>
+								{isDeleting ? "Deleting..." : "Delete Server"}
+							</DangerButton>
+						</div>
+
 						<VSCodePanels>
 							<VSCodePanelTab id="tools">Tools ({server.tools?.length || 0})</VSCodePanelTab>
 							<VSCodePanelTab id="resources">
@@ -338,30 +357,6 @@ const ServerRow = ({
 								)}
 							</VSCodePanelView>
 						</VSCodePanels>
-
-						<div style={{ margin: "10px 7px" }}>
-							<label style={{ display: "block", marginBottom: "4px", fontSize: "13px" }}>Request Timeout</label>
-							<VSCodeDropdown style={{ width: "100%" }} value={timeoutValue} onChange={handleTimeoutChange}>
-								{TimeoutOptions}
-							</VSCodeDropdown>
-						</div>
-						<VSCodeButton
-							appearance="secondary"
-							onClick={handleRestart}
-							disabled={server.status === "connecting"}
-							style={{
-								width: "calc(100% - 14px)",
-								margin: "0 7px 3px 7px",
-							}}>
-							{server.status === "connecting" ? "Restarting..." : "Restart Server"}
-						</VSCodeButton>
-
-						<DangerButton
-							style={{ width: "calc(100% - 14px)", margin: "5px 7px 3px 7px" }}
-							disabled={isDeleting}
-							onClick={handleDelete}>
-							{isDeleting ? "Deleting..." : "Delete Server"}
-						</DangerButton>
 					</div>
 				)
 			)}

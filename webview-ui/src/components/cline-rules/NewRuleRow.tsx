@@ -88,7 +88,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal }) => {
 							placeholder="file-name (.md, .txt, or no extension)"
 							value={filename}
 							onChange={(e) => setFilename(e.target.value)}
-							onBlur={handleBlur}
+							//onBlur={handleBlur}
 							onKeyDown={handleKeyDown}
 							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent"
 							style={{

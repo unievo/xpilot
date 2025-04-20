@@ -4,7 +4,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
 import SettingsButton from "@/components/common/SettingsButton"
-import { ignoreFile, repoUrl, instructionsFileOrDirectoryName, xUrl } from "../../../../src/shared/Configuration"
+import { ignoreFile, repoUrl, instructionsFileOrDirectoryName, xUrl, discordUrl } from "../../../../src/shared/Configuration"
 import ApiOptions from "./ApiOptions"
 import { TabButton } from "../mcp/configuration/McpConfigurationView"
 import { useEvent } from "react-use"
@@ -269,22 +269,10 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 				)}
 
 				<div className="text-center text-[var(--vscode-descriptionForeground)] text-xs leading-[1.2] px-0 py-0 pr-2 pb-[15px] mt-auto">
-					<p
-						style={{
-							wordWrap: "break-word",
-							margin: 0,
-							padding: 0,
-						}}>
-						Find us on:{" "}
-						<VSCodeLink href={xUrl} style={{ display: "inline" }}>
-							{xUrl}
-						</VSCodeLink>
-					</p>
-					<p className="break-words m-0 p-0">
-						If you have any questions or feedback, feel free to open an issue at{" "}
-						<VSCodeLink href={repoUrl} style={{ display: "inline" }}>
-							{repoUrl}
-						</VSCodeLink>
+					<p style={{ margin: "0 0 0 5px", fontSize: "13px", textAlign: "center" }}>
+						{" "}
+						<VSCodeLink href={repoUrl}>GitHub </VSCodeLink> | <VSCodeLink href={xUrl}>X.com </VSCodeLink> |{" "}
+						<VSCodeLink href={discordUrl}>Discord</VSCodeLink>
 					</p>
 					<p className="italic mt-[10px] mb-0 p-0">v{version}</p>
 				</div>

@@ -42,23 +42,23 @@ const WelcomeView = memo(() => {
 					I can work with different models and I achieve the best results with models trained for coding and tool use,
 					such as Claude Sonnet.
 				</p>
-				<p>To access an AI model I need to use an AI API Provider.</p>
+				<p>To access a model I need to use a provider.</p>
 				<p>
-					I can use many different providers and you can use your own API key if you already have one. Or you can use
-					providers such as Cline or Open Router which offer many models, by selecting them from the provider list.
+					I can use many different providers and you can also bring your own API key. Or you can sign up with Open
+					Router or Cline.
 				</p>
 				<p>
 					{" "}
-					I can also use supported AI models in VS Code, or any VS Code based IDE. You can{" "}
+					I can also use supported models in VS Code, or any VS Code based IDE. You can set up{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
-						set up GitHub Copilot
+						Copilot
 					</VSCodeLink>{" "}
 					and
 					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
-						enable the Copilot models
+						enable
 					</VSCodeLink>{" "}
-					so I can use them without another API key or subscription, by selecting VS Code from the AI API providers
-					list.
+					the Copilot models. I can use them without another API key or subscription, by selecting VS Code from the AI
+					API providers list.
 				</p>
 				<p></p>
 

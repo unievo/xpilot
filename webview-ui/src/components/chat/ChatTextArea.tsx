@@ -1321,7 +1321,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							onClick={handleContextButtonClick}
 							style={{ padding: "0px 0px", height: "20px" }}>
 							<ButtonContainer>
-								<span className="flex items-center" style={{ fontSize: "13px", marginBottom: 1 }}>
+								<span className="flex items-center" style={{ fontSize: "15px", marginBottom: 1 }}>
 									@
 								</span>
 								{/* {showButtonText && <span style={{ fontSize: "10px" }}>Context</span>} */}
@@ -1342,7 +1342,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<ButtonContainer>
 								<span
 									className="codicon codicon-device-camera flex items-center"
-									style={{ fontSize: "14px", marginBottom: -3 }}
+									style={{ fontSize: "16px", marginBottom: -3 }}
 								/>
 								{/* {showButtonText && <span style={{ fontSize: "10px" }}>Images</span>} */}
 							</ButtonContainer>
@@ -1353,6 +1353,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<ModelContainer ref={modelSelectorRef}>
 							<ModelButtonWrapper ref={buttonRef}>
 								<ModelDisplayButton
+									style={{ fontSize: "11px" }}
 									role="button"
 									isActive={showModelSelector}
 									disabled={false}

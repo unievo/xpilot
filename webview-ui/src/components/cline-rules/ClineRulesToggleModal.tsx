@@ -68,7 +68,10 @@ const ClineRulesToggleModal: React.FC = () => {
 					onClick={() => setIsVisible(!isVisible)}
 					style={{ padding: "0px 0px", height: "20px" }}>
 					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
-						<span className="codicon codicon-law flex items-center" style={{ fontSize: "12.5px", marginBottom: 1 }} />
+						<span
+							className="codicon codicon-folder-active flex items-center"
+							style={{ fontSize: "15px", marginBottom: 1 }}
+						/>
 					</div>
 				</VSCodeButton>
 			</div>
@@ -106,7 +109,7 @@ const ClineRulesToggleModal: React.FC = () => {
 
 					{/* Global Rules Section */}
 					<div className="mb-3">
-						<div className="text-sm font-normal mb-2">Global Instructions</div>
+						<div className="text-sm font-normal mb-2">Global instructions files</div>
 						<RulesToggleList
 							rules={globalRules}
 							toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
@@ -117,7 +120,7 @@ const ClineRulesToggleModal: React.FC = () => {
 
 					{/* Local Rules Section */}
 					<div style={{ marginBottom: -10 }}>
-						<div className="text-sm font-normal mb-2">Workspace Instructions</div>
+						<div className="text-sm font-normal mb-2">Workspace instructions files</div>
 						<RulesToggleList
 							rules={localRules}
 							toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}

@@ -49,7 +49,7 @@ const ServersToggleModal: React.FC = () => {
 					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 						<span
 							className="codicon codicon-server flex items-center"
-							style={{ fontSize: "12.5px", marginBottom: 1 }}
+							style={{ fontSize: "14px", marginBottom: 1 }}
 						/>
 					</div>
 				</VSCodeButton>
