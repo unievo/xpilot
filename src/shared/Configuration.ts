@@ -7,7 +7,7 @@ export const discordUrl = "https://discord.gg/bTzeCrhpP8"
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
-export const latestAnnouncementId = "0.2.0"
+export const latestAnnouncementId = "1.0.0"
 
 // Files & Folders
 export const settingsDirectoryName = `settings`

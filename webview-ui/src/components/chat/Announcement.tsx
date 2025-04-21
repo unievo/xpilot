@@ -19,7 +19,7 @@ const containerStyle: CSSProperties = {
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
 const h3TitleStyle: CSSProperties = { margin: "5px 10px 8px", fontSize: "15px" }
-const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "10px", fontSize: "12px" }
+const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "10px", fontSize: "13px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
@@ -27,8 +27,8 @@ const hrStyle: CSSProperties = {
 	opacity: 0.1,
 	margin: "8px 0",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px", fontSize: "11px", textAlign: "left" }
-const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px", fontSize: "12px", textAlign: "left" }
+const linkStyle: CSSProperties = { display: "inline", fontSize: "12px" }
 
 /*
 You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with what's in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
@@ -45,11 +45,6 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			{
 				<ul style={ulStyle}>
 					<li>
-						MCP tool call arguments and responses are now collapsible, keeping the chat more compact when retrieving
-						large data quantities. Collapse or expand them to see full details.
-					</li>
-					<li>Cline v3.13.1 features update</li>
-					<li>
 						New{" "}
 						<VSCodeLink
 							onClick={() => {
@@ -58,11 +53,21 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 									tab: "library",
 								})
 							}}
-							style={{ fontSize: "12px" }}>
-							server library
+							style={{}}>
+							MCP server library
 						</VSCodeLink>{" "}
-						in server configuration, for discovering and installing MCP servers.
+						in server configuration, for discovering and installing servers.
 					</li>
+					<li>
+						MCP tool call arguments and responses are now collapsible, keeping the chat more compact when receiving
+						large data quantities. Expand for full details.
+					</li>
+					<li>
+						MCP configuration is now stored in a global configuration file, allowing for using xPilot in multiple IDEs
+						(VS Code, Cursor, Windsurf, etc.) at the same time with the same configuration.
+					</li>
+					<li>User interface improvements</li>
+					<li>Cline v3.13.1 features update</li>
 				</ul>
 				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
