@@ -70,9 +70,9 @@ ${
 
 					return (
 						`## ${server.name} (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` +
-						(tools ? `\n\n### Available Tools\n${tools}` : "") +
-						(templates ? `\n\n### Resource Templates\n${templates}` : "") +
-						(resources ? `\n\n### Direct Resources\n${resources}` : "")
+						(tools ? `\n\n### ATL - Available Tools List\n${tools}` : "") +
+						(templates ? `\n\n### RTL - Resource Templates List\n${templates}` : "") +
+						(resources ? `\n\n### DRL - Direct Resources List\n${resources}` : "")
 					)
 				})
 				.join("\n\n")}`
