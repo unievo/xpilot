@@ -130,7 +130,7 @@ const ServerRow = ({
 					style={{
 						flex: 1,
 						overflow: "hidden",
-						wordBreak: "break-all",
+						//wordBreak: "break-all",
 						whiteSpace: "normal",
 						display: "flex",
 						alignItems: "center",

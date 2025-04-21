@@ -22,7 +22,7 @@ const McpLibraryView = () => {
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-	const [sortBy, setSortBy] = useState<"newest" | "name">("newest")
+	const [sortBy, setSortBy] = useState<"newest" | "name">("name")
 
 	const categories = useMemo(() => {
 		const uniqueCategories = new Set(items.map((item) => item.category))

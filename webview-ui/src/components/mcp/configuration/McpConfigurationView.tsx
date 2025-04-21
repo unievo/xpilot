@@ -79,7 +79,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 						</TabButton>
 					)}
 					<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
-						Remote Servers
+						Remote
 					</TabButton>
 				</div>
 

@@ -96,7 +96,6 @@ const ClineRulesToggleModal: React.FC = () => {
 
 					<div className="flex justify-between items-center mb-2.5">
 						<div className="m-0 text-base font-semibold">{agentName} Instructions</div>
-
 						<VSCodeButton
 							appearance="icon"
 							onClick={() => {
@@ -106,7 +105,33 @@ const ClineRulesToggleModal: React.FC = () => {
 								setIsVisible(false)
 							}}></VSCodeButton>
 					</div>
-
+					<div
+						style={{
+							//display: "flex",
+							flexDirection: "column",
+							alignItems: "left",
+							textAlign: "left",
+							marginBottom: "20px",
+						}}>
+						<p style={{ fontSize: "11px", marginLeft: 10, opacity: 0.8 }}>
+							<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 10 }}>
+								<li>
+									Instruction files allow you to specify custom instructions to follow when executing tasks.
+									Global instructions are applied to all workspaces, while workspace instructions are specific
+									to the current workspace.
+								</li>
+								<li>
+									Global instructions are saved in your personal Documents directory, use them for general
+									guidelines and preferences.
+								</li>
+								<li>
+									Workspace instructions can be shared with other developers by including them in the
+									repository.
+								</li>
+								<li>Enable or disable instructions based on your current task context.</li>
+							</ul>
+						</p>
+					</div>
 					{/* Global Rules Section */}
 					<div className="mb-3">
 						<div className="text-sm font-normal mb-2">Global instructions files</div>
