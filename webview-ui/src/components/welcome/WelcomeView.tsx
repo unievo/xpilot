@@ -40,26 +40,30 @@ const WelcomeView = memo(() => {
 					</VSCodeLink>
 				</p>
 				<p>
-					I can use AI models to plan and execute many coding tasks and I'm able to access external tools and data using
-					the Model Context Protocol.
+					I can use AI models to plan and execute many tasks and I'm able to access external tools and data using the
+					Model Context Protocol.
 				</p>
 				<p>
-					I can work with different models, but I achieve the best results with models trained for coding and tool use,
+					I can work with different models and I achieve the best results with models trained for coding and tool use,
 					such as Claude Sonnet.
 				</p>
-				<p>To access an AI model I need to use an AI API Provider.</p>
+				<p>To access a model I need to use a provider.</p>
 				<p>
-					I can use many different providers and you can use your own API key if you already have one. Or you can use
-					providers such as Cline or Open Router which offer many models, by selecting them from the provider list.
+					I can use many different providers and you can also bring your own API key. Or you can sign up with Open
+					Router or Cline.
 				</p>
 				<p>
 					{" "}
-					I can also use available models in VS Code, Cursor, or Windsurf. If you have{" "}
+					I can also use supported models in VS Code, or any VS Code based IDE. You can set up{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						Copilot
 					</VSCodeLink>{" "}
-					installed, I can use the same models, so you don't need another API key or subscription. Select VS Code from
-					the provider list.
+					and
+					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+						enable
+					</VSCodeLink>{" "}
+					the Copilot models. I can use them without another API key or subscription, by selecting VS Code from the AI
+					API providers list.
 				</p>
 				<p></p>
 

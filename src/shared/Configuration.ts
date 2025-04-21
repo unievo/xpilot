@@ -3,10 +3,11 @@ export const agentName = "xPilot"
 export const productName = "xpilot"
 export const publisherName = "unievo"
 export const xUrl = "https://x.com/xPilotAI"
+export const discordUrl = "https://discord.gg/6e8xrXW5"
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
-export const latestAnnouncementId = "0.3.0"
+export const latestAnnouncementId = "0.2.0"
 
 // Files & Folders
 export const settingsDirectoryName = `settings`
@@ -34,6 +35,7 @@ export const openNewTabCommand = `${productName}.openInNewTab`
 export const settingsButtonCommand = `${productName}.settingsButtonClicked`
 export const historyButtonCommand = `${productName}.historyButtonClicked`
 export const accountButtonCommand = `${productName}.accountButtonClicked`
+export const focusChatInputCommand = `${productName}.focusChatInput`
 export const isDevMode = `${productName}.isDevMode`
 export const isTestMode = `${productName}.isTestMode`
 export const createTestTasksCommand = `${productName}.dev.createTestTasks`

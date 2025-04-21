@@ -7,30 +7,31 @@ const InstalledServersView = () => {
 	const { mcpServers: servers } = useExtensionState()
 
 	return (
-		<div style={{ padding: "0px 20px" }}>
+		<div style={{ padding: "5px 10px" }}>
 			<div
 				style={{
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "left",
 					textAlign: "left",
+					marginBottom: "10px",
+					opacity: 0.7,
 				}}>
-				<p style={{ fontSize: "13px", margin: 0 }}>
-					<ul style={{ listStyleType: "disc", paddingLeft: 15, paddingRight: 10 }}>
-						<li>Metadata for enabled servers is sent with every chat request.</li>
-						<li>Enable or disable servers as needed from the chat window footer.</li>
-						<li>Keep enabled only servers that you are using in the current task.</li>
-					</ul>
+				<p style={{ fontSize: "11px", margin: 5, marginBottom: 0 }}>
+					Metadata (tools, resources, parameters) for enabled servers is sent with every task message. To keep the
+					context memory usage optimal, especially with servers with many tools and resources, enable only servers that
+					you are using for the current tasks. You can enable or disable servers quickly from the chat window footer
+					when needed.
 				</p>
 			</div>
 			<VSCodeButton
 				appearance="secondary"
-				style={{ width: "100%", marginBottom: "20px" }}
+				style={{ width: "100%", marginBottom: "17px" }}
 				onClick={() => {
 					vscode.postMessage({ type: "openMcpSettings" })
 				}}>
 				<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
-				Configure MCP Servers
+				Configure
 			</VSCodeButton>
 			{/* Settings Section */}
 			{/* <div style={{ marginBottom: "10px", marginTop: 3 }}>

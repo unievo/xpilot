@@ -2,7 +2,7 @@ import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
 import { vscode } from "../../utils/vscode"
-import { agentName, xUrl } from "../../../../src/shared/Configuration"
+import { agentName, discordUrl, repoUrl, xUrl } from "../../../../src/shared/Configuration"
 
 interface AnnouncementProps {
 	version: string
@@ -12,14 +12,14 @@ interface AnnouncementProps {
 const containerStyle: CSSProperties = {
 	backgroundColor: getAsVar(VSC_INACTIVE_SELECTION_BACKGROUND),
 	borderRadius: "10px",
-	padding: "12px 16px",
+	padding: "10px 10px",
 	margin: "5px 15px 5px 15px",
 	position: "relative",
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "5px 10px 8px" }
-const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "12px" }
+const h3TitleStyle: CSSProperties = { margin: "5px 10px 8px", fontSize: "15px" }
+const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "10px", fontSize: "12px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
@@ -27,11 +27,11 @@ const hrStyle: CSSProperties = {
 	opacity: 0.1,
 	margin: "8px 0",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px" }
-const linkStyle: CSSProperties = { display: "inline" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px", fontSize: "11px", textAlign: "left" }
+const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
 
 /*
-You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with whats in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
+You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with what's in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
 */
 const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
@@ -40,7 +40,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<VSCodeButton appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
-			<span className="codicon codicon-info" style={{ marginLeft: "8px", fontSize: "24px" }}></span>
+			<span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "25px" }}></span>
 			<h3 style={h3TitleStyle}>Release v{version}</h3>
 			{
 				<ul style={ulStyle}>
@@ -137,21 +137,21 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					When Cline runs commands, you can now type directly in the terminal (+ support for Python
 					environments)
 				</li>
-			</ul>*/
-			}
+			</ul>*/}
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
+				{" "}
 				<VSCodeLink style={linkStyle} href={xUrl}>
-					Join us on X{" "}
+					X.com{" "}
 				</VSCodeLink>{" "}
-				{/* <VSCodeLink style={linkStyle} href="https://discord.gg/cline">
-					discord,
+				|
+				<VSCodeLink style={linkStyle} href={repoUrl}>
+					GitHub{" "}
 				</VSCodeLink>{" "}
-				or{" "}
-				<VSCodeLink style={linkStyle} href="https://www.reddit.com/r/cline/">
-					r/cline
-				</VSCodeLink> */}
-				for more updates!
+				|
+				<VSCodeLink style={linkStyle} href={discordUrl}>
+					Discord
+				</VSCodeLink>{" "}
 			</p>
 		</div>
 	)

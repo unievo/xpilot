@@ -1,3 +1,4 @@
+import { mcpLibraryItems } from "@/components/mcp/configuration/tabs/library/McpLibraryItems"
 import { McpMarketplaceCatalog, McpResource, McpResourceTemplate } from "@shared/mcp"
 
 /**
@@ -50,9 +51,9 @@ export function findMatchingResourceOrTemplate(
  * @returns The display name if found in catalog, otherwise returns the original server name
  */
 export function getMcpServerDisplayName(serverName: string, mcpMarketplaceCatalog: McpMarketplaceCatalog): string {
-	// Find matching item in marketplace catalog
+	// Find matching item in marketplace catalog or library items
 	const catalogItem = mcpMarketplaceCatalog.items.find((item) => item.mcpId === serverName)
-
-	// Return display name if found, otherwise return original server name
-	return catalogItem?.name || serverName
+	const libraryItem = mcpLibraryItems.find((item) => item.mcpId === serverName)
+	// Return display name if found in catalog, otherwise return original server name
+	return libraryItem?.name || catalogItem?.name || serverName
 }

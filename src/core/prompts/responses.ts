@@ -2,6 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
+import { McpToolCallResponse } from "../../shared/mcp"
 import { ignoreFile, instructionsFileOrDirectoryName } from "../../shared/Configuration"
 
 export const formatResponse = {
@@ -205,7 +206,10 @@ Otherwise, if you have not completed the task and do not need additional informa
 	clineIgnoreInstructions: (content: string) =>
 		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsFileOrDirectoryName}`,
 
-	clineRulesDirectoryInstructions: (cwd: string, content: string) =>
+	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
+		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a global .clinerules/ directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
+
+	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
 		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
