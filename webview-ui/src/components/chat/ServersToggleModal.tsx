@@ -87,7 +87,19 @@ const ServersToggleModal: React.FC = () => {
 							<span className="codicon codicon-gear text-[10px]"></span>
 						</VSCodeButton>
 					</div>
-
+					<div
+						style={{
+							//display: "flex",
+							flexDirection: "column",
+							alignItems: "left",
+							textAlign: "left",
+						}}>
+						<p style={{ fontSize: "11px", marginLeft: 10, opacity: 0.9 }}>
+							<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 0 }}>
+								<li>Enable only servers you to use in your task.</li>
+							</ul>
+						</p>
+					</div>
 					<div style={{ marginBottom: -10 }}>
 						<ServersToggleList servers={mcpServers} isExpandable={false} hasTrashIcon={false} listGap="small" />
 					</div>
