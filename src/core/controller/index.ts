@@ -1448,10 +1448,9 @@ ${
 - Create the directory for the new MCP server before starting installation.`
 }
 ${
-	libraryItem.readmeContent
-		? `- The following README may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
-\n\n${libraryItem.readmeContent}\n${libraryItem.llmsInstallationContent}
-`
+	libraryItem.readmeContent || libraryItem.llmsInstallationContent
+		? `- The following content is remotely provided and may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
+\n\n${libraryItem.readmeContent || ""}${libraryItem.readmeContent && libraryItem.llmsInstallationContent ? "\n" : ""}${libraryItem.llmsInstallationContent || ""}`
 		: ``
 }
 - Once installed, demonstrate the server's capabilities by using one of its tools.`
