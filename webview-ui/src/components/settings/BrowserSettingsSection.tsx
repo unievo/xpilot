@@ -278,18 +278,10 @@ export const BrowserSettingsSection: React.FC = () => {
 						color: "var(--vscode-descriptionForeground)",
 						margin: "0 0 6px 0px",
 					}}>
-					Enable {agentName} to use your Chrome
-					{isBundled ? "(not detected on your machine)" : detectedChromePath ? ` (${detectedChromePath})` : ""}. This
-					requires starting Chrome in debug mode
-					{browserSettings.remoteBrowserEnabled ? (
-						<>
-							{" "}
-							manually (<code>--remote-debugging-port=9222</code>) or using the button below. Enter the host address
-							or leave it blank for automatic discovery.
-						</>
-					) : (
-						"."
-					)}
+					Enable {agentName} to use Chrome
+					{isBundled ? "(not detected on your machine)" : detectedChromePath ? " " : ""}with providers and models
+					supporting computer use (details provided when selecting different providers and models). This allows for
+					browser use in your full browser context. It requires relaunching Chrome in debug mode.
 				</p>
 
 				{browserSettings.remoteBrowserEnabled && (
@@ -304,9 +296,24 @@ export const BrowserSettingsSection: React.FC = () => {
 						{shouldShowRelaunchButton && (
 							<div style={{ display: "flex", gap: "10px", marginBottom: 8, justifyContent: "center" }}>
 								<VSCodeButton style={{ flex: 1 }} disabled={debugMode} onClick={relaunchChromeDebugMode}>
-									{debugMode ? "Relaunching Browser..." : "Relaunch Browser with Debug Mode"}
+									{debugMode ? "Relaunching Browser..." : "Relaunch Browser in Debug Mode"}
 								</VSCodeButton>
 							</div>
+						)}
+						{browserSettings.remoteBrowserEnabled ? (
+							<p>
+								<div style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
+									{" "}
+									To start manually, execute in terminal:{" "}
+								</div>
+								<p>
+									<div>
+										<code>"{detectedChromePath}" --remote-debugging-port=9222</code>
+									</div>
+								</p>
+							</p>
+						) : (
+							""
 						)}
 
 						{relaunchResult && (

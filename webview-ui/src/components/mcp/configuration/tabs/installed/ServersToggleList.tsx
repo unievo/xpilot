@@ -5,7 +5,7 @@ const ServersToggleList = ({
 	servers,
 	isExpandable,
 	hasTrashIcon,
-	listGap = "medium",
+	listGap = "small",
 }: {
 	servers: McpServer[]
 	isExpandable: boolean
@@ -13,7 +13,7 @@ const ServersToggleList = ({
 	listGap?: "small" | "medium" | "large"
 }) => {
 	const gapClasses = {
-		small: "gap-0",
+		small: "gap-0.5",
 		medium: "gap-2.5",
 		large: "gap-5",
 	}

@@ -45,23 +45,24 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			{
 				<ul style={ulStyle}>
 					<li>
-						New Servers Library in the{" "}
+						MCP tool call arguments and responses are now collapsible, keeping the chat more compact when retrieving
+						large data quantities. Collapse or expand them to see full details.
+					</li>
+					<li>Cline v3.13.1 features update</li>
+					<li>
+						New{" "}
 						<VSCodeLink
 							onClick={() => {
 								vscode.postMessage({
 									type: "showMcpView",
+									tab: "library",
 								})
 							}}
 							style={{ fontSize: "12px" }}>
-							MCP configuration view
+							server library
 						</VSCodeLink>{" "}
-						allowing to discover and install any server directly from the library list.
+						in server configuration, for discovering and installing MCP servers.
 					</li>
-					<li>
-						MCP tool call arguments and responses are now collapsible, keeping the chat more compact when retrieving
-						large data quantities. Collapse or expand them to see full details.
-					</li>
-					<li>Cline v3.12.1 features update</li>
 				</ul>
 				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
 				<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
@@ -137,7 +138,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					When Cline runs commands, you can now type directly in the terminal (+ support for Python
 					environments)
 				</li>
-			</ul>*/}
+			</ul>*/
+			}
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
 				{" "}

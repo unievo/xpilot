@@ -7,7 +7,7 @@ const InstalledServersView = () => {
 	const { mcpServers: servers } = useExtensionState()
 
 	return (
-		<div style={{ padding: "5px 10px" }}>
+		<div style={{ padding: "5px 15px" }}>
 			<div
 				style={{
 					display: "flex",
