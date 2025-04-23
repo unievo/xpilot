@@ -222,7 +222,7 @@
 				},
 				"astro.enableBrowserTool": {
 					"type": "boolean",
-					"default": false,
+					"default": true,
 					"description": "Enables use of browser session on supporting models."
 				},
 				"astro.modelSettings.o3Mini.reasoningEffort": {
