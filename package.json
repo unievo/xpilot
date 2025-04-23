@@ -220,7 +220,7 @@
 				},
 				"xpilot.enableBrowserTool": {
 					"type": "boolean",
-					"default": false,
+					"default": true,
 					"description": "Enables use of browser session on supporting models."
 				},
 				"xpilot.modelSettings.o3Mini.reasoningEffort": {
