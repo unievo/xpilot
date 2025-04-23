@@ -96,7 +96,7 @@ const ServersToggleModal: React.FC = () => {
 						}}>
 						<p style={{ fontSize: "11px", marginLeft: 10, opacity: 0.9 }}>
 							<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 0 }}>
-								<li>Enable only servers you to use in your task.</li>
+								<li>Enable only servers you need to use in your task.</li>
 							</ul>
 						</p>
 					</div>
