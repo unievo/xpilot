@@ -125,10 +125,10 @@ const ClineRulesToggleModal: React.FC = () => {
 									guidelines and preferences.
 								</li>
 								<li>
-									Workspace instructions can be shared with other developers by including them in the
-									repository.
+									Workspace instructions are project specific (architecture, requirements, specifications) and
+									can be shared and maintained by all project contributors, by including them in the repository.
 								</li>
-								<li>Enable or disable instructions based on your current task context.</li>
+								<li>Enable or disable instruction files based on your current task requirements.</li>
 							</ul>
 						</p>
 					</div>
