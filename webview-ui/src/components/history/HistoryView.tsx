@@ -65,7 +65,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 			})
 			.replace(", ", " ")
 			.replace(" at", ",")
-			.toUpperCase()
+		//.toUpperCase()
 	}, [])
 
 	const presentableTasks = useMemo(() => {
@@ -248,15 +248,15 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								style={{
 									cursor: "pointer",
 									borderBottom:
-										index < taskHistory.length - 1 ? "1px solid var(--vscode-panel-border)" : "none",
+										index < taskHistory.length - 1 ? "1px solid var(--vscode-dropdown-border)" : "none",
 								}}
 								onClick={() => handleHistorySelect(item.id)}>
 								<div
 									style={{
 										display: "flex",
 										flexDirection: "column",
-										gap: "8px",
-										padding: "12px 20px",
+										gap: "4px",
+										padding: "3px 10px",
 										position: "relative",
 									}}>
 									<div
@@ -269,8 +269,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 											style={{
 												color: "var(--vscode-descriptionForeground)",
 												fontWeight: 500,
-												fontSize: "0.85em",
-												textTransform: "uppercase",
+												fontSize: "0.9em",
+												//textTransform: "uppercase",
 											}}>
 											{formatDate(item.ts)}
 										</span>

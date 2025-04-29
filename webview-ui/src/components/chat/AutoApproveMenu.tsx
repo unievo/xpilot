@@ -219,12 +219,17 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 	return (
 		<div
 			style={{
-				padding: "0 15px",
+				padding: "10px 15px",
 				userSelect: "none",
-				borderTop: isExpanded
-					? `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`
-					: "none",
+				// borderTop: isExpanded
+				// 	? `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`
+				// 	: "none",
 				overflowY: "auto",
+				borderRadius: "10px",
+				border: isExpanded ? "1px solid var(--vscode-dropdown-border)" : "none",
+				backgroundColor: isExpanded ? "var(--vscode-editor-background)" : "",
+				marginLeft: isExpanded ? "10px" : "0",
+				marginRight: isExpanded ? "10px" : "5px",
 				...style,
 			}}>
 			<div
@@ -232,7 +237,7 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 					display: "flex",
 					alignItems: "center",
 					gap: "8px",
-					padding: isExpanded ? "8px 0" : "8px 0 0 0",
+					marginBottom: isExpanded ? "3px" : "-10px",
 					cursor: !hasEnabledActions ? "pointer" : "default",
 				}}
 				onMouseEnter={() => {
@@ -296,6 +301,8 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 					<span
 						className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
 						style={{
+							fontSize: isExpanded ? "2.2em" : "",
+							fontWeight: "bold",
 							flexShrink: 0,
 							marginLeft: isExpanded ? "2px" : "-2px",
 						}}
@@ -312,6 +319,9 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 						}}>
 						Auto-approve allows the selected model to perform the following actions without asking for permission.
 						Please use with caution and only enable actions you want to be performed without your pre-approval.
+					</div>
+					<div>
+						<hr style={{ marginBottom: "10px", borderStyle: "dashed", color: "var(--vscode-dropdown-border)" }} />
 					</div>
 					{ACTION_METADATA.map((action) => {
 						// Handle readFilesExternally, editFilesExternally, and executeAllCommands as animated sub-options
@@ -378,12 +388,12 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 							</div>
 						)
 					})}
-					<div
+					<hr
 						style={{
-							height: "0.5px",
-							background: getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND),
-							margin: "15px 0",
-							opacity: 0.2,
+							marginTop: "15px",
+							marginBottom: "15px",
+							borderStyle: "solid",
+							color: "var(--vscode-dropdown-border)",
 						}}
 					/>
 					<div

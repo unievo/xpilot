@@ -844,10 +844,10 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 					{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
 
-					<div style={{ paddingLeft: "20px", marginBottom: "-7px" }}>
+					<div style={{ paddingLeft: "20px", marginBottom: "-3px" }}>
 						<h2>How can I help?</h2>
-						<i className="codicon codicon-lightbulb" style={{ marginLeft: "-15px", fontSize: "13px" }} />
-						<span style={{ fontSize: "11px", marginLeft: "2px", fontWeight: "bold" }}>Tips:</span>
+						{/* <span className="codicon codicon-lightbulb" style={{ marginLeft: "-13px", fontSize: "10px" }} /> */}
+						{/* <span style={{ fontSize: "12px", marginLeft: "0px", marginTop: "-10px", fontWeight: "bold" }}>Tips</span> */}
 					</div>
 					<div
 						style={{
@@ -864,7 +864,6 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							//backgroundColor: "var(--vscode-editor-background)",
 							borderRadius: "0px",
 						}}>
-						{/* <i className="codicon codicon-lightbulb" style={{ fontSize: "18px" }} /> */}
 						<div
 							style={{
 								//display: "flex",
@@ -873,24 +872,24 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 								textAlign: "left",
 								//maxWidth: "480px",
 							}}>
-							<p style={{ fontSize: "11px", margin: 0, opacity: 0.8 }}>
+							<p style={{ fontSize: "11px", marginLeft: "1px", opacity: 0.8 }}>
 								<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 20 }}>
 									<li>
 										Start a new task each time you have a new scope. Keep your task context window specific to
-										the same scope, so you can reuse it for new tasks.
+										the same scope, so you can reuse it.
 									</li>
 									<li>
 										Type "/newtask" to create a new task with context from the current task. Use task history
 										to switch between tasks at any time.
 									</li>
 									<li>
-										Use task checkpoints to restore workspace and/or context window to that point. Edit a
-										previous task message to restart from that point.
+										Use task checkpoints to restore workspace and context to that point. Edit a previous task
+										message to restart from that point.
 									</li>
 									<li>
-										Use Plan mode to make and refine a plan of action and Act mode to start executing the
-										plan. You can select different models for each mode in settings (such as a reasoning model
-										for Plan and a coding model for Act).
+										Use Plan mode to make and refine a plan for the task and Act mode to execute. You can
+										select different models for each mode in settings (such as a reasoning model for Plan and
+										a coding model for Act).
 									</li>
 								</ul>
 							</p>

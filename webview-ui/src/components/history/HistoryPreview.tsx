@@ -26,7 +26,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 			})
 			.replace(", ", " ")
 			.replace(" at", ",")
-			.toUpperCase()
+		//.toUpperCase()
 	}
 
 	return (
@@ -35,12 +35,12 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 				{`
 					.history-preview-item {
 						background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 65%, transparent);
-						border-radius: 4px;
+						border-radius: 10px;
 						position: relative;
 						overflow: hidden;
-						opacity: 0.8;
+						opacity: 1;
 						cursor: pointer;
-						margin-bottom: 12px;
+						margin-bottom: 7px;
 					}
 					.history-preview-item:hover {
 						background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 100%, transparent);
@@ -76,39 +76,34 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 			<div style={{ padding: "0px 20px 0 20px" }}>
 				{taskHistory
 					.filter((item) => item.ts && item.task)
-					.slice(0, 3)
+					.slice(0, 5)
 					.map((item) => (
 						<div key={item.id} className="history-preview-item" onClick={() => handleHistorySelect(item.id)}>
-							<div style={{ padding: "12px" }}>
-								<div style={{ marginBottom: "8px" }}>
-									<span
-										style={{
-											color: "var(--vscode-descriptionForeground)",
-											fontWeight: 500,
-											fontSize: "0.85em",
-											textTransform: "uppercase",
-										}}>
-										{formatDate(item.ts)}
-									</span>
-								</div>
-								<div
+							<div
+								style={{
+									fontSize: "var(--vscode-font-size)",
+									color: "var(--vscode-descriptionForeground)",
+									marginBottom: "3px",
+									marginTop: "10px",
+									marginLeft: "12px",
+									marginRight: "12px",
+									display: "-webkit-box",
+									WebkitLineClamp: 2,
+									WebkitBoxOrient: "vertical",
+									overflow: "hidden",
+									whiteSpace: "pre-wrap",
+									wordBreak: "break-word",
+									overflowWrap: "anywhere",
+								}}>
+								{item.task}
+							</div>
+							<div style={{ padding: "5px 0px 10px 10px" }}>
+								<span
 									style={{
-										fontSize: "var(--vscode-font-size)",
-										color: "var(--vscode-descriptionForeground)",
-										marginBottom: "8px",
-										display: "-webkit-box",
-										WebkitLineClamp: 3,
-										WebkitBoxOrient: "vertical",
-										overflow: "hidden",
-										whiteSpace: "pre-wrap",
-										wordBreak: "break-word",
-										overflowWrap: "anywhere",
-									}}>
-									{item.task}
-								</div>
-								<div
-									style={{
+										marginLeft: "2px",
 										fontSize: "0.85em",
+										fontWeight: "bold",
+										opacity: 0.7,
 										color: "var(--vscode-descriptionForeground)",
 									}}>
 									<span>
@@ -129,7 +124,20 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 											<span>API Cost: ${item.totalCost?.toFixed(4)}</span>
 										</>
 									)}
-								</div>
+								</span>
+								<span style={{ marginBottom: "3px" }}>
+									<span
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											//fontWeight: "bold",
+											fontSize: "0.85em",
+											opacity: 0.7,
+											//textTransform: "uppercase",
+										}}>
+										{" - "}
+										{formatDate(item.ts)}
+									</span>
+								</span>
 							</div>
 						</div>
 					))}
