@@ -57,7 +57,8 @@ interface GitCommit {
 	description: string
 }
 
-const PLAN_MODE_COLOR = "var(--vscode-inputValidation-warningBorder)"
+const PLAN_MODE_COLOR = "var(--vscode-terminal-ansiBrightBlack)"
+const ACT_MODE_COLOR = "var(--vscode-terminal-ansiBlue)"
 
 const SwitchOption = styled.div<{ isActive: boolean }>`
 	padding: 2px 8px;
@@ -77,12 +78,12 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 	display: flex;
 	align-items: center;
 	background-color: var(--vscode-editor-background);
-	border: 1px solid var(--vscode-input-border);
-	border-radius: 12px;
+	border: 1px solid var(--vscode-charts-lines);
+	border-radius: 7px;
 	overflow: hidden;
 	cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
 	opacity: ${(props) => (props.disabled ? 0.5 : 1)};
-	transform: scale(0.85);
+	transform: scale(0.9);
 	transform-origin: right center;
 	margin-left: -10px; // compensate for the transform so flex spacing works
 	user-select: none; // Prevent text selection
@@ -92,7 +93,7 @@ const Slider = styled.div<{ isAct: boolean; isPlan?: boolean }>`
 	position: absolute;
 	height: 100%;
 	width: 50%;
-	background-color: ${(props) => (props.isPlan ? PLAN_MODE_COLOR : "var(--vscode-focusBorder)")};
+	background-color: ${(props) => (props.isPlan ? PLAN_MODE_COLOR : ACT_MODE_COLOR)};
 	transition: transform 0.2s ease;
 	transform: translateX(${(props) => (props.isAct ? "100%" : "0%")});
 `
@@ -100,7 +101,7 @@ const Slider = styled.div<{ isAct: boolean; isPlan?: boolean }>`
 const ButtonGroup = styled.div`
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 1px;
 	flex: 1;
 	min-width: 0;
 `
@@ -108,7 +109,7 @@ const ButtonGroup = styled.div`
 const ButtonContainer = styled.div`
 	display: flex;
 	align-items: center;
-	gap: 3px;
+	gap: 0px;
 	font-size: 10px;
 	white-space: nowrap;
 	min-width: 0;
@@ -168,6 +169,7 @@ const ModelContainer = styled.div`
 	display: flex;
 	flex: 1;
 	min-width: 0;
+	justify-content: flex-end;
 `
 
 const ModelButtonWrapper = styled.div`
@@ -935,9 +937,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				case "cline":
 					return `${selectedProvider}:${selectedModelId}`
 				case "openai":
-					return `openai-compat:${selectedModelId}`
+					return `openai(c):${selectedModelId}`
 				case "vscode-lm":
-					return `vscode-lm:${apiConfiguration.vsCodeLmModelSelector ? `${apiConfiguration.vsCodeLmModelSelector.vendor ?? ""}/${apiConfiguration.vsCodeLmModelSelector.family ?? ""}` : unknownModel}`
+					return `${apiConfiguration.vsCodeLmModelSelector ? `${apiConfiguration.vsCodeLmModelSelector.vendor ?? ""}/${apiConfiguration.vsCodeLmModelSelector.family ?? ""}` : unknownModel}`
 				case "together":
 					return `${selectedProvider}:${apiConfiguration.togetherModelId}`
 				case "lmstudio":
@@ -1249,7 +1251,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							flex: 1,
 							zIndex: 1,
 							outline: isTextAreaFocused
-								? `1px solid ${chatSettings.mode === "plan" ? PLAN_MODE_COLOR : "var(--vscode-focusBorder)"}`
+								? `1px solid ${chatSettings.mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
 								: "none",
 						}}
 						onScroll={() => updateHighlights()}
@@ -1312,6 +1314,22 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				</div>
 
 				<ControlsContainer>
+					<SwitchContainer data-testid="mode-switch" disabled={false} onClick={onModeToggle}>
+						<Slider isAct={chatSettings.mode === "act"} isPlan={chatSettings.mode === "plan"} />
+						<SwitchOption
+							isActive={chatSettings.mode === "plan"}
+							onMouseOver={() => setShownTooltipMode("plan")}
+							onMouseLeave={() => setShownTooltipMode(null)}>
+							Plan
+						</SwitchOption>
+						<SwitchOption
+							isActive={chatSettings.mode === "act"}
+							onMouseOver={() => setShownTooltipMode("act")}
+							onMouseLeave={() => setShownTooltipMode(null)}>
+							Act
+						</SwitchOption>
+					</SwitchContainer>
+
 					<ButtonGroup>
 						<VSCodeButton
 							data-testid="context-button"
@@ -1319,12 +1337,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							aria-label="Add Context"
 							disabled={textAreaDisabled}
 							onClick={handleContextButtonClick}
-							style={{ padding: "0px 0px", height: "20px" }}>
+							style={{ marginLeft: "3px", padding: "0px 0px", height: "20px" }}>
 							<ButtonContainer>
 								<span className="flex items-center" style={{ fontSize: "15px", marginBottom: 1 }}>
 									@
 								</span>
-								{/* {showButtonText && <span style={{ fontSize: "10px" }}>Context</span>} */}
 							</ButtonContainer>
 						</VSCodeButton>
 
@@ -1342,28 +1359,31 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<ButtonContainer>
 								<span
 									className="codicon codicon-device-camera flex items-center"
-									style={{ fontSize: "16px", marginBottom: -3 }}
+									style={{ fontSize: "16px", marginTop: "3px" }}
 								/>
-								{/* {showButtonText && <span style={{ fontSize: "10px" }}>Images</span>} */}
 							</ButtonContainer>
 						</VSCodeButton>
 						<ServersToggleModal />
 						<ClineRulesToggleModal />
 
 						<ModelContainer ref={modelSelectorRef}>
+							<div
+								className="codicon codicon-sparkle-filled"
+								style={{
+									fontSize: "16px",
+									color: "var(--vscode-focusBorder)",
+									marginLeft: "3px",
+									marginTop: "4px",
+									opacity: 0.7,
+								}}
+							/>
 							<ModelButtonWrapper ref={buttonRef}>
 								<ModelDisplayButton
-									style={{ fontSize: "11px" }}
+									style={{ fontSize: "11px", marginTop: "1px", marginLeft: "3px" }}
 									role="button"
 									isActive={showModelSelector}
 									disabled={false}
 									onClick={handleModelButtonClick}
-									// onKeyDown={(e) => {
-									// 	if (e.key === "Enter" || e.key === " ") {
-									// 		e.preventDefault()
-									// 		handleModelButtonClick()
-									// 	}
-									// }}
 									tabIndex={0}>
 									<ModelButtonContent>{modelDisplayName}</ModelButtonContent>
 								</ModelDisplayButton>
@@ -1385,27 +1405,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							)}
 						</ModelContainer>
 					</ButtonGroup>
-					<Tooltip
-						style={{ zIndex: 1000 }}
-						visible={shownTooltipMode !== null}
-						tipText={`In ${shownTooltipMode === "act" ? "Act" : "Plan"}  mode, ${agentName} will ${shownTooltipMode === "act" ? "complete the task immediately" : "gather information to architect a plan"}`}
-						hintText={`Toggle w/ ${metaKeyChar}+Shift+A`}>
-						<SwitchContainer data-testid="mode-switch" disabled={false} onClick={onModeToggle}>
-							<Slider isAct={chatSettings.mode === "act"} isPlan={chatSettings.mode === "plan"} />
-							<SwitchOption
-								isActive={chatSettings.mode === "plan"}
-								onMouseOver={() => setShownTooltipMode("plan")}
-								onMouseLeave={() => setShownTooltipMode(null)}>
-								Plan
-							</SwitchOption>
-							<SwitchOption
-								isActive={chatSettings.mode === "act"}
-								onMouseOver={() => setShownTooltipMode("act")}
-								onMouseLeave={() => setShownTooltipMode(null)}>
-								Act
-							</SwitchOption>
-						</SwitchContainer>
-					</Tooltip>
 				</ControlsContainer>
 			</div>
 		)
