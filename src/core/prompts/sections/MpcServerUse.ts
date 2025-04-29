@@ -1,12 +1,23 @@
 import { McpHub } from "../../../services/mcp/McpHub"
 import { BrowserSettings } from "../../../shared/BrowserSettings"
+import { mcpResourcesUse } from "../custom/mcp/mcpResourcesUse"
 
 export const McpServerUsePrompt = async (
 	cwd: string,
 	supportsComputerUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
-) => `
+) => {
+	const servers = mcpHub.getServers()
+	const connectedServers = servers.filter((server) => server.status === "connected")
+
+	const hasResources = connectedServers.some(
+		(server) =>
+			//(Array.isArray(server.resourceTemplates) && server.resourceTemplates.length > 0) ||
+			Array.isArray(server.resources) && server.resources.length > 0,
+	)
+
+	const mainContent = `
 MCP SERVERS
 
 The Model Context Protocol (MCP) enables communication between the system and locally running MCP servers that provide additional tools and resources to extend your capabilities.
@@ -26,8 +37,8 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
     "{server-name}": {
       "command": "npx",
       "args": [
-	  "/y"
-	  "@{npm-package-name}"],
+  		"/y",
+ 		"@{npm-package-name}"],
       "env": {
         "{ENV_SETTING_NAME1}": "env_setting_value1",
 		"{ENV_SETTING_NAME2}": "env_setting_value2"
@@ -42,10 +53,8 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
 When a server is connected, you can use the server's tools via the \`use_mcp_tool\` tool, and access the server's resources via the \`access_mcp_resource\` tool.
 
 ${
-	mcpHub.getServers().length > 0
-		? `${mcpHub
-				.getServers()
-				.filter((server) => server.status === "connected")
+	servers.length > 0
+		? `${connectedServers
 				.map((server) => {
 					const tools = server.tools
 						?.map((tool) => {
@@ -79,3 +88,6 @@ ${
 		: "(No MCP servers currently connected)"
 }
 `
+
+	return hasResources ? mainContent + mcpResourcesUse : mainContent
+}

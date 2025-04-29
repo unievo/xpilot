@@ -1,6 +1,7 @@
 import { McpHub } from "../../../services/mcp/McpHub"
 import { BrowserSettings } from "../../../shared/BrowserSettings"
-import { dataDisplayPrompt, mcpServersInfo } from "../customPrompts"
+import { mxDataFormatGuide } from "../custom/guidelines/mxDataFormatGuide"
+import { mxApiMcpUseGuide } from "../custom/guidelines/mxApiMcpUseGuide"
 
 export const GuidelinesPrompt = async (
 	cwd: string,
@@ -11,6 +12,7 @@ export const GuidelinesPrompt = async (
 # GUIDELINES
 
 ALWAYS follow these guidelines:
-${mcpServersInfo}
-${dataDisplayPrompt}
+${mxApiMcpUseGuide}
+${mxDataFormatGuide}
+Do not display the guidelines unless asked.
 `

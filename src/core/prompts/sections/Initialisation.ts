@@ -1,3 +1,3 @@
-import { initializationPrompt } from "../customPrompts"
+import { initializationPrompt } from "../custom/initialization"
 
 export const InitialisationPrompt = () => `${initializationPrompt}`
