@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.0]
+
+- Chat toolbar redesign
+- Auto-approve menu and task history UI improvements
+
 ## [1.0.0]
 
 - New MCP Server Library in server configuration, for discovering and installing a curated list of MCP servers.

@@ -44,6 +44,10 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<h3 style={h3TitleStyle}>Release v{version}</h3>
 			{
 				<ul style={ulStyle}>
+					<li>Chat toolbar redesign</li>
+					<li>Auto-approve menu and task history UI improvements</li>
+					<hr style={{ marginBottom: "10px", borderStyle: "dashed", color: "var(--vscode-editor-foreground)" }} />
+					<p style={{ fontSize: "13px", fontWeight: "bold" }}>Previous updates:</p>
 					<li>
 						New{" "}
 						<VSCodeLink
@@ -66,7 +70,6 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 						MCP configuration is now stored in a global configuration file, allowing for using xPilot in multiple IDEs
 						(VS Code, Cursor, Windsurf, etc.) at the same time with the same configuration.
 					</li>
-					<li>User interface improvements</li>
 					<li>Cline v3.13.1 features update</li>
 				</ul>
 				/*<ul style={{ margin: "0 0 8px", paddingLeft: "12px" }}>
