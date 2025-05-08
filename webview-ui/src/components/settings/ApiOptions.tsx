@@ -1242,8 +1242,15 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 									color: "var(--vscode-descriptionForeground)",
 								}}>
 								The VS Code Language Model API allows you to run models provided by other VS Code extensions
-								(including but not limited to GitHub Copilot). The easiest way to get started is to install the
-								Copilot extension from the VS Marketplace and enabling Claude 3.7 Sonnet.
+								(including but not limited to GitHub Copilot). The easiest way to get started is to set up{" "}
+								<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
+									Copilot
+								</VSCodeLink>{" "}
+								and
+								<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+									enable
+								</VSCodeLink>{" "}
+								the Copilot models.
 							</p>
 						)}
 
