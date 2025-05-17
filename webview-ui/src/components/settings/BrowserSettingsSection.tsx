@@ -416,39 +416,39 @@ export const BrowserSettingsSection: React.FC = () => {
 					</p>
 				</div>
 
-			<div style={{ marginBottom: 0 }}>
-				<div style={{ marginBottom: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-					<VSCodeCheckbox
-						checked={browserSettings.remoteBrowserEnabled}
-						onChange={(e) => updateRemoteBrowserEnabled((e.target as HTMLInputElement).checked)}>
-						Use remote browser connection
-					</VSCodeCheckbox>
-					<ConnectionStatusIndicator
-						isChecking={isCheckingConnection}
-						isConnected={connectionStatus}
-						remoteBrowserEnabled={browserSettings.remoteBrowserEnabled}
-					/>
-				</div>
-				<p
-					style={{
-						fontSize: "12px",
-						color: "var(--vscode-descriptionForeground)",
-						margin: "0 0 6px 0px",
-					}}>
-					Enable {agentName} to use Chrome
-					{isBundled ? "(not detected on your machine)" : detectedChromePath ? " " : ""}with providers and models
-					supporting computer use (details provided when selecting different providers and models). This allows for
-					browser use in your full browser context. It requires relaunching Chrome in debug mode.
-				</p>
-
-				{browserSettings.remoteBrowserEnabled && (
-					<div style={{ marginLeft: 0 }}>
-						<VSCodeTextField
-							value={browserSettings.remoteBrowserHost || ""}
-							placeholder="http://localhost:9222"
-							style={{ width: "100%", marginBottom: 8 }}
-							onChange={(e: any) => updateRemoteBrowserHost(e.target.value || undefined)}
+				<div style={{ marginBottom: 0 }}>
+					<div style={{ marginBottom: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+						<VSCodeCheckbox
+							checked={browserSettings.remoteBrowserEnabled}
+							onChange={(e) => updateRemoteBrowserEnabled((e.target as HTMLInputElement).checked)}>
+							Use remote browser connection
+						</VSCodeCheckbox>
+						<ConnectionStatusIndicator
+							isChecking={isCheckingConnection}
+							isConnected={connectionStatus}
+							remoteBrowserEnabled={browserSettings.remoteBrowserEnabled}
 						/>
+					</div>
+					<p
+						style={{
+							fontSize: "12px",
+							color: "var(--vscode-descriptionForeground)",
+							margin: "0 0 6px 0px",
+						}}>
+						Enable {agentName} to use Chrome
+						{isBundled ? "(not detected on your machine)" : detectedChromePath ? " " : ""}with providers and models
+						supporting computer use (details provided when selecting different providers and models). This allows for
+						browser use in your full browser context. It requires relaunching Chrome in debug mode.
+					</p>
+
+					{browserSettings.remoteBrowserEnabled && (
+						<div style={{ marginLeft: 0 }}>
+							<VSCodeTextField
+								value={browserSettings.remoteBrowserHost || ""}
+								placeholder="http://localhost:9222"
+								style={{ width: "100%", marginBottom: 8 }}
+								onChange={(e: any) => updateRemoteBrowserHost(e.target.value || undefined)}
+							/>
 
 							{shouldShowRelaunchButton && (
 								<div style={{ display: "flex", gap: "10px", marginBottom: 8, justifyContent: "center" }}>
@@ -457,21 +457,21 @@ export const BrowserSettingsSection: React.FC = () => {
 									</VSCodeButton>
 								</div>
 							)}
-						{browserSettings.remoteBrowserEnabled ? (
-							<p>
-								<div style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
-									{" "}
-									To start manually, execute in terminal:{" "}
-								</div>
+							{browserSettings.remoteBrowserEnabled ? (
 								<p>
-									<div>
-										<code>"{detectedChromePath}" --remote-debugging-port=9222</code>
+									<div style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
+										{" "}
+										To start manually, execute in terminal:{" "}
 									</div>
+									<p>
+										<div>
+											<code>"{detectedChromePath}" --remote-debugging-port=9222</code>
+										</div>
+									</p>
 								</p>
-							</p>
-						) : (
-							""
-						)}
+							) : (
+								""
+							)}
 
 							{relaunchResult && (
 								<div

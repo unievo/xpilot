@@ -46,7 +46,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			{
 				<ul style={ulStyle}>
 					Welcome to <b>{agentName}</b>!
-				{/* <li>
+					{/* <li>
 					<b>Task Timeline:</b> See the history of your coding journey with a visual timeline of checkpoints, letting
 					you understand what Cline did at a glance.
 				</li>
@@ -64,7 +64,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 				<li>
 					<b>Auto Caching for Gemini:</b> Native support for Gemini's recently released Implicit Caching.
 				</li> */}
-			</ul>
+				</ul>
 			}
 			{/*
 			<Accordion isCompact className="pl-0">

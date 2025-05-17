@@ -80,7 +80,7 @@ export class ClineIgnoreController {
 			console.error(`Unexpected error loading ${ignoreFile}:", error`)
 		}
 	}
-	
+
 	/**
 	 * Process ignore content and apply all ignore patterns
 	 */
