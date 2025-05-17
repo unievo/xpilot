@@ -22,8 +22,9 @@ import {
 	addToAgentCodeActionName,
 	fixWithAgentCodeActionName,
 	fixWithAgentCommand,
-	isTestMode,
 	focusChatInputCommand,
+	generateGitCommitMessageCommand,
+	sideBarId,
 } from "./shared/Configuration"
 import "./utils/path" // necessary to have access to String.prototype.toPosix
 import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
@@ -431,7 +432,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(focusChatInputCommand, () => {
 			let visibleWebview = WebviewProvider.getVisibleInstance()
 			if (!visibleWebview) {
-				vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+				vscode.commands.executeCommand(`${sideBarId}.focus`)
 				visibleWebview = WebviewProvider.getSidebarInstance()
 				// showing the extension will call didBecomeVisible which focuses it already
 				// but it doesn't focus if a tab is selected which focusChatInput accounts for
@@ -446,7 +447,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register the generateGitCommitMessage command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.generateGitCommitMessage", async () => {
+		vscode.commands.registerCommand(generateGitCommitMessageCommand, async () => {
 			// Get the controller from any instance, without activating the view
 			const controller = WebviewProvider.getAllInstances()[0]?.controller
 
@@ -455,7 +456,7 @@ export function activate(context: vscode.ExtensionContext) {
 				await controller.generateGitCommitMessage()
 			} else {
 				// Create a temporary controller just for this operation
-				const outputChannel = vscode.window.createOutputChannel("Cline Commit Generator")
+				const outputChannel = vscode.window.createOutputChannel(`${agentName} Commit Generator`)
 				const tempController = new Controller(context, outputChannel, () => Promise.resolve(true))
 
 				await tempController.generateGitCommitMessage()

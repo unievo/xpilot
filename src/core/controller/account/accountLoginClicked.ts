@@ -3,6 +3,7 @@ import crypto from "crypto"
 import { Controller } from "../index"
 import { storeSecret } from "../../storage/state"
 import { EmptyRequest, String } from "../../../shared/proto/common"
+import { extensionId } from "@/shared/Configuration"
 
 /**
  * Handles the user clicking the login link in the UI.
@@ -24,7 +25,7 @@ export async function accountLoginClicked(controller: Controller, unused: EmptyR
 	const uriScheme = vscode.env.uriScheme
 
 	const authUrl = vscode.Uri.parse(
-		`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://saoudrizwan.claude-dev/auth`)}`,
+		`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://${extensionId}/auth`)}`,
 	)
 	await vscode.env.openExternal(authUrl)
 	return {
