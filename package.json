@@ -39,7 +39,11 @@
 		"ai",
 		"llama"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onLanguage",
+		"onStartupFinished",
+		"workspaceContains:evals.env"
+	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"viewsContainers": {
@@ -109,11 +113,6 @@
 				"category": "Astro"
 			},
 			{
-				"command": "astro.fixWithAgent",
-				"title": "Fix with Astro",
-				"category": "Astro"
-			},
-			{
 				"command": "astro.focusChatInput",
 				"title": "Jump to Chat Input",
 				"category": "Astro"
@@ -127,6 +126,10 @@
 				"win": "ctrl+'",
 				"linux": "ctrl+'",
 				"when": "editorHasSelection"
+			},
+			{
+				"command": "cline.generateGitCommitMessage",
+				"when": "scmProvider == git"
 			}
 		],
 		"menus": {
@@ -196,25 +199,24 @@
 					"command": "astro.addTerminalOutputToChat",
 					"group": "navigation"
 				}
+			],
+			"scm/title": [
+				{
+					"command": "cline.generateGitCommitMessage",
+					"group": "navigation",
+					"when": "scmProvider == git"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "cline.generateGitCommitMessage",
+					"when": "scmProvider == git"
+				}
 			]
 		},
 		"configuration": {
 			"title": "Astro",
 			"properties": {
-				"astro.vsCodeLmModelSelector": {
-					"type": "object",
-					"properties": {
-						"vendor": {
-							"type": "string",
-							"description": "The vendor of the language model (e.g. copilot)"
-						},
-						"family": {
-							"type": "string",
-							"description": "The family of the language model (e.g. gpt-4)"
-						}
-					},
-					"description": "Settings for VSCode Language Model API"
-				},
 				"astro.enableCheckpoints": {
 					"type": "boolean",
 					"default": true,
@@ -224,21 +226,6 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables use of browser session on supporting models."
-				},
-				"astro.modelSettings.o3Mini.reasoningEffort": {
-					"type": "string",
-					"enum": [
-						"low",
-						"medium",
-						"high"
-					],
-					"default": "medium",
-					"description": "Controls the reasoning effort when using the o3-mini model. Higher values may result in more thorough but slower responses."
-				},
-				"astro.chromeExecutablePath": {
-					"type": "string",
-					"default": null,
-					"description": "Path to Chrome executable for browser use functionality. If not set, the extension will attempt to find or download it automatically."
 				},
 				"astro.preferredLanguage": {
 					"type": "string",
@@ -282,14 +269,11 @@
 		"compile": "npm run check-types && npm run lint && node esbuild.js",
 		"watch": "npm-run-all -p watch:*",
 		"watch:esbuild": "node esbuild.js --watch",
-		"watch:esbuild:test": "IS_TEST=true node esbuild.js --watch",
 		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
 		"package": "npm run build:webview && npm run check-types && npm run lint && node esbuild.js --production",
-		"protos": "node proto/build-proto.js && prettier src/shared/proto --write && prettier src/core/controller --write",
-		"package:test": "IS_TEST=true npm run build:webview:test && npm run check-types && npm run lint && IS_TEST=true node esbuild.js --production",
-		"build:webview:test": "cd webview-ui && IS_TEST=true npm run build",
-		"watch:test": "IS_TEST=true npm-run-all -p watch:tsc watch:esbuild:test",
-		"compile-tests": "tsc -p ./tsconfig.test.json --outDir out",
+		"protos": "node proto/build-proto.js && prettier src/shared/proto src/core/controller webview-ui/src/services --write",
+		"compile-tests": "node ./scripts/build-tests.js",
+		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts && eslint webview-ui/src --ext ts",
 		"format": "prettier . --check",
@@ -332,7 +316,9 @@
 		"chalk": "^5.3.0",
 		"esbuild": "^0.25.0",
 		"eslint": "^8.57.0",
+		"grpc-tools": "^1.13.0",
 		"husky": "^9.1.7",
+		"mintlify": "^4.0.515",
 		"npm-run-all": "^4.1.5",
 		"prettier": "^3.3.3",
 		"protoc-gen-ts": "^0.8.7",
@@ -341,6 +327,7 @@
 		"sinon": "^19.0.2",
 		"ts-node": "^10.9.2",
 		"ts-proto": "^2.6.1",
+		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.4.5"
 	},
 	"dependencies": {
@@ -350,7 +337,7 @@
 		"@aws-sdk/client-bedrock-runtime": "^3.758.0",
 		"@bufbuild/protobuf": "^2.2.5",
 		"@google-cloud/vertexai": "^1.9.3",
-		"@google/generative-ai": "^0.18.0",
+		"@google/genai": "^0.9.0",
 		"@grpc/grpc-js": "^1.9.15",
 		"@mistralai/mistralai": "^1.5.0",
 		"@modelcontextprotocol/sdk": "^1.7.0",
@@ -375,8 +362,11 @@
 		"fzf": "^0.5.2",
 		"get-folder-size": "^5.0.0",
 		"globby": "^14.0.2",
+		"iconv-lite": "^0.6.3",
 		"ignore": "^7.0.3",
+		"image-size": "^2.0.2",
 		"isbinaryfile": "^5.0.2",
+		"jschardet": "^3.1.4",
 		"mammoth": "^1.8.0",
 		"monaco-vscode-textmate-theme-converter": "^0.1.7",
 		"ollama": "^0.5.13",

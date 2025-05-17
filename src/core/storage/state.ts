@@ -1,17 +1,17 @@
 import * as vscode from "vscode"
-import { DEFAULT_CHAT_SETTINGS } from "../../shared/ChatSettings"
-import { DEFAULT_BROWSER_SETTINGS } from "../../shared/BrowserSettings"
-import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "../../shared/AutoApprovalSettings"
+import { DEFAULT_CHAT_SETTINGS } from "@shared/ChatSettings"
+import { DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
+import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
 import { GlobalStateKey, SecretKey } from "./state-keys"
-import { ApiConfiguration, ApiProvider, ModelInfo } from "../../shared/api"
-import { HistoryItem } from "../../shared/HistoryItem"
-import { AutoApprovalSettings } from "../../shared/AutoApprovalSettings"
-import { BrowserSettings } from "../../shared/BrowserSettings"
-import { ChatSettings } from "../../shared/ChatSettings"
-import { TelemetrySetting } from "../../shared/TelemetrySetting"
-import { UserInfo } from "../../shared/UserInfo"
-import { ClineRulesToggles } from "../../shared/cline-rules"
-import { o3MiniModelConfiguration, productName } from "../../shared/Configuration"
+import { ApiConfiguration, ApiProvider, BedrockModelId, ModelInfo } from "@shared/api"
+import { HistoryItem } from "@shared/HistoryItem"
+import { AutoApprovalSettings } from "@shared/AutoApprovalSettings"
+import { BrowserSettings } from "@shared/BrowserSettings"
+import { ChatSettings } from "@shared/ChatSettings"
+import { TelemetrySetting } from "@shared/TelemetrySetting"
+import { UserInfo } from "@shared/UserInfo"
+import { ClineRulesToggles } from "@shared/cline-rules"
+import { o3MiniModelConfiguration, productName } from "@shared/Configuration"
 /*
 	Storage
 	https://dev.to/kompotkot/how-to-use-secretstorage-in-your-vscode-extensions-2hco
@@ -68,6 +68,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		awsBedrockEndpoint,
 		awsProfile,
 		awsUseProfile,
+		awsBedrockCustomSelected,
+		awsBedrockCustomModelBaseId,
 		vertexProjectId,
 		vertexRegion,
 		openAiBaseUrl,
@@ -106,7 +108,12 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		vsCodeLmModelSelector,
 		liteLlmBaseUrl,
 		liteLlmModelId,
+		liteLlmModelInfo,
 		liteLlmUsePromptCache,
+		fireworksApiKey,
+		fireworksModelId,
+		fireworksModelMaxCompletionTokens,
+		fireworksModelMaxTokens,
 		userInfo,
 		previousModeApiProvider,
 		previousModeModelId,
@@ -114,6 +121,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		previousModeVsCodeLmModelSelector,
 		previousModeThinkingBudgetTokens,
 		previousModeReasoningEffort,
+		previousModeAwsBedrockCustomSelected,
+		previousModeAwsBedrockCustomModelBaseId,
 		qwenApiLine,
 		liteLlmApiKey,
 		telemetrySetting,
@@ -126,6 +135,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		planActSeparateModelsSettingRaw,
 		favoritedModelIds,
 		globalClineRulesToggles,
+		requestTimeoutMs,
+		shellIntegrationTimeout,
 	] = await Promise.all([
 		getGlobalState(context, "apiProvider") as Promise<ApiProvider | undefined>,
 		getGlobalState(context, "apiModelId") as Promise<string | undefined>,
@@ -141,6 +152,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "awsBedrockEndpoint") as Promise<string | undefined>,
 		getGlobalState(context, "awsProfile") as Promise<string | undefined>,
 		getGlobalState(context, "awsUseProfile") as Promise<boolean | undefined>,
+		getGlobalState(context, "awsBedrockCustomSelected") as Promise<boolean | undefined>,
+		getGlobalState(context, "awsBedrockCustomModelBaseId") as Promise<BedrockModelId | undefined>,
 		getGlobalState(context, "vertexProjectId") as Promise<string | undefined>,
 		getGlobalState(context, "vertexRegion") as Promise<string | undefined>,
 		getGlobalState(context, "openAiBaseUrl") as Promise<string | undefined>,
@@ -179,7 +192,12 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "vsCodeLmModelSelector") as Promise<vscode.LanguageModelChatSelector | undefined>,
 		getGlobalState(context, "liteLlmBaseUrl") as Promise<string | undefined>,
 		getGlobalState(context, "liteLlmModelId") as Promise<string | undefined>,
+		getGlobalState(context, "liteLlmModelInfo") as Promise<ModelInfo | undefined>,
 		getGlobalState(context, "liteLlmUsePromptCache") as Promise<boolean | undefined>,
+		getSecret(context, "fireworksApiKey") as Promise<string | undefined>,
+		getGlobalState(context, "fireworksModelId") as Promise<string | undefined>,
+		getGlobalState(context, "fireworksModelMaxCompletionTokens") as Promise<number | undefined>,
+		getGlobalState(context, "fireworksModelMaxTokens") as Promise<number | undefined>,
 		getGlobalState(context, "userInfo") as Promise<UserInfo | undefined>,
 		getGlobalState(context, "previousModeApiProvider") as Promise<ApiProvider | undefined>,
 		getGlobalState(context, "previousModeModelId") as Promise<string | undefined>,
@@ -187,6 +205,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "previousModeVsCodeLmModelSelector") as Promise<vscode.LanguageModelChatSelector | undefined>,
 		getGlobalState(context, "previousModeThinkingBudgetTokens") as Promise<number | undefined>,
 		getGlobalState(context, "previousModeReasoningEffort") as Promise<string | undefined>,
+		getGlobalState(context, "previousModeAwsBedrockCustomSelected") as Promise<boolean | undefined>,
+		getGlobalState(context, "previousModeAwsBedrockCustomModelBaseId") as Promise<BedrockModelId | undefined>,
 		getGlobalState(context, "qwenApiLine") as Promise<string | undefined>,
 		getSecret(context, "liteLlmApiKey") as Promise<string | undefined>,
 		getGlobalState(context, "telemetrySetting") as Promise<TelemetrySetting | undefined>,
@@ -199,6 +219,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "planActSeparateModelsSetting") as Promise<boolean | undefined>,
 		getGlobalState(context, "favoritedModelIds") as Promise<string[] | undefined>,
 		getGlobalState(context, "globalClineRulesToggles") as Promise<ClineRulesToggles | undefined>,
+		getGlobalState(context, "requestTimeoutMs") as Promise<number | undefined>,
+		getGlobalState(context, "shellIntegrationTimeout") as Promise<number | undefined>,
 	])
 
 	let apiProvider: ApiProvider
@@ -249,6 +271,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 			awsBedrockEndpoint,
 			awsProfile,
 			awsUseProfile,
+			awsBedrockCustomSelected,
+			awsBedrockCustomModelBaseId,
 			vertexProjectId,
 			vertexRegion,
 			openAiBaseUrl,
@@ -285,13 +309,19 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 			reasoningEffort,
 			liteLlmBaseUrl,
 			liteLlmModelId,
+			liteLlmModelInfo,
 			liteLlmApiKey,
 			liteLlmUsePromptCache,
+			fireworksApiKey,
+			fireworksModelId,
+			fireworksModelMaxCompletionTokens,
+			fireworksModelMaxTokens,
 			asksageApiKey,
 			asksageApiUrl,
 			xaiApiKey,
 			sambanovaApiKey,
 			favoritedModelIds,
+			requestTimeoutMs,
 		},
 		lastShownAnnouncementId,
 		customInstructions,
@@ -308,9 +338,12 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		previousModeVsCodeLmModelSelector,
 		previousModeThinkingBudgetTokens,
 		previousModeReasoningEffort,
+		previousModeAwsBedrockCustomSelected,
+		previousModeAwsBedrockCustomModelBaseId,
 		mcpMarketplaceEnabled,
 		telemetrySetting: telemetrySetting || "unset",
 		planActSeparateModelsSetting,
+		shellIntegrationTimeout: shellIntegrationTimeout || 4000,
 	}
 }
 
@@ -329,6 +362,8 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		awsBedrockEndpoint,
 		awsProfile,
 		awsUseProfile,
+		awsBedrockCustomSelected,
+		awsBedrockCustomModelBaseId,
 		vertexProjectId,
 		vertexRegion,
 		openAiBaseUrl,
@@ -361,6 +396,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		vsCodeLmModelSelector,
 		liteLlmBaseUrl,
 		liteLlmModelId,
+		liteLlmModelInfo,
 		liteLlmApiKey,
 		liteLlmUsePromptCache,
 		qwenApiLine,
@@ -386,6 +422,8 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 	await updateGlobalState(context, "awsBedrockEndpoint", awsBedrockEndpoint)
 	await updateGlobalState(context, "awsProfile", awsProfile)
 	await updateGlobalState(context, "awsUseProfile", awsUseProfile)
+	await updateGlobalState(context, "awsBedrockCustomSelected", awsBedrockCustomSelected)
+	await updateGlobalState(context, "awsBedrockCustomModelBaseId", awsBedrockCustomModelBaseId)
 	await updateGlobalState(context, "vertexProjectId", vertexProjectId)
 	await updateGlobalState(context, "vertexRegion", vertexRegion)
 	await updateGlobalState(context, "openAiBaseUrl", openAiBaseUrl)
@@ -417,6 +455,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 	await updateGlobalState(context, "vsCodeLmModelSelector", vsCodeLmModelSelector)
 	await updateGlobalState(context, "liteLlmBaseUrl", liteLlmBaseUrl)
 	await updateGlobalState(context, "liteLlmModelId", liteLlmModelId)
+	await updateGlobalState(context, "liteLlmModelInfo", liteLlmModelInfo)
 	await updateGlobalState(context, "liteLlmUsePromptCache", liteLlmUsePromptCache)
 	await updateGlobalState(context, "qwenApiLine", qwenApiLine)
 	await updateGlobalState(context, "requestyModelId", requestyModelId)
@@ -429,6 +468,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 	await storeSecret(context, "clineApiKey", clineApiKey)
 	await storeSecret(context, "sambanovaApiKey", sambanovaApiKey)
 	await updateGlobalState(context, "favoritedModelIds", favoritedModelIds)
+	await updateGlobalState(context, "requestTimeoutMs", apiConfiguration.requestTimeoutMs)
 }
 
 export async function resetExtensionState(context: vscode.ExtensionContext) {
@@ -452,6 +492,7 @@ export async function resetExtensionState(context: vscode.ExtensionContext) {
 		"mistralApiKey",
 		"clineApiKey",
 		"liteLlmApiKey",
+		"fireworksApiKey",
 		"asksageApiKey",
 		"xaiApiKey",
 		"sambanovaApiKey",
