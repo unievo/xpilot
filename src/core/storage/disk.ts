@@ -13,7 +13,7 @@ import {
 	contextHistoryFile,
 	mcpSettingsFile,
 	openRouterModelsFile,
-	instructionsFileOrDirectoryName,
+	instructions,
 	taskMetadataFile,
 	uiMessagesFile,
 	publisherName,
@@ -22,6 +22,7 @@ import {
 	mcpDirectoryName,
 	mcpServersDirectoryName,
 	agentName,
+	workflows,
 } from "../../shared/Configuration"
 
 export const GlobalFileNames = {
@@ -30,7 +31,8 @@ export const GlobalFileNames = {
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
 	mcpSettings: mcpSettingsFile,
-	clineRules: instructionsFileOrDirectoryName,
+	clineRules: instructions,
+	workflows: workflows,
 	cursorRulesDir: ".cursor/rules",
 	cursorRulesFile: ".cursorrules",
 	windsurfRules: ".windsurfrules",

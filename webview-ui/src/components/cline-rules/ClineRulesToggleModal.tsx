@@ -6,6 +6,7 @@ import { vscode } from "@/utils/vscode"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import RulesToggleList from "./RulesToggleList"
 import Tooltip from "@/components/common/Tooltip"
+import styled from "styled-components"
 import { agentName } from "@shared/Configuration"
 
 const ClineRulesToggleModal: React.FC = () => {
@@ -14,6 +15,7 @@ const ClineRulesToggleModal: React.FC = () => {
 		localClineRulesToggles = {},
 		localCursorRulesToggles = {},
 		localWindsurfRulesToggles = {},
+		workflowToggles = {},
 	} = useExtensionState()
 	const [isVisible, setIsVisible] = useState(false)
 	const buttonRef = useRef<HTMLDivElement>(null)
@@ -21,6 +23,7 @@ const ClineRulesToggleModal: React.FC = () => {
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 	const [arrowPosition, setArrowPosition] = useState(0)
 	const [menuPosition, setMenuPosition] = useState(0)
+	const [currentView, setCurrentView] = useState<"rules" | "workflows">("rules")
 
 	useEffect(() => {
 		if (isVisible) {
@@ -46,6 +49,10 @@ const ClineRulesToggleModal: React.FC = () => {
 		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
 		.sort(([a], [b]) => a.localeCompare(b))
 
+	const workflows = Object.entries(workflowToggles || {})
+		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
+		.sort(([a], [b]) => a.localeCompare(b))
+
 	// Handle toggle rule
 	const toggleRule = (isGlobal: boolean, rulePath: string, enabled: boolean) => {
 		vscode.postMessage({
@@ -68,6 +75,14 @@ const ClineRulesToggleModal: React.FC = () => {
 		vscode.postMessage({
 			type: "toggleWindsurfRule",
 			rulePath,
+			enabled,
+		})
+	}
+
+	const toggleWorkflow = (workflowPath: string, enabled: boolean) => {
+		vscode.postMessage({
+			type: "toggleWorkflow",
+			workflowPath,
 			enabled,
 		})
 	}
@@ -124,47 +139,57 @@ const ClineRulesToggleModal: React.FC = () => {
 						}}
 					/>
 
-					<div className="flex justify-between items-center mb-2.5">
-						<div className="m-0 text-base font-semibold">{agentName} Instructions</div>
-						<VSCodeButton
-							appearance="icon"
-							onClick={() => {
-								vscode.postMessage({
-									type: "openExtensionSettings",
-								})
-								setIsVisible(false)
-							}}></VSCodeButton>
-					</div>
+					{/* Tabs container */}
 					<div
 						style={{
-							//display: "flex",
-							flexDirection: "column",
-							alignItems: "left",
-							textAlign: "left",
-							marginBottom: "20px",
+							display: "flex",
+							justifyContent: "space-between",
+							marginBottom: "10px",
 						}}>
-						<p style={{ fontSize: "11px", marginLeft: 10, opacity: 0.8 }}>
-							<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 10 }}>
-								<li>
-									Instruction files allow you to specify custom instructions to follow when executing tasks.
-									Global instructions are applied to all workspaces, while workspace instructions are specific
-									to the current workspace.
-								</li>
-								<li>
-									Global instructions are saved in your personal Documents directory, use them for general
-									guidelines and preferences.
-								</li>
-								<li>
-									Workspace instructions are project specific (architecture, requirements, specifications) and
-									can be shared and maintained by all project contributors, by including them in the repository.
-								</li>
-								<li>Enable or disable instruction files based on your current task requirements.</li>
-							</ul>
-						</p>
+						<div
+							style={{
+								display: "flex",
+								gap: "1px",
+								borderBottom: "1px solid var(--vscode-panel-border)",
+							}}>
+							<TabButton isActive={currentView === "rules"} onClick={() => setCurrentView("rules")}>
+								Rules
+							</TabButton>
+							<TabButton isActive={currentView === "workflows"} onClick={() => setCurrentView("workflows")}>
+								Workflows
+							</TabButton>
+						</div>
 					</div>
+
+					{/* Description text */}
+					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+						{currentView === "rules" ? (
+							<p>
+								Instructions allow you to specify information to follow when executing tasks.
+								Global instructions can be applied to all workspaces, while workspace instructions are specific
+									to the current workspace.
+							</p>
+						) : (
+							<p>
+								Workflows allow you to define a series of steps for guidance through a set of steps.
+								To invoke a workflow, type{" "}
+								<span
+									className=" 
+								text-[var(--vscode-foreground)] font-bold">
+									/workflow-name
+								</span>{" "}
+								in the chat.
+							</p>
+						)}
+					</div>
+
 					{/* Global Rules Section */}
 					<div className="mb-3">
-						<div className="text-sm font-normal mb-2">Global instructions files</div>
+						<div className="text-sm font-normal mb-2">Global Instructions</div>
+						<p>
+							Global instructions are saved in your Documents, use them for general
+							guidelines and preferences.
+						</p>
 						<RulesToggleList
 							rules={globalRules}
 							toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
@@ -178,7 +203,11 @@ const ClineRulesToggleModal: React.FC = () => {
 
 					{/* Local Rules Section */}
 					<div style={{ marginBottom: -10 }}>
-						<div className="text-sm font-normal mb-2">Workspace instructions files</div>
+						<div className="text-sm font-normal mb-2">Workspace Instructions</div>
+						<p>
+							Workspace instructions are project specific (architecture, requirements, specifications) and
+							can be shared with all contributors in the repository.
+						</p>
 						<RulesToggleList
 							rules={localRules}
 							toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
@@ -212,5 +241,35 @@ const ClineRulesToggleModal: React.FC = () => {
 		</div>
 	)
 }
+
+const StyledTabButton = styled.button<{ isActive: boolean }>`
+	background: none;
+	border: none;
+	border-bottom: 2px solid ${(props) => (props.isActive ? "var(--vscode-foreground)" : "transparent")};
+	color: ${(props) => (props.isActive ? "var(--vscode-foreground)" : "var(--vscode-descriptionForeground)")};
+	padding: 8px 16px;
+	cursor: pointer;
+	font-size: 13px;
+	margin-bottom: -1px;
+	font-family: inherit;
+
+	&:hover {
+		color: var(--vscode-foreground);
+	}
+`
+
+export const TabButton = ({
+	children,
+	isActive,
+	onClick,
+}: {
+	children: React.ReactNode
+	isActive: boolean
+	onClick: () => void
+}) => (
+	<StyledTabButton isActive={isActive} onClick={onClick}>
+		{children}
+	</StyledTabButton>
+)
 
 export default ClineRulesToggleModal
