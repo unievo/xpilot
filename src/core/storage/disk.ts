@@ -13,17 +13,17 @@ import {
 	contextHistoryFile,
 	mcpSettingsFile,
 	openRouterModelsFile,
-	instructions,
+	instructionsDirectory,
 	taskMetadataFile,
 	uiMessagesFile,
 	publisherName,
 	productName,
-	settingsDirectoryName,
-	mcpDirectoryName,
-	mcpServersDirectoryName,
+	settingsDirectory,
+	mcpDirectory,
+	mcpServersDirectory,
 	agentName,
-	workflows,
-} from "../../shared/Configuration"
+	workflowsDirectory,
+} from "@shared/Configuration"
 
 export const GlobalFileNames = {
 	apiConversationHistory: apiConversationHistoryFile,
@@ -31,8 +31,8 @@ export const GlobalFileNames = {
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
 	mcpSettings: mcpSettingsFile,
-	clineRules: instructions,
-	workflows: workflows,
+	clineRules: instructionsDirectory,
+	workflows: workflowsDirectory,
 	cursorRulesDir: ".cursor/rules",
 	cursorRulesFile: ".cursorrules",
 	windsurfRules: ".windsurfrules",
@@ -81,12 +81,12 @@ export async function getUserProductDirectoryPath(): Promise<string> {
 }
 
 export async function getUserMcpDirectoryPath(): Promise<string> {
-	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectoryName)
+	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectory)
 	return mcpDir
 }
 
 export async function getUserMcpServersPath(): Promise<string> {
-	const mcpServersDir = path.join(await getUserMcpDirectoryPath(), mcpServersDirectoryName)
+	const mcpServersDir = path.join(await getUserMcpDirectoryPath(), mcpServersDirectory)
 	return mcpServersDir
 }
 
@@ -119,7 +119,7 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 }
 
 export async function ensureSettingsDirectoryExists(): Promise<string> {
-	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectoryName)
+	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectory)
 	await fs.mkdir(settingsDir, { recursive: true })
 	return settingsDir
 }

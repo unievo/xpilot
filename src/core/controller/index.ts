@@ -51,18 +51,7 @@ import { sendStateUpdate } from "./state/subscribeToState"
 import { refreshClineRulesToggles } from "@core/context/instructions/user-instructions/cline-rules"
 import { refreshExternalRulesToggles } from "@core/context/instructions/user-instructions/external-rules"
 import { refreshWorkflowToggles } from "@core/context/instructions/user-instructions/workflows"
-import {
-	agentName,
-	extensionId,
-	latestAnnouncementId,
-	mcpDirectoryName,
-	mcpServersDirectoryName,
-	mcpSettingsFile,
-	productName,
-	publisherName,
-	settingsDirectoryName,
-	sideBarId,
-} from "../../shared/Configuration"
+import { agentName, extensionId, latestAnnouncementId, mcpSettingsFile, sideBarId } from "../../shared/Configuration"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts

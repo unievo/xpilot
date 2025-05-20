@@ -1,5 +1,5 @@
 import * as vscode from "vscode"
-import { agentName, extensionIconDarkPathSegments, extensionIconLightPathSegments, extensionId } from "../../shared/Configuration"
+import { agentName, extensionIconDarkPath, extensionIconLightPath, extensionId, pathSeparator } from "@shared/Configuration"
 
 export interface TerminalInfo {
 	terminal: vscode.Terminal
@@ -26,10 +26,10 @@ export class TerminalRegistry {
 			name: agentName,
 			iconPath: {
 				light: extensionUri
-					? vscode.Uri.joinPath(extensionUri, ...extensionIconLightPathSegments)
+					? vscode.Uri.joinPath(extensionUri, ...extensionIconLightPath.split(pathSeparator))
 					: new vscode.ThemeIcon("terminal"),
 				dark: extensionUri
-					? vscode.Uri.joinPath(extensionUri, ...extensionIconDarkPathSegments)
+					? vscode.Uri.joinPath(extensionUri, ...extensionIconDarkPath.split(pathSeparator))
 					: new vscode.ThemeIcon("terminal"),
 			},
 		})

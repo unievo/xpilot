@@ -5,6 +5,16 @@ import * as vscode from "vscode"
 import pWaitFor from "p-wait-for"
 import { Logger } from "./services/logging/Logger"
 import { createClineAPI } from "./exports"
+import "./utils/path" // necessary to have access to String.prototype.toPosix
+import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
+import assert from "node:assert"
+import { posthogClientProvider } from "./services/posthog/PostHogClientProvider"
+import { WebviewProvider } from "./core/webview"
+import { Controller } from "./core/controller"
+import { ErrorService } from "./services/error/ErrorService"
+import { initializeTestMode, cleanupTestMode } from "./services/test/TestMode"
+import { telemetryService } from "./services/posthog/telemetry/TelemetryService"
+import path from "node:path"
 import {
 	agentName,
 	plusButtonCommand,
@@ -13,8 +23,6 @@ import {
 	openNewTabCommand,
 	settingsButtonCommand,
 	historyButtonCommand,
-	extensionIconLightPathSegments,
-	extensionIconDarkPathSegments,
 	accountButtonCommand,
 	isDevMode,
 	addToChatCommand,
@@ -25,16 +33,10 @@ import {
 	focusChatInputCommand,
 	generateGitCommitMessageCommand,
 	sideBarId,
-} from "./shared/Configuration"
-import "./utils/path" // necessary to have access to String.prototype.toPosix
-import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
-import assert from "node:assert"
-import { posthogClientProvider } from "./services/posthog/PostHogClientProvider"
-import { WebviewProvider } from "./core/webview"
-import { Controller } from "./core/controller"
-import { ErrorService } from "./services/error/ErrorService"
-import { initializeTestMode, cleanupTestMode } from "./services/test/TestMode"
-import { telemetryService } from "./services/posthog/telemetry/TelemetryService"
+	pathSeparator,
+	extensionIconLightPath,
+	extensionIconDarkPath,
+} from "@shared/Configuration"
 
 /*
 Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -128,8 +130,8 @@ export function activate(context: vscode.ExtensionContext) {
 		// TODO: use better svg icon with light and dark variants (see https://stackoverflow.com/questions/58365687/vscode-extension-iconpath)
 
 		panel.iconPath = {
-			light: vscode.Uri.joinPath(context.extensionUri, ...extensionIconLightPathSegments),
-			dark: vscode.Uri.joinPath(context.extensionUri, ...extensionIconDarkPathSegments),
+			light: vscode.Uri.joinPath(context.extensionUri, ...extensionIconLightPath.split(pathSeparator)),
+			dark: vscode.Uri.joinPath(context.extensionUri, ...extensionIconDarkPath.split(pathSeparator)),
 		}
 		tabWebview.resolveWebviewView(panel)
 
