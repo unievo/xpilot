@@ -101,8 +101,8 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 							type="text"
 							placeholder={
 								ruleType === "workflow"
-									? "workflow-name (.md, .txt, or no extension)"
-									: "rule-name (.md, .txt, or no extension)"
+									? "filename (.md, .txt, or no extension)"
+									: "filename (.md, .txt, or no extension)"
 							}
 							value={filename}
 							onChange={(e) => setFilename(e.target.value)}

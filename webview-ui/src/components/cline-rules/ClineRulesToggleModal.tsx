@@ -153,7 +153,7 @@ const ClineRulesToggleModal: React.FC = () => {
 								borderBottom: "1px solid var(--vscode-panel-border)",
 							}}>
 							<TabButton isActive={currentView === "rules"} onClick={() => setCurrentView("rules")}>
-								Rules
+								Instructions
 							</TabButton>
 							<TabButton isActive={currentView === "workflows"} onClick={() => setCurrentView("workflows")}>
 								Workflows
@@ -165,14 +165,14 @@ const ClineRulesToggleModal: React.FC = () => {
 					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
 						{currentView === "rules" ? (
 							<p>
-								Instructions allow you to specify information to follow when executing tasks.
-								Global instructions can be applied to all workspaces, while workspace instructions are specific
-									to the current workspace.
+								Instructions allow you to specify information to follow when executing tasks. Global instructions
+								can be applied to all workspaces, while workspace instructions are specific to the current
+								workspace.
 							</p>
 						) : (
 							<p>
-								Workflows allow you to define a series of steps for guidance through a set of steps.
-								To invoke a workflow, type{" "}
+								Workflows allow you to define a series of steps for guidance through a task. To invoke a workflow,
+								type{" "}
 								<span
 									className=" 
 								text-[var(--vscode-foreground)] font-bold">
@@ -183,59 +183,77 @@ const ClineRulesToggleModal: React.FC = () => {
 						)}
 					</div>
 
-					{/* Global Rules Section */}
-					<div className="mb-3">
-						<div className="text-sm font-normal mb-2">Global Instructions</div>
-						<p>
-							Global instructions are saved in your Documents, use them for general
-							guidelines and preferences.
-						</p>
-						<RulesToggleList
-							rules={globalRules}
-							toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
-							listGap="small"
-							isGlobal={true}
-							ruleType={"cline"}
-							showNewRule={true}
-							showNoRules={true}
-						/>
-					</div>
+					{currentView === "rules" ? (
+						<>
+							{/* Global Rules Section */}
+							<div className="mb-3">
+								<div className="text-sm font-normal mb-2">Global</div>
+								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+									<p>Instructions are applied to all workspaces.</p>
+								</div>
+								<RulesToggleList
+									rules={globalRules}
+									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
+									listGap="small"
+									isGlobal={true}
+									ruleType={"cline"}
+									showNewRule={true}
+									showNoRules={true}
+								/>
+							</div>
 
-					{/* Local Rules Section */}
-					<div style={{ marginBottom: -10 }}>
-						<div className="text-sm font-normal mb-2">Workspace Instructions</div>
-						<p>
-							Workspace instructions are project specific (architecture, requirements, specifications) and
-							can be shared with all contributors in the repository.
-						</p>
-						<RulesToggleList
-							rules={localRules}
-							toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
-							listGap="small"
-							isGlobal={false}
-							ruleType={"cline"}
-							showNewRule={false}
-							showNoRules={false}
-						/>
-						<RulesToggleList
-							rules={cursorRules}
-							toggleRule={toggleCursorRule}
-							listGap="small"
-							isGlobal={false}
-							ruleType={"cursor"}
-							showNewRule={false}
-							showNoRules={false}
-						/>
-						<RulesToggleList
-							rules={windsurfRules}
-							toggleRule={toggleWindsurfRule}
-							listGap="small"
-							isGlobal={false}
-							ruleType={"windsurf"}
-							showNewRule={true}
-							showNoRules={localRules.length === 0 && cursorRules.length === 0 && windsurfRules.length === 0}
-						/>
-					</div>
+							{/* Local Rules Section */}
+							<div style={{ marginBottom: -10 }}>
+								<div className="text-sm font-normal mb-2">Workspace</div>
+								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+									<p>Instructions are applied to the current workspace.</p>
+								</div>
+								<RulesToggleList
+									rules={localRules}
+									toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
+									listGap="small"
+									isGlobal={false}
+									ruleType={"cline"}
+									showNewRule={false}
+									showNoRules={false}
+								/>
+								<RulesToggleList
+									rules={cursorRules}
+									toggleRule={toggleCursorRule}
+									listGap="small"
+									isGlobal={false}
+									ruleType={"cursor"}
+									showNewRule={false}
+									showNoRules={false}
+								/>
+								<RulesToggleList
+									rules={windsurfRules}
+									toggleRule={toggleWindsurfRule}
+									listGap="small"
+									isGlobal={false}
+									ruleType={"windsurf"}
+									showNewRule={true}
+									showNoRules={
+										localRules.length === 0 && cursorRules.length === 0 && windsurfRules.length === 0
+									}
+								/>
+							</div>
+						</>
+					) : (
+						/* Workflows section */
+						<div style={{ marginBottom: -10 }}>
+							<div className="text-sm font-normal mb-2">Workspace</div>
+							<RulesToggleList
+								rules={workflows}
+								toggleRule={toggleWorkflow}
+								listGap="small"
+								isGlobal={false}
+								ruleType={"workflow"}
+								showNewRule={true}
+								showNoRules={false}
+							/>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

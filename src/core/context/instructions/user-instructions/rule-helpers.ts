@@ -178,7 +178,7 @@ export const createRuleFile = async (isGlobal: boolean, filename: string, cwd: s
 		} else {
 			const localClineRulesFilePath = path.resolve(cwd, GlobalFileNames.clineRules)
 
-			const hasError = await ensureLocalClineDirExists(localClineRulesFilePath, "default-rules.md")
+			const hasError = await ensureLocalClineDirExists(localClineRulesFilePath, "default-instructions.md")
 			if (hasError === true) {
 				return { filePath: null, fileExists: false }
 			}
