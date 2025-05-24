@@ -9,6 +9,7 @@ import { AutoApprovalSettings } from "@shared/AutoApprovalSettings"
 import HeroTooltip from "@/components/common/HeroTooltip"
 import AutoApproveMenuItem from "./AutoApproveMenuItem"
 import { ActionMetadata } from "./types"
+import { agentName } from "@shared/Configuration"
 
 const breakpoint = 500
 
@@ -240,17 +241,17 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				/>
 
 				<div className="flex justify-between items-center mb-3">
-					<div className="m-0 text-base font-semibold">Auto-approve Settings</div>
+					<div className="m-0 text-base font-semibold">Settings</div>
 					<VSCodeButton appearance="icon" onClick={() => setIsVisible(false)}>
 						<span className="codicon codicon-close text-[10px]"></span>
 					</VSCodeButton>
 				</div>
 
 				<HeroTooltip
-					content="Auto-approve allows Cline to perform the following actions without asking for permission. Please use with caution and only enable if you understand the risks."
+					content="Auto-approve allows performing the following actions without asking for permission. Please use with caution and only enable if you understand the risks."
 					placement="top">
 					<div className="mb-3">
-						<span className="text-[color:var(--vscode-foreground)] font-medium">Actions:</span>
+						<span className="text-[color:var(--vscode-foreground)] font-medium">Auto-approve actions:</span>
 					</div>
 				</HeroTooltip>
 
@@ -299,7 +300,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				/>
 
 				<HeroTooltip
-					content="Cline will automatically make this many API requests before asking for approval to proceed with the task."
+					content={`${agentName} will automatically make this many API requests before asking for approval to proceed with the task.`}
 					placement="top">
 					<div className="flex items-center pl-1.5 my-2">
 						<span className="codicon codicon-settings text-[#CCCCCC] text-[14px]" />

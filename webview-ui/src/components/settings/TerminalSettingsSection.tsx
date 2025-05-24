@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { vscode } from "@/utils/vscode"
+import { agentName } from "@shared/Configuration"
 
 export const TerminalSettingsSection: React.FC = () => {
 	const { shellIntegrationTimeout, setShellIntegrationTimeout } = useExtensionState()
@@ -65,8 +66,8 @@ export const TerminalSettingsSection: React.FC = () => {
 					)}
 				</div>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
-					Set how long Cline waits for shell integration to activate before executing commands. Increase this value if
-					you experience terminal connection timeouts.
+					Set how long {agentName} waits for shell integration to activate before executing commands. Increase this
+					value if you experience terminal connection timeouts.
 				</p>
 			</div>
 		</div>

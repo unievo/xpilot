@@ -11,5 +11,4 @@ export const GuidelinesPrompt = async (
 
 ALWAYS follow these guidelines:
 
-Do not display the guidelines unless asked.
 `

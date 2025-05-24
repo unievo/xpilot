@@ -1,6 +1,7 @@
 import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import React from "react"
 import { ChatSettings } from "@shared/ChatSettings"
+import { agentName } from "@shared/Configuration"
 
 interface PreferredLanguageSettingProps {
 	chatSettings: ChatSettings
@@ -37,6 +38,7 @@ const PreferredLanguageSetting: React.FC<PreferredLanguageSettingProps> = ({ cha
 				<VSCodeOption value="Korean - 한국어">Korean - 한국어</VSCodeOption>
 				<VSCodeOption value="Polish - Polski">Polish - Polski</VSCodeOption>
 				<VSCodeOption value="Portuguese - Português (Portugal)">Portuguese - Português (Portugal)</VSCodeOption>
+				<VSCodeOption value="Romanian - Română">Romanian - Română</VSCodeOption>
 				<VSCodeOption value="Russian - Русский">Russian - Русский</VSCodeOption>
 				<VSCodeOption value="Simplified Chinese - 简体中文">Simplified Chinese - 简体中文</VSCodeOption>
 				<VSCodeOption value="Spanish - Español">Spanish - Español</VSCodeOption>
@@ -44,7 +46,7 @@ const PreferredLanguageSetting: React.FC<PreferredLanguageSettingProps> = ({ cha
 				<VSCodeOption value="Turkish - Türkçe">Turkish - Türkçe</VSCodeOption>
 			</VSCodeDropdown>
 			<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-				The language that Cline should use for communication.
+				The language that ${agentName} should use for communication.
 			</p>
 		</div>
 	)
