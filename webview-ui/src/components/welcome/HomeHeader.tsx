@@ -33,8 +33,8 @@ const HomeHeader = () => {
 					<p style={{ fontSize: "12px", marginLeft: "13px", opacity: 0.7 }}>
 						<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 20 }}>
 							<li>
-								Use Plan mode to create a task plan and Act mode to execute. You can use different models for each
-								mode and save them in settings.
+								Use Plan mode to create a task plan and Act mode to execute. You can configure different models
+								for each mode in settings.
 							</li>
 							<li>
 								Start a new task each time you have a new scope. Keep your task context specific to the same

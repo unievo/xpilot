@@ -189,28 +189,28 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 									</div>
 								))}
 							<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "right",
-					}}>
-					<VSCodeButton
-						appearance="icon"
-						onClick={() => showHistoryView()}
-						style={{
-							marginTop: "-3px",
-							opacity: 0.6,
-						}}>
-						<div
-							style={{
-								fontSize: "0.9em",
-								//fontSize: "var(--vscode-font-size)",
-								color: "var(--vscode-descriptionForeground)",
-							}}>
-							View all history
-						</div>
-					</VSCodeButton>
-				</div>
+								style={{
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "right",
+								}}>
+								<VSCodeButton
+									appearance="icon"
+									onClick={() => showHistoryView()}
+									style={{
+										marginTop: "-3px",
+										opacity: 0.6,
+									}}>
+									<div
+										style={{
+											fontSize: "0.9em",
+											//fontSize: "var(--vscode-font-size)",
+											color: "var(--vscode-descriptionForeground)",
+										}}>
+										View all history
+									</div>
+								</VSCodeButton>
+							</div>
 						</>
 					) : (
 						<div
