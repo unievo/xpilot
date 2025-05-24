@@ -2,8 +2,19 @@
 // Import the module and reference it with the alias vscode in your code below
 import { setTimeout as setTimeoutPromise } from "node:timers/promises"
 import * as vscode from "vscode"
+import pWaitFor from "p-wait-for"
 import { Logger } from "./services/logging/Logger"
 import { createClineAPI } from "./exports"
+import "./utils/path" // necessary to have access to String.prototype.toPosix
+import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
+import assert from "node:assert"
+import { posthogClientProvider } from "./services/posthog/PostHogClientProvider"
+import { WebviewProvider } from "./core/webview"
+import { Controller } from "./core/controller"
+import { ErrorService } from "./services/error/ErrorService"
+import { initializeTestMode, cleanupTestMode } from "./services/test/TestMode"
+import { telemetryService } from "./services/posthog/telemetry/TelemetryService"
+import path from "node:path"
 import {
 	agentName,
 	plusButtonCommand,
@@ -12,8 +23,6 @@ import {
 	openNewTabCommand,
 	settingsButtonCommand,
 	historyButtonCommand,
-	extensionIconLightPathSegments,
-	extensionIconDarkPathSegments,
 	accountButtonCommand,
 	isDevMode,
 	addToChatCommand,
@@ -21,16 +30,13 @@ import {
 	addToAgentCodeActionName,
 	fixWithAgentCodeActionName,
 	fixWithAgentCommand,
-	isTestMode,
 	focusChatInputCommand,
-} from "./shared/Configuration"
-import "./utils/path" // necessary to have access to String.prototype.toPosix
-import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
-import assert from "node:assert"
-import { telemetryService } from "./services/telemetry/TelemetryService"
-import { WebviewProvider } from "./core/webview"
-import { createTestServer, shutdownTestServer } from "./services/test/TestServer"
-import { ErrorService } from "./services/error/ErrorService"
+	generateGitCommitMessageCommand,
+	sideBarId,
+	pathSeparator,
+	extensionIconLightPath,
+	extensionIconDarkPath,
+} from "@shared/Configuration"
 
 /*
 Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -55,8 +61,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const sidebarWebview = new WebviewProvider(context, outputChannel)
 
+	// Initialize test mode and add disposables to context
+	context.subscriptions.push(...initializeTestMode(context, sidebarWebview))
+
 	vscode.commands.executeCommand("setContext", `${isDevMode}`, IS_DEV && IS_DEV === "true")
-	vscode.commands.executeCommand("setContext", `${isTestMode}`, IS_TEST && IS_TEST === "true")
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(WebviewProvider.sideBarId, sidebarWebview, {
@@ -122,8 +130,8 @@ export function activate(context: vscode.ExtensionContext) {
 		// TODO: use better svg icon with light and dark variants (see https://stackoverflow.com/questions/58365687/vscode-extension-iconpath)
 
 		panel.iconPath = {
-			light: vscode.Uri.joinPath(context.extensionUri, ...extensionIconLightPathSegments),
-			dark: vscode.Uri.joinPath(context.extensionUri, ...extensionIconDarkPathSegments),
+			light: vscode.Uri.joinPath(context.extensionUri, ...extensionIconLightPath.split(pathSeparator)),
+			dark: vscode.Uri.joinPath(context.extensionUri, ...extensionIconDarkPath.split(pathSeparator)),
 		}
 		tabWebview.resolveWebviewView(panel)
 
@@ -402,6 +410,10 @@ export function activate(context: vscode.ExtensionContext) {
 	// Register the command handler
 	context.subscriptions.push(
 		vscode.commands.registerCommand(fixWithAgentCommand, async (range: vscode.Range, diagnostics: any[]) => {
+			// Add this line to focus the chat input first
+			await vscode.commands.executeCommand(focusChatInputCommand)
+			// Wait for a webview instance to become visible after focusing
+			await pWaitFor(() => !!WebviewProvider.getVisibleInstance())
 			const editor = vscode.window.activeTextEditor
 			if (!editor) {
 				return
@@ -422,7 +434,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(focusChatInputCommand, () => {
 			let visibleWebview = WebviewProvider.getVisibleInstance()
 			if (!visibleWebview) {
-				vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+				vscode.commands.executeCommand(`${sideBarId}.focus`)
 				visibleWebview = WebviewProvider.getSidebarInstance()
 				// showing the extension will call didBecomeVisible which focuses it already
 				// but it doesn't focus if a tab is selected which focusChatInput accounts for
@@ -435,10 +447,25 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	// Set up test server if in test mode
-	if (IS_TEST === "true") {
-		createTestServer(sidebarWebview)
-	}
+	// Register the generateGitCommitMessage command handler
+	context.subscriptions.push(
+		vscode.commands.registerCommand(generateGitCommitMessageCommand, async () => {
+			// Get the controller from any instance, without activating the view
+			const controller = WebviewProvider.getAllInstances()[0]?.controller
+
+			if (controller) {
+				// Call the controller method to generate commit message
+				await controller.generateGitCommitMessage()
+			} else {
+				// Create a temporary controller just for this operation
+				const outputChannel = vscode.window.createOutputChannel(`${agentName} Commit Generator`)
+				const tempController = new Controller(context, outputChannel, () => Promise.resolve(true))
+
+				await tempController.generateGitCommitMessage()
+				outputChannel.dispose()
+			}
+		}),
+	)
 
 	return createClineAPI(outputChannel, sidebarWebview.controller)
 }
@@ -449,14 +476,15 @@ export function activate(context: vscode.ExtensionContext) {
 //
 // This is a workaround to reload the extension when the source code changes
 // since vscode doesn't support hot reload for extensions
-const { IS_DEV, DEV_WORKSPACE_FOLDER, IS_TEST } = process.env
+const { IS_DEV, DEV_WORKSPACE_FOLDER } = process.env
 
 // This method is called when your extension is deactivated
-export function deactivate() {
-	// Shutdown the test server if it exists
-	shutdownTestServer()
+export async function deactivate() {
+	await telemetryService.sendCollectedEvents()
 
-	telemetryService.shutdown()
+	// Clean up test mode
+	cleanupTestMode()
+	await posthogClientProvider.shutdown()
 	Logger.log(`${agentName} extension deactivated`)
 }
 

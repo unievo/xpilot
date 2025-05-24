@@ -19,6 +19,7 @@ export type ApiProvider =
 	| "vscode-lm"
 	| "cline"
 	| "litellm"
+	| "fireworks"
 	| "asksage"
 	| "xai"
 	| "sambanova"
@@ -33,6 +34,7 @@ export interface ApiHandlerOptions {
 	liteLlmApiKey?: string
 	liteLlmUsePromptCache?: boolean
 	openAiHeaders?: Record<string, string> // Custom headers for OpenAI requests
+	liteLlmModelInfo?: LiteLLMModelInfo
 	anthropicBaseUrl?: string
 	openRouterApiKey?: string
 	openRouterModelId?: string
@@ -47,6 +49,8 @@ export interface ApiHandlerOptions {
 	awsUseProfile?: boolean
 	awsProfile?: string
 	awsBedrockEndpoint?: string
+	awsBedrockCustomSelected?: boolean
+	awsBedrockCustomModelBaseId?: BedrockModelId
 	vertexProjectId?: string
 	vertexRegion?: string
 	openAiBaseUrl?: string
@@ -67,12 +71,15 @@ export interface ApiHandlerOptions {
 	requestyModelInfo?: ModelInfo
 	togetherApiKey?: string
 	togetherModelId?: string
+	fireworksApiKey?: string
+	fireworksModelId?: string
+	fireworksModelMaxCompletionTokens?: number
+	fireworksModelMaxTokens?: number
 	qwenApiKey?: string
 	doubaoApiKey?: string
 	mistralApiKey?: string
 	azureApiVersion?: string
 	vsCodeLmModelSelector?: LanguageModelChatSelector
-	o3MiniReasoningEffort?: string
 	qwenApiLine?: string
 	asksageApiUrl?: string
 	asksageApiKey?: string
@@ -80,6 +87,7 @@ export interface ApiHandlerOptions {
 	thinkingBudgetTokens?: number
 	reasoningEffort?: string
 	sambanovaApiKey?: string
+	requestTimeoutMs?: number
 }
 
 export type ApiConfiguration = ApiHandlerOptions & {
@@ -98,15 +106,25 @@ export interface ModelInfo {
 	maxTokens?: number
 	contextWindow?: number
 	supportsImages?: boolean
-	supportsComputerUse?: boolean
 	supportsPromptCache: boolean // this value is hardcoded for now
 	inputPrice?: number // Keep for non-tiered input models
-	inputPriceTiers?: PriceTier[] // Add for tiered input pricing
 	outputPrice?: number // Keep for non-tiered output models
-	outputPriceTiers?: PriceTier[] // Add for tiered output pricing
+	thinkingConfig?: {
+		maxBudget?: number // Max allowed thinking budget tokens
+		outputPrice?: number // Output price per million tokens when budget > 0
+		outputPriceTiers?: PriceTier[] // Optional: Tiered output price when budget > 0
+	}
+	supportsGlobalEndpoint?: boolean // Whether the model supports a global endpoint with Vertex AI
 	cacheWritesPrice?: number
 	cacheReadsPrice?: number
 	description?: string
+	tiers?: {
+		contextWindow: number
+		inputPrice?: number
+		outputPrice?: number
+		cacheWritesPrice?: number
+		cacheReadsPrice?: number
+	}[]
 }
 
 export interface OpenAiCompatibleModelInfo extends ModelInfo {
@@ -123,7 +141,7 @@ export const anthropicModels = {
 		maxTokens: 8192,
 		contextWindow: 200_000,
 		supportsImages: true,
-		supportsComputerUse: true,
+
 		supportsPromptCache: true,
 		inputPrice: 3.0,
 		outputPrice: 15.0,
@@ -134,7 +152,7 @@ export const anthropicModels = {
 		maxTokens: 8192,
 		contextWindow: 200_000,
 		supportsImages: true,
-		supportsComputerUse: true,
+
 		supportsPromptCache: true,
 		inputPrice: 3.0, // $3 per million input tokens
 		outputPrice: 15.0, // $15 per million output tokens
@@ -178,38 +196,53 @@ export const anthropicModels = {
 export type BedrockModelId = keyof typeof bedrockModels
 export const bedrockDefaultModelId: BedrockModelId = "anthropic.claude-3-7-sonnet-20250219-v1:0"
 export const bedrockModels = {
+	"amazon.nova-premier-v1:0": {
+		maxTokens: 10_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+
+		supportsPromptCache: false,
+		inputPrice: 2.5,
+		outputPrice: 12.5,
+	},
 	"amazon.nova-pro-v1:0": {
 		maxTokens: 5000,
 		contextWindow: 300_000,
 		supportsImages: true,
-		supportsComputerUse: false,
-		supportsPromptCache: false,
+
+		supportsPromptCache: true,
 		inputPrice: 0.8,
 		outputPrice: 3.2,
+		// cacheWritesPrice: 3.2, // not written
+		cacheReadsPrice: 0.2,
 	},
 	"amazon.nova-lite-v1:0": {
 		maxTokens: 5000,
 		contextWindow: 300_000,
 		supportsImages: true,
-		supportsComputerUse: false,
-		supportsPromptCache: false,
+
+		supportsPromptCache: true,
 		inputPrice: 0.06,
 		outputPrice: 0.24,
+		// cacheWritesPrice: 0.24, // not written
+		cacheReadsPrice: 0.015,
 	},
 	"amazon.nova-micro-v1:0": {
 		maxTokens: 5000,
 		contextWindow: 128_000,
 		supportsImages: false,
-		supportsComputerUse: false,
-		supportsPromptCache: false,
+
+		supportsPromptCache: true,
 		inputPrice: 0.035,
 		outputPrice: 0.14,
+		// cacheWritesPrice: 0.14, // not written
+		cacheReadsPrice: 0.00875,
 	},
 	"anthropic.claude-3-7-sonnet-20250219-v1:0": {
 		maxTokens: 8192,
 		contextWindow: 200_000,
 		supportsImages: true,
-		supportsComputerUse: true,
+
 		supportsPromptCache: true,
 		inputPrice: 3.0,
 		outputPrice: 15.0,
@@ -220,7 +253,7 @@ export const bedrockModels = {
 		maxTokens: 8192,
 		contextWindow: 200_000,
 		supportsImages: true,
-		supportsComputerUse: true,
+
 		supportsPromptCache: true,
 		inputPrice: 3.0,
 		outputPrice: 15.0,
@@ -230,10 +263,10 @@ export const bedrockModels = {
 	"anthropic.claude-3-5-haiku-20241022-v1:0": {
 		maxTokens: 8192,
 		contextWindow: 200_000,
-		supportsImages: false,
+		supportsImages: true,
 		supportsPromptCache: true,
-		inputPrice: 1.0,
-		outputPrice: 5.0,
+		inputPrice: 0.8,
+		outputPrice: 4.0,
 		cacheWritesPrice: 1.0,
 		cacheReadsPrice: 0.08,
 	},
@@ -286,7 +319,7 @@ export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 8192,
 	contextWindow: 200_000,
 	supportsImages: true,
-	supportsComputerUse: true,
+
 	supportsPromptCache: true,
 	inputPrice: 3.0,
 	outputPrice: 15.0,
@@ -305,16 +338,21 @@ export const vertexModels = {
 		maxTokens: 8192,
 		contextWindow: 200_000,
 		supportsImages: true,
-		supportsComputerUse: true,
 		supportsPromptCache: true,
 		inputPrice: 3.0,
 		outputPrice: 15.0,
+		cacheWritesPrice: 3.75,
+		cacheReadsPrice: 0.3,
+		thinkingConfig: {
+			maxBudget: 64000,
+			outputPrice: 15.0,
+		},
 	},
 	"claude-3-5-sonnet-v2@20241022": {
 		maxTokens: 8192,
 		contextWindow: 200_000,
 		supportsImages: true,
-		supportsComputerUse: true,
+
 		supportsPromptCache: true,
 		inputPrice: 3.0,
 		outputPrice: 15.0,
@@ -365,15 +403,28 @@ export const vertexModels = {
 		maxTokens: 8192,
 		contextWindow: 1_048_576,
 		supportsImages: true,
+		supportsPromptCache: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 0.15,
+		outputPrice: 0.6,
+		cacheWritesPrice: 1.0,
+		cacheReadsPrice: 0.025,
+	},
+	"gemini-2.0-flash-lite-001": {
+		maxTokens: 8192,
+		contextWindow: 1_048_576,
+		supportsImages: true,
 		supportsPromptCache: false,
-		inputPrice: 0.1,
-		outputPrice: 0.4,
+		supportsGlobalEndpoint: true,
+		inputPrice: 0.075,
+		outputPrice: 0.3,
 	},
 	"gemini-2.0-flash-thinking-exp-1219": {
 		maxTokens: 8192,
 		contextWindow: 32_767,
 		supportsImages: true,
 		supportsPromptCache: false,
+		supportsGlobalEndpoint: true,
 		inputPrice: 0,
 		outputPrice: 0,
 	},
@@ -382,6 +433,7 @@ export const vertexModels = {
 		contextWindow: 1_048_576,
 		supportsImages: true,
 		supportsPromptCache: false,
+		supportsGlobalEndpoint: true,
 		inputPrice: 0,
 		outputPrice: 0,
 	},
@@ -393,27 +445,49 @@ export const vertexModels = {
 		inputPrice: 0,
 		outputPrice: 0,
 	},
-	"gemini-2.5-pro-preview-03-25": {
+	"gemini-2.5-pro-preview-05-06": {
+		maxTokens: 65536,
+		contextWindow: 1_048_576,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 2.5,
+		outputPrice: 15,
+		cacheReadsPrice: 0.31,
+		tiers: [
+			{
+				contextWindow: 200000,
+				inputPrice: 1.25,
+				outputPrice: 10,
+				cacheReadsPrice: 0.31,
+			},
+			{
+				contextWindow: Infinity,
+				inputPrice: 2.5,
+				outputPrice: 15,
+				cacheReadsPrice: 0.625,
+			},
+		],
+	},
+	"gemini-2.5-flash-preview-04-17": {
 		maxTokens: 65536,
 		contextWindow: 1_048_576,
 		supportsImages: true,
 		supportsPromptCache: false,
-		// inputPrice: 1.25, // Removed
-		// outputPrice: 10, // Removed
-		inputPriceTiers: [
-			{ tokenLimit: 200000, price: 1.25 }, // Input price for <= 200k input tokens
-			{ tokenLimit: Infinity, price: 2.5 }, // Input price for > 200k input tokens
-		],
-		outputPriceTiers: [
-			{ tokenLimit: 200000, price: 10.0 }, // Output price for <= 200k input tokens
-			{ tokenLimit: Infinity, price: 15.0 }, // Output price for > 200k input tokens
-		],
+		supportsGlobalEndpoint: true,
+		inputPrice: 0.15,
+		outputPrice: 0.6,
+		thinkingConfig: {
+			maxBudget: 24576,
+			outputPrice: 3.5,
+		},
 	},
 	"gemini-2.0-flash-thinking-exp-01-21": {
 		maxTokens: 65_536,
 		contextWindow: 1_048_576,
 		supportsImages: true,
 		supportsPromptCache: false,
+		supportsGlobalEndpoint: true,
 		inputPrice: 0,
 		outputPrice: 0,
 	},
@@ -429,9 +503,25 @@ export const vertexModels = {
 		maxTokens: 8192,
 		contextWindow: 1_048_576,
 		supportsImages: true,
-		supportsPromptCache: false,
-		inputPrice: 0,
-		outputPrice: 0,
+		supportsPromptCache: true,
+		inputPrice: 0.15,
+		outputPrice: 0.6,
+		cacheWritesPrice: 1.0,
+		cacheReadsPrice: 0.0375,
+		tiers: [
+			{
+				contextWindow: 128000,
+				inputPrice: 0.075,
+				outputPrice: 0.3,
+				cacheReadsPrice: 0.01875,
+			},
+			{
+				contextWindow: Infinity,
+				inputPrice: 0.15,
+				outputPrice: 0.6,
+				cacheReadsPrice: 0.0375,
+			},
+		],
 	},
 	"gemini-1.5-flash-exp-0827": {
 		maxTokens: 8192,
@@ -454,8 +544,8 @@ export const vertexModels = {
 		contextWindow: 2_097_152,
 		supportsImages: true,
 		supportsPromptCache: false,
-		inputPrice: 0,
-		outputPrice: 0,
+		inputPrice: 1.25,
+		outputPrice: 5,
 	},
 	"gemini-1.5-pro-exp-0827": {
 		maxTokens: 8192,
@@ -466,6 +556,10 @@ export const vertexModels = {
 		outputPrice: 0,
 	},
 } as const satisfies Record<string, ModelInfo>
+
+export const vertexGlobalModels: Record<string, ModelInfo> = Object.fromEntries(
+	Object.entries(vertexModels).filter(([_k, v]) => v.hasOwnProperty("supportsGlobalEndpoint")),
+) as Record<string, ModelInfo>
 
 export const openAiModelInfoSaneDefaults: OpenAiCompatibleModelInfo = {
 	maxTokens: -1,
@@ -483,35 +577,50 @@ export const openAiModelInfoSaneDefaults: OpenAiCompatibleModelInfo = {
 export type GeminiModelId = keyof typeof geminiModels
 export const geminiDefaultModelId: GeminiModelId = "gemini-2.0-flash-001"
 export const geminiModels = {
-	"gemini-2.5-pro-exp-03-25": {
+	"gemini-2.5-pro-preview-05-06": {
 		maxTokens: 65536,
 		contextWindow: 1_048_576,
 		supportsImages: true,
-		supportsPromptCache: false,
-		inputPrice: 0,
-		outputPrice: 0,
+		supportsPromptCache: true,
+		inputPrice: 2.5,
+		outputPrice: 15,
+		cacheReadsPrice: 0.31,
+		tiers: [
+			{
+				contextWindow: 200000,
+				inputPrice: 1.25,
+				outputPrice: 10,
+				cacheReadsPrice: 0.31,
+			},
+			{
+				contextWindow: Infinity,
+				inputPrice: 2.5,
+				outputPrice: 15,
+				cacheReadsPrice: 0.625,
+			},
+		],
 	},
-	"gemini-2.5-pro-preview-03-25": {
+	"gemini-2.5-flash-preview-04-17": {
 		maxTokens: 65536,
 		contextWindow: 1_048_576,
 		supportsImages: true,
 		supportsPromptCache: false,
-		inputPriceTiers: [
-			{ tokenLimit: 200000, price: 1.25 }, // Input price for <= 200k input tokens
-			{ tokenLimit: Infinity, price: 2.5 }, // Input price for > 200k input tokens
-		],
-		outputPriceTiers: [
-			{ tokenLimit: 200000, price: 10.0 }, // Output price for <= 200k input tokens
-			{ tokenLimit: Infinity, price: 15.0 }, // Output price for > 200k input tokens
-		],
+		inputPrice: 0.15,
+		outputPrice: 0.6,
+		thinkingConfig: {
+			maxBudget: 24576,
+			outputPrice: 3.5,
+		},
 	},
 	"gemini-2.0-flash-001": {
 		maxTokens: 8192,
 		contextWindow: 1_048_576,
 		supportsImages: true,
-		supportsPromptCache: false,
-		inputPrice: 0,
-		outputPrice: 0,
+		supportsPromptCache: true,
+		inputPrice: 0.1,
+		outputPrice: 0.4,
+		cacheReadsPrice: 0.025,
+		cacheWritesPrice: 1.0,
 	},
 	"gemini-2.0-flash-lite-preview-02-05": {
 		maxTokens: 8192,
@@ -557,9 +666,25 @@ export const geminiModels = {
 		maxTokens: 8192,
 		contextWindow: 1_048_576,
 		supportsImages: true,
-		supportsPromptCache: false,
-		inputPrice: 0,
-		outputPrice: 0,
+		supportsPromptCache: true,
+		inputPrice: 0.15, // Default price (highest tier)
+		outputPrice: 0.6, // Default price (highest tier)
+		cacheReadsPrice: 0.0375,
+		cacheWritesPrice: 1.0,
+		tiers: [
+			{
+				contextWindow: 128000,
+				inputPrice: 0.075,
+				outputPrice: 0.3,
+				cacheReadsPrice: 0.01875,
+			},
+			{
+				contextWindow: Infinity,
+				inputPrice: 0.15,
+				outputPrice: 0.6,
+				cacheReadsPrice: 0.0375,
+			},
+		],
 	},
 	"gemini-1.5-flash-exp-0827": {
 		maxTokens: 8192,
@@ -1283,6 +1408,14 @@ export const mistralModels = {
 		inputPrice: 0.1,
 		outputPrice: 0.3,
 	},
+	"mistral-medium-latest": {
+		maxTokens: 128_000,
+		contextWindow: 128_000,
+		supportsImages: true,
+		supportsPromptCache: false,
+		inputPrice: 0.4,
+		outputPrice: 2.0,
+	},
 	"mistral-small-2501": {
 		maxTokens: 32_000,
 		contextWindow: 32_000,
@@ -1328,8 +1461,12 @@ export const mistralModels = {
 // LiteLLM
 // https://docs.litellm.ai/docs/
 export type LiteLLMModelId = string
-export const liteLlmDefaultModelId = "gpt-3.5-turbo"
-export const liteLlmModelInfoSaneDefaults: ModelInfo = {
+export const liteLlmDefaultModelId = "anthropic/claude-3-7-sonnet-20250219"
+export interface LiteLLMModelInfo extends ModelInfo {
+	temperature?: number
+}
+
+export const liteLlmModelInfoSaneDefaults: LiteLLMModelInfo = {
 	maxTokens: -1,
 	contextWindow: 128_000,
 	supportsImages: true,
@@ -1338,6 +1475,7 @@ export const liteLlmModelInfoSaneDefaults: ModelInfo = {
 	outputPrice: 0,
 	cacheWritesPrice: 0,
 	cacheReadsPrice: 0,
+	temperature: 0,
 }
 
 // AskSage Models
@@ -1613,7 +1751,7 @@ export const requestyDefaultModelInfo: ModelInfo = {
 	maxTokens: 8192,
 	contextWindow: 200_000,
 	supportsImages: true,
-	supportsComputerUse: false,
+
 	supportsPromptCache: true,
 	inputPrice: 3.0,
 	outputPrice: 15.0,

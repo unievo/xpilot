@@ -1,18 +1,73 @@
 export interface SlashCommand {
 	name: string
-	description: string
+	description?: string
+	section?: "default" | "custom"
 }
 
-export const SUPPORTED_SLASH_COMMANDS: SlashCommand[] = [
+export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	{
 		name: "newtask",
 		description: "Create a new task with context from the current task",
+		section: "default",
 	},
+	{
+		name: "newinstruction",
+		description: "Create a new instructions file based on your conversation",
+		section: "default",
+	},
+	{
+		name: "compact",
+		description: "Condenses your current context window",
+		section: "default",
+	},
+	// {
+	// 	name: "reportbug",
+	// 	description: "Create a Github issue",
+	// 	section: "default",
+	// },
 ]
 
+export function getWorkflowCommands(workflowToggles: Record<string, boolean>): SlashCommand[] {
+	return Object.entries(workflowToggles)
+		.filter(([_, enabled]) => enabled)
+		.map(([filePath, _]) => {
+			// potentially remove the file extension if there is one, but this would then require
+			// that we prevent users from having the same fname with different extensions
+			const fileName = filePath.replace(/^.*[/\\]/, "")
+
+			return {
+				name: fileName,
+				section: "custom",
+			}
+		})
+}
+
 // Regex for detecting slash commands in text
-export const slashCommandRegex = /\/([a-zA-Z0-9_-]+)(\s|$)/
+// currently doesn't allow whitespace inside of the filename
+export const slashCommandRegex = /\/([a-zA-Z0-9_\.-]+)(\s|$)/
 export const slashCommandRegexGlobal = new RegExp(slashCommandRegex.source, "g")
+export const slashCommandDeleteRegex = /^\s*\/([a-zA-Z0-9_\.-]+)$/
+
+/**
+ * Removes a slash command at the cursor position
+ */
+export function removeSlashCommand(text: string, position: number): { newText: string; newPosition: number } {
+	const beforeCursor = text.slice(0, position)
+	const afterCursor = text.slice(position)
+
+	// Check if we're at the end of a slash command
+	const matchEnd = beforeCursor.match(slashCommandDeleteRegex)
+
+	if (matchEnd) {
+		// If we're at the end of a slash command, remove it
+		const newText = text.slice(0, position - matchEnd[0].length) + afterCursor.replace(" ", "") // removes the first space after the command
+		const newPosition = position - matchEnd[0].length
+		return { newText, newPosition }
+	}
+
+	// If we're not at the end of a slash command, just return the original text and position
+	return { newText: text, newPosition: position }
+}
 
 /**
  * Determines whether the slash command menu should be displayed based on text input
@@ -47,13 +102,16 @@ export function shouldShowSlashCommandsMenu(text: string, cursorPosition: number
 /**
  * Gets filtered slash commands that match the current input
  */
-export function getMatchingSlashCommands(query: string): SlashCommand[] {
+export function getMatchingSlashCommands(query: string, workflowToggles: Record<string, boolean> = {}): SlashCommand[] {
+	const workflowCommands = getWorkflowCommands(workflowToggles)
+	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
+
 	if (!query) {
-		return [...SUPPORTED_SLASH_COMMANDS]
+		return allCommands
 	}
 
 	// filter commands that start with the query (case sensitive)
-	return SUPPORTED_SLASH_COMMANDS.filter((cmd) => cmd.name.startsWith(query))
+	return allCommands.filter((cmd) => cmd.name.startsWith(query))
 }
 
 /**
@@ -76,19 +134,22 @@ export function insertSlashCommand(text: string, commandName: string): { newValu
  * Determines the validation state of a slash command
  * Returns partial if we have a partial match against valid commands, or full for full match
  */
-export function validateSlashCommand(command: string): "full" | "partial" | null {
+export function validateSlashCommand(command: string, workflowToggles: Record<string, boolean> = {}): "full" | "partial" | null {
 	if (!command) {
 		return null
 	}
 
+	const workflowCommands = getWorkflowCommands(workflowToggles)
+	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
+
 	// case sensitive matching
-	const exactMatch = SUPPORTED_SLASH_COMMANDS.some((cmd) => cmd.name === command)
+	const exactMatch = allCommands.some((cmd) => cmd.name === command)
 
 	if (exactMatch) {
 		return "full"
 	}
 
-	const partialMatch = SUPPORTED_SLASH_COMMANDS.some((cmd) => cmd.name.startsWith(command))
+	const partialMatch = allCommands.some((cmd) => cmd.name.startsWith(command))
 
 	if (partialMatch) {
 		return "partial"

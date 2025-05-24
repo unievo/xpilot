@@ -1,5 +1,7 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useState, useRef } from "react"
 import { useEvent } from "react-use"
+import { StateServiceClient } from "../services/grpc-client"
+import { EmptyRequest } from "@shared/proto/common"
 import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
 import { ExtensionMessage, ExtensionState, DEFAULT_PLATFORM } from "@shared/ExtensionMessage"
 import {
@@ -11,13 +13,13 @@ import {
 	requestyDefaultModelInfo,
 } from "../../../src/shared/api"
 import { findLastIndex } from "@shared/array"
-import { McpMarketplaceCatalog, McpServer } from "../../../src/shared/mcp"
+import { McpMarketplaceCatalog, McpServer, McpViewTab } from "../../../src/shared/mcp"
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
 import { vscode } from "../utils/vscode"
 import { DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
-import { DEFAULT_CHAT_SETTINGS } from "@shared/ChatSettings"
+import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "@shared/ChatSettings"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
-import { ClineRulesToggles } from "@shared/cline-rules"
+
 interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
 	showWelcome: boolean
@@ -29,11 +31,25 @@ interface ExtensionStateContextType extends ExtensionState {
 	mcpMarketplaceCatalog: McpMarketplaceCatalog
 	filePaths: string[]
 	totalTasksSize: number | null
+	// View state
+	showMcp: boolean
+	mcpTab?: McpViewTab
+
+	// Setters
 	setApiConfiguration: (config: ApiConfiguration) => void
 	setCustomInstructions: (value?: string) => void
 	setTelemetrySetting: (value: TelemetrySetting) => void
 	setShowAnnouncement: (value: boolean) => void
 	setPlanActSeparateModelsSetting: (value: boolean) => void
+	setEnableCheckpointsSetting: (value: boolean) => void
+	setMcpMarketplaceEnabled: (value: boolean) => void
+	setShellIntegrationTimeout: (value: number) => void
+	setChatSettings: (value: ChatSettings) => void
+	setMcpServers: (value: McpServer[]) => void
+
+	// Navigation
+	setShowMcp: (value: boolean) => void
+	setMcpTab: (tab?: McpViewTab) => void
 }
 
 const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -41,6 +57,10 @@ const ExtensionStateContext = createContext<ExtensionStateContextType | undefine
 export const ExtensionStateContextProvider: React.FC<{
 	children: React.ReactNode
 }> = ({ children }) => {
+	// UI view state
+	const [showMcp, setShowMcp] = useState(false)
+	const [mcpTab, setMcpTab] = useState<McpViewTab | undefined>(undefined)
+
 	const [state, setState] = useState<ExtensionState>({
 		version: "",
 		clineMessages: [],
@@ -53,8 +73,14 @@ export const ExtensionStateContextProvider: React.FC<{
 		telemetrySetting: "unset",
 		vscMachineId: "",
 		planActSeparateModelsSetting: true,
+		enableCheckpointsSetting: true,
 		globalClineRulesToggles: {},
 		localClineRulesToggles: {},
+		localCursorRulesToggles: {},
+		localWindsurfRulesToggles: {},
+		workflowToggles: {},
+		shellIntegrationTimeout: 4000, // default timeout for shell integration
+		isNewUser: false,
 	})
 	const [didHydrateState, setDidHydrateState] = useState(false)
 	const [showWelcome, setShowWelcome] = useState(false)
@@ -74,38 +100,6 @@ export const ExtensionStateContextProvider: React.FC<{
 	const handleMessage = useCallback((event: MessageEvent) => {
 		const message: ExtensionMessage = event.data
 		switch (message.type) {
-			case "state": {
-				setState(message.state!)
-				const config = message.state?.apiConfiguration
-				const hasKey = config
-					? [
-							config.apiKey,
-							config.openRouterApiKey,
-							config.awsRegion,
-							config.vertexProjectId,
-							config.openAiApiKey,
-							config.ollamaModelId,
-							config.lmStudioModelId,
-							config.liteLlmApiKey,
-							config.geminiApiKey,
-							config.openAiNativeApiKey,
-							config.deepSeekApiKey,
-							config.requestyApiKey,
-							config.togetherApiKey,
-							config.qwenApiKey,
-							config.doubaoApiKey,
-							config.mistralApiKey,
-							config.vsCodeLmModelSelector,
-							config.clineApiKey,
-							config.asksageApiKey,
-							config.xaiApiKey,
-							config.sambanovaApiKey,
-						].some((key) => key !== undefined)
-					: false
-				setShowWelcome(!hasKey)
-				setDidHydrateState(true)
-				break
-			}
 			case "theme": {
 				if (message.text) {
 					setTheme(convertTextMateToHljs(JSON.parse(message.text)))
@@ -171,8 +165,95 @@ export const ExtensionStateContextProvider: React.FC<{
 
 	useEvent("message", handleMessage)
 
+	// Reference to store the state subscription cancellation function
+	const stateSubscriptionRef = useRef<(() => void) | null>(null)
+
+	// Subscribe to state updates using the new gRPC streaming API
 	useEffect(() => {
+		// Set up state subscription
+		stateSubscriptionRef.current = StateServiceClient.subscribeToState(
+			{},
+			{
+				onResponse: (response) => {
+					console.log("[DEBUG] got state update via subscription", response)
+					if (response.stateJson) {
+						try {
+							const stateData = JSON.parse(response.stateJson) as ExtensionState
+							console.log("[DEBUG] parsed state JSON, updating state")
+							setState((prevState) => {
+								// Versioning logic for autoApprovalSettings
+								const incomingVersion = stateData.autoApprovalSettings?.version ?? 1
+								const currentVersion = prevState.autoApprovalSettings?.version ?? 1
+								const shouldUpdateAutoApproval = incomingVersion > currentVersion
+
+								const newState = {
+									...stateData,
+									autoApprovalSettings: shouldUpdateAutoApproval
+										? stateData.autoApprovalSettings
+										: prevState.autoApprovalSettings,
+								}
+
+								// Update welcome screen state based on API configuration
+								const config = stateData.apiConfiguration
+								const hasKey = config
+									? [
+											config.apiKey,
+											config.openRouterApiKey,
+											config.awsRegion,
+											config.vertexProjectId,
+											config.openAiApiKey,
+											config.ollamaModelId,
+											config.lmStudioModelId,
+											config.liteLlmApiKey,
+											config.geminiApiKey,
+											config.openAiNativeApiKey,
+											config.deepSeekApiKey,
+											config.requestyApiKey,
+											config.togetherApiKey,
+											config.qwenApiKey,
+											config.doubaoApiKey,
+											config.mistralApiKey,
+											config.vsCodeLmModelSelector,
+											config.clineApiKey,
+											config.asksageApiKey,
+											config.xaiApiKey,
+											config.sambanovaApiKey,
+										].some((key) => key !== undefined)
+									: false
+
+								setShowWelcome(!hasKey)
+								setDidHydrateState(true)
+
+								console.log("[DEBUG] returning new state in ESC")
+
+								return newState
+							})
+						} catch (error) {
+							console.error("Error parsing state JSON:", error)
+							console.log("[DEBUG] ERR getting state", error)
+						}
+					}
+					console.log('[DEBUG] ended "got subscribed state"')
+				},
+				onError: (error) => {
+					console.error("Error in state subscription:", error)
+				},
+				onComplete: () => {
+					console.log("State subscription completed")
+				},
+			},
+		)
+
+		// Still send the webviewDidLaunch message for other initialization
 		vscode.postMessage({ type: "webviewDidLaunch" })
+
+		// Clean up subscription when component unmounts
+		return () => {
+			if (stateSubscriptionRef.current) {
+				stateSubscriptionRef.current()
+				stateSubscriptionRef.current = null
+			}
+		}
 	}, [])
 
 	const contextValue: ExtensionStateContextType = {
@@ -187,8 +268,14 @@ export const ExtensionStateContextProvider: React.FC<{
 		mcpMarketplaceCatalog,
 		filePaths,
 		totalTasksSize,
+		showMcp,
+		mcpTab,
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
+		localCursorRulesToggles: state.localCursorRulesToggles || {},
+		localWindsurfRulesToggles: state.localWindsurfRulesToggles || {},
+		workflowToggles: state.workflowToggles || {},
+		enableCheckpointsSetting: state.enableCheckpointsSetting,
 		setApiConfiguration: (value) =>
 			setState((prevState) => ({
 				...prevState,
@@ -209,11 +296,45 @@ export const ExtensionStateContextProvider: React.FC<{
 				...prevState,
 				planActSeparateModelsSetting: value,
 			})),
+		setEnableCheckpointsSetting: (value) =>
+			setState((prevState) => ({
+				...prevState,
+				enableCheckpointsSetting: value,
+			})),
+		setMcpMarketplaceEnabled: (value) =>
+			setState((prevState) => ({
+				...prevState,
+				mcpMarketplaceEnabled: value,
+			})),
 		setShowAnnouncement: (value) =>
 			setState((prevState) => ({
 				...prevState,
 				shouldShowAnnouncement: value,
 			})),
+		setShellIntegrationTimeout: (value) =>
+			setState((prevState) => ({
+				...prevState,
+				shellIntegrationTimeout: value,
+			})),
+		setMcpServers: (mcpServers: McpServer[]) => setMcpServers(mcpServers),
+		setShowMcp,
+		setChatSettings: (value) => {
+			setState((prevState) => ({
+				...prevState,
+				chatSettings: value,
+			}))
+			vscode.postMessage({
+				type: "updateSettings",
+				chatSettings: value,
+				apiConfiguration: state.apiConfiguration,
+				customInstructionsSetting: state.customInstructions,
+				telemetrySetting: state.telemetrySetting,
+				planActSeparateModelsSetting: state.planActSeparateModelsSetting,
+				enableCheckpointsSetting: state.enableCheckpointsSetting,
+				mcpMarketplaceEnabled: state.mcpMarketplaceEnabled,
+			})
+		},
+		setMcpTab,
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

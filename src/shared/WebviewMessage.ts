@@ -9,65 +9,39 @@ import { McpLibraryItem, McpViewTab } from "./mcp"
 
 export interface WebviewMessage {
 	type:
-		| "addRemoteServer"
 		| "apiConfiguration"
 		| "webviewDidLaunch"
 		| "newTask"
-		| "askResponse"
-		| "clearTask"
+		| "condense"
+		| "reportBug"
 		| "didShowAnnouncement"
-		| "selectImages"
-		| "exportCurrentTask"
-		| "showTaskWithId"
-		| "deleteTaskWithId"
-		| "exportTaskWithId"
 		| "resetState"
-		| "requestOllamaModels"
-		| "requestLmStudioModels"
-		| "openImage"
 		| "openInBrowser"
-		| "openFile"
-		| "createRuleFile"
 		| "openMention"
-		| "cancelTask"
 		| "showChatView"
-		| "refreshOpenRouterModels"
-		| "refreshRequestyModels"
-		| "refreshOpenAiModels"
 		| "refreshClineRules"
 		| "openMcpSettings"
 		| "restartMcpServer"
 		| "deleteMcpServer"
 		| "autoApprovalSettings"
-		| "browserSettings"
-		| "discoverBrowser"
 		| "browserRelaunchResult"
 		| "togglePlanActMode"
-		| "checkpointDiff"
-		| "checkpointRestore"
 		| "taskCompletionViewChanges"
 		| "openExtensionSettings"
 		| "requestVsCodeLmModels"
 		| "toggleToolAutoApprove"
-		| "toggleMcpServer"
-		| "getLatestState"
-		| "accountLoginClicked"
 		| "accountLogoutClicked"
 		| "showAccountViewClicked"
 		| "authStateChanged"
 		| "authCallback"
 		| "fetchMcpMarketplace"
-		| "downloadMcp"
 		| "installLibraryMcp"
 		| "silentlyRefreshMcpMarketplace"
 		| "searchCommits"
-		| "showMcpView"
 		| "fetchLatestMcpServersFromHub"
 		| "telemetrySetting"
 		| "openSettings"
-		| "updateMcpTimeout"
 		| "fetchOpenGraphData"
-		| "checkIsImageUrl"
 		| "invoke"
 		| "updateSettings"
 		| "clearAllTaskHistory"
@@ -76,21 +50,22 @@ export interface WebviewMessage {
 		| "requestTotalTasksSize"
 		| "relaunchChromeDebugMode"
 		| "taskFeedback"
-		| "getDetectedChromePath"
-		| "detectedChromePath"
 		| "scrollToSettings"
-		| "getRelativePaths" // Handles single and multiple URI resolution
 		| "searchFiles"
-		| "toggleFavoriteModel"
 		| "grpc_request"
+		| "grpc_request_cancel"
 		| "toggleClineRule"
+		| "toggleCursorRule"
+		| "toggleWindsurfRule"
+		| "toggleWorkflow"
 		| "deleteClineRule"
+		| "copyToClipboard"
+		| "updateTerminalConnectionTimeout"
+		| "setActiveQuote"
 
 	// | "relaunchChromeDebugMode"
 	text?: string
-	uris?: string[] // Used for getRelativePaths
 	disabled?: boolean
-	askResponse?: ClineAskResponse
 	apiConfiguration?: ApiConfiguration
 	images?: string[]
 	bool?: boolean
@@ -115,6 +90,8 @@ export interface WebviewMessage {
 	// For openInBrowser
 	url?: string
 	planActSeparateModelsSetting?: boolean
+	enableCheckpointsSetting?: boolean
+	mcpMarketplaceEnabled?: boolean
 	telemetrySetting?: TelemetrySetting
 	customInstructionsSetting?: string
 	// For task feedback
@@ -128,14 +105,20 @@ export interface WebviewMessage {
 		method: string
 		message: any // JSON serialized protobuf message
 		request_id: string // For correlating requests and responses
+		is_streaming?: boolean // Whether this is a streaming request
 	}
-	// For cline rules
+	grpc_request_cancel?: {
+		request_id: string // ID of the request to cancel
+	}
+	// For cline rules and workflows
 	isGlobal?: boolean
 	rulePath?: string
+	workflowPath?: string
 	enabled?: boolean
 	filename?: string
 
 	offset?: number
+	shellIntegrationTimeout?: number
 }
 
 export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "messageResponse"

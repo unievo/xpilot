@@ -2,27 +2,28 @@ import * as path from "path"
 import * as vscode from "vscode"
 import fs from "fs/promises"
 import { Anthropic } from "@anthropic-ai/sdk"
-import { fileExistsAtPath } from "../../utils/fs"
-import { ClineMessage } from "../../shared/ExtensionMessage"
-import { TaskMetadata } from "../context/context-tracking/ContextTrackerTypes"
+import { fileExistsAtPath } from "@utils/fs"
+import { ClineMessage } from "@shared/ExtensionMessage"
+import { TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
 import os from "os"
-import { execa } from "execa"
+import { execa } from "@packages/execa"
 
 import {
 	apiConversationHistoryFile,
 	contextHistoryFile,
 	mcpSettingsFile,
 	openRouterModelsFile,
-	instructionsFileOrDirectoryName,
+	instructionsDirectory,
 	taskMetadataFile,
 	uiMessagesFile,
 	publisherName,
 	productName,
-	settingsDirectoryName,
-	mcpDirectoryName,
-	mcpServersDirectoryName,
+	settingsDirectory,
+	mcpDirectory,
+	mcpServersDirectory,
 	agentName,
-} from "../../shared/Configuration"
+	workflowsDirectory,
+} from "@shared/Configuration"
 
 export const GlobalFileNames = {
 	apiConversationHistory: apiConversationHistoryFile,
@@ -30,7 +31,11 @@ export const GlobalFileNames = {
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
 	mcpSettings: mcpSettingsFile,
-	clineRules: instructionsFileOrDirectoryName,
+	clineRules: instructionsDirectory,
+	workflows: workflowsDirectory,
+	cursorRulesDir: ".cursor/rules",
+	cursorRulesFile: ".cursorrules",
+	windsurfRules: ".windsurfrules",
 	taskMetadata: taskMetadataFile,
 }
 
@@ -76,12 +81,12 @@ export async function getUserProductDirectoryPath(): Promise<string> {
 }
 
 export async function getUserMcpDirectoryPath(): Promise<string> {
-	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectoryName)
+	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectory)
 	return mcpDir
 }
 
 export async function getUserMcpServersPath(): Promise<string> {
-	const mcpServersDir = path.join(await getUserMcpDirectoryPath(), mcpServersDirectoryName)
+	const mcpServersDir = path.join(await getUserMcpDirectoryPath(), mcpServersDirectory)
 	return mcpServersDir
 }
 
@@ -114,7 +119,7 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 }
 
 export async function ensureSettingsDirectoryExists(): Promise<string> {
-	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectoryName)
+	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectory)
 	await fs.mkdir(settingsDir, { recursive: true })
 	return settingsDir
 }

@@ -4,8 +4,10 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
 import ApiOptions from "@/components/settings/ApiOptions"
-import { agentName } from "../../../../src/shared/Configuration"
+import { agentName } from "@shared/Configuration"
 import AgentLogo from "@/assets/AgentLogo"
+import { AccountServiceClient } from "@/services/grpc-client"
+import { EmptyRequest } from "@shared/proto/common"
 
 const WelcomeView = memo(() => {
 	const { apiConfiguration } = useExtensionState()
@@ -15,7 +17,9 @@ const WelcomeView = memo(() => {
 	const disableLetsGoButton = apiErrorMessage != null
 
 	const handleLogin = () => {
-		vscode.postMessage({ type: "accountLoginClicked" })
+		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
+			console.error("Failed to get login URL:", err),
+		)
 	}
 
 	const handleSubmit = () => {

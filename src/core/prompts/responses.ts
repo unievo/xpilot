@@ -2,8 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
-import { McpToolCallResponse } from "../../shared/mcp"
-import { ignoreFile, instructionsFileOrDirectoryName } from "../../shared/Configuration"
+import { ignoreFile, instructionsDirectory } from "../../shared/Configuration"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
@@ -11,6 +10,9 @@ export const formatResponse = {
 
 	contextTruncationNotice: () =>
 		`[NOTE] Some previous conversation history with the user has been removed to maintain optimal context window length. The initial user task and the most recent exchanges have been retained for continuity, while intermediate conversation history has been removed. Please keep this in mind as you continue assisting the user.`,
+
+	condense: () =>
+		`The user has accepted the condensed conversation summary you generated. This summary covers important details of the historical conversation with the user which has been truncated.\n<explicit_instructions type="condense_response">It's crucial that you respond by ONLY asking the user what you should work on next. You should NOT take any initiative or make any assumptions about continuing with work. For example you should NOT suggest file changes or attempt to read any files.\nWhen asking the user what you should work on next, you can reference information in the summary which was just generated. However, you should NOT reference information outside of what's contained in the summary for this response. Keep this response CONCISE.</explicit_instructions>`,
 
 	toolDenied: () => `The user denied this operation.`,
 
@@ -204,16 +206,25 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`Tool [${toolName}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
 
 	clineIgnoreInstructions: (content: string) =>
-		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsFileOrDirectoryName}`,
+		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsDirectory}`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
-		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a global .clinerules/ directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
+		`# Global instructions\n\nThe following is provided by a global instructions directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions\n\nThe following is provided by a root-level ${instructionsDirectory}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# ${instructionsFileOrDirectoryName}\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# ${instructionsDirectory}\n\nThe following is provided by a root-level ${instructionsDirectory} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
+		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	cursorRulesLocalFileInstructions: (cwd: string, content: string) =>
+		`# .cursorrules\n\nThe following is provided by a root-level .cursorrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	cursorRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
+		`# .cursor/rules\n\nThe following is provided by a root-level .cursor/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 }
 
 // to avoid circular dependency
