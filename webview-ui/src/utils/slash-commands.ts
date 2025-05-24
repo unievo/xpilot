@@ -11,20 +11,20 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 		section: "default",
 	},
 	{
-		name: "smol",
+		name: "newinstruction",
+		description: "Create a new instructions file based on your conversation",
+		section: "default",
+	},
+	{
+		name: "compact",
 		description: "Condenses your current context window",
 		section: "default",
 	},
-	{
-		name: "newrule",
-		description: "Create a new Cline rule based on your conversation",
-		section: "default",
-	},
-	{
-		name: "reportbug",
-		description: "Create a Github issue with Cline",
-		section: "default",
-	},
+	// {
+	// 	name: "reportbug",
+	// 	description: "Create a Github issue",
+	// 	section: "default",
+	// },
 ]
 
 export function getWorkflowCommands(workflowToggles: Record<string, boolean>): SlashCommand[] {

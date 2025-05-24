@@ -10,14 +10,13 @@ export async function parseSlashCommands(
 	text: string,
 	workflowToggles: ClineRulesToggles,
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
-	const SUPPORTED_DEFAULT_COMMANDS = ["newtask", "smol", "compact", "newrule", "reportbug"]
+	const SUPPORTED_DEFAULT_COMMANDS = ["newtask", "compact", "newinstruction"] //, "reportbug"]
 
 	const commandReplacements: Record<string, string> = {
 		newtask: newTaskToolResponse(),
-		smol: condenseToolResponse(),
 		compact: condenseToolResponse(),
-		newrule: newRuleToolResponse(),
-		reportbug: reportBugToolResponse(),
+		newinstruction: newRuleToolResponse(),
+		//reportbug: reportBugToolResponse(),
 	}
 
 	// this currently allows matching prepended whitespace prior to /slash-command
