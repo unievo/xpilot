@@ -209,10 +209,10 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsDirectory}`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
-		`# ${instructionsDirectory}/\n\nThe following is provided by a global .clinerules/ directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
+		`# Global instructions\n\nThe following is provided by a global instructions directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# ${instructionsDirectory}/\n\nThe following is provided by a root-level ${instructionsDirectory}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions\n\nThe following is provided by a root-level ${instructionsDirectory}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
 		`# ${instructionsDirectory}\n\nThe following is provided by a root-level ${instructionsDirectory} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,

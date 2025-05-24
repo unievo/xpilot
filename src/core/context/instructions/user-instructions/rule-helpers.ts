@@ -13,9 +13,11 @@ export async function readDirectoryRecursive(
 	directoryPath: string,
 	allowedFileExtension: string,
 	excludedPaths: string[][] = [],
+	excludedDirectories: string[] = [],
+	excludedFiles: string[] = [],
 ): Promise<string[]> {
 	try {
-		const entries = await readDirectory(directoryPath, excludedPaths)
+		const entries = await readDirectory(directoryPath, excludedPaths, excludedDirectories, excludedFiles)
 		let results: string[] = []
 		for (const entry of entries) {
 			if (allowedFileExtension !== "") {
@@ -41,6 +43,8 @@ export async function synchronizeRuleToggles(
 	currentToggles: ClineRulesToggles,
 	allowedFileExtension: string = "",
 	excludedPaths: string[][] = [],
+	excludedDirectories: string[] = [],
+	excludedFiles: string[] = [],
 ): Promise<ClineRulesToggles> {
 	// Create a copy of toggles to modify
 	const updatedToggles = { ...currentToggles }
@@ -53,7 +57,13 @@ export async function synchronizeRuleToggles(
 
 			if (isDir) {
 				// DIRECTORY CASE
-				const filePaths = await readDirectoryRecursive(rulesDirectoryPath, allowedFileExtension, excludedPaths)
+				const filePaths = await readDirectoryRecursive(
+					rulesDirectoryPath,
+					allowedFileExtension,
+					excludedPaths,
+					excludedDirectories,
+					excludedFiles,
+				)
 				const existingRulePaths = new Set<string>()
 
 				for (const filePath of filePaths) {
@@ -122,7 +132,7 @@ export const getRuleFilesTotalContent = async (rulesFilePaths: string[], basePat
 				return null
 			}
 
-			return `${ruleFilePathRelative}\n` + (await fs.readFile(ruleFilePath, "utf8")).trim()
+			return `## ${ruleFilePathRelative}\n\n` + (await fs.readFile(ruleFilePath, "utf8")).trim()
 		}),
 	).then((contents) => contents.filter(Boolean).join("\n\n"))
 	return ruleFilesTotalContent

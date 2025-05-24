@@ -7,7 +7,7 @@ import { ClineRulesToggles } from "@shared/cline-rules"
 import { getGlobalState, getWorkspaceState, updateGlobalState, updateWorkspaceState } from "@core/storage/state"
 import * as vscode from "vscode"
 import { synchronizeRuleToggles, getRuleFilesTotalContent } from "@core/context/instructions/user-instructions/rule-helpers"
-import { documentationDirectory, instructionsDirectory, pathSeparator, workflowsDirectory } from "@shared/Configuration"
+import { instructionsExcludedDirectories, instructionsExcludedFiles } from "@/shared/Configuration"
 
 export const getGlobalClineRules = async (globalClineRulesFilePath: string, toggles: ClineRulesToggles) => {
 	if (await fileExistsAtPath(globalClineRulesFilePath)) {
@@ -23,7 +23,7 @@ export const getGlobalClineRules = async (globalClineRulesFilePath: string, togg
 					return clineRulesFileInstructions
 				}
 			} catch {
-				console.error(`Failed to read .clinerules directory at ${globalClineRulesFilePath}`)
+				console.error(`Failed to read instructions directory at ${globalClineRulesFilePath}`)
 			}
 		} else {
 			console.error(`${globalClineRulesFilePath} is not a directory`)
@@ -42,14 +42,19 @@ export const getLocalClineRules = async (cwd: string, toggles: ClineRulesToggles
 	if (await fileExistsAtPath(clineRulesFilePath)) {
 		if (await isDirectory(clineRulesFilePath)) {
 			try {
-				const rulesFilePaths = await readDirectory(clineRulesFilePath)
+				const rulesFilePaths = await readDirectory(
+					clineRulesFilePath,
+					[],
+					instructionsExcludedDirectories,
+					instructionsExcludedFiles,
+				)
 
 				const rulesFilesTotalContent = await getRuleFilesTotalContent(rulesFilePaths, cwd, toggles)
 				if (rulesFilesTotalContent) {
 					clineRulesFileInstructions = formatResponse.clineRulesLocalDirectoryInstructions(cwd, rulesFilesTotalContent)
 				}
 			} catch {
-				console.error(`Failed to read ${instructionsDirectory} directory at ${clineRulesFilePath}`)
+				console.error(`Failed to read instructions directory at ${clineRulesFilePath}`)
 			}
 		} else {
 			try {
@@ -60,7 +65,7 @@ export const getLocalClineRules = async (cwd: string, toggles: ClineRulesToggles
 					}
 				}
 			} catch {
-				console.error(`Failed to read ${instructionsDirectory} file at ${clineRulesFilePath}`)
+				console.error(`Failed to read instructions file at ${clineRulesFilePath}`)
 			}
 		}
 	}
@@ -84,7 +89,14 @@ export async function refreshClineRulesToggles(
 	// Local toggles
 	const localClineRulesToggles = ((await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles) || {}
 	const localClineRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.clineRules)
-	const updatedLocalToggles = await synchronizeRuleToggles(localClineRulesFilePath, localClineRulesToggles, "")
+	const updatedLocalToggles = await synchronizeRuleToggles(
+		localClineRulesFilePath,
+		localClineRulesToggles,
+		"",
+		[],
+		instructionsExcludedDirectories,
+		instructionsExcludedFiles,
+	)
 	await updateWorkspaceState(context, "localClineRulesToggles", updatedLocalToggles)
 
 	return {
