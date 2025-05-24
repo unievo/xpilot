@@ -3289,8 +3289,8 @@ export class Task {
 
 								if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
 									showSystemNotification({
-										subtitle: "Cline wants to condense the conversation...",
-										message: `Cline is suggesting to condense your conversation with: ${context}`,
+										subtitle: `${agentName} wants to condense the conversation...`,
+										message: `${agentName} is suggesting to condense your conversation with: ${context}`,
 									})
 								}
 
@@ -3391,8 +3391,8 @@ export class Task {
 
 								if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
 									showSystemNotification({
-										subtitle: "Cline wants to create a github issue...",
-										message: `Cline is suggesting to create a github issue with the title: ${title}`,
+										subtitle: `${agentName} wants to create a github issue...`,
+										message: `${agentName} is suggesting to create a github issue with the title: ${title}`,
 									})
 								}
 
