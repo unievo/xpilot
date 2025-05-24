@@ -201,8 +201,14 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					}
 
 					if (textToCopy !== null) {
-						vscode.postMessage({ type: "copyToClipboard", text: textToCopy })
-						e.preventDefault()
+						try {
+							FileServiceClient.copyToClipboard({ value: textToCopy }).catch((err) => {
+								console.error("Error copying to clipboard:", err)
+							})
+							e.preventDefault()
+						} catch (error) {
+							console.error("Error copying to clipboard:", error)
+						}
 					}
 				}
 			}
@@ -1047,7 +1053,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						flexDirection: "column",
 						paddingBottom: "1px",
 					}}>
-					{telemetrySetting === "disabled" && <TelemetryBanner />}
+					{/* {telemetrySetting === "unset" && <TelemetryBanner />} */}
 
 					{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
 

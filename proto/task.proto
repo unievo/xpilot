@@ -27,6 +27,10 @@ service TaskService {
   rpc getTaskHistory(GetTaskHistoryRequest) returns (TaskHistoryArray);
   // Sends a response to a previous ask operation
   rpc askResponse(AskResponseRequest) returns (Empty);
+  // Records task feedback (thumbs up/down)
+  rpc taskFeedback(StringRequest) returns (Empty);
+  // Shows task completion changes diff in a view
+  rpc taskCompletionViewChanges(Int64Request) returns (Empty);
 }
 
 // Request message for creating a new task
