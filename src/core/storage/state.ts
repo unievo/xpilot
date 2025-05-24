@@ -11,7 +11,7 @@ import { ChatSettings } from "@shared/ChatSettings"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { UserInfo } from "@shared/UserInfo"
 import { ClineRulesToggles } from "@shared/cline-rules"
-import { productName } from "@shared/Configuration"
+import { mcpMarketplaceEnabledDefaultSetting, productName } from "@shared/Configuration"
 /*
 	Storage
 	https://dev.to/kompotkot/how-to-use-secretstorage-in-your-vscode-extensions-2hco
@@ -58,10 +58,9 @@ async function migrateMcpMarketplaceEnableSetting(mcpMarketplaceEnabledRaw: bool
 	if (mcpMarketplaceEnabled !== undefined) {
 		// Remove from VSCode configuration
 		await config.update("mcpMarketplace.enabled", undefined, true)
-
-		return !mcpMarketplaceEnabled
+		return mcpMarketplaceEnabled
 	}
-	return mcpMarketplaceEnabledRaw ?? true
+	return mcpMarketplaceEnabledRaw ?? mcpMarketplaceEnabledDefaultSetting
 }
 
 async function migrateEnableCheckpointsSetting(enableCheckpointsSettingRaw: boolean | undefined): Promise<boolean> {

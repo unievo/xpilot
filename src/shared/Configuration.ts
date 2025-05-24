@@ -45,7 +45,14 @@ export const generateGitCommitMessageCommand = `${productName}.generateGitCommit
 export const isDevMode = `${productName}.isDevMode`
 export const createTestTasksCommand = `${productName}.dev.createTestTasks`
 export const addToAgentCodeActionName = `Add to ${agentName}`
+export const fixWithAgentCodeActionName = `Fix with ${agentName}`
+export const explainWithAgentCodeActionName = `Explain with ${agentName}`
+export const improveWithAgentCodeActionName = `Improve with ${agentName}`
 export const addToChatCommand = `${productName}.addToChat`
 export const fixWithAgentCommand = `${productName}.fixWithAgent`
-export const fixWithAgentCodeActionName = `Fix with ${agentName}`
+export const explainWithAgentCommand = `${productName}.explainCode`
+export const improveWithAgentCommand = `${productName}.improveCode`
 export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputToChat`
+
+// Settings
+export const mcpMarketplaceEnabledDefaultSetting = false
