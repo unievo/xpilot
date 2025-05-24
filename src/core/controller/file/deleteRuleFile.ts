@@ -24,7 +24,7 @@ export const deleteRuleFile: FileMethodHandler = async (controller: Controller, 
 		!request.type ||
 		typeof request.type !== "string"
 	) {
-		console.error("deleteRuleFile: Missing or invalid parameters", {
+		console.error("deleteFile: Missing or invalid parameters", {
 			isGlobal: typeof request.isGlobal === "boolean" ? request.isGlobal : `Invalid: ${typeof request.isGlobal}`,
 			rulePath: typeof request.rulePath === "string" ? request.rulePath : `Invalid: ${typeof request.rulePath}`,
 			type: typeof request.type === "string" ? request.type : `Invalid: ${typeof request.type}`,
@@ -35,7 +35,7 @@ export const deleteRuleFile: FileMethodHandler = async (controller: Controller, 
 	const result = await deleteRuleFileImpl(controller.context, request.rulePath, request.isGlobal, request.type)
 
 	if (!result.success) {
-		throw new Error(result.message || "Failed to delete rule file")
+		throw new Error(result.message || "Failed to delete file")
 	}
 
 	// we refresh inside of the deleteRuleFileImpl(..) call
@@ -48,7 +48,7 @@ export const deleteRuleFile: FileMethodHandler = async (controller: Controller, 
 
 	const fileTypeName = request.type === "workflow" ? "workflow" : "rule"
 
-	vscode.window.showInformationMessage(`${fileTypeName} file "${fileName}" deleted successfully`)
+	//vscode.window.showInformationMessage(`"${fileName}" deleted successfully`)
 
 	return RuleFile.create({
 		filePath: request.rulePath,

@@ -67,8 +67,8 @@ const WelcomeView = memo(() => {
 				<p></p>
 
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
-					Sign up for an account to get started for free, or use an API key that provides access to models like Claude
-					3.7 Sonnet.
+					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4
+					Sonnet.
 				</p>
 
 				<VSCodeButton appearance="primary" onClick={handleLogin} className="w-full mt-1">

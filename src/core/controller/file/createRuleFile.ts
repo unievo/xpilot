@@ -24,7 +24,7 @@ export const createRuleFile: FileMethodHandler = async (controller: Controller, 
 		!request.type ||
 		typeof request.type !== "string"
 	) {
-		console.error("createRuleFile: Missing or invalid parameters", {
+		console.error("createFile: Missing or invalid parameters", {
 			isGlobal: typeof request.isGlobal === "boolean" ? request.isGlobal : `Invalid: ${typeof request.isGlobal}`,
 			filename: typeof request.filename === "string" ? request.filename : `Invalid: ${typeof request.filename}`,
 			type: typeof request.type === "string" ? request.type : `Invalid: ${typeof request.type}`,
@@ -41,7 +41,7 @@ export const createRuleFile: FileMethodHandler = async (controller: Controller, 
 	const fileTypeName = request.type === "workflow" ? "workflow" : "rule"
 
 	if (fileExists) {
-		vscode.window.showWarningMessage(`${fileTypeName} file "${request.filename}" already exists.`)
+		vscode.window.showWarningMessage(`"${request.filename}" already exists.`)
 		// Still open it for editing
 		await handleFileServiceRequest(controller, "openFile", { value: filePath })
 	} else {
@@ -54,9 +54,7 @@ export const createRuleFile: FileMethodHandler = async (controller: Controller, 
 
 		await handleFileServiceRequest(controller, "openFile", { value: filePath })
 
-		vscode.window.showInformationMessage(
-			`Created new ${request.isGlobal ? "global" : "workspace"} ${fileTypeName} file: ${request.filename}`,
-		)
+		// vscode.window.showInformationMessage(`Created new "${request.filename}" file`)
 	}
 
 	return RuleFile.create({

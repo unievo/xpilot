@@ -38,7 +38,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
 	return (
 		<div style={containerStyle}>
-			<VSCodeButton appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
+			<VSCodeButton data-testid="close-button" appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
 			<span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "25px" }}></span>
@@ -51,7 +51,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					you understand what Cline did at a glance.
 				</li>
 				<li>
-					<b>Collapsible Task List:</b> Hide your recent tasks when sharing your screen to keep your prompts private.
+					<b>New Settings Page:</b> Redesigned settings, now split into tabs for easier navigation and a cleaner
+					experience.
 				</li>
 				<li>
 					<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for Vertex AI
@@ -78,6 +79,26 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 							"text-[var(--vscode-foreground)] mb-0.5 -rotate-180 data-[open=true]:-rotate-90 rtl:rotate-0 rtl:data-[open=true]:-rotate-90",
 					}}>
 					<ul style={ulStyle}>
+						<li>
+							<b>Workflows:</b> Create and manage workflow files that can be injected into conversations via slash
+							commands, making it easy to automate repetitive tasks.
+						</li>
+						<li>
+							<b>Collapsible Task List:</b> Hide your recent tasks when sharing your screen to keep your prompts
+							private.
+						</li>
+						<li>
+							<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for
+							Vertex AI users.
+						</li>
+						<li>
+							<b>New User Experience:</b> Special components and guidance for new users to help them get started
+							with Cline.
+						</li>
+						<li>
+							<b>UI Improvements:</b> Fixed loading states and improved settings organization for a smoother
+							experience.
+						</li>
 						<li>
 							<b>Task Timeline:</b> See the history of your coding journey with a visual timeline of checkpoints.
 						</li>

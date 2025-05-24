@@ -104,7 +104,7 @@ import WorkspaceTracker from "@integrations/workspace/WorkspaceTracker"
 import { McpHub } from "@services/mcp/McpHub"
 import { isInTestMode } from "../../services/test/TestMode"
 import { featureFlagsService } from "@/services/posthog/feature-flags/FeatureFlagsService"
-import { agentName, productName } from "../../shared/Configuration"
+import { agentName, extensionId, productName } from "../../shared/Configuration"
 
 export const cwd =
 	vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0) ?? path.join(os.homedir(), "Desktop") // may or may not exist but fs checking existence would immediately ask for permission which would be bad UX, need to come up with a better solution
@@ -235,6 +235,37 @@ export class Task {
 		let effectiveApiConfiguration: ApiConfiguration = {
 			...apiConfiguration,
 			taskId: this.taskId,
+			onRetryAttempt: (attempt: number, maxRetries: number, delay: number, error: any) => {
+				const lastApiReqStartedIndex = findLastIndex(this.clineMessages, (m) => m.say === "api_req_started")
+				if (lastApiReqStartedIndex !== -1) {
+					try {
+						const currentApiReqInfo: ClineApiReqInfo = JSON.parse(
+							this.clineMessages[lastApiReqStartedIndex].text || "{}",
+						)
+						currentApiReqInfo.retryStatus = {
+							attempt: attempt, // attempt is already 1-indexed from retry.ts
+							maxAttempts: maxRetries, // total attempts
+							delaySec: Math.round(delay / 1000),
+							errorSnippet: error?.message ? `${String(error.message).substring(0, 50)}...` : undefined,
+						}
+						// Clear previous cancelReason and streamingFailedMessage if we are retrying
+						delete currentApiReqInfo.cancelReason
+						delete currentApiReqInfo.streamingFailedMessage
+						this.clineMessages[lastApiReqStartedIndex].text = JSON.stringify(currentApiReqInfo)
+
+						// Post the updated state to the webview so the UI reflects the retry attempt
+						this.postStateToWebview().catch((e) =>
+							console.error("Error posting state to webview in onRetryAttempt:", e),
+						)
+
+						console.log(
+							`[Task ${this.taskId}] API Auto-Retry Status Update: Attempt ${attempt}/${maxRetries}, Delay: ${delay}ms`,
+						)
+					} catch (e) {
+						console.error(`[Task ${this.taskId}] Error updating api_req_started with retryStatus:`, e)
+					}
+				}
+			},
 		}
 
 		if (apiConfiguration.apiProvider === "openai" || apiConfiguration.apiProvider === "openai-native") {
@@ -1662,6 +1693,20 @@ export class Task {
 				}
 
 				const errorMessage = this.formatErrorWithStatusCode(error)
+
+				// Update the 'api_req_started' message to reflect final failure before asking user to manually retry
+				const lastApiReqStartedIndex = findLastIndex(this.clineMessages, (m) => m.say === "api_req_started")
+				if (lastApiReqStartedIndex !== -1) {
+					const currentApiReqInfo: ClineApiReqInfo = JSON.parse(this.clineMessages[lastApiReqStartedIndex].text || "{}")
+					delete currentApiReqInfo.retryStatus
+
+					this.clineMessages[lastApiReqStartedIndex].text = JSON.stringify({
+						...currentApiReqInfo, // Spread the modified info (with retryStatus removed)
+						cancelReason: "retries_exhausted", // Indicate that automatic retries failed
+						streamingFailedMessage: errorMessage,
+					} satisfies ClineApiReqInfo)
+					// this.ask will trigger postStateToWebview, so this change should be picked up.
+				}
 
 				const { response } = await this.ask("api_req_failed", errorMessage)
 
@@ -3244,8 +3289,8 @@ export class Task {
 
 								if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
 									showSystemNotification({
-										subtitle: "Cline wants to condense the conversation...",
-										message: `Cline is suggesting to condense your conversation with: ${context}`,
+										subtitle: `${agentName} wants to condense the conversation...`,
+										message: `${agentName} is suggesting to condense your conversation with: ${context}`,
 									})
 								}
 
@@ -3346,15 +3391,14 @@ export class Task {
 
 								if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
 									showSystemNotification({
-										subtitle: "Cline wants to create a github issue...",
-										message: `Cline is suggesting to create a github issue with the title: ${title}`,
+										subtitle: `${agentName} wants to create a github issue...`,
+										message: `${agentName} is suggesting to create a github issue with the title: ${title}`,
 									})
 								}
 
 								// Derive system information values algorithmically
 								const operatingSystem = os.platform() + " " + os.release()
-								const clineVersion =
-									vscode.extensions.getExtension("saoudrizwan.claude-dev")?.packageJSON.version || "Unknown"
+								const clineVersion = vscode.extensions.getExtension(extensionId)?.packageJSON.version || "Unknown"
 								const systemInfo = `VSCode: ${vscode.version}, Node.js: ${process.version}, Architecture: ${os.arch()}`
 								const providerAndModel = `${(await getGlobalState(this.getContext(), "apiProvider")) as string} / ${this.api.getModel().id}`
 
@@ -3865,8 +3909,11 @@ export class Task {
 			// fortunately api_req_finished was always parsed out for the gui anyways, so it remains solely for legacy purposes to keep track of prices in tasks from history
 			// (it's worth removing a few months from now)
 			const updateApiReqMsg = (cancelReason?: ClineApiReqCancelReason, streamingFailedMessage?: string) => {
+				const currentApiReqInfo: ClineApiReqInfo = JSON.parse(this.clineMessages[lastApiReqIndex].text || "{}")
+				delete currentApiReqInfo.retryStatus // Clear retry status when request is finalized
+
 				this.clineMessages[lastApiReqIndex].text = JSON.stringify({
-					...JSON.parse(this.clineMessages[lastApiReqIndex].text || "{}"),
+					...currentApiReqInfo, // Spread the modified info (with retryStatus removed)
 					tokensIn: inputTokens,
 					tokensOut: outputTokens,
 					cacheWrites: cacheWriteTokens,
@@ -4135,7 +4182,7 @@ export class Task {
 		// Track if we need to check clinerulesFile
 		let needsClinerulesFileCheck = false
 
-		const workflowToggles = await refreshWorkflowToggles(this.getContext(), cwd)
+		const { localWorkflowToggles, globalWorkflowToggles } = await refreshWorkflowToggles(this.getContext(), cwd)
 
 		const processUserContent = async () => {
 			// This is a temporary solution to dynamically load context mentions from tool results. It checks for the presence of tags that indicate that the tool was rejected and feedback was provided (see formatToolDeniedFeedback, attemptCompletion, executeCommand, and consecutiveMistakeCount >= 3) or "<answer>" (see askFollowupQuestion), we place all user generated content in these tags so they can effectively be used as markers for when we should parse mentions). However if we allow multiple tools responses in the future, we will need to parse mentions specifically within the user content tags.
@@ -4161,7 +4208,8 @@ export class Task {
 							// when parsing slash commands, we still want to allow the user to provide their desired context
 							const { processedText, needsClinerulesFileCheck: needsCheck } = await parseSlashCommands(
 								parsedText,
-								workflowToggles,
+								localWorkflowToggles,
+								globalWorkflowToggles,
 							)
 
 							if (needsCheck) {

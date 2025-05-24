@@ -40,7 +40,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 	}
 
 	const isValidExtension = (ext: string): boolean => {
-		return ext === "" || ext === ".md" || ext === ".txt"
+		return ext === "" || ext === ".md" // || ext === ".txt"
 	}
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -51,7 +51,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 			const extension = getExtension(trimmedFilename)
 
 			if (!isValidExtension(extension)) {
-				setError("Only .md, .txt, or no file extension allowed")
+				setError("Only .md or no file extension allowed")
 				return
 			}
 
@@ -69,7 +69,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 					}),
 				)
 			} catch (err) {
-				console.error("Error creating rule file:", err)
+				console.error("Error creating file:", err)
 			}
 
 			setFilename("")
@@ -99,11 +99,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 						<input
 							ref={inputRef}
 							type="text"
-							placeholder={
-								ruleType === "workflow"
-									? "filename (.md, .txt, or no extension)"
-									: "filename (.md, .txt, or no extension)"
-							}
+							placeholder={"filename(.md)"}
 							value={filename}
 							onChange={(e) => setFilename(e.target.value)}
 							onKeyDown={handleKeyDown}
@@ -117,8 +113,8 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 							<VSCodeButton
 								appearance="icon"
 								type="submit"
-								aria-label="Create instructions file"
-								title="Create instructions file"
+								aria-label="Add file"
+								title="Add file"
 								style={{ padding: "0px" }}>
 								<span className="codicon codicon-add text-[14px]" />
 							</VSCodeButton>
@@ -132,8 +128,8 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 						<div className="flex items-center ml-2 space-x-2">
 							<VSCodeButton
 								appearance="icon"
-								aria-label="New instructions file"
-								title="New instructions file"
+								aria-label="Add file"
+								title="Add file"
 								onClick={(e) => {
 									e.stopPropagation()
 									setIsExpanded(true)

@@ -9,8 +9,10 @@ const RuleRow: React.FC<{
 	ruleType: string
 	toggleRule: (rulePath: string, enabled: boolean) => void
 }> = ({ rulePath, enabled, isGlobal, toggleRule, ruleType }) => {
+	// Check if the path type is Windows
+	const win32Path = /^[a-zA-Z]:\\/.test(rulePath)
 	// Get the filename from the path for display
-	const displayName = rulePath.split("/").pop() || rulePath
+	const displayName = rulePath.split(win32Path ? "\\" : "/").pop() || rulePath
 
 	const getRuleTypeIcon = () => {
 		switch (ruleType) {
@@ -64,7 +66,7 @@ const RuleRow: React.FC<{
 				isGlobal: isGlobal,
 				type: ruleType || "cline",
 			}),
-		).catch((err) => console.error("Failed to delete rule file:", err))
+		).catch((err) => console.error("Failed to delete file:", err))
 	}
 
 	return (
@@ -104,16 +106,16 @@ const RuleRow: React.FC<{
 					</div>
 					<VSCodeButton
 						appearance="icon"
-						aria-label="Edit rule file"
-						title="Edit rule file"
+						aria-label="Edit file"
+						title="Edit file"
 						onClick={handleEditClick}
 						style={{ height: "20px" }}>
 						<span className="codicon codicon-edit" style={{ fontSize: "14px" }} />
 					</VSCodeButton>
 					<VSCodeButton
 						appearance="icon"
-						aria-label="Delete rule file"
-						title="Delete rule file"
+						aria-label="Delete file"
+						title="Delete file"
 						onClick={handleDeleteClick}
 						style={{ height: "20px" }}>
 						<span className="codicon codicon-trash" style={{ fontSize: "14px" }} />
