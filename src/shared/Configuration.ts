@@ -13,6 +13,7 @@ export const latestAnnouncementId = "0.1.0"
 export const pathSeparator = "/"
 export const workspaceDirectory = `.${productName}`
 export const instructionsDirectory = `${workspaceDirectory}/instructions`
+export const instructionsFilesExtension = `.md`
 export const instructionsExcludedDirectories = [".git", "content"]
 export const instructionsExcludedFiles = ["README.md"]
 export const workflowsDirectory = `${workspaceDirectory}/workflows`

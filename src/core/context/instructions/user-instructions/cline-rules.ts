@@ -7,13 +7,18 @@ import { ClineRulesToggles } from "@shared/cline-rules"
 import { getGlobalState, getWorkspaceState, updateGlobalState, updateWorkspaceState } from "@core/storage/state"
 import * as vscode from "vscode"
 import { synchronizeRuleToggles, getRuleFilesTotalContent } from "@core/context/instructions/user-instructions/rule-helpers"
-import { instructionsExcludedDirectories, instructionsExcludedFiles } from "@/shared/Configuration"
+import { instructionsExcludedDirectories, instructionsExcludedFiles, instructionsFilesExtension } from "@/shared/Configuration"
 
 export const getGlobalClineRules = async (globalClineRulesFilePath: string, toggles: ClineRulesToggles) => {
 	if (await fileExistsAtPath(globalClineRulesFilePath)) {
 		if (await isDirectory(globalClineRulesFilePath)) {
 			try {
-				const rulesFilePaths = await readDirectory(globalClineRulesFilePath)
+				const rulesFilePaths = await readDirectory(
+					globalClineRulesFilePath,
+					[],
+					instructionsExcludedDirectories,
+					instructionsExcludedFiles,
+				)
 				const rulesFilesTotalContent = await getRuleFilesTotalContent(rulesFilePaths, globalClineRulesFilePath, toggles)
 				if (rulesFilesTotalContent) {
 					const clineRulesFileInstructions = formatResponse.clineRulesGlobalDirectoryInstructions(
@@ -83,7 +88,14 @@ export async function refreshClineRulesToggles(
 	// Global toggles
 	const globalClineRulesToggles = ((await getGlobalState(context, "globalClineRulesToggles")) as ClineRulesToggles) || {}
 	const globalClineRulesFilePath = await ensureRulesDirectoryExists()
-	const updatedGlobalToggles = await synchronizeRuleToggles(globalClineRulesFilePath, globalClineRulesToggles)
+	const updatedGlobalToggles = await synchronizeRuleToggles(
+		globalClineRulesFilePath,
+		globalClineRulesToggles,
+		instructionsFilesExtension,
+		[],
+		instructionsExcludedDirectories,
+		instructionsExcludedFiles,
+	)
 	await updateGlobalState(context, "globalClineRulesToggles", updatedGlobalToggles)
 
 	// Local toggles
@@ -92,7 +104,7 @@ export async function refreshClineRulesToggles(
 	const updatedLocalToggles = await synchronizeRuleToggles(
 		localClineRulesFilePath,
 		localClineRulesToggles,
-		"",
+		instructionsFilesExtension,
 		[],
 		instructionsExcludedDirectories,
 		instructionsExcludedFiles,

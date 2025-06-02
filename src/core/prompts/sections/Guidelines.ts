@@ -11,4 +11,8 @@ export const GuidelinesPrompt = async (
 
 ALWAYS follow these guidelines:
 
+## Instruction files
+
+- Instruction files are used to provide additional context for tasks and can link to detailed content files specified in "./content/*.*" sub-folders.
+- You are always required to read any additional content files specified in instructions related to the current task.
 `

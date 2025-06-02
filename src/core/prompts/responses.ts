@@ -212,7 +212,7 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`# Global instructions\n\nThe following is provided by a global instructions directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions\n\nThe following is provided by a root-level ${instructionsDirectory}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions\n\nThe following content is from instruction files in the root-level ./${instructionsDirectory}/ directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
 		`# ${instructionsDirectory}\n\nThe following is provided by a root-level ${instructionsDirectory} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
