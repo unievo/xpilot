@@ -187,45 +187,85 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 								onMouseLeave={handleMouseLeave}>
 								<RestoreOption>
 									<VSCodeButton
-										onClick={handleRestoreWorkspace}
-										disabled={restoreWorkspaceDisabled}
-										style={{
-											cursor: restoreWorkspaceDisabled ? "wait" : "pointer",
-											width: "100%",
-											marginBottom: "10px",
-										}}>
-										Restore Files
-									</VSCodeButton>
-									<p>
-										Restores your project's files back to a snapshot taken at this point (use "Compare" to see
-										what will be reverted)
-									</p>
-								</RestoreOption>
-								<RestoreOption>
-									<VSCodeButton
+										appearance="secondary"
 										onClick={handleRestoreTask}
 										disabled={restoreTaskDisabled}
 										style={{
+											backgroundColor: "var(--vscode-input-background)",
 											cursor: restoreTaskDisabled ? "wait" : "pointer",
 											width: "100%",
-											marginBottom: "10px",
+											marginBottom: "3px",
+										}}
+										onMouseEnter={(e) => {
+											if (!restoreBothDisabled) {
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}
+										}}
+										onMouseLeave={(e) => {
+											if (!restoreBothDisabled) {
+												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											}
 										}}>
-										Restore Task Only
+										<div style={{ fontSize: "12px" }}>Task</div>
 									</VSCodeButton>
-									<p>Deletes messages after this point (does not affect workspace files)</p>
+									{/* <p>Deletes messages after this point (does not affect workspace files)</p> */}
 								</RestoreOption>
 								<RestoreOption>
 									<VSCodeButton
+										appearance="secondary"
+										onClick={handleRestoreWorkspace}
+										disabled={restoreWorkspaceDisabled}
+										style={{
+											backgroundColor: "var(--vscode-button-secondaryBackground)",
+											cursor: restoreWorkspaceDisabled ? "wait" : "pointer",
+											width: "100%",
+											marginBottom: "3px",
+										}}
+										onMouseEnter={(e) => {
+											if (!restoreWorkspaceDisabled) {
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}
+										}}
+										onMouseLeave={(e) => {
+											if (!restoreWorkspaceDisabled) {
+												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											}
+										}}>
+										<div style={{ fontSize: "12px" }}>Workspace</div>
+									</VSCodeButton>
+									{/* <p>
+										Restores your project's files back to a snapshot taken at this point (use "Compare" to see
+										what will be reverted)
+									</p> */}
+								</RestoreOption>
+
+								<RestoreOption>
+									<VSCodeButton
+										appearance="secondary"
 										onClick={handleRestoreBoth}
 										disabled={restoreBothDisabled}
 										style={{
+											backgroundColor: "var(--vscode-button-secondaryBackground)",
 											cursor: restoreBothDisabled ? "wait" : "pointer",
 											width: "100%",
-											marginBottom: "10px",
+											marginBottom: "3px",
+										}}
+										onMouseEnter={(e) => {
+											if (!restoreBothDisabled) {
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}
+										}}
+										onMouseLeave={(e) => {
+											if (!restoreBothDisabled) {
+												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											}
 										}}>
-										Restore Files & Task
+										<div style={{ fontSize: "12px" }}>Task & Workspace</div>
 									</VSCodeButton>
-									<p>Restores your project's files and deletes all messages after this point</p>
+									{/* <p>Restores your project's files and deletes all messages after this point</p> */}
 								</RestoreOption>
 							</RestoreConfirmTooltip>,
 							document.body,
@@ -339,9 +379,9 @@ const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $is
 
 const RestoreOption = styled.div`
 	&:not(:last-child) {
-		margin-bottom: 10px;
-		padding-bottom: 4px;
-		border-bottom: 1px solid var(--vscode-editorGroup-border);
+		margin-bottom: 0px;
+		padding-bottom: 3px;
+		//border-bottom: 1px solid var(--vscode-editorGroup-border);
 	}
 
 	p {
@@ -360,10 +400,11 @@ const RestoreConfirmTooltip = styled.div`
 	position: fixed;
 	background: ${CODE_BLOCK_BG_COLOR};
 	border: 1px solid var(--vscode-editorGroup-border);
-	padding: 12px;
-	border-radius: 3px;
-	width: min(calc(100vw - 54px), 600px);
+	padding: 8px;
+	border-radius: 10px;
+	width: min(calc(100vw - 54px), 130px);
 	z-index: 1000;
+	margin-top: -3px;
 
 	// Add invisible padding to create a safe hover zone
 	&::before {
@@ -379,10 +420,10 @@ const RestoreConfirmTooltip = styled.div`
 	&::after {
 		content: "";
 		position: absolute;
-		top: -6px;
-		right: 24px;
-		width: 10px;
-		height: 10px;
+		top: -4px;
+		right: 26px;
+		width: 6px;
+		height: 6px;
 		background: ${CODE_BLOCK_BG_COLOR};
 		border-left: 1px solid var(--vscode-editorGroup-border);
 		border-top: 1px solid var(--vscode-editorGroup-border);

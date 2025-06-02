@@ -7,9 +7,9 @@ import TaskTimelineTooltip from "./TaskTimelineTooltip"
 import { COLOR_WHITE, COLOR_GRAY, COLOR_DARK_GRAY, COLOR_BEIGE, COLOR_BLUE, COLOR_RED, COLOR_PURPLE, COLOR_GREEN } from "./colors"
 
 // Timeline dimensions and spacing
-const TIMELINE_HEIGHT = "18px"
-const BLOCK_WIDTH = "9px"
-const BLOCK_GAP = "3px"
+const TIMELINE_HEIGHT = "12px"
+const BLOCK_WIDTH = "12px"
+const BLOCK_GAP = "1px"
 const TOOLTIP_MARGIN = 32 // 32px margin on each side
 
 interface TaskTimelineProps {
@@ -155,6 +155,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages }) => {
 							flexShrink: 0,
 							cursor: "pointer",
 							marginRight: BLOCK_GAP,
+							opacity: 0.7,
 						}}
 					/>
 				</TaskTimelineTooltip>
@@ -183,8 +184,8 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages }) => {
 			style={{
 				position: "relative",
 				width: "100%",
-				marginTop: "4px",
-				marginBottom: "4px",
+				marginTop: "1px",
+				marginBottom: "5px",
 				overflow: "hidden",
 			}}>
 			<style>

@@ -41,12 +41,12 @@ const ServersToggleModal: React.FC = () => {
 
 	return (
 		<div ref={modalRef}>
-			<div ref={buttonRef} className="inline-flex min-w-0 max-w-full">
+			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
 				<VSCodeButton
 					appearance="icon"
 					aria-label="MCP Servers"
 					onClick={() => setIsVisible(!isVisible)}
-					style={{ padding: "0px 0px", height: "20px" }}>
+					style={{ marginLeft: "-3px", height: "20px" }}>
 					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 						<span
 							className="codicon codicon-server flex items-center"

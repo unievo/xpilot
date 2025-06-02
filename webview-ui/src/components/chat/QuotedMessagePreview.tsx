@@ -6,9 +6,9 @@ const PreviewContainer = styled.div`
 	background-color: var(--vscode-input-background); /* Outer box matches text area */
 	/* border-left: 3px solid var(--vscode-textBlockQuote-border); */ /* Remove left border */
 	/* border-top: 1px solid var(--vscode-editorGroup-border); */ /* Remove top border */
-	padding: 4px 4px 4px 4px; /* Removed bottom padding */
+	padding: 4px 10px 4px 10px; /* Removed bottom padding */
 	margin: 0px 15px 0 15px; /* Remove bottom+top margin, equal left/right */
-	border-radius: 2px 2px 0 0; /* Only round top corners */
+	//border-radius: 2px 2px 0 0; /* Only round top corners */
 	display: flex;
 	/* flex-direction: column; */ /* No longer needed as Label is removed */
 	position: relative; /* Keep for button positioning */
@@ -18,9 +18,10 @@ const PreviewContainer = styled.div`
 
 const ContentRow = styled.div`
 	/* Mix outer background with white to ensure a much lighter inner box */
-	background-color: color-mix(in srgb, var(--vscode-input-background) 70%, white 30%);
-	border-radius: 2px 2px 2px 2px; /* Round top corners, square bottom corners */
-	padding: 8px 10px 10px 8px; /* Reduced left padding */
+	background-color: color-mix(in srgb, var(--vscode-input-background) 93%, white 7%);
+	border-radius: 7px 7px 7px 7px; /* Round top corners, square bottom corners */
+	padding: 8px 10px 8px 8px; /* Reduced left padding */
+	margin-bottom: 7px;
 	display: flex;
 	align-items: flex-start; /* Align items to the top */
 	justify-content: space-between;
@@ -38,7 +39,7 @@ const TextContainer = styled.div`
 	-webkit-line-clamp: 3;
 	-webkit-box-orient: vertical;
 	font-size: var(--vscode-editor-font-size); /* Use editor font size */
-	opacity: 0.9; /* Slightly muted text */
+	opacity: 0.8; /* Slightly muted text */
 	line-height: 1.4; /* Improve readability */
 	max-height: calc(1.4 * var(--vscode-editor-font-size) * 3); /* approx 3 lines */
 `

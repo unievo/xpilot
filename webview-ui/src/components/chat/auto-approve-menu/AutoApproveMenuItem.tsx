@@ -46,7 +46,7 @@ const CheckboxContainer = styled.div<{
 	.label {
 		color: var(--vscode-foreground);
 		font-size: 12px;
-		font-weight: 500;
+		//font-weight: 500;
 	}
 
 	.star {
@@ -93,12 +93,12 @@ const AutoApproveMenuItem = ({
 			<ActionButtonContainer>
 				<HeroTooltip content={action.description} delay={500}>
 					<CheckboxContainer isFavorited={favorited} onClick={onChange}>
-						<div className="left-content">
+						<div className="left-content" style={{ marginTop: "-2px", marginBottom: "-2px" }}>
 							<VSCodeCheckbox checked={checked} />
 							{showIcon && <span className={`codicon ${action.icon} icon`}></span>}
 							<span className="label">{condensed ? action.shortName : action.label}</span>
 						</div>
-						{onToggleFavorite && !condensed && (
+						{/* {onToggleFavorite && !condensed && (
 							<HeroTooltip
 								delay={500}
 								content={favorited ? "Remove from quick-access menu" : "Add to quick-access menu"}>
@@ -114,7 +114,7 @@ const AutoApproveMenuItem = ({
 									}}
 								/>
 							</HeroTooltip>
-						)}
+						)} */}
 					</CheckboxContainer>
 				</HeroTooltip>
 			</ActionButtonContainer>

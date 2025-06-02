@@ -308,8 +308,8 @@ const ApiOptions = ({
 						position: "relative",
 					}}>
 					<VSCodeOption value="vscode-lm">VS Code</VSCodeOption>
-					<VSCodeOption value="cline">Cline</VSCodeOption>
 					<VSCodeOption value="openrouter">OpenRouter</VSCodeOption>
+					<VSCodeOption value="cline">Cline</VSCodeOption>
 					<VSCodeOption value="anthropic">Anthropic</VSCodeOption>
 					<VSCodeOption value="gemini">Google Gemini</VSCodeOption>
 					<VSCodeOption value="vertex">Google Vertex</VSCodeOption>

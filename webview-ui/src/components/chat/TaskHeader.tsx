@@ -39,7 +39,23 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 }) => {
 	const { apiConfiguration, currentTaskItem, checkpointTrackerErrorMessage, clineMessages, navigateToSettings } =
 		useExtensionState()
-	const [isTaskExpanded, setIsTaskExpanded] = useState(true)
+	const [isTaskExpanded, setIsTaskExpanded] = useState(() => {
+		try {
+			const saved = window.localStorage.getItem("taskHeader.isTaskExpanded")
+			return saved === null ? true : saved === "true"
+		} catch (error) {
+			console.warn("Failed to read from localStorage:", error)
+			return true
+		}
+	})
+
+	useEffect(() => {
+		try {
+			window.localStorage.setItem("taskHeader.isTaskExpanded", String(isTaskExpanded))
+		} catch (error) {
+			console.warn("Failed to write to localStorage:", error)
+		}
+	}, [isTaskExpanded])
 	const [isTextExpanded, setIsTextExpanded] = useState(false)
 	const [showSeeMore, setShowSeeMore] = useState(false)
 	const textContainerRef = useRef<HTMLDivElement>(null)
@@ -150,6 +166,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			{isTaskExpanded && contextWindow && (
 				<div
 					style={{
+						opacity: 0.6,
+						fontSize: "0.9em",
 						display: "flex",
 						flexDirection: windowWidth < 270 ? "column" : "row",
 						gap: "4px",
@@ -203,18 +221,19 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	)
 
 	return (
-		<div style={{ padding: "10px 13px 10px 13px" }}>
+		<div style={{ padding: "1px 10px 10px 10px" }}>
 			<div
 				style={{
-					backgroundColor: "var(--vscode-badge-background)",
+					backgroundColor: "var(--vscode-input-background)",
 					color: "var(--vscode-badge-foreground)",
-					borderRadius: "3px",
-					padding: "9px 10px 9px 14px",
+					borderRadius: "8px",
+					padding: "9px 10px 9px 10px",
 					display: "flex",
 					flexDirection: "column",
-					gap: 6,
+					gap: 0,
 					position: "relative",
 					zIndex: 1,
+					opacity: 0.8,
 				}}>
 				<div
 					style={{
@@ -246,7 +265,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						</div>
 						<div
 							style={{
-								marginLeft: 6,
+								fontSize: isTaskExpanded ? "1em" : "1.1em",
+								marginLeft: 2,
 								whiteSpace: "nowrap",
 								overflow: "hidden",
 								textOverflow: "ellipsis",
@@ -289,7 +309,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						<div
 							ref={textContainerRef}
 							style={{
-								marginTop: -2,
+								marginTop: 0,
 								fontSize: "var(--vscode-font-size)",
 								overflowY: isTextExpanded ? "auto" : "hidden",
 								wordBreak: "break-word",
@@ -322,7 +342,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 										style={{
 											width: 30,
 											height: "1.2em",
-											background: "linear-gradient(to right, transparent, var(--vscode-badge-background))",
+											background: "linear-gradient(to right, transparent, var(--vscode-input-background))",
 										}}
 									/>
 									<div
@@ -331,7 +351,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											color: "var(--vscode-textLink-foreground)",
 											paddingRight: 0,
 											paddingLeft: 3,
-											backgroundColor: "var(--vscode-badge-background)",
+											backgroundColor: "var(--vscode-input-background)",
 										}}
 										onClick={() => setIsTextExpanded(!isTextExpanded)}>
 										See more
@@ -356,12 +376,15 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 						<div
 							style={{
+								marginTop: "5px",
 								display: "flex",
 								flexDirection: "column",
 								gap: "2px",
 							}}>
 							<div
 								style={{
+									opacity: 0.7,
+									fontSize: "0.9em",
 									display: "flex",
 									justifyContent: "space-between",
 									alignItems: "center",

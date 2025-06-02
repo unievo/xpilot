@@ -77,8 +77,9 @@ const ResponseContainer = styled.div`
 	font-size: var(--vscode-editor-font-size, 12px);
 	background-color: var(--vscode-textCodeBlock-background);
 	color: var(--vscode-editor-foreground, #d4d4d4);
-	border-radius: 3px;
+	border-radius: 0 0 6px 6px;
 	overflow: hidden;
+	margin-top: -18px;
 
 	.response-content {
 		overflow-x: auto;
@@ -420,7 +421,14 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 					<div className="response-content">
 						<div className="toggle-switch">
 							<ToggleSwitch>
-								<div style={{ display: "flex", width: "100%", justifyContent: "flex-end", alignItems: "center" }}>
+								<div
+									style={{
+										marginTop: "-10px",
+										display: "flex",
+										width: "100%",
+										justifyContent: "flex-end",
+										alignItems: "center",
+									}}>
 									<span className="toggle-label" style={{ marginRight: "8px" }}>
 										{displayMode === "rich" ? "Rich Display" : "Plain Text"}
 									</span>

@@ -56,14 +56,14 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 		return [
 			...favorites.map((favId) => renderFavoritedItem(favId)),
 			minusFavorites.length > 0 ? (
-				<span className="text-[color:var(--vscode-foreground-muted)] pl-[10px] opacity-60" key="separator">
-					✓
+				<span className="text-[color:var(--vscode-foreground-muted)] pl-[1px] opacity-70" key="separator">
+					-
 				</span>
 			) : null,
 			...minusFavorites.map((action, index) => (
-				<span className="text-[color:var(--vscode-foreground-muted)] opacity-60" key={action?.id}>
+				<span className="text-[color:var(--vscode-foreground-muted)] opacity-80" key={action?.id}>
 					{action?.shortName}
-					{index < minusFavorites.length - 1 && ","}
+					{index < minusFavorites.length - 1 && ""}
 				</span>
 			)),
 		]
@@ -71,11 +71,12 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 
 	return (
 		<div
-			className="px-[10px] mx-[5px] select-none rounded-[10px_10px_0_0]"
+			className="px-[10px] mt-[10px] mx-[8px] -mb-2 select-none rounded-[10px_10px_0_0]"
 			style={{
 				borderTop: `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`,
 				overflowY: "auto",
-				backgroundColor: isModalVisible ? CODE_BLOCK_BG_COLOR : "transparent",
+				backgroundColor: "var(--vscode-input-background)",
+				//backgroundColor: isModalVisible ? CODE_BLOCK_BG_COLOR : "transparent",
 				...style,
 			}}>
 			<div
@@ -85,13 +86,15 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 					setIsModalVisible((prev) => !prev)
 				}}>
 				<div
-					className="flex flex-nowrap items-center overflow-x-auto gap-[4px] whitespace-nowrap"
+					className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
 					style={{
+						opacity: isModalVisible ? 1 : 0.6,
+						fontSize: "0.88em",
 						msOverflowStyle: "none",
 						scrollbarWidth: "none",
 						WebkitOverflowScrolling: "touch",
 					}}>
-					<span>Settings</span>
+					<span>Actions</span>
 					{getQuickAccessItems()}
 				</div>
 				{isModalVisible ? (

@@ -1026,7 +1026,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				top: 0,
 				left: 0,
 				right: 0,
-				bottom: 0,
+				bottom: 8,
 				display: isHidden ? "none" : "flex",
 				flexDirection: "column",
 				overflow: "hidden",
@@ -1052,6 +1052,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						display: "flex",
 						flexDirection: "column",
 						paddingBottom: "1px",
+						marginLeft: "-5px",
 					}}>
 					{/* {telemetrySetting === "unset" && <TelemetryBanner />} */}
 
@@ -1076,7 +1077,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 								overflowY: "scroll", // always show scrollbar
 							}}
 							components={{
-								Footer: () => <div style={{ height: 5 }} />, // Add empty padding at the bottom
+								Footer: () => <div style={{ height: 20 }} />, // Add empty padding at the bottom
 							}}
 							// increasing top by 3_000 to prevent jumping around when user collapses a row
 							increaseViewportBy={{
@@ -1096,7 +1097,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							initialTopMostItemIndex={groupedMessages.length - 1}
 						/>
 					</div>
-					<AutoApproveBar />
+
 					{showScrollToBottom ? (
 						<div
 							style={{
@@ -1125,9 +1126,11 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							}}>
 							{primaryButtonText && !isStreaming && (
 								<VSCodeButton
-									appearance="primary"
+									appearance="icon"
 									disabled={!enableButtons}
 									style={{
+										backgroundColor: "var(--vscode-button-background)",
+										color: "var(--vscode-button-foreground)",
 										flex: secondaryButtonText ? 1 : 2,
 										marginRight: secondaryButtonText ? "6px" : "0",
 									}}
@@ -1137,9 +1140,11 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							)}
 							{(secondaryButtonText || isStreaming) && (
 								<VSCodeButton
-									appearance="secondary"
+									appearance="icon"
 									disabled={!enableButtons && !(isStreaming && !didClickCancel)}
 									style={{
+										backgroundColor: "var(--vscode-button-secondaryBackground)",
+										color: "var(--vscode-button-foreground)",
 										flex: isStreaming ? 2 : 1,
 										marginLeft: isStreaming ? 0 : "6px",
 									}}
@@ -1149,11 +1154,12 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							)}
 						</div>
 					)}
+					<AutoApproveBar />
 				</>
 			)}
 			{(() => {
 				return activeQuote ? (
-					<div style={{ marginBottom: "-12px", marginTop: "10px" }}>
+					<div style={{ marginBottom: "-10px", marginTop: "8px", marginLeft: "-7px", marginRight: "-7px" }}>
 						<QuotedMessagePreview
 							text={activeQuote}
 							onDismiss={() => setActiveQuote(null)}
@@ -1188,14 +1194,14 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 const ScrollToBottomButton = styled.div`
 	background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 55%, transparent);
-	border-radius: 3px;
+	border-radius: 6px;
 	overflow: hidden;
 	cursor: pointer;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	flex: 1;
-	height: 25px;
+	height: 22px;
 
 	&:hover {
 		background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 90%, transparent);

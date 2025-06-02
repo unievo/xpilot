@@ -814,7 +814,7 @@ export const ChatRowContent = ({
 				<div
 					style={{
 						background: "var(--vscode-textCodeBlock-background)",
-						//borderRadius: "3px",
+						borderRadius: "6px 6px 0 0",
 						padding: "8px 10px",
 						marginTop: "8px",
 					}}>
@@ -1408,7 +1408,7 @@ export const ChatRowContent = ({
 								{message.partial !== true && hasChanges && (
 									<div style={{ marginTop: 15 }}>
 										<SuccessButton
-											appearance="secondary"
+											appearance="icon"
 											disabled={seeNewChangesDisabled}
 											onClick={() => {
 												setSeeNewChangesDisabled(true)

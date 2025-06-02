@@ -12,7 +12,13 @@ const RuleRow: React.FC<{
 	// Check if the path type is Windows
 	const win32Path = /^[a-zA-Z]:\\/.test(rulePath)
 	// Get the filename from the path for display
-	const displayName = rulePath.split(win32Path ? "\\" : "/").pop() || rulePath
+	const displayName = (() => {
+		const filename = rulePath.split(win32Path ? "\\" : "/").pop() || rulePath
+		// Remove the file extension for display purposes
+		const dotIndex = filename.lastIndexOf(".")
+		return dotIndex > 0 ? filename.substring(0, dotIndex) : filename
+		//return filename
+	})()
 
 	const getRuleTypeIcon = () => {
 		switch (ruleType) {
@@ -70,9 +76,9 @@ const RuleRow: React.FC<{
 	}
 
 	return (
-		<div className="mb-2.5">
+		<div className="mb-1.5">
 			<div
-				className={`flex items-center p-2 rounded bg-[var(--vscode-textCodeBlock-background)] h-[18px] ${
+				className={`flex items-center p-2 rounded bg-[var(--vscode-textCodeBlock-background)] h-[12px] ${
 					enabled ? "opacity-100" : "opacity-60"
 				}`}>
 				<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center mr-1" title={rulePath}>
@@ -81,7 +87,7 @@ const RuleRow: React.FC<{
 				</span>
 
 				{/* Toggle Switch */}
-				<div className="flex items-center ml-2 space-x-2">
+				<div className="flex items-center mt-0.5 ml-1 -mr-1.5 space-x-1">
 					<div
 						role="switch"
 						aria-checked={enabled}

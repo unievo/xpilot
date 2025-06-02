@@ -84,12 +84,14 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, messageTs, send
 	return (
 		<div
 			style={{
-				backgroundColor: isEditing ? "unset" : "var(--vscode-badge-background)",
+				backgroundColor: isEditing ? "unset" : "var(--vscode-input-background)",
 				color: "var(--vscode-badge-foreground)",
-				borderRadius: "3px",
-				padding: "9px",
+				borderRadius: "5px",
+				padding: "15px",
+				marginTop: "10px",
 				whiteSpace: "pre-line",
 				wordWrap: "break-word",
+				cursor: isEditing ? "default" : "pointer",
 			}}
 			onClick={handleClick}>
 			{isEditing ? (
@@ -102,29 +104,38 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, messageTs, send
 						onKeyDown={handleKeyDown}
 						autoFocus
 						style={{
-							width: "100%",
+							width: "99%",
+							marginLeft: "-15px",
+							marginTop: "-15px",
 							backgroundColor: "var(--vscode-input-background)",
 							color: "var(--vscode-input-foreground)",
 							borderColor: "var(--vscode-input-border)",
 							border: "1px solid",
-							borderRadius: "2px",
-							padding: "6px",
+							borderRadius: "5px",
+							padding: "15px",
 							fontFamily: "inherit",
 							fontSize: "inherit",
 							lineHeight: "inherit",
-							boxSizing: "border-box",
+							boxSizing: "content-box",
 							resize: "none",
 							overflowX: "hidden",
 							overflowY: "scroll",
 							scrollbarWidth: "none",
 						}}
 					/>
-					<div style={{ display: "flex", gap: "8px", marginTop: "8px", justifyContent: "flex-end" }}>
+					<div
+						style={{
+							display: "flex",
+							gap: "8px",
+							marginTop: "8px",
+							marginRight: "-12px",
+							justifyContent: "flex-end",
+						}}>
 						{!checkpointTrackerErrorMessage && (
 							<RestoreButton
 								ref={restoreAllButtonRef}
 								type="taskAndWorkspace"
-								label="Restore All"
+								label="Restore Task & Workspace"
 								isPrimary={false}
 								onClick={handleRestoreWorkspace}
 								title="Restore both the chat and workspace files to this checkpoint and send your edited message"
@@ -133,7 +144,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, messageTs, send
 						<RestoreButton
 							ref={restoreChatButtonRef}
 							type="task"
-							label="Restore Chat"
+							label="Restore Task"
 							isPrimary={true}
 							onClick={handleRestoreWorkspace}
 							title="Restore just the chat to this checkpoint and send your edited message"
@@ -180,7 +191,7 @@ const RestoreButton = forwardRef<HTMLButtonElement, RestoreButtonProps>(({ type,
 				border: "none",
 				padding: "4px 8px",
 				borderRadius: "2px",
-				fontSize: "9px",
+				fontSize: "10px",
 				cursor: "pointer",
 			}}>
 			{label}

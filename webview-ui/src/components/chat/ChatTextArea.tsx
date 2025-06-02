@@ -104,7 +104,7 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 	align-items: center;
 	background-color: var(--vscode-editor-background);
 	border: 1px solid var(--vscode-charts-lines);
-	border-radius: 7px;
+	border-radius: 5px;
 	overflow: hidden;
 	cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
 	opacity: ${(props) => (props.disabled ? 0.5 : 1)};
@@ -146,7 +146,10 @@ const ControlsContainer = styled.div`
 	align-items: center;
 	justify-content: space-between;
 	margin-top: -5px;
-	padding: 0px 15px 5px 15px;
+	padding: 0px 5px 5px 10px;
+	margin-left: 8px;
+	margin-right: 8px;
+	overflow: hidden;
 `
 
 const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
@@ -528,7 +531,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					if (event.key === "Escape") {
 						// event.preventDefault()
 						setSelectedType(null)
-						setSelectedMenuIndex(3) // File by default
+						setSelectedMenuIndex(0) // File by default
 						return
 					}
 
@@ -766,7 +769,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								})
 						}, 200) // 200ms debounce
 					} else {
-						setSelectedMenuIndex(3) // Set to "File" option by default
+						setSelectedMenuIndex(0) // Set to "File" option by default
 					}
 				} else {
 					setSearchQuery("")
@@ -1043,6 +1046,23 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			updateHighlights()
 		}, [inputValue, handleInputChange, updateHighlights])
 
+		const handleCommandButtonClick = useCallback(() => {
+			// Focus the textarea first
+			textAreaRef.current?.focus()
+
+			// Clear input and insert /
+			setInputValue("/")
+			const event = {
+				target: {
+					value: "/",
+					selectionStart: 1,
+				},
+			} as React.ChangeEvent<HTMLTextAreaElement>
+			handleInputChange(event)
+			updateHighlights()
+			return
+		}, [inputValue, handleInputChange, updateHighlights])
+
 		// Use an effect to detect menu close
 		useEffect(() => {
 			if (prevShowModelSelector.current && !showModelSelector) {
@@ -1070,27 +1090,37 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			if (!apiConfiguration) return unknownModel
 			switch (selectedProvider) {
 				case "cline":
-					return `${selectedProvider}:${selectedModelId}`
+					// return `${selectedProvider}:${selectedModelId}`
+					return `${selectedModelId}`
 				case "openai":
-					return `openai(c):${selectedModelId}`
+					// return `openai(c):${selectedModelId}`
+					return `${selectedModelId}`
 				case "vscode-lm":
-					return `${apiConfiguration.vsCodeLmModelSelector ? `${apiConfiguration.vsCodeLmModelSelector.vendor ?? ""}/${apiConfiguration.vsCodeLmModelSelector.family ?? ""}` : unknownModel}`
+					// return `${apiConfiguration.vsCodeLmModelSelector ? `${apiConfiguration.vsCodeLmModelSelector.vendor ?? ""}/${apiConfiguration.vsCodeLmModelSelector.family ?? ""}` : unknownModel}`
+					return `${apiConfiguration.vsCodeLmModelSelector ? `${apiConfiguration.vsCodeLmModelSelector.family ?? ""}` : unknownModel}`
 				case "together":
-					return `${selectedProvider}:${apiConfiguration.togetherModelId}`
+					// return `${selectedProvider}:${apiConfiguration.togetherModelId}`
+					return `${apiConfiguration.togetherModelId}`
 				case "fireworks":
-					return `fireworks:${apiConfiguration.fireworksModelId}`
+					// return `fireworks:${apiConfiguration.fireworksModelId}`
+					return `${apiConfiguration.fireworksModelId}`
 				case "lmstudio":
-					return `${selectedProvider}:${apiConfiguration.lmStudioModelId}`
+					// return `${selectedProvider}:${apiConfiguration.lmStudioModelId}`
+					return `${apiConfiguration.lmStudioModelId}`
 				case "ollama":
-					return `${selectedProvider}:${apiConfiguration.ollamaModelId}`
+					// return `${selectedProvider}:${apiConfiguration.ollamaModelId}`
+					return `${apiConfiguration.ollamaModelId}`
 				case "litellm":
-					return `${selectedProvider}:${apiConfiguration.liteLlmModelId}`
+					// return `${selectedProvider}:${apiConfiguration.liteLlmModelId}`
+					return `${apiConfiguration.liteLlmModelId}`
 				case "requesty":
-					return `${selectedProvider}:${apiConfiguration.requestyModelId}`
+					// return `${selectedProvider}:${apiConfiguration.requestyModelId}`
+					return `${apiConfiguration.requestyModelId}`
 				case "anthropic":
 				case "openrouter":
 				default:
-					return `${selectedProvider}:${selectedModelId}`
+					// return `${selectedProvider}:${selectedModelId}`
+					return `${selectedModelId}`
 			}
 		}, [apiConfiguration])
 
@@ -1347,7 +1377,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			<div>
 				<div
 					style={{
-						padding: "10px 15px",
+						padding: "10px 10px",
+						backgroundColor: "var(--vscode-input-background)",
+						marginLeft: "8px",
+						marginRight: "8px",
+						marginBottom: "0px",
+						marginTop: "-2px",
 						opacity: 1,
 						position: "relative",
 						display: "flex",
@@ -1362,10 +1397,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<div
 							style={{
 								position: "absolute",
-								inset: "10px 15px",
+								inset: "10px 8px",
 								backgroundColor: "rgba(var(--vscode-errorForeground-rgb), 0.1)",
-								border: "2px solid var(--vscode-errorForeground)",
-								borderRadius: 2,
+								border: "1px solid var(--vscode-errorForeground)",
+								borderRadius: 5,
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
@@ -1375,7 +1410,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<span
 								style={{
 									color: "var(--vscode-errorForeground)",
-									fontWeight: "bold",
+									//fontWeight: "bold",
 									fontSize: "12px",
 									textAlign: "center",
 								}}>
@@ -1387,10 +1422,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<div
 							style={{
 								position: "absolute",
-								inset: "10px 15px",
+								inset: "10px 8px",
 								backgroundColor: "rgba(var(--vscode-errorForeground-rgb), 0.1)",
-								border: "2px solid var(--vscode-errorForeground)",
-								borderRadius: 2,
+								border: "1px solid var(--vscode-errorForeground)",
+								borderRadius: 5,
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
@@ -1400,7 +1435,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<span
 								style={{
 									color: "var(--vscode-errorForeground)",
-									fontWeight: "bold",
+									//fontWeight: "bold",
 									fontSize: "12px",
 								}}>
 								Only image files are supported
@@ -1440,9 +1475,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<div
 							style={{
 								position: "absolute",
-								inset: "10px 15px",
-								border: "1px solid var(--vscode-input-border)",
-								borderRadius: 2,
+								inset: "10px 7px",
+								//border: "1px solid var(--vscode-input-border)",
+								borderRadius: 5,
 								pointerEvents: "none",
 								zIndex: 5,
 							}}
@@ -1452,9 +1487,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						ref={highlightLayerRef}
 						style={{
 							position: "absolute",
-							top: 10,
-							left: 15,
-							right: 15,
+							top: 11,
+							left: 3,
+							right: 8,
 							bottom: 10,
 							pointerEvents: "none",
 							whiteSpace: "pre-wrap",
@@ -1465,13 +1500,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							fontFamily: "var(--vscode-font-family)",
 							fontSize: "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
-							borderRadius: 2,
+							borderRadius: 5,
 							borderLeft: 0,
 							borderRight: 0,
 							borderTop: 0,
 							borderColor: "transparent",
 							borderBottom: `${thumbnailsHeight + 6}px solid transparent`,
 							padding: "9px 28px 3px 9px",
+							opacity: 0.6,
 						}}
 					/>
 					<DynamicTextArea
@@ -1511,10 +1547,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						style={{
 							width: "100%",
 							boxSizing: "border-box",
+							marginLeft: -3,
+							marginRight: -3,
 							backgroundColor: "transparent",
 							color: "var(--vscode-input-foreground)",
 							//border: "1px solid var(--vscode-input-border)",
-							borderRadius: 2,
+							borderRadius: 5,
 							fontFamily: "var(--vscode-font-family)",
 							fontSize: "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
@@ -1533,7 +1571,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							// borderLeft: "9px solid transparent", // NOTE: react-textarea-autosize doesn't calculate correct height when using borderLeft/borderRight so we need to use horizontal padding instead
 							// Instead of using boxShadow, we use a div with a border to better replicate the behavior when the textarea is focused
 							// boxShadow: "0px 0px 0px 1px var(--vscode-input-border)",
-							padding: "9px 28px 3px 9px",
+							padding: "9px 28px 3px 5px",
 							cursor: "text",
 							flex: 1,
 							zIndex: 1,
@@ -1541,7 +1579,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								isDraggingOver && !showUnsupportedFileError // Only show drag outline if not showing error
 									? "2px dashed var(--vscode-focusBorder)"
 									: isTextAreaFocused
-										? `1px solid ${chatSettings.mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
+										? `0.5px solid ${chatSettings.mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
 										: "none",
 							outlineOffset: isDraggingOver && !showUnsupportedFileError ? "1px" : "0px", // Add offset for drag-over outline
 						}}
@@ -1565,11 +1603,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<div
 						style={{
 							position: "absolute",
-							right: 23,
+							right: 12,
 							display: "flex",
 							alignItems: "flex-center",
 							height: textAreaBaseHeight || 31,
-							bottom: 9.5, // should be 10 but doesn't look good on mac
+							bottom: 10, // should be 10 but doesn't look good on mac
 							zIndex: 2,
 						}}>
 						<div
@@ -1592,20 +1630,24 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							/> */}
 							<div
 								data-testid="send-button"
-								className={`input-icon-button ${sendingDisabled ? "disabled" : ""} codicon codicon-send`}
+								className={`input-icon-button ${sendingDisabled ? "disabled" : ""} codicon codicon-arrow-circle-right`}
 								onClick={() => {
 									if (!sendingDisabled) {
 										setIsTextAreaFocused(false)
 										onSend()
 									}
 								}}
-								style={{ fontSize: 15 }}></div>
+								style={{ fontSize: 22 }}></div>
 						</div>
 					</div>
 				</div>
 
-				<ControlsContainer>
-					<SwitchContainer data-testid="mode-switch" disabled={false} onClick={onModeToggle}>
+				<ControlsContainer style={{ borderRadius: "0 0 10px 10px", backgroundColor: "var(--vscode-input-background)" }}>
+					<SwitchContainer
+						style={{ marginTop: "1px", opacity: 0.8 }}
+						data-testid="mode-switch"
+						disabled={false}
+						onClick={onModeToggle}>
 						<Slider isAct={chatSettings.mode === "act"} isPlan={chatSettings.mode === "plan"} />
 						<SwitchOption
 							isActive={chatSettings.mode === "plan"}
@@ -1627,49 +1669,45 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							appearance="icon"
 							aria-label="Add Context"
 							onClick={handleContextButtonClick}
-							style={{ marginLeft: "3px", padding: "0px 0px", height: "20px" }}>
-							<ButtonContainer>
+							style={{ marginLeft: "2px", padding: "0px 0px", height: "20px" }}>
+							<ButtonContainer style={{ opacity: 0.7 }}>
 								<span className="flex items-center" style={{ fontSize: "15px", marginBottom: 1 }}>
 									@
 								</span>
 							</ButtonContainer>
 						</VSCodeButton>
-
 						<VSCodeButton
-							data-testid="images-button"
+							data-testid="command-button"
 							appearance="icon"
-							aria-label="Add Images"
-							disabled={shouldDisableImages}
-							onClick={() => {
-								if (!shouldDisableImages) {
-									onSelectImages()
-								}
-							}}
-							style={{ padding: "0px 0px", height: "20px" }}>
+							aria-label="Commands"
+							onClick={handleCommandButtonClick}
+							style={{ opacity: 0.7, marginLeft: "-2px", marginTop: "0px", height: "20px" }}>
 							<ButtonContainer>
 								<span
-									className="codicon codicon-device-camera flex items-center"
-									style={{ fontSize: "16px", marginTop: "3px" }}
+									className="codicon codicon-terminal flex items-center"
+									style={{ fontSize: "15px", marginTop: "2px" }}
 								/>
 							</ButtonContainer>
 						</VSCodeButton>
+
 						<ServersToggleModal />
+
 						<ClineRulesToggleModal />
 
 						<ModelContainer ref={modelSelectorRef}>
 							<div
 								className="codicon codicon-sparkle-filled"
 								style={{
-									fontSize: "16px",
+									fontSize: "13px",
 									color: "var(--vscode-focusBorder)",
-									marginLeft: "3px",
-									marginTop: "4px",
+									marginLeft: "0px",
+									marginTop: "6px",
 									opacity: 0.7,
 								}}
 							/>
 							<ModelButtonWrapper ref={buttonRef}>
 								<ModelDisplayButton
-									style={{ fontSize: "11px", marginTop: "1px", marginLeft: "3px" }}
+									style={{ fontSize: "11px", marginTop: "2px", marginLeft: "3px" }}
 									role="button"
 									isActive={showModelSelector}
 									disabled={false}
@@ -1694,6 +1732,24 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</ModelSelectorTooltip>
 							)}
 						</ModelContainer>
+						<VSCodeButton
+							data-testid="images-button"
+							appearance="icon"
+							aria-label="Add Images"
+							disabled={shouldDisableImages}
+							onClick={() => {
+								if (!shouldDisableImages) {
+									onSelectImages()
+								}
+							}}
+							style={{ marginLeft: "0px", height: "20px" }}>
+							<ButtonContainer>
+								<span
+									className="codicon codicon-device-camera flex items-center"
+									style={{ opacity: 0.7, fontSize: "17px", marginTop: "2px" }}
+								/>
+							</ButtonContainer>
+						</VSCodeButton>
 					</ButtonGroup>
 				</ControlsContainer>
 			</div>

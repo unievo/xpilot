@@ -49,9 +49,9 @@ import { repoUrl, xUrl, discordUrl, agentName } from "@shared/Configuration"
 // Styles for the tab system
 const settingsTabsContainer = "flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden"
 const settingsTabList =
-	"w-48 data-[compact=true]:w-12 flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden border-r border-[var(--vscode-sideBar-background)]"
+	"w-48 data-[compact=true]:w-9 flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden border-r border-[var(--vscode-sideBar-background)]"
 const settingsTabTrigger =
-	"whitespace-nowrap overflow-hidden min-w-0 h-12 px-4 py-3 box-border flex items-center border-l-2 border-transparent text-[var(--vscode-foreground)] opacity-70 bg-transparent hover:bg-[var(--vscode-list-hoverBackground)] data-[compact=true]:w-12 data-[compact=true]:p-4 cursor-pointer"
+	"whitespace-nowrap overflow-hidden min-w-0 h-9 px-4 py-3 box-border flex items-center border-l-2 border-transparent text-[var(--vscode-foreground)] opacity-70 bg-transparent hover:bg-[var(--vscode-list-hoverBackground)] data-[compact=true]:w-12 data-[compact=true]:p-2.5 cursor-pointer"
 const settingsTabTriggerActive =
 	"opacity-100 border-l-2 border-l-[var(--vscode-focusBorder)] border-t-0 border-r-0 border-b-0 bg-[var(--vscode-list-activeSelectionBackground)]"
 
@@ -64,7 +64,7 @@ interface SettingsTab {
 	icon: LucideIcon
 }
 
-export const SETTINGS_TABS: SettingsTab[] = [
+const SETTINGS_TABS: SettingsTab[] = [
 	{
 		id: "api-config",
 		name: "API Configuration",
@@ -367,6 +367,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 	const handleResetState = async () => {
 		try {
 			await StateServiceClient.resetState({})
+			localStorage.clear()
 		} catch (error) {
 			console.error("Failed to reset state:", error)
 		}
@@ -514,7 +515,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 					}
 
 					return (
-						<TabContent className="flex-1 overflow-auto">
+						<TabContent className="-ml-5 pl-3 flex-1 overflow-auto">
 							{/* API Configuration Tab */}
 							{activeTab === "api-config" && (
 								<div>

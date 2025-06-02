@@ -87,24 +87,24 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 	return (
 		<div ref={modalRef}>
 			<div
-				className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-3 rounded z-[1000] overflow-y-auto"
+				className="fixed left-[12px] right-[12px] border border-[var(--vscode-editorGroup-border)] p-2.5 rounded z-[1000] overflow-y-auto"
 				style={{
 					bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-					background: CODE_BLOCK_BG_COLOR,
+					background: "var(--vscode-input-background)",
 					maxHeight: "calc(100vh - 100px)",
 					overscrollBehavior: "contain",
 				}}>
-				<div
+				{/* <div
 					className="fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[var(--vscode-editorGroup-border)]"
 					style={{
 						bottom: `calc(100vh - ${menuPosition}px)`,
 						right: arrowPosition,
-						background: CODE_BLOCK_BG_COLOR,
+						background: "var(--vscode-input-background)",
 					}}
-				/>
+				/> */}
 
 				<div className="flex justify-between items-center mb-3">
-					<div className="m-0 text-base font-semibold">Settings</div>
+					<div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div>
 					<VSCodeButton appearance="icon" onClick={() => setIsVisible(false)}>
 						<span className="codicon codicon-close text-[10px]"></span>
 					</VSCodeButton>
@@ -114,13 +114,13 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 					content="Auto-approve allows performing the following actions without asking for permission. Please use with caution and only enable if you understand the risks."
 					placement="top">
 					<div className="mb-3">
-						<span className="text-[color:var(--vscode-foreground)] font-medium">Auto-approve actions:</span>
+						<div className="text-[color:var(--vscode-foreground)] font-medium">Auto-approve actions</div>
 					</div>
 				</HeroTooltip>
 
 				<div
 					ref={itemsContainerRef}
-					className="relative mb-6"
+					className="relative mb-3"
 					style={{
 						columnCount: containerWidth > breakpoint ? 2 : 1,
 						columnGap: "4px",
@@ -150,7 +150,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				</div>
 
 				<div className="mb-2.5">
-					<span className="text-[color:var(--vscode-foreground)] font-medium">Quick Settings:</span>
+					<span className="text-[color:var(--vscode-foreground)] font-medium">Quick Settings</span>
 				</div>
 
 				<AutoApproveMenuItem
@@ -165,28 +165,32 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				<HeroTooltip
 					content={`${agentName} will automatically make this many API requests before asking for approval to proceed with the task.`}
 					placement="top">
-					<div className="flex items-center pl-1.5 my-2">
+					<div className="flex items-center pl-1.5 my-0">
 						<span className="codicon codicon-settings text-[#CCCCCC] text-[14px]" />
 						<span className="text-[#CCCCCC] text-xs font-medium ml-2">Max Requests:</span>
-						<VSCodeTextField
-							className="flex-1 w-full pr-[35px] ml-4"
-							value={autoApprovalSettings.maxRequests.toString()}
-							onInput={async (e) => {
-								const input = e.target as HTMLInputElement
-								// Remove any non-numeric characters
-								input.value = input.value.replace(/[^0-9]/g, "")
-								const value = parseInt(input.value)
-								if (!isNaN(value) && value > 0) {
-									await updateMaxRequests(value)
-								}
-							}}
-							onKeyDown={(e) => {
-								// Prevent non-numeric keys (except for backspace, delete, arrows)
-								if (!/^\d$/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-									e.preventDefault()
-								}
-							}}
-						/>
+						<span className="max-w-10 ml-1">
+							<VSCodeTextField
+								value={autoApprovalSettings.maxRequests.toString()}
+								onInput={async (e) => {
+									const input = e.target as HTMLInputElement
+									// Remove any non-numeric characters
+									input.value = input.value.replace(/[^0-9]/g, "")
+									const value = parseInt(input.value)
+									if (!isNaN(value) && value > 0) {
+										await updateMaxRequests(value)
+									}
+								}}
+								onKeyDown={(e) => {
+									// Prevent non-numeric keys (except for backspace, delete, arrows)
+									if (
+										!/^\d$/.test(e.key) &&
+										!["Backspace", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)
+									) {
+										e.preventDefault()
+									}
+								}}
+							/>
+						</span>
 					</div>
 				</HeroTooltip>
 			</div>

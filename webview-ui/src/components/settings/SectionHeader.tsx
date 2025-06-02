@@ -12,7 +12,7 @@ export const SectionHeader = ({ description, children, className, ...props }: Se
 	return (
 		<div
 			className={cn(
-				`sticky top-0 text-[var(--vscode-foreground)] bg-[var(--vscode-panel-background)] px-5 py-3`,
+				`sticky top-0 text-[var(--vscode-foreground)] bg-[var(--vscode-panel-background)] ml-2 px-3 py-1.5`,
 				className,
 			)}
 			{...props}

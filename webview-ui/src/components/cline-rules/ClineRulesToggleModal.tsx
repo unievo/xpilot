@@ -171,16 +171,16 @@ const ClineRulesToggleModal: React.FC = () => {
 
 	return (
 		<div ref={modalRef}>
-			<div ref={buttonRef} className="inline-flex min-w-0 max-w-full">
+			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
 				<VSCodeButton
 					appearance="icon"
 					aria-label={`${agentName} Instructions`}
 					onClick={() => setIsVisible(!isVisible)}
-					style={{ padding: "0px 0px", height: "20px" }}>
+					style={{ marginLeft: "-3px", height: "20px" }}>
 					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 						<span
 							className="codicon codicon-folder-active flex items-center"
-							style={{ fontSize: "15px", marginBottom: 1 }}
+							style={{ fontSize: "16px", marginBottom: 1 }}
 						/>
 					</div>
 				</VSCodeButton>
@@ -229,21 +229,17 @@ const ClineRulesToggleModal: React.FC = () => {
 					{/* Description text */}
 					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
 						{currentView === "rules" ? (
-							<p>
-								Instructions allow you to specify information to follow when executing tasks. Global instructions
-								can be applied to all workspaces, while workspace instructions are specific to the current
-								workspace.
-							</p>
+							<p>Instructions allow you to specify custom information for executing tasks.</p>
 						) : (
 							<p>
-								Workflows allow you to define a series of steps for guidance through a task. To invoke a workflow,
-								type{" "}
+								Workflows allow you to define a series of steps to be executed in a task. To invoke a workflow,
+								type "
 								<span
 									className=" 
 								text-[var(--vscode-foreground)] font-bold">
-									/workflow-name
-								</span>{" "}
-								in the chat.{" "}
+									/
+								</span>
+								" in the chat.{" "}
 							</p>
 						)}
 					</div>
@@ -254,7 +250,7 @@ const ClineRulesToggleModal: React.FC = () => {
 							<div className="mb-3">
 								<div className="text-sm font-normal mb-2">Global</div>
 								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
-									<p>Instructions are applied to all workspaces.</p>
+									<p>Instructions apply to any workspace.</p>
 								</div>
 								<RulesToggleList
 									rules={globalRules}
@@ -271,7 +267,7 @@ const ClineRulesToggleModal: React.FC = () => {
 							<div style={{ marginBottom: -10 }}>
 								<div className="text-sm font-normal mb-2">Workspace</div>
 								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
-									<p>Instructions are applied to the current workspace.</p>
+									<p>Instructions apply to the current workspace.</p>
 								</div>
 								<RulesToggleList
 									rules={localRules}
@@ -307,10 +303,10 @@ const ClineRulesToggleModal: React.FC = () => {
 					) : (
 						<>
 							{/* Global Workflows Section */}
-							<div className="mb-3">
+							<div className="mb-1">
 								<div className="text-sm font-normal mb-2">Global</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
-									<p>Workflows are applied to all workspaces.</p>
+								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-1">
+									<p>Workflows can be invoked in any workspace.</p>
 								</div>
 								<RulesToggleList
 									rules={globalWorkflows}
@@ -327,7 +323,7 @@ const ClineRulesToggleModal: React.FC = () => {
 							<div style={{ marginBottom: -10 }}>
 								<div className="text-sm font-normal mb-2">Workspace</div>
 								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
-									<p>Workflows are applied to current workspace.</p>
+									<p>Workflows can be invoked in the current workspace.</p>
 								</div>
 								<RulesToggleList
 									rules={localWorkflows}

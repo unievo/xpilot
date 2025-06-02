@@ -39,21 +39,16 @@ const WelcomeView = memo(() => {
 				<h2 className="flex justify-center my-5">Hi, I am {agentName}!</h2>
 				<p>I'm an AI software engineering agent.</p>
 				<p>
-					I can use AI models to plan and execute many tasks and I'm able to access external tools and data using the
-					Model Context Protocol.
+					I can work with different AI models to plan and execute tasks. I achieve the best results with models trained
+					for coding and tool use such as Claude Sonnet.
 				</p>
 				<p>
-					I can work with different models and I achieve the best results with models trained for coding and tool use,
-					such as Claude Sonnet.
-				</p>
-				<p>To access a model I need to use a provider.</p>
-				<p>
-					I can use many different providers and you can also bring your own API key. Or you can sign up with Open
-					Router or Cline.
+					To access an AI model I need to use an AI provider. I can use many different providers and you can also bring
+					your own API key if you already have one. Or you can sign up with Open Router or Cline, from the providers
+					list.
 				</p>
 				<p>
-					{" "}
-					I can also use supported models in VS Code, or any VS Code based IDE. You can set up{" "}
+					I can also use supported models in VS Code, or any VS Code based IDE. The easiest way is to set up{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						Copilot
 					</VSCodeLink>{" "}
@@ -61,8 +56,8 @@ const WelcomeView = memo(() => {
 					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
 						enable
 					</VSCodeLink>{" "}
-					the Copilot models. I can use them without another API key or subscription, by selecting VS Code from the AI
-					API providers list.
+					the Copilot models. I can use them without another API key or subscription. After setting up Copilot, select
+					VS Code from the providers list.
 				</p>
 				<p></p>
 
@@ -80,7 +75,7 @@ const WelcomeView = memo(() => {
 						appearance="primary"
 						onClick={() => setShowApiOptions(!showApiOptions)}
 						className="mt-2.5 w-full">
-						Select an AI API provider
+						Select an AI provider
 					</VSCodeButton>
 				)}
 

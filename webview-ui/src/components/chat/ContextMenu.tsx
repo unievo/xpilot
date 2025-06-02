@@ -168,10 +168,12 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 		<div
 			style={{
 				position: "absolute",
-				bottom: "calc(100% - 10px)",
-				left: 15,
-				right: 15,
+				bottom: "calc(100% - 15px)",
+				left: 7,
+				right: 7,
+				fontSize: "0.95em",
 				overflowX: "hidden",
+				zIndex: 1001,
 			}}
 			onMouseDown={onMouseDown}>
 			<div
@@ -184,7 +186,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 					zIndex: 1000,
 					display: "flex",
 					flexDirection: "column",
-					maxHeight: "200px",
+					maxHeight: "600px",
 					overflowY: "auto",
 				}}>
 				{/* Can't use virtuoso since it requires fixed height and menu height is dynamic based on # of items */}
@@ -206,13 +208,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						key={`${option.type}-${option.value || index}`}
 						onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
 						style={{
-							padding: "8px 12px",
+							padding: "3px 3px",
+							fontSize: "0.95em",
 							cursor: isOptionSelectable(option) ? "pointer" : "default",
 							color:
 								index === selectedIndex && isOptionSelectable(option)
 									? "var(--vscode-quickInputList-focusForeground)"
 									: "",
-							borderBottom: "1px solid var(--vscode-editorGroup-border)",
+							//borderBottom: "1px solid var(--vscode-editorGroup-border)",
 							display: "flex",
 							alignItems: "center",
 							justifyContent: "space-between",

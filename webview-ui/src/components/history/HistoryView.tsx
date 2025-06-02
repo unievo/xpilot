@@ -31,12 +31,12 @@ const CustomFilterRadio = ({ checked, onChange, icon, label }: CustomFilterRadio
 	return (
 		<div
 			onClick={onChange}
-			className="flex items-center cursor-pointer py-[0.3em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none">
+			className="scale-90 flex items-center cursor-pointer py-[0em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none">
 			<div
-				className={`w-[14px] h-[14px] rounded-full border border-[var(--vscode-checkbox-border)] relative flex justify-center items-center mr-[6px] ${
+				className={`w-[14px] h-[14px] border border-[var(--vscode-checkbox-border)] relative flex justify-center items-center mr-[6px] ${
 					checked ? "bg-[var(--vscode-checkbox-background)]" : "bg-transparent"
 				}`}>
-				{checked && <div className="w-[6px] h-[6px] rounded-full bg-[var(--vscode-checkbox-foreground)]" />}
+				{checked && <div className="w-[6px] h-[6px] bg-[var(--vscode-checkbox-foreground)]" />}
 			</div>
 			<span className="flex items-center gap-[3px]">
 				<div className={`codicon codicon-${icon} text-[var(--vscode-button-background)] text-base`} />
@@ -186,6 +186,21 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		//.toUpperCase()
 	}, [])
 
+	const formatTime = (timestamp: number) => {
+		const now = Date.now()
+		const diffMs = Math.max(now - timestamp, 0)
+		const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+		if (diffDays >= 1) {
+			return `${diffDays}d`
+		}
+		const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+		if (diffHours >= 1) {
+			return `${diffHours}h`
+		}
+		const diffMinutes = Math.floor(diffMs / (1000 * 60))
+		return `${diffMinutes}m`
+	}
+
 	const presentableTasks = useMemo(() => filteredTasks, [filteredTasks])
 
 	const fuse = useMemo(() => {
@@ -251,8 +266,22 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		<>
 			<style>
 				{`
+					.history-item {
+						background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 65%, transparent);
+						border-radius: 8px;
+						position: relative;
+						overflow: hidden;
+						cursor: pointer;
+						margin-top: 0px;
+						margin-bottom: 5px;
+						margin-right: 10px;
+						margin-left: 15px;
+
+					}
 					.history-item:hover {
-						background-color: var(--vscode-list-hoverBackground);
+						background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 100%, transparent);
+						opacity: 1;
+						pointer-events: auto;
 					}
 					.delete-button, .export-button {
 						opacity: 0;
@@ -292,7 +321,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							color: "var(--vscode-foreground)",
 							margin: 0,
 						}}>
-						History
+						Task History
 					</h3>
 					<VSCodeButton onClick={onDone}>Done</VSCodeButton>
 				</div>
@@ -305,7 +334,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						}}>
 						<VSCodeTextField
 							style={{ width: "100%" }}
-							placeholder="Fuzzy search history..."
+							placeholder="Search history..."
 							value={searchQuery}
 							onInput={(e) => {
 								const newValue = (e.target as HTMLInputElement)?.value
@@ -342,35 +371,53 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							style={{ display: "flex", flexWrap: "wrap" }}
 							value={sortOption}
 							onChange={(e) => setSortOption((e.target as HTMLInputElement).value as SortOption)}>
-							<VSCodeRadio value="newest">Newest</VSCodeRadio>
-							<VSCodeRadio value="oldest">Oldest</VSCodeRadio>
-							<VSCodeRadio value="mostExpensive">Most Expensive</VSCodeRadio>
-							<VSCodeRadio value="mostTokens">Most Tokens</VSCodeRadio>
-							<VSCodeRadio value="mostRelevant" disabled={!searchQuery} style={{ opacity: searchQuery ? 1 : 0.5 }}>
+							<VSCodeRadio style={{ scale: "0.9" }} value="newest">
+								Newest
+							</VSCodeRadio>
+							<VSCodeRadio style={{ scale: "0.9" }} value="oldest">
+								Oldest
+							</VSCodeRadio>
+							<VSCodeRadio style={{ scale: "0.9" }} value="mostExpensive">
+								Most Expensive
+							</VSCodeRadio>
+							<VSCodeRadio style={{ scale: "0.9" }} value="mostTokens">
+								Most Tokens
+							</VSCodeRadio>
+							<VSCodeRadio
+								style={{ scale: "0.9", opacity: searchQuery ? 1 : 0.5 }}
+								value="mostRelevant"
+								disabled={!searchQuery}>
 								Most Relevant
 							</VSCodeRadio>
+						</VSCodeRadioGroup>
+						<div
+							style={{
+								display: "flex",
+								flexWrap: "wrap",
+							}}>
 							<CustomFilterRadio
 								checked={showCurrentWorkspaceOnly}
 								onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
-								icon="workspace"
+								icon=""
 								label="Workspace"
 							/>
 							<CustomFilterRadio
 								checked={showFavoritesOnly}
 								onChange={() => setShowFavoritesOnly(!showFavoritesOnly)}
-								icon="star-full"
+								icon=""
 								label="Favorites"
 							/>
-						</VSCodeRadioGroup>
-
-						<div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+						</div>
+						<div style={{ display: "flex", justifyContent: "flex-end", gap: "0px" }}>
 							<VSCodeButton
+								style={{ scale: "0.8" }}
 								onClick={() => {
 									handleBatchHistorySelect(true)
 								}}>
 								Select All
 							</VSCodeButton>
 							<VSCodeButton
+								style={{ scale: "0.8" }}
 								onClick={() => {
 									handleBatchHistorySelect(false)
 								}}>
@@ -407,27 +454,18 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								key={item.id}
 								className="history-item"
 								style={{
+									borderColor: selectedItems.includes(item.id) ? "var(--vscode-focusBorder)" : undefined,
+									border: selectedItems.includes(item.id) ? "0.5px dotted" : undefined,
 									cursor: "pointer",
-									borderBottom:
-										index < taskHistory.length - 1 ? "1px solid var(--vscode-dropdown-border)" : "none",
 									display: "flex",
 								}}>
-								<VSCodeCheckbox
-									className="pl-3 pr-1 py-auto"
-									checked={selectedItems.includes(item.id)}
-									onClick={(e) => {
-										const checked = (e.target as HTMLInputElement).checked
-										handleHistorySelect(item.id, checked)
-										e.stopPropagation()
-									}}
-								/>
 								<div
 									style={{
+										overflow: "auto",
 										display: "flex",
 										flexDirection: "column",
-										gap: "4px",
-										padding: "3px 10px",
-										paddingLeft: "12px",
+										gap: "0px",
+										padding: "3px 5px 3px 8px",
 										position: "relative",
 										flexGrow: 1,
 									}}
@@ -435,18 +473,34 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									<div
 										style={{
 											display: "flex",
-											justifyContent: "space-between",
 											alignItems: "center",
+											gap: "8px",
 										}}>
-										<span
+										<VSCodeCheckbox
+											style={{ scale: "0.9" }}
+											className="pl-0 pr-0 py-auto"
+											checked={selectedItems.includes(item.id)}
+											onClick={(e) => {
+												const checked = (e.target as HTMLInputElement).checked
+												handleHistorySelect(item.id, checked)
+												e.stopPropagation()
+											}}
+										/>
+										<div
 											style={{
 												color: "var(--vscode-descriptionForeground)",
-												fontWeight: 500,
+												opacity: 0.7,
+												fontWeight: 400,
 												fontSize: "0.9em",
-												//textTransform: "uppercase",
+												flex: 1,
+												overflow: "hidden",
+												textOverflow: "ellipsis",
+												whiteSpace: "nowrap",
 											}}>
+											<span>{formatTime(item.ts)}</span>
+											{" - "}
 											{formatDate(item.ts)}
-										</span>
+										</div>
 										<div style={{ display: "flex", gap: "4px" }}>
 											{/* only show delete button if task not favorited */}
 											{!(pendingFavoriteToggles[item.id] ?? item.isFavorited) && (
@@ -463,9 +517,11 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 															display: "flex",
 															alignItems: "center",
 															gap: "3px",
-															fontSize: "11px",
+															fontSize: "10px",
 														}}>
-														<span className="codicon codicon-trash"></span>
+														<span
+															className="codicon codicon-trash"
+															style={{ fontSize: "13px" }}></span>
 														{formatSize(item.size)}
 													</div>
 												</VSCodeButton>
@@ -476,7 +532,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 													e.stopPropagation()
 													toggleFavorite(item.id, item.isFavorited || false)
 												}}
-												style={{ padding: "0px" }}>
+												style={{ padding: "0px", marginTop: "-2px" }}>
 												<div
 													className={`codicon ${
 														pendingFavoriteToggles[item.id] !== undefined
@@ -497,6 +553,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 															(pendingFavoriteToggles[item.id] ?? item.isFavorited)
 																? "block"
 																: undefined,
+														fontSize: "13px",
 													}}
 												/>
 											</VSCodeButton>
@@ -506,10 +563,13 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									<div style={{ marginBottom: "8px", position: "relative" }}>
 										<div
 											style={{
-												fontSize: "var(--vscode-font-size)",
+												fontSize: "13px",
+												fontWeight: 500,
+												opacity: 0.8,
+												marginBottom: "4px",
 												color: "var(--vscode-foreground)",
 												display: "-webkit-box",
-												WebkitLineClamp: 3,
+												WebkitLineClamp: 2,
 												WebkitBoxOrient: "vertical",
 												overflow: "hidden",
 												whiteSpace: "pre-wrap",
@@ -529,12 +589,15 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 											display: "flex",
 											flexDirection: "column",
 											gap: "4px",
+											marginTop: "-6px",
 										}}>
 										<div
 											style={{
 												display: "flex",
 												justifyContent: "space-between",
 												alignItems: "center",
+												opacity: 0.7,
+												overflow: "hidden",
 											}}>
 											<div
 												style={{
@@ -542,6 +605,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 													alignItems: "center",
 													gap: "4px",
 													flexWrap: "wrap",
+													fontSize: "0.9em",
 												}}>
 												<span
 													style={{
@@ -595,6 +659,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 													alignItems: "center",
 													gap: "4px",
 													flexWrap: "wrap",
+													fontSize: "0.9em",
+													opacity: 0.7,
 												}}>
 												<span
 													style={{
@@ -646,6 +712,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 													justifyContent: "space-between",
 													alignItems: "center",
 													marginTop: -2,
+													fontSize: "0.9em",
+													opacity: 0.7,
 												}}>
 												<div
 													style={{
@@ -658,7 +726,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 															fontWeight: 500,
 															color: "var(--vscode-descriptionForeground)",
 														}}>
-														API Cost:
+														Cost:
 													</span>
 													<span
 														style={{
@@ -678,8 +746,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 				</div>
 				<div
 					style={{
-						padding: "10px 10px",
-						borderTop: "1px solid var(--vscode-panel-border)",
+						padding: "5px 20px 10px 10px",
+						//borderTop: "1px solid var(--vscode-panel-border)",
 					}}>
 					{selectedItems.length > 0 ? (
 						<DangerButton
@@ -720,7 +788,7 @@ const ExportButton = ({ itemId }: { itemId: string }) => (
 )
 
 // https://gist.github.com/evenfrost/1ba123656ded32fb7a0cd4651efd4db0
-export const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
+const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
 	const set = (obj: Record<string, any>, path: string, value: any) => {
 		const pathValue = path.split(".")
 		let i: number

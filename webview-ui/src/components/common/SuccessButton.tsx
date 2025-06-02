@@ -6,6 +6,7 @@ const SuccessButtonTW: React.FC<SuccessButtonTWProps> = (props) => {
 	return (
 		<VSCodeButton
 			{...props}
+			appearance="icon"
 			className={`
 				!bg-[#176f2c] 
 				!border-[#176f2c] 
