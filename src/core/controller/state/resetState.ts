@@ -11,7 +11,7 @@ import * as vscode from "vscode"
  */
 export async function resetState(controller: Controller, request: EmptyRequest): Promise<Empty> {
 	try {
-		vscode.window.showInformationMessage("Resetting state...")
+		//vscode.window.showInformationMessage("Resetting state...")
 		await resetExtensionState(controller.context)
 
 		if (controller.task) {

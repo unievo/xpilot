@@ -472,13 +472,13 @@ export class Task {
 
 			switch (restoreType) {
 				case "task":
-					vscode.window.showInformationMessage("Task messages have been restored to the checkpoint")
+					// vscode.window.showInformationMessage("Task messages have been restored to the checkpoint")
 					break
 				case "workspace":
-					vscode.window.showInformationMessage("Workspace files have been restored to the checkpoint")
+					// vscode.window.showInformationMessage("Workspace files have been restored to the checkpoint")
 					break
 				case "taskAndWorkspace":
-					vscode.window.showInformationMessage("Task and workspace have been restored to the checkpoint")
+					// vscode.window.showInformationMessage("Task and workspace have been restored to the checkpoint")
 					break
 			}
 

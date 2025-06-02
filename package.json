@@ -164,22 +164,22 @@
 					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "astro.mcpButtonClicked",
+					"command": "astro.historyButtonClicked",
 					"group": "navigation@2",
 					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "astro.historyButtonClicked",
+					"command": "astro.mcpButtonClicked",
 					"group": "navigation@3",
 					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "astro.popoutButtonClicked",
+					"command": "astro.settingsButtonClicked",
 					"group": "navigation@4",
 					"when": "view == astro.SidebarProvider"
 				},
 				{
-					"command": "astro.settingsButtonClicked",
+					"command": "astro.popoutButtonClicked",
 					"group": "navigation@5",
 					"when": "view == astro.SidebarProvider"
 				}

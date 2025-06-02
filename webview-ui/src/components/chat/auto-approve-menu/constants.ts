@@ -4,18 +4,18 @@ import { ActionMetadata } from "./types"
 export const ACTION_METADATA: ActionMetadata[] = [
 	{
 		id: "enableAutoApprove",
-		label: "Enable auto-approve",
+		label: "Enable actions",
 		shortName: "Enabled",
 		description: "Toggle the auto-approve feature on or off.",
 		icon: "codicon-play-circle",
 	},
-	{
-		id: "enableAll",
-		label: "Toggle all",
-		shortName: "All",
-		description: "Toggle all actions on or off.",
-		icon: "codicon-checklist",
-	},
+	// {
+	// 	id: "enableAll",
+	// 	label: "Toggle all",
+	// 	shortName: "All",
+	// 	description: "Toggle all actions on or off.",
+	// 	icon: "codicon-checklist",
+	// },
 	{
 		id: "readFiles",
 		label: "Read project files",
@@ -25,7 +25,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		subAction: {
 			id: "readFilesExternally",
 			label: "Read all files",
-			shortName: "Read (all)",
+			shortName: "all",
 			description: `Allows ${agentName} to read any file on your computer.`,
 			icon: "codicon-folder-opened",
 			parentActionId: "readFiles",
@@ -40,7 +40,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		subAction: {
 			id: "editFilesExternally",
 			label: "Edit all files",
-			shortName: "Edit (all)",
+			shortName: "all",
 			description: `Allows ${agentName} to modify any file on your computer.`,
 			icon: "codicon-files",
 			parentActionId: "editFiles",
@@ -49,13 +49,13 @@ export const ACTION_METADATA: ActionMetadata[] = [
 	{
 		id: "executeSafeCommands",
 		label: "Execute safe commands",
-		shortName: "Safe Commands",
+		shortName: "Cmds",
 		description: `Allows ${agentName} to execute safe terminal commands. If the model determines a command is potentially destructive, it will still require approval.`,
 		icon: "codicon-terminal",
 		subAction: {
 			id: "executeAllCommands",
 			label: "Execute all commands",
-			shortName: "All Commands",
+			shortName: "all",
 			description: `Allows ${agentName} to execute all terminal commands. Use at your own risk.`,
 			icon: "codicon-terminal-bash",
 			parentActionId: "executeSafeCommands",
@@ -64,7 +64,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 	{
 		id: "useBrowser",
 		label: "Use the browser",
-		shortName: "Browser",
+		shortName: "Browse",
 		description: `Allows ${agentName} to launch and interact with any website in a browser.`,
 		icon: "codicon-globe",
 	},
@@ -80,7 +80,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 export const NOTIFICATIONS_SETTING: ActionMetadata = {
 	id: "enableNotifications",
 	label: "Enable notifications",
-	shortName: "Notifications",
+	shortName: "Notify",
 	description: `Receive system notifications when ${agentName} requires approval to proceed or when a task is completed.`,
 	icon: "codicon-bell",
 }

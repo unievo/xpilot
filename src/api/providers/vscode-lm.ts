@@ -605,7 +605,12 @@ export class VsCodeLmHandler implements ApiHandler, SingleCompletionHandler {
 		return {
 			id: fallbackId,
 			info: {
-				...openAiModelInfoSaneDefaults,
+				maxTokens: -1,
+				contextWindow: 128_000,
+				supportsImages: false,
+				supportsPromptCache: false,
+				inputPrice: 0,
+				outputPrice: 0,
 				description: `VSCode Language Model (Fallback): ${fallbackId}`,
 			},
 		}
