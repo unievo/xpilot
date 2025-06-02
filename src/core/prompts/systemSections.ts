@@ -13,17 +13,17 @@ import { GuidelinesPrompt } from "./sections/Guidelines"
 
 export const SYSTEM_PROMPT = async (
 	cwd: string,
-	supportsComputerUse: boolean,
+	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `${InitialisationPrompt()}
-${await SystemInformationPrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await ToolUsePrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await EditingFilesPrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await ActModePlanModePrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await CapabilitiesPrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await RulesPrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await ObjectivesPrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await McpServerUsePrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
-${await GuidelinesPrompt(cwd, supportsComputerUse, mcpHub, browserSettings)}
+${await SystemInformationPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await ToolUsePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await EditingFilesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await ActModePlanModePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await CapabilitiesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await RulesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await ObjectivesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await McpServerUsePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
+${await GuidelinesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 `
