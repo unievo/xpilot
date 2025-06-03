@@ -105,11 +105,11 @@ const HomeHeader = () => {
 								style={{
 									fontSize: "12px",
 									lineHeight: "15px",
-									marginLeft: "5px",
+									marginLeft: "15px",
 									marginRight: "15px",
 									opacity: 0.9,
 								}}>
-								<div style={{ marginLeft: -5, marginBottom: 10 }}>
+								<div style={{ marginLeft: "-10px", marginBottom: "10px" }}>
 									<strong>{agentName}</strong> can help with many tasks. This is a high level overview of how to
 									use it:
 								</div>

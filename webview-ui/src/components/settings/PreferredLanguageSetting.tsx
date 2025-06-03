@@ -46,7 +46,7 @@ const PreferredLanguageSetting: React.FC<PreferredLanguageSettingProps> = ({ cha
 				<VSCodeOption value="Turkish - Türkçe">Turkish - Türkçe</VSCodeOption>
 			</VSCodeDropdown>
 			<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-				The language that ${agentName} should use for communication.
+				The language that {agentName} should use for communication.
 			</p>
 		</div>
 	)
