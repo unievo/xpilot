@@ -1,5 +1,5 @@
 import path from "path"
-import { ensureRulesDirectoryExists, GlobalFileNames } from "@core/storage/disk"
+import { ensureGlobalInstructionsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
 import { fileExistsAtPath, isDirectory, readDirectory } from "@utils/fs"
 import { formatResponse } from "@core/prompts/responses"
 import fs from "fs/promises"
@@ -87,7 +87,7 @@ export async function refreshClineRulesToggles(
 }> {
 	// Global toggles
 	const globalClineRulesToggles = ((await getGlobalState(context, "globalClineRulesToggles")) as ClineRulesToggles) || {}
-	const globalClineRulesFilePath = await ensureRulesDirectoryExists()
+	const globalClineRulesFilePath = await ensureGlobalInstructionsDirectoryExists()
 	const updatedGlobalToggles = await synchronizeRuleToggles(
 		globalClineRulesFilePath,
 		globalClineRulesToggles,

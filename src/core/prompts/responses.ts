@@ -2,7 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
-import { ignoreFile, instructionsDirectory } from "../../shared/Configuration"
+import { ignoreFile, workspaceInstructionsDirectoryPath } from "../../shared/Configuration"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
@@ -206,16 +206,16 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`Tool [${toolName}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
 
 	clineIgnoreInstructions: (content: string) =>
-		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsDirectory}`,
+		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${workspaceInstructionsDirectoryPath}`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
 		`# Global instructions\n\nThe following is provided by a global instructions directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions\n\nThe following content is from instruction files in the root-level ./${instructionsDirectory}/ directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions\n\nThe following content is from instruction files in the root-level ./${workspaceInstructionsDirectoryPath}/ directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# ${instructionsDirectory}\n\nThe following is provided by a root-level ${instructionsDirectory} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# ${workspaceInstructionsDirectoryPath}\n\nThe following is provided by a root-level ${workspaceInstructionsDirectoryPath} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
 		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,

@@ -1,5 +1,5 @@
 import path from "path"
-import { GlobalFileNames, ensureWorkflowsDirectoryExists } from "@core/storage/disk"
+import { GlobalFileNames, ensureGlobalWorkflowsDirectoryExists } from "@core/storage/disk"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import { getWorkspaceState, updateWorkspaceState, getGlobalState, updateGlobalState } from "@core/storage/state"
 import * as vscode from "vscode"
@@ -17,7 +17,7 @@ export async function refreshWorkflowToggles(
 }> {
 	// Global workflows
 	const globalWorkflowToggles = ((await getGlobalState(context, "globalWorkflowToggles")) as ClineRulesToggles) || {}
-	const globalClineWorkflowsFilePath = await ensureWorkflowsDirectoryExists()
+	const globalClineWorkflowsFilePath = await ensureGlobalWorkflowsDirectoryExists()
 	const updatedGlobalWorkflowToggles = await synchronizeRuleToggles(globalClineWorkflowsFilePath, globalWorkflowToggles)
 	await updateGlobalState(context, "globalWorkflowToggles", updatedGlobalWorkflowToggles)
 

@@ -1,10 +1,15 @@
 import { fileExistsAtPath, isDirectory, readDirectory } from "@utils/fs"
-import { ensureRulesDirectoryExists, ensureWorkflowsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
+import {
+	ensureGlobalInstructionsDirectoryExists,
+	ensureGlobalWorkflowsDirectoryExists,
+	GlobalFileNames,
+} from "@core/storage/disk"
 import { getGlobalState, getWorkspaceState, updateGlobalState, updateWorkspaceState } from "@core/storage/state"
 import * as path from "path"
 import fs from "fs/promises"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import * as vscode from "vscode"
+import { enableNewInstructionsDefaultSetting } from "@/shared/Configuration"
 
 /**
  * Recursively traverses directory and finds all files, including checking for optional whitelisted file extension
@@ -72,7 +77,7 @@ export async function synchronizeRuleToggles(
 
 					const pathHasToggle = ruleFilePath in updatedToggles
 					if (!pathHasToggle) {
-						updatedToggles[ruleFilePath] = true
+						updatedToggles[ruleFilePath] = enableNewInstructionsDefaultSetting
 					}
 				}
 
@@ -88,7 +93,7 @@ export async function synchronizeRuleToggles(
 				// Add toggle for this file
 				const pathHasToggle = rulesDirectoryPath in updatedToggles
 				if (!pathHasToggle) {
-					updatedToggles[rulesDirectoryPath] = true
+					updatedToggles[rulesDirectoryPath] = enableNewInstructionsDefaultSetting
 				}
 
 				// Remove toggles for any other paths
@@ -183,10 +188,10 @@ export const createRuleFile = async (isGlobal: boolean, filename: string, cwd: s
 		let filePath: string
 		if (isGlobal) {
 			if (type === "workflow") {
-				const globalClineWorkflowFilePath = await ensureWorkflowsDirectoryExists()
+				const globalClineWorkflowFilePath = await ensureGlobalWorkflowsDirectoryExists()
 				filePath = path.join(globalClineWorkflowFilePath, filename)
 			} else {
-				const globalClineRulesFilePath = await ensureRulesDirectoryExists()
+				const globalClineRulesFilePath = await ensureGlobalInstructionsDirectoryExists()
 				filePath = path.join(globalClineRulesFilePath, filename)
 			}
 		} else {

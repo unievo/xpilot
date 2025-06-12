@@ -13,7 +13,7 @@ import {
 	contextHistoryFile,
 	mcpSettingsFile,
 	openRouterModelsFile,
-	instructionsDirectory,
+	workspaceInstructionsDirectoryPath,
 	taskMetadataFile,
 	uiMessagesFile,
 	publisherName,
@@ -22,6 +22,8 @@ import {
 	mcpDirectory,
 	mcpServersDirectory,
 	agentName,
+	workspaceWorkflowsDirectoryPath,
+	instructionsDirectory,
 	workflowsDirectory,
 } from "@shared/Configuration"
 
@@ -31,8 +33,8 @@ export const GlobalFileNames = {
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
 	mcpSettings: mcpSettingsFile,
-	clineRules: instructionsDirectory,
-	workflows: workflowsDirectory,
+	clineRules: workspaceInstructionsDirectoryPath,
+	workflows: workspaceWorkflowsDirectoryPath,
 	cursorRulesDir: ".cursor/rules",
 	cursorRulesFile: ".cursorrules",
 	windsurfRules: ".windsurfrules",
@@ -97,24 +99,24 @@ export async function ensureTaskDirectoryExists(context: vscode.ExtensionContext
 	return taskDir
 }
 
-export async function ensureRulesDirectoryExists(): Promise<string> {
+export async function ensureGlobalInstructionsDirectoryExists(): Promise<string> {
 	const userDocumentsPath = await getDocumentsPath()
-	const clineRulesDir = path.join(userDocumentsPath, agentName, "Instructions")
+	const clineRulesDir = path.join(userDocumentsPath, agentName, instructionsDirectory)
 	try {
 		await fs.mkdir(clineRulesDir, { recursive: true })
 	} catch (error) {
-		return path.join(os.homedir(), "Documents", agentName, "Instructions") // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+		return path.join(os.homedir(), "Documents", agentName, instructionsDirectory) // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
 	}
 	return clineRulesDir
 }
 
-export async function ensureWorkflowsDirectoryExists(): Promise<string> {
+export async function ensureGlobalWorkflowsDirectoryExists(): Promise<string> {
 	const userDocumentsPath = await getDocumentsPath()
-	const clineWorkflowsDir = path.join(userDocumentsPath, agentName, "Workflows")
+	const clineWorkflowsDir = path.join(userDocumentsPath, agentName, workflowsDirectory)
 	try {
 		await fs.mkdir(clineWorkflowsDir, { recursive: true })
 	} catch (error) {
-		return path.join(os.homedir(), "Documents", agentName, "Workflows") // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine because we will fail gracefully with a path that does not exist
+		return path.join(os.homedir(), "Documents", agentName, workflowsDirectory) // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine because we will fail gracefully with a path that does not exist
 	}
 	return clineWorkflowsDir
 }
@@ -124,7 +126,7 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 	try {
 		await fs.mkdir(mcpServersDir, { recursive: true })
 	} catch (error) {
-		return `~/.${publisherName}/${productName}/mcp/servers` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+		return `~/.${publisherName}/${productName}/${mcpDirectory}/${mcpServersDirectory}` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
 	}
 	return mcpServersDir
 }

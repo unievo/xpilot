@@ -12,11 +12,11 @@ export const latestAnnouncementId = "0.1.0"
 // Files & Folders
 export const pathSeparator = "/"
 export const workspaceDirectory = `.${productName}`
-export const instructionsDirectory = `${workspaceDirectory}/instructions`
+export const instructionsDirectory = `instructions`
 export const instructionsFilesExtension = `.md`
 export const instructionsExcludedDirectories = [".git", "content"]
 export const instructionsExcludedFiles = ["README.md"]
-export const workflowsDirectory = `${workspaceDirectory}/workflows`
+export const workflowsDirectory = `workflows`
 export const settingsDirectory = `settings`
 export const mcpDirectory = `mcp`
 export const mcpServersDirectory = `servers`
@@ -29,6 +29,8 @@ export const contextHistoryFile = `context_history.json`
 export const apiConversationHistoryFile = `api_conversation_history.json`
 export const extensionIconLightPath = `assets/icons/icon_light.png`
 export const extensionIconDarkPath = `assets/icons/icon_dark.png`
+export const workspaceInstructionsDirectoryPath = `${workspaceDirectory}/${instructionsDirectory}`
+export const workspaceWorkflowsDirectoryPath = `${workspaceDirectory}/${workflowsDirectory}`
 
 // Extension
 export const extensionId = `${publisherName}.${productName}`
@@ -57,3 +59,4 @@ export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputT
 
 // Settings
 export const mcpMarketplaceEnabledDefaultSetting = false
+export const enableNewInstructionsDefaultSetting = false
