@@ -4,7 +4,7 @@ import RuleRow from "./RuleRow"
 const RulesToggleList = ({
 	rules,
 	toggleRule,
-	listGap = "medium",
+	listGap = "small",
 	isGlobal,
 	ruleType,
 	showNewRule,

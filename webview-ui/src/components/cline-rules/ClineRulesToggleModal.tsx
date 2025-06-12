@@ -11,6 +11,17 @@ import styled from "styled-components"
 import { ClineRulesToggles, RefreshedRules, ToggleWindsurfRuleRequest } from "@shared/proto/file"
 import { EmptyRequest } from "@shared/proto/common"
 import { agentName } from "@shared/Configuration"
+import { dropdown } from "@heroui/react"
+import { dropdownBackground, menuBackground } from "../theme"
+
+// Helper function to sort rule entries by filename
+const sortByFilename = (entries: [string, boolean][]): [string, boolean][] => {
+	return entries.sort(([a], [b]) => {
+		const filenameA = a.split(/[/\\]/).pop() || a
+		const filenameB = b.split(/[/\\]/).pop() || b
+		return filenameA.localeCompare(filenameB)
+	})
+}
 
 const ClineRulesToggleModal: React.FC = () => {
 	const {
@@ -66,30 +77,30 @@ const ClineRulesToggleModal: React.FC = () => {
 	}, [isVisible])
 
 	// Format global rules for display with proper typing
-	const globalRules = Object.entries(globalClineRulesToggles || {})
-		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
-		.sort(([a], [b]) => a.localeCompare(b))
+	const globalRules = sortByFilename(
+		Object.entries(globalClineRulesToggles || {}).map(([path, enabled]): [string, boolean] => [path, enabled as boolean]),
+	)
 
 	// Format local rules for display with proper typing
-	const localRules = Object.entries(localClineRulesToggles || {})
-		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
-		.sort(([a], [b]) => a.localeCompare(b))
+	const localRules = sortByFilename(
+		Object.entries(localClineRulesToggles || {}).map(([path, enabled]): [string, boolean] => [path, enabled as boolean]),
+	)
 
-	const cursorRules = Object.entries(localCursorRulesToggles || {})
-		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
-		.sort(([a], [b]) => a.localeCompare(b))
+	const cursorRules = sortByFilename(
+		Object.entries(localCursorRulesToggles || {}).map(([path, enabled]): [string, boolean] => [path, enabled as boolean]),
+	)
 
-	const windsurfRules = Object.entries(localWindsurfRulesToggles || {})
-		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
-		.sort(([a], [b]) => a.localeCompare(b))
+	const windsurfRules = sortByFilename(
+		Object.entries(localWindsurfRulesToggles || {}).map(([path, enabled]): [string, boolean] => [path, enabled as boolean]),
+	)
 
-	const localWorkflows = Object.entries(localWorkflowToggles || {})
-		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
-		.sort(([a], [b]) => a.localeCompare(b))
+	const localWorkflows = sortByFilename(
+		Object.entries(localWorkflowToggles || {}).map(([path, enabled]): [string, boolean] => [path, enabled as boolean]),
+	)
 
-	const globalWorkflows = Object.entries(globalWorkflowToggles || {})
-		.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
-		.sort(([a], [b]) => a.localeCompare(b))
+	const globalWorkflows = sortByFilename(
+		Object.entries(globalWorkflowToggles || {}).map(([path, enabled]): [string, boolean] => [path, enabled as boolean]),
+	)
 
 	// Handle toggle rule using gRPC
 	const toggleRule = (isGlobal: boolean, rulePath: string, enabled: boolean) => {
@@ -191,7 +202,7 @@ const ClineRulesToggleModal: React.FC = () => {
 					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-3 rounded z-[1000] overflow-y-auto"
 					style={{
 						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-						background: CODE_BLOCK_BG_COLOR,
+						background: menuBackground,
 						maxHeight: "calc(100vh - 100px)",
 						overscrollBehavior: "contain",
 					}}>
@@ -200,7 +211,7 @@ const ClineRulesToggleModal: React.FC = () => {
 						style={{
 							bottom: `calc(100vh - ${menuPosition}px)`,
 							right: arrowPosition,
-							background: CODE_BLOCK_BG_COLOR,
+							background: menuBackground,
 						}}
 					/>
 
@@ -227,7 +238,7 @@ const ClineRulesToggleModal: React.FC = () => {
 					</div>
 
 					{/* Description text */}
-					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
 						{currentView === "rules" ? (
 							<p>Instructions allow you to specify custom information for executing tasks.</p>
 						) : (
@@ -247,9 +258,9 @@ const ClineRulesToggleModal: React.FC = () => {
 					{currentView === "rules" ? (
 						<>
 							{/* Global Rules Section */}
-							<div className="mb-3">
-								<div className="text-sm font-normal mb-2">Global</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+							<div className="mb-0">
+								<div className="text-sm font-normal mb-0">Global</div>
+								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
 									<p>Instructions apply to any workspace.</p>
 								</div>
 								<RulesToggleList
@@ -265,8 +276,8 @@ const ClineRulesToggleModal: React.FC = () => {
 
 							{/* Local Rules Section */}
 							<div style={{ marginBottom: -10 }}>
-								<div className="text-sm font-normal mb-2">Workspace</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+								<div className="text-sm font-normal mb-0">Workspace</div>
+								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
 									<p>Instructions apply to the current workspace.</p>
 								</div>
 								<RulesToggleList

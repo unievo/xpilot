@@ -26,8 +26,8 @@ const InstalledServersView = () => {
 				</p>
 			</div>
 			<VSCodeButton
-				appearance="secondary"
-				style={{ width: "100%", marginBottom: "17px" }}
+				appearance="icon"
+				style={{ width: "100%", marginBottom: "20px", background: "var(--vscode-button-secondaryBackground)" }}
 				onClick={() => {
 					McpServiceClient.openMcpSettings({}).catch((error) => {
 						console.error("Error opening MCP settings:", error)
@@ -58,7 +58,7 @@ const InstalledServersView = () => {
 					</VSCodeLink>
 				</div>
 			</div> */}
-			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={false} />
+			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={true} listGap="medium" />
 		</div>
 	)
 }

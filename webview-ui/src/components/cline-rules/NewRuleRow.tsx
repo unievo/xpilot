@@ -4,6 +4,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useClickAway } from "react-use"
 import { FileServiceClient } from "@/services/grpc-client"
 import { CreateRuleFileRequest } from "@shared/proto-conversions/file/rule-files-conversion"
+import { rowBackground } from "../theme"
 
 interface NewRuleRowProps {
 	isGlobal: boolean
@@ -88,10 +89,11 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 	return (
 		<div
 			ref={componentRef}
-			className={`mb-2.5 transition-all duration-300 ease-in-out ${isExpanded ? "opacity-100" : "opacity-70 hover:opacity-100"}`}
+			className={`mb-2.5  transition-all duration-300 ease-in-out ${isExpanded ? "opacity-100" : "opacity-70 hover:opacity-100"}`}
 			onClick={() => !isExpanded && setIsExpanded(true)}>
 			<div
-				className={`flex items-center p-2 rounded bg-[var(--vscode-input-background)] transition-all duration-300 ease-in-out h-[18px] ${
+				style={{ border: `1px solid ${rowBackground}`, marginTop: "1px", padding: "6px" }}
+				className={`flex items-center p-2 rounded transition-all duration-300 ease-in-out h-[12px] ${
 					isExpanded ? "shadow-sm" : ""
 				}`}>
 				{isExpanded ? (
@@ -116,13 +118,13 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 								aria-label="Add file"
 								title="Add file"
 								style={{ padding: "0px" }}>
-								<span className="codicon codicon-add text-[14px]" />
+								<span className="codicon codicon-add text-[12px]" />
 							</VSCodeButton>
 						</div>
 					</form>
 				) : (
 					<>
-						<span className="flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)] italic text-xs">
+						<span className="flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)] text-xs">
 							{ruleType === "workflow" ? "New workflow file..." : "New instructions file..."}
 						</span>
 						<div className="flex items-center ml-2 space-x-2">
@@ -135,7 +137,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 									setIsExpanded(true)
 								}}
 								style={{ padding: "0px" }}>
-								<span className="codicon codicon-add text-[14px]" />
+								<span className="codicon codicon-add text-[12px]" />
 							</VSCodeButton>
 						</div>
 					</>

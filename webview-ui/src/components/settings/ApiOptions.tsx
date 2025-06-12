@@ -1563,7 +1563,7 @@ const ApiOptions = ({
 						<p
 							style={{
 								fontSize: "12px",
-								marginTop: "5px",
+								marginTop: "10px",
 								color: "var(--vscode-descriptionForeground)",
 								fontWeight: 500,
 							}}>

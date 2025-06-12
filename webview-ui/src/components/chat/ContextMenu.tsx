@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
 import { cleanPathPrefix } from "@/components/common/CodeAccordian"
+import { dropdownBackground } from "../theme"
 
 interface ContextMenuProps {
 	onSelect: (type: ContextMenuOptionType, value?: string) => void
@@ -167,11 +168,11 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 	return (
 		<div
 			style={{
+				fontSize: "1em",
 				position: "absolute",
-				bottom: "calc(100% - 15px)",
+				bottom: "calc(100% - 7px)",
 				left: 7,
 				right: 7,
-				fontSize: "0.95em",
 				overflowX: "hidden",
 				zIndex: 1001,
 			}}
@@ -179,7 +180,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			<div
 				ref={menuRef}
 				style={{
-					backgroundColor: "var(--vscode-dropdown-background)",
+					backgroundColor: dropdownBackground,
 					border: "1px solid var(--vscode-editorGroup-border)",
 					borderRadius: "3px",
 					boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
@@ -209,7 +210,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
 						style={{
 							padding: "3px 3px",
-							fontSize: "0.95em",
 							cursor: isOptionSelectable(option) ? "pointer" : "default",
 							color:
 								index === selectedIndex && isOptionSelectable(option)

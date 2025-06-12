@@ -6,6 +6,7 @@ import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
 import AutoApproveMenuItem from "./AutoApproveMenuItem"
 import AutoApproveModal from "./AutoApproveModal"
 import { ACTION_METADATA, NOTIFICATIONS_SETTING } from "./constants"
+import { chatTextAreaBackground } from "@/components/theme"
 
 interface AutoApproveBarProps {
 	style?: React.CSSProperties
@@ -75,8 +76,8 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 			style={{
 				borderTop: `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`,
 				overflowY: "auto",
-				backgroundColor: "var(--vscode-input-background)",
-				//backgroundColor: isModalVisible ? CODE_BLOCK_BG_COLOR : "transparent",
+				backgroundColor: chatTextAreaBackground,
+				//backgroundColor: isModalVisible ? chatTextAreaBackgroundActive : chatTextAreaBackground,
 				...style,
 			}}>
 			<div

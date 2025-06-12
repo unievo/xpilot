@@ -37,7 +37,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 		<div
 			key={tool.name}
 			style={{
-				padding: "3px 0",
+				padding: "0 0",
 			}}>
 			<div
 				data-testid="tool-row-container"
@@ -49,7 +49,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 				</div>
 				{serverName && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
 					<VSCodeCheckbox
-						style={{ opacity: 0.7 }}
+						style={{ opacity: 0.7, fontSize: "0.9em" }}
 						checked={tool.autoApprove ?? false}
 						onChange={handleAutoApproveChange}
 						data-tool={tool.name}>
@@ -60,10 +60,9 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 			{tool.description && (
 				<div
 					style={{
-						marginLeft: "0px",
-						marginTop: "4px",
-						opacity: 0.8,
-						fontSize: "12px",
+						marginTop: "0px",
+						opacity: 0.7,
+						fontSize: "0.9em",
 					}}>
 					{tool.description}
 				</div>
@@ -74,16 +73,16 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 					<div
 						style={{
 							marginTop: "8px",
-							fontSize: "12px",
+							fontSize: "inherit",
 							border: "1px solid color-mix(in srgb, var(--vscode-descriptionForeground) 30%, transparent)",
-							borderRadius: "3px",
-							padding: "8px",
+							borderRadius: "6px",
+							padding: "5px",
 						}}>
 						<div
 							style={{
 								marginBottom: "4px",
 								opacity: 0.8,
-								fontSize: "11px",
+								fontSize: "0.8em",
 								textTransform: "uppercase",
 							}}>
 							Parameters
@@ -102,6 +101,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 										display: "flex",
 										alignItems: "baseline",
 										marginTop: "4px",
+										fontSize: "0.95em",
 									}}>
 									<code
 										style={{

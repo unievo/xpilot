@@ -13,6 +13,7 @@ import { validateSlashCommand } from "@/utils/slash-commands"
 import TaskTimeline from "./TaskTimeline"
 import { TaskServiceClient, FileServiceClient, UiServiceClient } from "@/services/grpc-client"
 import HeroTooltip from "@/components/common/HeroTooltip"
+import { taskHeaderBackground } from "../theme"
 
 interface TaskHeaderProps {
 	task: ClineMessage
@@ -224,7 +225,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		<div style={{ padding: "1px 10px 10px 10px" }}>
 			<div
 				style={{
-					backgroundColor: "var(--vscode-input-background)",
+					backgroundColor: taskHeaderBackground,
 					color: "var(--vscode-badge-foreground)",
 					borderRadius: "8px",
 					padding: "9px 10px 9px 10px",

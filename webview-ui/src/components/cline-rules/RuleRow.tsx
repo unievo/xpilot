@@ -1,6 +1,7 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { FileServiceClient } from "@/services/grpc-client"
 import { DeleteRuleFileRequest } from "@shared/proto-conversions/file/rule-files-conversion"
+import { rowBackground, rowBackgroundDisabled } from "../theme"
 
 const RuleRow: React.FC<{
 	rulePath: string
@@ -76,14 +77,16 @@ const RuleRow: React.FC<{
 	}
 
 	return (
-		<div className="mb-1.5">
+		<div className="mb-0.5">
+			{/* Rule Row */}
 			<div
-				className={`flex items-center p-2 rounded bg-[var(--vscode-textCodeBlock-background)] h-[12px] ${
-					enabled ? "opacity-100" : "opacity-60"
-				}`}>
+				style={{ background: enabled ? rowBackground : rowBackgroundDisabled }}
+				className={`flex items-center p-1.5 rounded h-[12px] ${enabled ? "opacity-100" : "opacity-80"}`}>
 				<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center mr-1" title={rulePath}>
 					{getRuleTypeIcon() && <span className="mr-1.5">{getRuleTypeIcon()}</span>}
-					<span className="ph-no-capture">{displayName}</span>
+					<span style={{ fontSize: "1em" }} className="ph-no-capture">
+						{displayName}
+					</span>
 				</span>
 
 				{/* Toggle Switch */}
@@ -92,7 +95,7 @@ const RuleRow: React.FC<{
 						role="switch"
 						aria-checked={enabled}
 						tabIndex={0}
-						className={`w-[20px] h-[10px] rounded-[5px] relative cursor-pointer transition-colors duration-200 ${
+						className={`w-[20px] h-[10px] mr-1 rounded-[5px] relative cursor-pointer transition-colors duration-200 ${
 							enabled
 								? "bg-[var(--vscode-testing-iconPassed)] opacity-90"
 								: "bg-[var(--vscode-titleBar-inactiveForeground)] opacity-50"
@@ -116,15 +119,15 @@ const RuleRow: React.FC<{
 						title="Edit file"
 						onClick={handleEditClick}
 						style={{ height: "20px" }}>
-						<span className="codicon codicon-edit" style={{ fontSize: "14px" }} />
+						<span className="codicon codicon-edit" style={{ fontSize: "13px" }} />
 					</VSCodeButton>
 					<VSCodeButton
 						appearance="icon"
 						aria-label="Delete file"
 						title="Delete file"
 						onClick={handleDeleteClick}
-						style={{ height: "20px" }}>
-						<span className="codicon codicon-trash" style={{ fontSize: "14px" }} />
+						style={{ marginLeft: "-5px", height: "20px" }}>
+						<span className="codicon codicon-trash" style={{ fontSize: "13px" }} />
 					</VSCodeButton>
 				</div>
 			</div>

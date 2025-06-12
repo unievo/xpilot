@@ -37,10 +37,10 @@ import { MAX_IMAGES_PER_MESSAGE } from "@/components/chat/ChatView"
 import ContextMenu from "@/components/chat/ContextMenu"
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import { ChatSettings } from "@shared/ChatSettings"
-import { agentName } from "../../../../src/shared/Configuration"
 import ServersToggleModal from "./ServersToggleModal"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 import { PlanActMode } from "@shared/proto/state"
+import { chatTextAreaBackground, menuBackground } from "../theme"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -157,7 +157,7 @@ const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
 	bottom: calc(100% + 9px);
 	left: 15px;
 	right: 15px;
-	background: ${CODE_BLOCK_BG_COLOR};
+	background: ${menuBackground};
 	border: 1px solid var(--vscode-editorGroup-border);
 	padding: 12px;
 	border-radius: 3px;
@@ -184,7 +184,7 @@ const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
 		right: ${(props) => props.arrowPosition}px;
 		width: 10px;
 		height: 10px;
-		background: ${CODE_BLOCK_BG_COLOR};
+		background: ${menuBackground};
 		border-right: 1px solid var(--vscode-editorGroup-border);
 		border-bottom: 1px solid var(--vscode-editorGroup-border);
 		transform: rotate(45deg);
@@ -1378,7 +1378,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				<div
 					style={{
 						padding: "10px 10px",
-						backgroundColor: "var(--vscode-input-background)",
+						backgroundColor: chatTextAreaBackground,
 						marginLeft: "8px",
 						marginRight: "8px",
 						marginBottom: "0px",
@@ -1496,7 +1496,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							wordWrap: "break-word",
 							color: "transparent",
 							overflow: "hidden",
-							backgroundColor: "var(--vscode-input-background)",
+							backgroundColor: chatTextAreaBackground,
 							fontFamily: "var(--vscode-font-family)",
 							fontSize: "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
@@ -1607,7 +1607,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							display: "flex",
 							alignItems: "flex-center",
 							height: textAreaBaseHeight || 31,
-							bottom: 10, // should be 10 but doesn't look good on mac
+							bottom: 10,
 							zIndex: 2,
 						}}>
 						<div
@@ -1642,7 +1642,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					</div>
 				</div>
 
-				<ControlsContainer style={{ borderRadius: "0 0 10px 10px", backgroundColor: "var(--vscode-input-background)" }}>
+				<ControlsContainer style={{ borderRadius: "0 0 10px 10px", backgroundColor: chatTextAreaBackground }}>
 					<SwitchContainer
 						style={{ marginTop: "1px", opacity: 0.8 }}
 						data-testid="mode-switch"
@@ -1669,9 +1669,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							appearance="icon"
 							aria-label="Add Context"
 							onClick={handleContextButtonClick}
-							style={{ marginLeft: "2px", padding: "0px 0px", height: "20px" }}>
+							style={{ marginLeft: "2px", paddingTop: "0px", height: "20px" }}>
 							<ButtonContainer style={{ opacity: 0.7 }}>
-								<span className="flex items-center" style={{ fontSize: "15px", marginBottom: 1 }}>
+								<span className="flex items-center" style={{ fontSize: "16px", marginBottom: 1 }}>
 									@
 								</span>
 							</ButtonContainer>
@@ -1684,7 +1684,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							style={{ opacity: 0.7, marginLeft: "-2px", marginTop: "0px", height: "20px" }}>
 							<ButtonContainer>
 								<span
-									className="codicon codicon-terminal flex items-center"
+									className="codicon codicon-diff-ignored flex items-center"
 									style={{ fontSize: "15px", marginTop: "2px" }}
 								/>
 							</ButtonContainer>
@@ -1722,6 +1722,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									menuPosition={menuPosition}
 									style={{
 										bottom: `calc(100vh - ${menuPosition}px + 6px)`,
+										minHeight: "300px",
 									}}>
 									<ApiOptions
 										showModelOptions={true}
@@ -1746,7 +1747,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<ButtonContainer>
 								<span
 									className="codicon codicon-device-camera flex items-center"
-									style={{ opacity: 0.7, fontSize: "17px", marginTop: "2px" }}
+									style={{ opacity: 0.7, fontSize: "17px", marginTop: "3px" }}
 								/>
 							</ButtonContainer>
 						</VSCodeButton>

@@ -20,6 +20,7 @@ import { McpServiceClient } from "@/services/grpc-client"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { McpServers, UpdateMcpTimeoutRequest } from "@shared/proto/mcp"
 import { StringRequest } from "@shared/proto/common"
+import { rowBackground, rowBackgroundDisabled } from "@/components/theme"
 // constant JSX.Elements
 const TimeoutOptions = [
 	{ value: "30", label: "30 seconds" },
@@ -163,22 +164,21 @@ const ServerRow = ({
 	}
 
 	return (
-		<div style={{ marginBottom: "5px" }}>
+		<div style={{ marginBottom: "0px" }}>
 			<div
 				style={{
 					display: "flex",
 					alignItems: "center",
-					padding: "5px",
-					background: "var(--vscode-textCodeBlock-background)",
+					padding: "2px",
+					paddingRight: "8px",
+					background: server.disabled ? rowBackgroundDisabled : rowBackground,
 
 					cursor: server.error ? "default" : isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || server.error ? "4px 4px 0 0" : "4px",
-					opacity: server.disabled ? 0.6 : 1,
+					opacity: server.disabled ? 0.8 : 1,
 				}}
 				onClick={handleRowClick}>
-				{!server.error && isExpandable && (
-					<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`} style={{ marginRight: "8px" }} />
-				)}
+				{!server.error && isExpandable && <span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`} />}
 				<span
 					style={{
 						flex: 1,
@@ -188,6 +188,9 @@ const ServerRow = ({
 						display: "flex",
 						alignItems: "center",
 						marginRight: "4px",
+						marginLeft: "3px",
+						fontSize: "13px",
+						padding: "1px ",
 					}}>
 					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
 				</span>
@@ -204,18 +207,6 @@ const ServerRow = ({
 							disabled={server.status === "connecting" || isRestarting}>
 							<span className="codicon codicon-sync"></span>
 						</VSCodeButton>
-						{hasTrashIcon && (
-							<VSCodeButton
-								appearance="icon"
-								title="Delete Server"
-								onClick={(e) => {
-									e.stopPropagation()
-									handleDelete()
-								}}
-								disabled={isDeleting}>
-								<span className="codicon codicon-trash"></span>
-							</VSCodeButton>
-						)}
 					</div>
 				)}
 				{/* Toggle Switch */}
@@ -269,12 +260,25 @@ const ServerRow = ({
 						marginLeft: "8px",
 					}}
 				/>
+				{hasTrashIcon && (
+					<VSCodeButton
+						style={{ marginLeft: "8px" }}
+						appearance="icon"
+						title="Delete Server"
+						onClick={(e) => {
+							e.stopPropagation()
+							handleDelete()
+						}}
+						disabled={isDeleting}>
+						<span className="codicon codicon-trash"></span>
+					</VSCodeButton>
+				)}
 			</div>
 
 			{server.error ? (
 				<div
 					style={{
-						fontSize: "13px",
+						fontSize: "11px",
 						background: "var(--vscode-textCodeBlock-background)",
 						borderRadius: "0 0 4px 4px",
 						width: "100%",
@@ -282,67 +286,73 @@ const ServerRow = ({
 					<div
 						style={{
 							color: "var(--vscode-testing-iconFailed)",
-							marginBottom: "8px",
-							padding: "0 10px",
+							marginBottom: "0px",
+							padding: "10px",
 							overflowWrap: "break-word",
 							wordBreak: "break-word",
 						}}>
 						{server.error}
 					</div>
-					<VSCodeButton
-						appearance="secondary"
-						onClick={handleRestart}
-						disabled={server.status === "connecting"}
-						style={{
-							width: "calc(100% - 20px)",
-							margin: "0 10px 10px 10px",
-						}}>
-						{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
-					</VSCodeButton>
+					<div style={{ display: "flex" }}>
+						<VSCodeButton
+							appearance="secondary"
+							onClick={handleRestart}
+							disabled={server.status === "connecting"}
+							style={{
+								width: "calc(100% - 20px)",
+								margin: "0 10px 10px 10px",
+								scale: "0.9",
+							}}>
+							{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
+						</VSCodeButton>
 
-					<DangerButton
-						style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px" }}
-						disabled={isDeleting}
-						onClick={handleDelete}>
-						{isDeleting ? "Deleting..." : "Delete Server"}
-					</DangerButton>
+						<DangerButton
+							style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}
+							disabled={isDeleting}
+							onClick={handleDelete}>
+							{isDeleting ? "Deleting..." : "Delete Server"}
+						</DangerButton>
+					</div>
 				</div>
 			) : (
 				isExpanded && (
 					<div
 						style={{
 							background: "var(--vscode-textCodeBlock-background)",
-							padding: "1px 10px 10px 10px",
-							fontSize: "13px",
+							padding: "1px 5px 5px 5px",
+							fontSize: "12px",
 							borderRadius: "0 0 4px 4px",
 						}}>
-						<VSCodePanels>
-							<VSCodePanelTab id="tools">Tools ({server.tools?.length || 0})</VSCodePanelTab>
-							<VSCodePanelTab id="resources">
+						<VSCodePanels style={{ fontSize: "inherit" }}>
+							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
+								Tools ({server.tools?.length || 0})
+							</VSCodePanelTab>
+							<VSCodePanelTab style={{ fontSize: "inherit" }} id="resources">
 								Resources ({[...(server.resourceTemplates || []), ...(server.resources || [])].length || 0})
 							</VSCodePanelTab>
 
-							<VSCodePanelView id="tools-view">
+							<VSCodePanelView style={{ fontSize: "inherit" }} id="tools-view">
 								{server.tools && server.tools.length > 0 ? (
 									<div
 										style={{
+											fontSize: "inherit",
 											display: "flex",
 											flexDirection: "column",
 											gap: "8px",
 											width: "100%",
 										}}>
-										{server.tools.map((tool) => (
-											<McpToolRow key={tool.name} tool={tool} serverName={server.name} />
-										))}
 										{server.name && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
 											<VSCodeCheckbox
-												style={{ marginBottom: -10 }}
+												style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}
 												checked={server.tools.every((tool) => tool.autoApprove)}
 												onChange={handleAutoApproveChange}
 												data-tool="all-tools">
-												Auto-approve all tools
+												Auto-approve all
 											</VSCodeCheckbox>
 										)}
+										{server.tools.map((tool) => (
+											<McpToolRow key={tool.name} tool={tool} serverName={server.name} />
+										))}
 									</div>
 								) : (
 									<div
@@ -355,7 +365,7 @@ const ServerRow = ({
 								)}
 							</VSCodePanelView>
 
-							<VSCodePanelView id="resources-view">
+							<VSCodePanelView style={{ fontSize: "inherit" }} id="resources-view">
 								{(server.resources && server.resources.length > 0) ||
 								(server.resourceTemplates && server.resourceTemplates.length > 0) ? (
 									<div
@@ -384,29 +394,33 @@ const ServerRow = ({
 							</VSCodePanelView>
 						</VSCodePanels>
 
-						<div style={{ margin: "10px 7px" }}>
-							<label style={{ display: "block", marginBottom: "4px", fontSize: "13px" }}>Request Timeout</label>
+						<div style={{ scale: "0.95", margin: "7px 0px" }}>
+							<label style={{ display: "block", marginBottom: "4px" }}>Request Timeout</label>
 							<VSCodeDropdown style={{ width: "100%" }} value={timeoutValue} onChange={handleTimeoutChange}>
 								{TimeoutOptions}
 							</VSCodeDropdown>
 						</div>
-						<VSCodeButton
-							appearance="secondary"
-							onClick={handleRestart}
-							disabled={server.status === "connecting" || isRestarting}
-							style={{
-								width: "calc(100% - 14px)",
-								margin: "0 7px 3px 7px",
-							}}>
-							{server.status === "connecting" || isRestarting ? "Restarting..." : "Restart Server"}
-						</VSCodeButton>
+						<span style={{ display: "flex" }}>
+							<VSCodeButton
+								appearance="icon"
+								onClick={handleRestart}
+								disabled={server.status === "connecting" || isRestarting}
+								style={{
+									scale: "0.9",
+									background: "var(--vscode-button-secondaryBackground)",
+									width: "calc(100% - 14px)",
+									//margin: "0 7px 3px 7px",
+								}}>
+								{server.status === "connecting" || isRestarting ? "Restarting..." : "Restart Server"}
+							</VSCodeButton>
 
-						<DangerButton
-							style={{ width: "calc(100% - 14px)", margin: "5px 7px 3px 7px" }}
-							disabled={isDeleting}
-							onClick={handleDelete}>
-							{isDeleting ? "Deleting..." : "Delete Server"}
-						</DangerButton>
+							<DangerButton
+								style={{ scale: "0.9", width: "calc(100% - 14px)" }}
+								disabled={isDeleting}
+								onClick={handleDelete}>
+								{isDeleting ? "Deleting..." : "Delete Server"}
+							</DangerButton>
+						</span>
 					</div>
 				)
 			)}

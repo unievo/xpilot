@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useEffect } from "react"
 import { SlashCommand, getMatchingSlashCommands } from "@/utils/slash-commands"
+import { dropdownBackground } from "../theme"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -87,12 +88,13 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 	return (
 		<div
-			className="text-xs absolute bottom-[calc(100%-15px)] left-[7px] right-[7px] overflow-x-hidden z-[1000]"
+			style={{ fontSize: "1em" }}
+			className="absolute bottom-[calc(100%-7px)] left-[7px] right-[7px] overflow-x-hidden z-[1000]"
 			onMouseDown={onMouseDown}>
 			<div
 				ref={menuRef}
-				className="bg-[var(--vscode-dropdown-background)] border border-[var(--vscode-editorGroup-border)] rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
-				style={{ maxHeight: "min(800px, calc(50vh))", overscrollBehavior: "contain" }}>
+				className="border border-[var(--vscode-editorGroup-border)] rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				style={{ background: dropdownBackground, maxHeight: "min(800px, calc(50vh))", overscrollBehavior: "contain" }}>
 				{filteredCommands.length > 0 ? (
 					<>
 						{renderCommandSection(defaultCommands, "Commands", 0, true)}

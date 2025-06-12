@@ -588,7 +588,7 @@ export const ModelDescriptionMarkdown = memo(
 								style={{
 									width: 30,
 									height: "1.2em",
-									background: "linear-gradient(to right, transparent, var(--vscode-sideBar-background))",
+									background: "linear-gradient(to right, transparent, var(--vscode-input-background))",
 								}}
 							/>
 							<VSCodeLink
@@ -598,7 +598,7 @@ export const ModelDescriptionMarkdown = memo(
 									fontSize: "inherit",
 									paddingRight: 0,
 									paddingLeft: 3,
-									backgroundColor: isPopup ? CODE_BLOCK_BG_COLOR : "var(--vscode-sideBar-background)",
+									backgroundColor: "var(--vscode-input-background)",
 								}}
 								onClick={() => setIsExpanded(true)}>
 								See more

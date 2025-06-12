@@ -14,8 +14,8 @@ const ServersToggleList = ({
 }) => {
 	const gapClasses = {
 		small: "gap-0.5",
-		medium: "gap-2.5",
-		large: "gap-5",
+		medium: "gap-1.5",
+		large: "gap-2.5",
 	}
 
 	const gapClass = gapClasses[listGap]

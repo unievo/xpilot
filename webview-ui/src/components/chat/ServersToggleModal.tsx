@@ -6,6 +6,7 @@ import ServersToggleList from "@/components/mcp/configuration/tabs/installed/Ser
 import { vscode } from "@/utils/vscode"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import Tooltip from "@/components/common/Tooltip"
+import { menuBackground } from "../theme"
 
 const ServersToggleModal: React.FC = () => {
 	const { mcpServers, navigateToMcp } = useExtensionState()
@@ -26,7 +27,7 @@ const ServersToggleModal: React.FC = () => {
 		if (isVisible && buttonRef.current) {
 			const buttonRect = buttonRef.current.getBoundingClientRect()
 			const buttonCenter = buttonRect.left + buttonRect.width / 2
-			const rightPosition = document.documentElement.clientWidth - buttonCenter - 5
+			const rightPosition = document.documentElement.clientWidth - buttonCenter - 4
 
 			setArrowPosition(rightPosition)
 			setMenuPosition(buttonRect.top + 1)
@@ -50,7 +51,7 @@ const ServersToggleModal: React.FC = () => {
 					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 						<span
 							className="codicon codicon-server flex items-center"
-							style={{ fontSize: "14px", marginBottom: 1 }}
+							style={{ fontSize: "15px", marginBottom: 1 }}
 						/>
 					</div>
 				</VSCodeButton>
@@ -58,10 +59,10 @@ const ServersToggleModal: React.FC = () => {
 
 			{isVisible && (
 				<div
-					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-3 rounded z-[1000] overflow-y-auto"
+					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-2 rounded z-[1000] overflow-y-auto"
 					style={{
 						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-						background: CODE_BLOCK_BG_COLOR,
+						background: menuBackground,
 						maxHeight: "calc(100vh - 100px)",
 						overscrollBehavior: "contain",
 					}}>
@@ -70,12 +71,12 @@ const ServersToggleModal: React.FC = () => {
 						style={{
 							bottom: `calc(100vh - ${menuPosition}px)`,
 							right: arrowPosition,
-							background: CODE_BLOCK_BG_COLOR,
+							background: menuBackground,
 						}}
 					/>
 
 					<div className="flex justify-between items-center mb-2.5">
-						<div className="m-0 text-base font-semibold">MCP Servers</div>
+						<div className="ml-0.5 text-[13px] font-semibold">MCP Servers</div>
 						<VSCodeButton
 							appearance="icon"
 							onClick={() => {
@@ -85,21 +86,13 @@ const ServersToggleModal: React.FC = () => {
 							<span className="codicon codicon-gear text-[10px]"></span>
 						</VSCodeButton>
 					</div>
-					<div
-						style={{
-							//display: "flex",
-							flexDirection: "column",
-							alignItems: "left",
-							textAlign: "left",
-						}}>
-						<p style={{ fontSize: "11px", marginLeft: 10, opacity: 0.9 }}>
-							<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 0 }}>
-								<li>Enable only servers you need to use in your task.</li>
-							</ul>
+					<div>
+						<p style={{ fontSize: "11px", marginLeft: 2, opacity: 0.8 }}>
+							Enable only servers you need to use in your task.
 						</p>
 					</div>
-					<div style={{ marginBottom: -10 }}>
-						<ServersToggleList servers={mcpServers} isExpandable={false} hasTrashIcon={false} listGap="small" />
+					<div style={{ marginBottom: 0 }}>
+						<ServersToggleList servers={mcpServers} isExpandable={true} hasTrashIcon={false} listGap="small" />
 					</div>
 				</div>
 			)}
