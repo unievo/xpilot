@@ -1,9 +1,9 @@
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { vscode } from "@/utils/vscode"
-import { memo, useState, useEffect, useCallback } from "react"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber } from "@/utils/format"
+import { StringRequest } from "@shared/proto/common"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { memo, useState, useEffect, useCallback } from "react"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -96,7 +96,9 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 	const tasksToDisplay = filteredTasks.filter((item) => item.ts && item.task).slice(0, 5)
 
 	const handleHistorySelect = (id: string) => {
-		TaskServiceClient.showTaskWithId({ value: id }).catch((error) => console.error("Error showing task:", error))
+		TaskServiceClient.showTaskWithId(StringRequest.create({ value: id })).catch((error) =>
+			console.error("Error showing task:", error),
+		)
 	}
 
 	const toggleExpanded = () => {
@@ -267,7 +269,12 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 												</span>
 												{/* {!!item.cacheWrites && (
 													<>
-														{" • "}
+														<span
+															style={{
+																color: "color-mix(in srgb, var(--vscode-descriptionForeground) 40%, transparent)",
+															}}>
+															•
+														</span>
 														<span>
 															Cache: +{formatLargeNumber(item.cacheWrites || 0)} →{" "}
 															{formatLargeNumber(item.cacheReads || 0)}
@@ -294,6 +301,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								<VSCodeButton
 									appearance="icon"
 									onClick={() => showHistoryView()}
+									className="cursor-pointer text-center transition-all duration-150 hover:opacity-80 flex items-center gap-1 bg-transparent border-none outline-none focus:outline-none"
 									style={{
 										opacity: 0.8,
 									}}>
@@ -310,6 +318,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 						</>
 					) : (
 						<div
+							className="text-center text-[var(--vscode-descriptionForeground)] py-4 rounded-xl"
 							style={{
 								textAlign: "center",
 								color: "var(--vscode-descriptionForeground)",

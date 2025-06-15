@@ -75,6 +75,19 @@ export interface ContextMenuQueryItem {
 	description?: string
 }
 
+const DEFAULT_CONTEXT_MENU_OPTIONS = [
+	ContextMenuOptionType.URL,
+	ContextMenuOptionType.Problems,
+	ContextMenuOptionType.Terminal,
+	ContextMenuOptionType.Git,
+	ContextMenuOptionType.Folder,
+	ContextMenuOptionType.File,
+]
+
+export function getContextMenuOptionIndex(option: ContextMenuOptionType) {
+	return DEFAULT_CONTEXT_MENU_OPTIONS.findIndex((item) => item === option)
+}
+
 export function getContextMenuOptions(
 	query: string,
 	selectedType: ContextMenuOptionType | null = null,
@@ -114,14 +127,7 @@ export function getContextMenuOptions(
 			return commits.length > 0 ? [workingChanges, ...commits] : [workingChanges]
 		}
 
-		return [
-			{ type: ContextMenuOptionType.File },
-			{ type: ContextMenuOptionType.Folder },
-			{ type: ContextMenuOptionType.Git },
-			{ type: ContextMenuOptionType.Problems },
-			{ type: ContextMenuOptionType.Terminal },
-			{ type: ContextMenuOptionType.URL },
-		]
+		return DEFAULT_CONTEXT_MENU_OPTIONS.map((type) => ({ type }))
 	}
 
 	const lowerQuery = query.toLowerCase()
