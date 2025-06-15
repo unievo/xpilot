@@ -16,6 +16,7 @@ export const SYSTEM_PROMPT = async (
 	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
+	isClaude4ModelFamily: boolean = false,
 ) => `${InitialisationPrompt()}
 ${await SystemInformationPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await ToolUsePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}

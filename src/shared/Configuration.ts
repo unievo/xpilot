@@ -58,5 +58,6 @@ export const improveWithAgentCommand = `${productName}.improveCode`
 export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputToChat`
 
 // Settings
+export const enableTelemetrySettings = false
 export const mcpMarketplaceEnabledDefaultSetting = false
 export const enableNewInstructionsDefaultSetting = false

@@ -11,7 +11,7 @@ import { ChatSettings } from "@shared/ChatSettings"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { UserInfo } from "@shared/UserInfo"
 import { ClineRulesToggles } from "@shared/cline-rules"
-import { ensureRulesDirectoryExists } from "./disk"
+import { ensureGlobalInstructionsDirectoryExists } from "./disk"
 import fs from "fs/promises"
 import path from "path"
 import { mcpMarketplaceEnabledDefaultSetting, productName } from "@shared/Configuration"
@@ -136,7 +136,7 @@ export async function migrateCustomInstructionsToGlobalRules(context: vscode.Ext
 			console.log("Migrating custom instructions to global Cline rules...")
 
 			// Create global .clinerules directory if it doesn't exist
-			const globalRulesDir = await ensureRulesDirectoryExists()
+			const globalRulesDir = await ensureGlobalInstructionsDirectoryExists()
 
 			// Use a fixed filename for custom instructions
 			const migrationFileName = "custom_instructions.md"
@@ -380,7 +380,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 
 	const mcpMarketplaceEnabled = await migrateMcpMarketplaceEnableSetting(mcpMarketplaceEnabledRaw)
 	const enableCheckpointsSetting = await migrateEnableCheckpointsSetting(enableCheckpointsSettingRaw)
-	const mcpResponsesCollapsed = mcpResponsesCollapsedRaw ?? false
+	const mcpResponsesCollapsed = mcpResponsesCollapsedRaw ?? true
 
 	// Plan/Act separate models setting is a boolean indicating whether the user wants to use different models for plan and act. Existing users expect this to be enabled, while we want new users to opt in to this being disabled by default.
 	// On win11 state sometimes initializes as empty string instead of undefined

@@ -5,6 +5,7 @@ import { version as extensionVersion } from "../../../../package.json"
 import type { TaskFeedbackType } from "@shared/WebviewMessage"
 import type { BrowserSettings } from "@shared/BrowserSettings"
 import { posthogClientProvider } from "../PostHogClientProvider"
+import { agentName } from "@/shared/Configuration"
 
 /**
  * TelemetryService handles telemetry event tracking for the Cline extension
@@ -142,7 +143,7 @@ class TelemetryService {
 			if (didUserOptIn) {
 				void vscode.window
 					.showWarningMessage(
-						"Anonymous Cline error and usage reporting is enabled, but VSCode telemetry is disabled. To enable error and usage reporting for this extension, enable VSCode telemetry in settings.",
+						`Anonymous ${agentName} error and usage reporting is enabled, but VSCode telemetry is disabled. To enable error and usage reporting for this extension, enable VSCode telemetry in settings.`,
 						"Open Settings",
 					)
 					.then((selection) => {

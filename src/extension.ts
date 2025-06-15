@@ -24,7 +24,7 @@ import { sendHistoryButtonClickedEvent } from "./core/controller/ui/subscribeToH
 import { sendAccountButtonClickedEvent } from "./core/controller/ui/subscribeToAccountButtonClicked"
 import { migratePlanActGlobalToWorkspaceStorage, migrateCustomInstructionsToGlobalRules } from "./core/storage/state"
 
-import { sendFocusChatInputEvent } from "./core/controller/ui/subscribeToFocusChatInput"import path from "node:path"
+import { sendFocusChatInputEvent } from "./core/controller/ui/subscribeToFocusChatInput"
 import {
 	agentName,
 	plusButtonCommand,

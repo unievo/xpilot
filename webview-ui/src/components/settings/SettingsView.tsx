@@ -24,7 +24,7 @@ import TerminalSettingsSection from "./TerminalSettingsSection"
 import { convertApiConfigurationToProtoApiConfiguration } from "@shared/proto-conversions/state/settings-conversion"
 import { convertChatSettingsToProtoChatSettings } from "@shared/proto-conversions/state/chat-settings-conversion"
 const { IS_DEV } = process.env
-import { repoUrl, xUrl, discordUrl, agentName } from "@shared/Configuration"
+import { repoUrl, xUrl, discordUrl, agentName, enableTelemetrySettings } from "@shared/Configuration"
 
 // Styles for the tab system
 const settingsTabsContainer = "flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden"
@@ -436,7 +436,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 				<div className="flex items-center gap-1">
 					<h3 className="text-[var(--vscode-foreground)] m-0">Settings</h3>
 				</div>
-				<div className="flex gap-2">
+				<div className="flex gap-2" style={{ height: "20px" }}>
 					<VSCodeButton appearance="secondary" onClick={handleCancel}>
 						Cancel
 					</VSCodeButton>
@@ -590,32 +590,33 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 												setChatSettings={setChatSettings}
 											/>
 										)}
-
-										{/* <div className="mb-[5px]">
-											<VSCodeCheckbox
-												className="mb-[5px]"
-												checked={telemetrySetting !== "disabled"}
-												onChange={(e: any) => {
-													const checked = e.target.checked === true
-													setTelemetrySetting(checked ? "enabled" : "disabled")
-												}}>
-												Allow anonymous error and usage reporting
-											</VSCodeCheckbox>
-											<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-												Help improve Cline by sending anonymous usage data and error reports. No code,
-												prompts, or personal information are ever sent. See our{" "}
-												<VSCodeLink
-													href="https://docs.cline.bot/more-info/telemetry"
-													className="text-inherit">
-													telemetry overview
-												</VSCodeLink>{" "}
-												and{" "}
-												<VSCodeLink href="https://cline.bot/privacy" className="text-inherit">
-													privacy policy
-												</VSCodeLink>{" "}
-												for more details.
-											</p>
-										</div> */}
+										{enableTelemetrySettings && (
+											<div className="mb-[5px]">
+												<VSCodeCheckbox
+													className="mb-[5px]"
+													checked={telemetrySetting !== "disabled"}
+													onChange={(e: any) => {
+														const checked = e.target.checked === true
+														setTelemetrySetting(checked ? "enabled" : "disabled")
+													}}>
+													Allow anonymous error and usage reporting
+												</VSCodeCheckbox>
+												<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
+													Help improve {agentName} by sending anonymous usage data and error reports. No
+													code, prompts, or personal information are ever sent. See our{" "}
+													<VSCodeLink
+														href="https://docs.cline.bot/more-info/telemetry"
+														className="text-inherit">
+														telemetry overview
+													</VSCodeLink>{" "}
+													and{" "}
+													<VSCodeLink href="https://cline.bot/privacy" className="text-inherit">
+														privacy policy
+													</VSCodeLink>{" "}
+													for more details.
+												</p>
+											</div>
+										)}
 									</Section>
 								</div>
 							)}

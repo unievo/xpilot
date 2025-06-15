@@ -82,8 +82,8 @@ export const TerminalSettingsSection: React.FC = () => {
 					</VSCodeCheckbox>
 				</div>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
-					When enabled, {agentName} will reuse existing terminal windows that aren't in the current working directory. Disable
-					this if you experience issues with task lockout after a terminal command.
+					When enabled, {agentName} will reuse existing terminal windows that aren't in the current working directory.
+					Disable this if you experience issues with task lockout after a terminal command.
 				</p>
 			</div>
 		</div>
