@@ -24,6 +24,7 @@ export type SecretKey =
 	| "cerebrasApiKey"
 
 export type GlobalStateKey =
+	| "vsCodeLmModelSelector"
 	| "awsRegion"
 	| "awsUseCrossRegionInference"
 	| "awsBedrockUsePromptCache"

@@ -14,7 +14,7 @@ import { ClineRulesToggles } from "@shared/cline-rules"
 import { ensureGlobalInstructionsDirectoryExists } from "./disk"
 import fs from "fs/promises"
 import path from "path"
-import { mcpMarketplaceEnabledDefaultSetting, productName } from "@shared/Configuration"
+import { enableTelemetrySettings, mcpMarketplaceEnabledDefaultSetting, productName } from "@shared/Configuration"
 /*
 	Storage
 	https://dev.to/kompotkot/how-to-use-secretstorage-in-your-vscode-extensions-2hco
@@ -64,7 +64,7 @@ export async function migratePlanActGlobalToWorkspaceStorage(context: vscode.Ext
 		"thinkingBudgetTokens",
 		"reasoningEffort",
 		"chatSettings",
-		"vsCodeLmModelSelector",
+		// "vsCodeLmModelSelector", Keep also in global storage for new workspaces
 
 		// Provider-specific model keys
 		"awsBedrockCustomSelected",
@@ -304,6 +304,11 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 
 	const localClineRulesToggles = (await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles
 
+	// Check for a vsCodeLmModelSelector in workspace state, if not found, fallback to global state
+	const vsCodeLmModelSelectorFromWorkspace = (await getWorkspaceState(context, "vsCodeLmModelSelector")) as
+		| vscode.LanguageModelChatSelector
+		| undefined
+
 	const [
 		chatSettings,
 		storedApiProvider,
@@ -339,7 +344,9 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getWorkspaceState(context, "apiModelId") as Promise<string | undefined>,
 		getWorkspaceState(context, "thinkingBudgetTokens") as Promise<number | undefined>,
 		getWorkspaceState(context, "reasoningEffort") as Promise<string | undefined>,
-		getWorkspaceState(context, "vsCodeLmModelSelector") as Promise<vscode.LanguageModelChatSelector | undefined>,
+		vsCodeLmModelSelectorFromWorkspace
+			? vsCodeLmModelSelectorFromWorkspace
+			: ((await getGlobalState(context, "vsCodeLmModelSelector")) as Promise<vscode.LanguageModelChatSelector | undefined>), // Fallback to global state if not found in workspace
 		getWorkspaceState(context, "awsBedrockCustomSelected") as Promise<boolean | undefined>,
 		getWorkspaceState(context, "awsBedrockCustomModelBaseId") as Promise<BedrockModelId | undefined>,
 		getWorkspaceState(context, "openRouterModelId") as Promise<string | undefined>,
@@ -491,7 +498,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		previousModeAwsBedrockCustomModelBaseId,
 		mcpMarketplaceEnabled: mcpMarketplaceEnabled,
 		mcpResponsesCollapsed: mcpResponsesCollapsed,
-		telemetrySetting: telemetrySetting || "unset",
+		telemetrySetting: enableTelemetrySettings ? telemetrySetting || "unset" : "disabled",
 		planActSeparateModelsSetting,
 		enableCheckpointsSetting: enableCheckpointsSetting,
 		shellIntegrationTimeout: shellIntegrationTimeout || 4000,
@@ -590,6 +597,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 	await updateWorkspaceState(context, "fireworksModelId", fireworksModelId)
 
 	// Global state updates
+	await updateGlobalState(context, "vsCodeLmModelSelector", vsCodeLmModelSelector)
 	await updateGlobalState(context, "awsRegion", awsRegion)
 	await updateGlobalState(context, "awsUseCrossRegionInference", awsUseCrossRegionInference)
 	await updateGlobalState(context, "awsBedrockUsePromptCache", awsBedrockUsePromptCache)
@@ -645,6 +653,9 @@ export async function resetExtensionState(context: vscode.ExtensionContext) {
 	for (const key of context.globalState.keys()) {
 		await context.globalState.update(key, undefined)
 	}
+
+	await updateWorkspaceState(context, "vsCodeLmModelSelector", undefined)
+
 	const secretKeys: SecretKey[] = [
 		"apiKey",
 		"openRouterApiKey",
