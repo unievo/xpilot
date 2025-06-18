@@ -87,7 +87,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.Terminal:
 				return <span>Terminal</span>
 			case ContextMenuOptionType.URL:
-				return <span>Paste URL to fetch contents</span>
+				return <span>Paste URL for web content</span>
 			case ContextMenuOptionType.NoResults:
 				return <span>No results found</span>
 			case ContextMenuOptionType.Git:
@@ -100,7 +100,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<span
 								className="ph-no-capture"
 								style={{
-									fontSize: "0.85em",
+									fontSize: "11px",
 									opacity: 0.7,
 									whiteSpace: "nowrap",
 									overflow: "hidden",
@@ -153,7 +153,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.URL:
 				return "link"
 			case ContextMenuOptionType.Git:
-				return "git-commit"
+				return "git-merge"
 			case ContextMenuOptionType.NoResults:
 				return "info"
 			default:
@@ -168,7 +168,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 	return (
 		<div
 			style={{
-				fontSize: "1em",
+				fontSize: "12px",
 				position: "absolute",
 				bottom: "calc(100% - 7px)",
 				left: 7,
@@ -182,7 +182,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 				style={{
 					backgroundColor: dropdownBackground,
 					border: "1px solid var(--vscode-editorGroup-border)",
-					borderRadius: "3px",
+					borderRadius: "6px",
 					boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
 					zIndex: 1000,
 					display: "flex",
@@ -209,7 +209,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						key={`${option.type}-${option.value || index}`}
 						onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
 						style={{
-							padding: "3px 3px",
+							padding: "4px 3px",
 							cursor: isOptionSelectable(option) ? "pointer" : "default",
 							color:
 								index === selectedIndex && isOptionSelectable(option)
@@ -236,9 +236,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<i
 								className={`codicon codicon-${getIconForOption(option)}`}
 								style={{
-									marginRight: "8px",
+									opacity: 0.9,
+									marginRight: "5px",
 									flexShrink: 0,
-									fontSize: "14px",
+									fontSize: "13px",
 								}}
 							/>
 							{renderOptionContent(option)}
@@ -250,7 +251,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 								<i
 									className="codicon codicon-chevron-right"
 									style={{
-										fontSize: "14px",
+										opacity: 0.5,
+										fontSize: "12px",
 										flexShrink: 0,
 										marginLeft: 8,
 									}}
@@ -265,7 +267,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<i
 								className="codicon codicon-add"
 								style={{
-									fontSize: "14px",
+									opacity: 0.5,
+									fontSize: "12px",
 									flexShrink: 0,
 									marginLeft: 8,
 								}}

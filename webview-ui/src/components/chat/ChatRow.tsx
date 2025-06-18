@@ -100,7 +100,7 @@ const WithCopyButton = React.forwardRef<HTMLDivElement, WithCopyButtonProps>(
 import { agentName, ignoreFile } from "@shared/Configuration"
 
 const ChatRowContainer = styled.div`
-	padding: 10px 6px 10px 15px;
+	padding: 10px 8px 10px 13px;
 	position: relative;
 
 	&:hover ${CheckpointControls} {
@@ -247,18 +247,18 @@ export const ChatRowContent = ({
 		selectedText: "",
 	})
 	const contentRef = useRef<HTMLDivElement>(null)
-	// Get saved expanded state from webview state or default to false
-	const savedState = (vscode.getState() as { mcpArgumentsExpanded?: boolean }) || {}
-	const [mcpArgumentsExpanded, setMcpArgumentsExpanded] = useState(savedState.mcpArgumentsExpanded || false)
+	// Get saved collapsed state from webview state or default to true
+	const savedState = (vscode.getState() as { mcpArgumentsCollapsed?: boolean }) || {}
+	const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(savedState.mcpArgumentsCollapsed ?? true)
 
-	// Update the saved state when the expanded state changes
+	// Update the saved state when the collapsed state changes
 	useEffect(() => {
 		const currentState = (vscode.getState() as Record<string, any>) || {}
 		vscode.setState({
 			...currentState,
-			mcpArgumentsExpanded,
+			mcpArgumentsCollapsed: mcpArgumentsCollapsed,
 		})
-	}, [mcpArgumentsExpanded])
+	}, [mcpArgumentsCollapsed])
 
 	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, retryStatus] = useMemo(() => {
 		if (message.text != null && message.say === "api_req_started") {
@@ -520,8 +520,8 @@ export const ChatRowContent = ({
 	const headerStyle: React.CSSProperties = {
 		display: "flex",
 		alignItems: "center",
-		gap: "10px",
-		marginBottom: "12px",
+		gap: "6px",
+		marginBottom: "8px",
 	}
 
 	const pStyle: React.CSSProperties = {
@@ -746,8 +746,8 @@ export const ChatRowContent = ({
 								toolIcon("sign-out", "yellow", -90, "This URL is external")}
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
-									? "Cline wants to fetch content from this URL:"
-									: "Cline fetched content from this URL:"}
+									? `${agentName} wants to fetch content from this URL:`
+									: `${agentName} fetched content from this URL:`}
 							</span>
 						</div>
 						<div
@@ -900,7 +900,7 @@ export const ChatRowContent = ({
 					style={{
 						background: "var(--vscode-textCodeBlock-background)",
 						borderRadius: "6px 6px 0 0",
-						padding: "8px 10px",
+						padding: "8px 6px",
 						marginTop: "8px",
 					}}>
 					{useMcpServer.type === "access_mcp_resource" && (
@@ -939,21 +939,24 @@ export const ChatRowContent = ({
 								<div style={{ marginTop: "8px" }}>
 									<div
 										style={{
-											marginBottom: "4px",
-											opacity: 0.8,
-											fontSize: "13px",
-											//textTransform: "uppercase",
 											display: "flex",
 											alignItems: "center",
 											cursor: "pointer",
 										}}
-										onClick={() => setMcpArgumentsExpanded(!mcpArgumentsExpanded)}>
+										onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}>
 										<span
-											className={`codicon codicon-chevron-${mcpArgumentsExpanded ? "down" : "right"}`}
+											className={`codicon codicon-chevron-${mcpArgumentsCollapsed ? "down" : "right"}`}
 											style={{ marginRight: "4px" }}></span>
-										<span style={{ color: "var(--vscode-textLink-foreground)" }}>Arguments</span>
+										<span
+											style={{
+												opacity: 0.8,
+												fontSize: "12px",
+												color: "var(--vscode-textLink-foreground)",
+											}}>
+											Arguments
+										</span>
 									</div>
-									{mcpArgumentsExpanded && (
+									{mcpArgumentsCollapsed && (
 										<CodeAccordian
 											code={useMcpServer.arguments}
 											language="json"
@@ -1373,7 +1376,10 @@ export const ChatRowContent = ({
 										}}
 										style={{
 											cursor: seeNewChangesDisabled ? "wait" : "pointer",
-											width: "100%",
+											marginLeft: "2px",
+											marginRight: "2px",
+											display: "block",
+											textAlign: "center",
 										}}>
 										<i className="codicon codicon-new-file" style={{ marginRight: 6 }} />
 										See new changes

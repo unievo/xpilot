@@ -87,12 +87,13 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 	return (
 		<div ref={modalRef}>
 			<div
-				className="fixed left-[12px] right-[12px] border border-[var(--vscode-editorGroup-border)] p-2.5 rounded z-[1000] overflow-y-auto"
+				className="fixed left-[16px] right-[16px] border border-[var(--vscode-editorGroup-border)] p-2.5 rounded z-[1000] overflow-hidden"
 				style={{
-					bottom: `calc(100vh - ${menuPosition}px + 6px)`,
+					bottom: `calc(100vh - ${menuPosition}px + 1px)`,
 					background: "var(--vscode-input-background)",
 					maxHeight: "calc(100vh - 100px)",
 					overscrollBehavior: "contain",
+					borderRadius: "4px 4px 0 0",
 				}}>
 				{/* <div
 					className="fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[var(--vscode-editorGroup-border)]"
@@ -104,19 +105,21 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				/> */}
 
 				<div className="flex justify-between items-center mb-3">
-					<div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div>
+					{/* <div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div> */}
+					<HeroTooltip
+						content="Auto-approve allows performing the following actions without asking for permission. AI can make mistakes, use with caution."
+						placement="top">
+						<div className="mt-0">
+							<div className="text-[color:var(--vscode-foreground)] text-sm font-medium">
+								Auto-approve settings{" "}
+								<span className="codicon codicon-info" style={{ opacity: 0.6, fontSize: "12px" }}></span>
+							</div>
+						</div>
+					</HeroTooltip>
 					<VSCodeButton appearance="icon" onClick={() => setIsVisible(false)}>
 						<span className="codicon codicon-close text-[10px]"></span>
 					</VSCodeButton>
 				</div>
-
-				<HeroTooltip
-					content="Auto-approve allows performing the following actions without asking for permission. Please use with caution and only enable if you understand the risks."
-					placement="top">
-					<div className="mb-3">
-						<div className="text-[color:var(--vscode-foreground)] font-medium">Auto-approve actions</div>
-					</div>
-				</HeroTooltip>
 
 				<div
 					ref={itemsContainerRef}
@@ -149,9 +152,9 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 					))}
 				</div>
 
-				<div className="mb-2.5">
+				{/* <div className="mb-2.5">
 					<span className="text-[color:var(--vscode-foreground)] font-medium">Quick Settings</span>
-				</div>
+				</div> */}
 
 				<AutoApproveMenuItem
 					key={NOTIFICATIONS_SETTING.id}
@@ -165,7 +168,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				<HeroTooltip
 					content={`${agentName} will automatically make this many API requests before asking for approval to proceed with the task.`}
 					placement="top">
-					<div className="flex items-center pl-1.5 my-0">
+					<div className="flex items-center pl-7.5 my-0">
 						<span className="codicon codicon-settings text-[#CCCCCC] text-[14px]" />
 						<span className="text-[#CCCCCC] text-xs font-medium ml-2">Max Requests:</span>
 						<span className="max-w-10 ml-1">

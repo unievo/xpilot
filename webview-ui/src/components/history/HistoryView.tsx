@@ -354,7 +354,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						}}>
 						Task History
 					</h3>
-					<VSCodeButton onClick={onDone}>Done</VSCodeButton>
+					<VSCodeButton style={{ height: "20px" }} onClick={onDone}>
+						Done
+					</VSCodeButton>
 				</div>
 				<div style={{ padding: "5px 17px 6px 17px" }}>
 					<div
@@ -439,20 +441,27 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								label="Favorites"
 							/>
 						</div>
-						<div style={{ display: "flex", justifyContent: "flex-end", gap: "0px" }}>
+						<div
+							style={{
+								margin: "5px 5px",
+								gap: "5px",
+								display: "flex",
+								height: "20px",
+								justifyContent: "flex-end",
+							}}>
 							<VSCodeButton
-								style={{ scale: "0.8" }}
-								onClick={() => {
-									handleBatchHistorySelect(true)
-								}}>
-								Select All
-							</VSCodeButton>
-							<VSCodeButton
-								style={{ scale: "0.8" }}
+								appearance="secondary"
 								onClick={() => {
 									handleBatchHistorySelect(false)
 								}}>
 								Select None
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="secondary"
+								onClick={() => {
+									handleBatchHistorySelect(true)
+								}}>
+								Select All
 							</VSCodeButton>
 						</div>
 					</div>

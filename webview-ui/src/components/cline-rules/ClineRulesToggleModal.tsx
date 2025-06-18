@@ -20,6 +20,7 @@ import RulesToggleList from "./RulesToggleList"
 import { agentName } from "@shared/Configuration"
 import { dropdown } from "@heroui/react"
 import { dropdownBackground, menuBackground } from "../theme"
+import HeroTooltip from "../common/HeroTooltip"
 
 // Helper function to sort rule entries by filename
 const sortByFilename = (entries: [string, boolean][]): [string, boolean][] => {
@@ -209,28 +210,32 @@ const ClineRulesToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<VSCodeButton
-					appearance="icon"
-					aria-label={`${agentName} Instructions`}
-					onClick={() => setIsVisible(!isVisible)}
-					style={{ marginLeft: "-3px", height: "20px" }}>
-					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
-						<span
-							className="codicon codicon-folder-active flex items-center"
-							style={{ fontSize: "16px", marginBottom: 1 }}
-						/>
-					</div>
-				</VSCodeButton>
+				<HeroTooltip delay={1000} content="Instructions and workflows">
+					<VSCodeButton
+						appearance="icon"
+						aria-label={`${agentName} Instructions`}
+						onClick={() => setIsVisible(!isVisible)}
+						style={{ marginLeft: "-3px", height: "20px" }}>
+						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
+							<span
+								className="codicon codicon-folder-active flex items-center"
+								style={{ fontSize: "16px", marginBottom: 1 }}
+							/>
+						</div>
+					</VSCodeButton>
+				</HeroTooltip>
 			</div>
 
 			{isVisible && (
 				<div
-					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-3 rounded z-[1000] overflow-y-auto"
+					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-2 rounded-md z-[1000] overflow-y-auto"
 					style={{
 						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
 						background: menuBackground,
-						maxHeight: "calc(100vh - 100px)",
+						maxHeight: "calc(100vh - 70px)",
 						overscrollBehavior: "contain",
+						paddingBottom: "10px",
+						fontSize: "12px",
 					}}>
 					<div
 						className="fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[var(--vscode-editorGroup-border)]"
@@ -266,17 +271,11 @@ const ClineRulesToggleModal: React.FC = () => {
 					{/* Description text */}
 					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
 						{currentView === "rules" ? (
-							<p>Instructions allow you to specify custom information for executing tasks.</p>
+							<p>Instructions allow specifying information to be included in the current context.</p>
 						) : (
 							<p>
-								Workflows allow you to define a series of steps to be executed in a task. To invoke a workflow,
-								type "
-								<span
-									className=" 
-								text-[var(--vscode-foreground)] font-bold">
-									/
-								</span>
-								" in the chat.{" "}
+								Workflows allow defining executable instructions that can be invoked in a task. Start a message
+								with "/" for quick access.
 							</p>
 						)}
 					</div>
@@ -284,11 +283,13 @@ const ClineRulesToggleModal: React.FC = () => {
 					{currentView === "rules" ? (
 						<>
 							{/* Global Rules Section */}
-							<div className="mb-0">
-								<div className="text-sm font-normal mb-0">Global</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
-									<p>Instructions apply to any workspace.</p>
-								</div>
+							<div style={{ marginBottom: 2 }}>
+								<HeroTooltip content="Global instructions are saved globally and are available in any workspace">
+									<div className="font-normal mt-3 mb-2">
+										Global{" "}
+										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.3 }} />
+									</div>
+								</HeroTooltip>
 								<RulesToggleList
 									rules={globalRules}
 									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
@@ -301,11 +302,13 @@ const ClineRulesToggleModal: React.FC = () => {
 							</div>
 
 							{/* Local Rules Section */}
-							<div style={{ marginBottom: -10 }}>
-								<div className="text-sm font-normal mb-0">Workspace</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
-									<p>Instructions apply to the current workspace.</p>
-								</div>
+							<div style={{ marginBottom: 2 }}>
+								<HeroTooltip content="Workspace instructions are saved in the current workspace and are available only in this workspace">
+									<div className="font-normal mt-3 mb-2">
+										Workspace{" "}
+										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.3 }} />
+									</div>
+								</HeroTooltip>
 								<RulesToggleList
 									rules={localRules}
 									toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
@@ -340,11 +343,13 @@ const ClineRulesToggleModal: React.FC = () => {
 					) : (
 						<>
 							{/* Global Workflows Section */}
-							<div className="mb-1">
-								<div className="text-sm font-normal mb-2">Global</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-1">
-									<p>Workflows can be invoked in any workspace.</p>
-								</div>
+							<div style={{ marginBottom: 2 }}>
+								<HeroTooltip content="Global workflows are saved globally and can be invoked in any workspace">
+									<div className="font-normal mt-3 mb-2">
+										Global{" "}
+										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.3 }} />
+									</div>
+								</HeroTooltip>
 								<RulesToggleList
 									rules={globalWorkflows}
 									toggleRule={(rulePath, enabled) => toggleWorkflow(true, rulePath, enabled)}
@@ -357,11 +362,13 @@ const ClineRulesToggleModal: React.FC = () => {
 							</div>
 
 							{/* Local Workflows Section */}
-							<div style={{ marginBottom: -10 }}>
-								<div className="text-sm font-normal mb-2">Workspace</div>
-								<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
-									<p>Workflows can be invoked in the current workspace.</p>
-								</div>
+							<div style={{ marginBottom: 2 }}>
+								<HeroTooltip content="Workspace workflows are saved in the current workspace and can be invoked only in this workspace">
+									<div className="font-normal mt-3 mb-2">
+										Workspace{" "}
+										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.3 }} />
+									</div>
+								</HeroTooltip>
 								<RulesToggleList
 									rules={localWorkflows}
 									toggleRule={(rulePath, enabled) => toggleWorkflow(false, rulePath, enabled)}
@@ -385,10 +392,11 @@ const StyledTabButton = styled.button<{ isActive: boolean }>`
 	border: none;
 	border-bottom: 2px solid ${(props) => (props.isActive ? "var(--vscode-foreground)" : "transparent")};
 	color: ${(props) => (props.isActive ? "var(--vscode-foreground)" : "var(--vscode-descriptionForeground)")};
-	padding: 8px 16px;
+	padding: 8px 5px;
 	cursor: pointer;
 	font-size: 13px;
 	margin-bottom: -1px;
+	margin-top: -5px;
 	font-family: inherit;
 
 	&:hover {

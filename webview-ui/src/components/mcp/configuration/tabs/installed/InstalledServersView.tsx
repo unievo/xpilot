@@ -59,7 +59,7 @@ const InstalledServersView = () => {
 					</VSCodeLink>
 				</div>
 			</div> */}
-			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={true} listGap="medium" />
+			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={true} listGap="small" />
 		</div>
 	)
 }

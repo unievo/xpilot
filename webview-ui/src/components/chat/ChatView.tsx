@@ -38,7 +38,7 @@ import { SuggestedTasks } from "../welcome/SuggestedTasks"
 import { BooleanRequest, EmptyRequest, StringRequest } from "@shared/proto/common"
 import { AskResponseRequest, NewTaskRequest } from "@shared/proto/task"
 
-import { agentName } from "@shared/Configuration"
+import { enableTelemetrySettings } from "@shared/Configuration"
 
 interface ChatViewProps {
 	isHidden: boolean
@@ -1076,7 +1076,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	useEvent("wheel", handleWheel, window, { passive: true }) // passive improves scrolling performance
 
 	const placeholderText = useMemo(() => {
-		const text = task ? "Type a message..." : "Type your task here..."
+		const text = task ? "Type a message" : "Type a task"
 		return text
 	}, [task])
 
@@ -1145,7 +1145,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				top: 0,
 				left: 0,
 				right: 0,
-				bottom: 8,
+				bottom: 5,
 				display: isHidden ? "none" : "flex",
 				flexDirection: "column",
 				overflow: "hidden",
@@ -1174,7 +1174,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						paddingBottom: "1px",
 						marginLeft: "-5px",
 					}}>
-					{/* {telemetrySetting === "unset" && <TelemetryBanner />} */}
+					{enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />}
 
 					{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
 
@@ -1202,7 +1202,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 								overflowY: "scroll", // always show scrollbar
 							}}
 							components={{
-								Footer: () => <div style={{ height: 20 }} />, // Add empty padding at the bottom
+								Footer: () => <div style={{ height: 5 }} />, // Add empty padding at the bottom
 							}}
 							// increasing top by 3_000 to prevent jumping around when user collapses a row
 							increaseViewportBy={{

@@ -18,7 +18,7 @@ const HeroTooltip: React.FC<HeroTooltipProps> = ({
 	content,
 	children,
 	className,
-	delay = 0,
+	delay = 500,
 	closeDelay = 500,
 	placement = "top",
 }) => {

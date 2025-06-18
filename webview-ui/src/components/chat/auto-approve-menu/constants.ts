@@ -9,13 +9,13 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		description: "Toggle the auto-approve feature on or off.",
 		icon: "codicon-play-circle",
 	},
-	// {
-	// 	id: "enableAll",
-	// 	label: "Toggle all",
-	// 	shortName: "All",
-	// 	description: "Toggle all actions on or off.",
-	// 	icon: "codicon-checklist",
-	// },
+	{
+		id: "enableAll",
+		label: "Toggle all",
+		shortName: "All",
+		description: "Toggle all actions on or off.",
+		icon: "codicon-checklist",
+	},
 	{
 		id: "readFiles",
 		label: "Read project files",

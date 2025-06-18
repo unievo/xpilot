@@ -11,6 +11,7 @@ import { McpServers } from "@shared/proto/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { EmptyRequest } from "@shared/proto/common"
 import { menuBackground } from "../theme"
+import HeroTooltip from "../common/HeroTooltip"
 
 const ServersToggleModal: React.FC = () => {
 	const { mcpServers, navigateToMcp, setMcpServers } = useExtensionState()
@@ -56,27 +57,29 @@ const ServersToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<VSCodeButton
-					appearance="icon"
-					aria-label="MCP Servers"
-					onClick={() => setIsVisible(!isVisible)}
-					style={{ marginLeft: "-3px", height: "20px" }}>
-					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
-						<span
-							className="codicon codicon-server flex items-center"
-							style={{ fontSize: "15px", marginBottom: 1 }}
-						/>
-					</div>
-				</VSCodeButton>
+				<HeroTooltip delay={1000} content="MCP Servers">
+					<VSCodeButton
+						appearance="icon"
+						aria-label="MCP Servers"
+						onClick={() => setIsVisible(!isVisible)}
+						style={{ marginLeft: "-3px", height: "20px" }}>
+						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
+							<span
+								className="codicon codicon-server flex items-center"
+								style={{ fontSize: "15px", marginBottom: 1 }}
+							/>
+						</div>
+					</VSCodeButton>
+				</HeroTooltip>
 			</div>
 
 			{isVisible && (
 				<div
-					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-2 rounded z-[1000] overflow-y-auto"
+					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-2 rounded-md z-[1000] overflow-y-auto"
 					style={{
 						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
 						background: menuBackground,
-						maxHeight: "calc(100vh - 100px)",
+						maxHeight: "calc(100vh - 70px)",
 						overscrollBehavior: "contain",
 					}}>
 					<div
@@ -100,11 +103,11 @@ const ServersToggleModal: React.FC = () => {
 						</VSCodeButton>
 					</div>
 					<div>
-						<p style={{ fontSize: "11px", marginLeft: 2, opacity: 0.8 }}>
+						<p style={{ fontSize: "12px", marginLeft: 2, color: "var(--vscode-descriptionForeground)" }}>
 							Enable only servers you need to use in your task.
 						</p>
 					</div>
-					<div style={{ marginBottom: 0 }}>
+					<div style={{ marginBottom: 0, fontSize: "12px" }}>
 						<ServersToggleList servers={mcpServers} isExpandable={true} hasTrashIcon={false} listGap="small" />
 					</div>
 				</div>

@@ -89,13 +89,16 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 	return (
 		<div
 			ref={componentRef}
-			className={`mb-2.5  transition-all duration-300 ease-in-out ${isExpanded ? "opacity-100" : "opacity-70 hover:opacity-100"}`}
+			className={`mb-0  transition-all duration-200 ease-in-out ${isExpanded ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
 			onClick={() => !isExpanded && setIsExpanded(true)}>
 			<div
-				style={{ border: `1px solid ${rowBackground}`, marginTop: "1px", padding: "6px" }}
-				className={`flex items-center p-2 rounded transition-all duration-300 ease-in-out h-[12px] ${
+				style={{ border: `0.5px solid ${rowBackground}`, marginTop: "3px", paddingLeft: "2px", overflow: "hidden" }}
+				className={`flex items-center p-0 rounded transition-all duration-300 ease-in-out min-h-[12px] ${
 					isExpanded ? "shadow-sm" : ""
 				}`}>
+				<span
+					className="codicon codicon-markdown"
+					style={{ fontSize: "14px", marginRight: "0px", opacity: 0.5, verticalAlign: "middle" }}></span>
 				{isExpanded ? (
 					<form onSubmit={handleSubmit} className="flex flex-1 items-center">
 						<input
@@ -105,9 +108,10 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 							value={filename}
 							onChange={(e) => setFilename(e.target.value)}
 							onKeyDown={handleKeyDown}
-							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent"
+							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent min-h-[12px] py-0"
 							style={{
 								outline: "none",
+								fontSize: "12px",
 							}}
 						/>
 
@@ -118,13 +122,13 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 								aria-label="Add file"
 								title="Add file"
 								style={{ padding: "0px" }}>
-								<span className="codicon codicon-add text-[12px]" />
+								<span className="codicon codicon-add" />
 							</VSCodeButton>
 						</div>
 					</form>
 				) : (
 					<>
-						<span className="flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)] text-xs">
+						<span className="ml-0.5 flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)]">
 							{ruleType === "workflow" ? "New workflow file..." : "New instructions file..."}
 						</span>
 						<div className="flex items-center ml-2 space-x-2">
@@ -136,14 +140,14 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 									e.stopPropagation()
 									setIsExpanded(true)
 								}}
-								style={{ padding: "0px" }}>
-								<span className="codicon codicon-add text-[12px]" />
+								style={{ opacity: 0.7, padding: "0px" }}>
+								<span className="codicon codicon-add" />
 							</VSCodeButton>
 						</div>
 					</>
 				)}
 			</div>
-			{isExpanded && error && <div className="text-[var(--vscode-errorForeground)] text-xs mt-1 ml-2">{error}</div>}
+			{isExpanded && error && <div className="text-[var(--vscode-errorForeground)] mt-1 ml-2">{error}</div>}
 		</div>
 	)
 }

@@ -78,7 +78,9 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					padding: "10px 17px 5px 20px",
 				}}>
 				<h3 style={{ color: "var(--vscode-foreground)", margin: 0 }}>MCP Servers</h3>
-				<VSCodeButton onClick={onDone}>Done</VSCodeButton>
+				<VSCodeButton style={{ height: "20px" }} onClick={onDone}>
+					Done
+				</VSCodeButton>
 			</div>
 
 			<div style={{ flex: 1, overflow: "auto" }}>

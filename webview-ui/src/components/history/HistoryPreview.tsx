@@ -2,8 +2,10 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber } from "@/utils/format"
 import { StringRequest } from "@shared/proto/common"
+import { GetTaskHistoryRequest } from "@shared/proto/task"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { memo, useState, useEffect, useCallback } from "react"
+import HeroTooltip from "../common/HeroTooltip"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -71,9 +73,11 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 	// Load filtered task history with gRPC
 	const loadTaskHistory = useCallback(async () => {
 		try {
-			const response = await TaskServiceClient.getTaskHistory({
-				currentWorkspaceOnly: showCurrentWorkspaceOnly,
-			})
+			const response = await TaskServiceClient.getTaskHistory(
+				GetTaskHistoryRequest.create({
+					currentWorkspaceOnly: showCurrentWorkspaceOnly,
+				}),
+			)
 			setFilteredTasks(response.tasks || [])
 		} catch (error) {
 			console.error("Error loading task history:", error)
@@ -93,7 +97,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 	}, [loadTaskHistory, showCurrentWorkspaceOnly, taskHistory])
 
 	// Get tasks to display
-	const tasksToDisplay = filteredTasks.filter((item) => item.ts && item.task).slice(0, 5)
+	const tasksToDisplay = filteredTasks.filter((item) => item.ts && item.task).slice(0, 10)
 
 	const handleHistorySelect = (id: string) => {
 		TaskServiceClient.showTaskWithId(StringRequest.create({ value: id })).catch((error) =>
@@ -183,7 +187,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 				<div
 					style={{
 						fontSize: "0.8em",
-						padding: "0 20px 5px 20px",
+						padding: "0 10px 8px 20px",
 						marginLeft: "0px",
 						marginBottom: "0px",
 						marginTop: "-5px",
@@ -195,8 +199,18 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 						checked={showCurrentWorkspaceOnly}
 						onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
 						icon=""
-						label="Current Workspace"
+						label="Current workspace"
 					/>
+					<HeroTooltip content="Show only tasks from the current workspace">
+						<span
+							style={{
+								marginLeft: "-5px",
+								opacity: 0.5,
+								fontSize: "12px",
+							}}
+							className="codicon codicon-info"
+						/>
+					</HeroTooltip>
 				</div>
 			)}
 

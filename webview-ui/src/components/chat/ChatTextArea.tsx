@@ -45,6 +45,7 @@ import styled from "styled-components"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 import ServersToggleModal from "./ServersToggleModal"
 import { chatTextAreaBackground, menuBackground } from "../theme"
+import HeroTooltip from "../common/HeroTooltip"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -1516,8 +1517,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						ref={highlightLayerRef}
 						style={{
 							position: "absolute",
-							top: 11,
-							left: 3,
+							top: 9,
+							left: 2,
 							right: 8,
 							bottom: 10,
 							pointerEvents: "none",
@@ -1541,7 +1542,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					/>
 					<DynamicTextArea
 						data-testid="chat-input"
-						minRows={3}
+						minRows={1}
 						ref={(el) => {
 							if (typeof ref === "function") {
 								ref(el)
@@ -1577,7 +1578,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						style={{
 							width: "100%",
 							boxSizing: "border-box",
-							marginLeft: -3,
+							marginLeft: -4,
 							marginRight: -3,
 							backgroundColor: "transparent",
 							color: "var(--vscode-input-foreground)",
@@ -1601,7 +1602,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							// borderLeft: "9px solid transparent", // NOTE: react-textarea-autosize doesn't calculate correct height when using borderLeft/borderRight so we need to use horizontal padding instead
 							// Instead of using boxShadow, we use a div with a border to better replicate the behavior when the textarea is focused
 							// boxShadow: "0px 0px 0px 1px var(--vscode-input-border)",
-							padding: "9px 28px 3px 5px",
+							padding: "8px 28px 9px 5px",
 							cursor: "text",
 							flex: 1,
 							zIndex: 1,
@@ -1609,17 +1610,17 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								isDraggingOver && !showUnsupportedFileError // Only show drag outline if not showing error
 									? "2px dashed var(--vscode-focusBorder)"
 									: isTextAreaFocused
-										? `0.5px solid ${chatSettings.mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
+										? `0px dotted ${chatSettings.mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
 										: "none",
 							outlineOffset: isDraggingOver && !showUnsupportedFileError ? "1px" : "0px", // Add offset for drag-over outline
 						}}
 						onScroll={() => updateHighlights()}
 					/>
-					{!inputValue && selectedImages.length === 0 && selectedFiles.length === 0 && (
+					{/* {!inputValue && selectedImages.length === 0 && selectedFiles.length === 0 && (
 						<div className="absolute bottom-4 left-[25px] right-[60px] text-[10px] text-[var(--vscode-input-placeholderForeground)] opacity-70 whitespace-nowrap overflow-hidden text-ellipsis pointer-events-none z-[1]">
 							Type @ for context, / for slash commands & workflows, hold shift to drag in files/images
 						</div>
-					)}
+					)} */}
 					{(selectedImages.length > 0 || selectedFiles.length > 0) && (
 						<Thumbnails
 							images={selectedImages}
@@ -1667,14 +1668,27 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							/> */}
 							<div
 								data-testid="send-button"
-								className={`input-icon-button ${sendingDisabled ? "disabled" : ""} codicon codicon-arrow-circle-right`}
+								className={`input-icon-button ${sendingDisabled ? "disabled" : ""} codicon codicon-arrow-circle-up`}
 								onClick={() => {
 									if (!sendingDisabled) {
 										setIsTextAreaFocused(false)
 										onSend()
 									}
 								}}
-								style={{ fontSize: 22 }}></div>
+								style={{
+									fontSize: 24,
+									marginBottom: 4,
+									marginRight: -6,
+									color: inputValue
+										? `${
+												chatSettings.mode === "plan"
+													? `color-mix(in srgb, ${PLAN_MODE_COLOR} 20%, var(--vscode-editor-foreground))`
+													: `color-mix(in srgb, ${ACT_MODE_COLOR} 80%, var(--vscode-editor-foreground))`
+											}`
+										: undefined,
+									opacity: inputValue ? 1 : 0.3,
+									transition: "color 0.3s ease, opacity 0.3s ease",
+								}}></div>
 						</div>
 					</div>
 				</div>
@@ -1701,31 +1715,35 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					</SwitchContainer>
 
 					<ButtonGroup>
-						<VSCodeButton
-							data-testid="context-button"
-							appearance="icon"
-							aria-label="Add Context"
-							onClick={handleContextButtonClick}
-							style={{ marginLeft: "2px", paddingTop: "0px", height: "20px" }}>
-							<ButtonContainer style={{ opacity: 0.7 }}>
-								<span className="flex items-center" style={{ fontSize: "16px", marginBottom: 1 }}>
-									@
-								</span>
-							</ButtonContainer>
-						</VSCodeButton>
-						<VSCodeButton
-							data-testid="command-button"
-							appearance="icon"
-							aria-label="Commands"
-							onClick={handleCommandButtonClick}
-							style={{ opacity: 0.7, marginLeft: "-2px", marginTop: "0px", height: "20px" }}>
-							<ButtonContainer>
-								<span
-									className="codicon codicon-diff-ignored flex items-center"
-									style={{ fontSize: "15px", marginTop: "2px" }}
-								/>
-							</ButtonContainer>
-						</VSCodeButton>
+						<HeroTooltip delay={1000} content="Add to Context">
+							<VSCodeButton
+								data-testid="context-button"
+								appearance="icon"
+								aria-label="Add Context"
+								onClick={handleContextButtonClick}
+								style={{ marginLeft: "2px", paddingTop: "0px", height: "20px" }}>
+								<ButtonContainer style={{ opacity: 0.7 }}>
+									<span className="flex items-center" style={{ fontSize: "16px", marginBottom: 1 }}>
+										@
+									</span>
+								</ButtonContainer>
+							</VSCodeButton>
+						</HeroTooltip>
+						<HeroTooltip delay={1000} content="Execute commands and workflows">
+							<VSCodeButton
+								data-testid="command-button"
+								appearance="icon"
+								aria-label="Commands"
+								onClick={handleCommandButtonClick}
+								style={{ opacity: 0.7, marginLeft: "-2px", marginTop: "0px", height: "20px" }}>
+								<ButtonContainer>
+									<span
+										className="codicon codicon-diff-ignored flex items-center"
+										style={{ fontSize: "15px", marginTop: "2px" }}
+									/>
+								</ButtonContainer>
+							</VSCodeButton>
+						</HeroTooltip>
 
 						<ServersToggleModal />
 
@@ -1738,13 +1756,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									fontSize: "13px",
 									color: "var(--vscode-focusBorder)",
 									marginLeft: "0px",
-									marginTop: "6px",
+									marginTop: "7px",
 									opacity: 0.7,
 								}}
 							/>
 							<ModelButtonWrapper ref={buttonRef}>
 								<ModelDisplayButton
-									style={{ fontSize: "11px", marginTop: "2px", marginLeft: "3px" }}
+									style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px" }}
 									role="button"
 									isActive={showModelSelector}
 									disabled={false}
@@ -1770,24 +1788,34 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</ModelSelectorTooltip>
 							)}
 						</ModelContainer>
-								<VSCodeButton
-									data-testid="files-button"
-									appearance="icon"
-									aria-label="Add Files & Images"
-									disabled={shouldDisableFilesAndImages}
-									onClick={() => {
-										if (!shouldDisableFilesAndImages) {
-											onSelectFilesAndImages()
-										}
-									}}
-									style={{ padding: "0px 0px", height: "20px" }}>
-									<ButtonContainer>
-										<span
-											className="codicon codicon-add flex items-center"
-											style={{ fontSize: "14px", marginBottom: -3 }}
-										/>
-									</ButtonContainer>
-								</VSCodeButton>
+						<HeroTooltip
+							delay={1000}
+							content="Attach files & images for capable models and API providers. Only compatible files can be attached for the current provider/model selection.">
+							<VSCodeButton
+								data-testid="files-button"
+								appearance="icon"
+								aria-label="Add Files & Images"
+								disabled={shouldDisableFilesAndImages}
+								onClick={() => {
+									if (!shouldDisableFilesAndImages) {
+										onSelectFilesAndImages()
+									}
+								}}
+								style={{ padding: "0px 0px", height: "20px" }}>
+								<ButtonContainer>
+									<span
+										className="codicon codicon-file-add flex items-center"
+										style={{
+											opacity: 0.7,
+											fontWeight: "600",
+											fontSize: "15px",
+											marginTop: 3,
+											marginRight: 1,
+										}}
+									/>
+								</ButtonContainer>
+							</VSCodeButton>
+						</HeroTooltip>
 					</ButtonGroup>
 				</ControlsContainer>
 			</div>

@@ -8,7 +8,7 @@ const DangerButton: React.FC<DangerButtonProps> = (props) => {
 			{...props}
 			appearance="icon"
 			className={`
-				bg-[var(--vscode-button-secondaryBackground)]
+				bg-[var(--vscode-button-background)]
 				hover:!bg-[#a82424] 
 				hover:!border-[#a82424]
 				${props.className || ""}

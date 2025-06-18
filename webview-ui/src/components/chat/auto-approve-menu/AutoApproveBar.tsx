@@ -56,13 +56,13 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 
 		return [
 			...favorites.map((favId) => renderFavoritedItem(favId)),
-			minusFavorites.length > 0 ? (
-				<span className="text-[color:var(--vscode-foreground-muted)] pl-[1px] opacity-70" key="separator">
-					-
-				</span>
-			) : null,
+			// minusFavorites.length > 0 ? (
+			// 	<span className="text-[color:var(--vscode-foreground-muted)] pl-[1px] opacity-70" key="separator">
+			// 		-
+			// 	</span>
+			// ) : null,
 			...minusFavorites.map((action, index) => (
-				<span className="text-[color:var(--vscode-foreground-muted)] opacity-80" key={action?.id}>
+				<span className="text-[color:var(--vscode-foreground-muted)] opacity-70" key={action?.id}>
 					{action?.shortName}
 					{index < minusFavorites.length - 1 && ""}
 				</span>
@@ -82,26 +82,26 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 			}}>
 			<div
 				ref={buttonRef}
-				className="cursor-pointer py-[8px] pr-[2px] flex items-center justify-between gap-[8px]"
+				className="cursor-pointer py-[8px] pr-[0px] flex items-center justify-between gap-[8px]"
 				onClick={() => {
 					setIsModalVisible((prev) => !prev)
 				}}>
 				<div
 					className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
 					style={{
-						opacity: isModalVisible ? 1 : 0.6,
+						opacity: isModalVisible ? 1 : 0.7,
 						fontSize: "0.88em",
 						msOverflowStyle: "none",
 						scrollbarWidth: "none",
 						WebkitOverflowScrolling: "touch",
 					}}>
-					<span>Actions</span>
-					{getQuickAccessItems()}
+					<span>Auto:</span>
+					{autoApprovalSettings.enabled ? <>{getQuickAccessItems()}</> : " none"}
 				</div>
 				{isModalVisible ? (
 					<span className="codicon codicon-chevron-down" />
 				) : (
-					<span className="codicon codicon-chevron-up" />
+					<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
 				)}
 			</div>
 

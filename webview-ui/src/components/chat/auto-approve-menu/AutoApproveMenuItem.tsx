@@ -91,16 +91,17 @@ const AutoApproveMenuItem = ({
 	const content = (
 		<>
 			<ActionButtonContainer>
-				<HeroTooltip content={action.description} delay={500}>
+				<HeroTooltip content={action.description}>
 					<CheckboxContainer isFavorited={favorited} onClick={onChange}>
-						<div className="left-content" style={{ marginTop: "-2px", marginBottom: "-2px" }}>
+						<div
+							className="left-content"
+							style={{ marginTop: "-3px", marginBottom: "-3px", opacity: checked ? 1 : 0.6 }}>
 							<VSCodeCheckbox checked={checked} />
 							{showIcon && <span className={`codicon ${action.icon} icon`}></span>}
 							<span className="label">{condensed ? action.shortName : action.label}</span>
 						</div>
 						{/* {onToggleFavorite && !condensed && (
 							<HeroTooltip
-								delay={500}
 								content={favorited ? "Remove from quick-access menu" : "Add to quick-access menu"}>
 								<span
 									className={`p-0.5 codicon codicon-${favorited ? "star-full" : "star-empty"} star`}

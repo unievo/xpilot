@@ -64,18 +64,24 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 						<div
 							key={command.name}
 							id={`slash-command-menu-item-${itemIndex}`}
-							className={`slash-command-menu-item py-0.5 px-3 cursor-pointer flex flex-col ${
+							className={`slash-command-menu-item py-0.5 px-1.5 cursor-pointer flex flex-col ${
 								itemIndex === selectedIndex
 									? "bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-quickInputList-focusForeground)]"
 									: ""
 							} hover:bg-[var(--vscode-list-hoverBackground)]`}
 							onClick={() => handleClick(command)}
 							onMouseEnter={() => setSelectedIndex(itemIndex)}>
-							<div className="font-normal whitespace-nowrap overflow-hidden text-ellipsis">
+							<div
+								className="font-normal whitespace-nowrap overflow-hidden text-ellipsis flex items-end"
+								style={{ paddingTop: "1px", paddingBottom: "2px" }}>
+								<span
+									className="codicon codicon-sparkle"
+									style={{ opacity: 0.9, fontSize: "13px", marginRight: 4 }}
+								/>
 								<span>{command.name.replace(/\.[^/.]+$/, "")}</span>
 								{showDescriptions && command.description && (
-									<span className="text-[0.8em] text-[var(--vscode-descriptionForeground)] whitespace-normal overflow-hidden text-ellipsis">
-										<span className="ph-no-capture"> - {command.description}</span>
+									<span className="text-[0.8em] text-[var(--vscode-descriptionForeground)] whitespace-nowrap overflow-hidden text-ellipsis">
+										<span className="ph-no-capture ml-1.5 opacity-80">{command.description}</span>
 									</span>
 								)}
 							</div>
@@ -88,12 +94,12 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 	return (
 		<div
-			style={{ fontSize: "1em" }}
+			style={{ fontSize: "12px" }}
 			className="absolute bottom-[calc(100%-7px)] left-[7px] right-[7px] overflow-x-hidden z-[1000]"
 			onMouseDown={onMouseDown}>
 			<div
 				ref={menuRef}
-				className="border border-[var(--vscode-editorGroup-border)] rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				className="border border-[var(--vscode-editorGroup-border)] rounded-md shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				style={{ background: dropdownBackground, maxHeight: "min(800px, calc(50vh))", overscrollBehavior: "contain" }}>
 				{filteredCommands.length > 0 ? (
 					<>

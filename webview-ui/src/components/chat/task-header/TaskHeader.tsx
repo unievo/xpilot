@@ -228,7 +228,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	)
 
 	return (
-		<div style={{ padding: "1px 10px 10px 10px" }}>
+		<div style={{ padding: "0px 10px 3px 10px" }}>
 			<div
 				style={{
 					backgroundColor: taskHeaderBackground,

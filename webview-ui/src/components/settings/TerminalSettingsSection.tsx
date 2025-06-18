@@ -56,9 +56,9 @@ export const TerminalSettingsSection: React.FC = () => {
 					</label>
 					<div style={{ display: "flex", alignItems: "center" }}>
 						<VSCodeTextField
-							style={{ width: "100%" }}
+							style={{ width: "100px" }}
 							value={inputValue}
-							placeholder="Enter timeout in seconds"
+							placeholder="timeout"
 							onChange={(event) => handleTimeoutChange(event as Event)}
 							onBlur={handleInputBlur}
 						/>
@@ -78,7 +78,7 @@ export const TerminalSettingsSection: React.FC = () => {
 					<VSCodeCheckbox
 						checked={terminalReuseEnabled ?? true}
 						onChange={(event) => handleTerminalReuseChange(event as Event)}>
-						Enable aggressive terminal reuse
+						Enable terminal reuse
 					</VSCodeCheckbox>
 				</div>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>

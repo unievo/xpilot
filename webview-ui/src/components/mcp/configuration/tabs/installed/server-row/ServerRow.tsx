@@ -47,6 +47,7 @@ const ServerRow = ({
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [isRestarting, setIsRestarting] = useState(false)
+	const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
 	const getStatusColor = useCallback((status: McpServer["status"]) => {
 		switch (status) {
@@ -115,7 +116,12 @@ const ServerRow = ({
 	}
 
 	const handleDelete = () => {
+		setShowConfirmDelete(true)
+	}
+
+	const handleConfirmDelete = () => {
 		setIsDeleting(true)
+		setShowConfirmDelete(false)
 		McpServiceClient.deleteMcpServer({
 			value: server.name,
 		} as StringRequest)
@@ -128,6 +134,10 @@ const ServerRow = ({
 				console.error("Error deleting MCP server", error)
 				setIsDeleting(false)
 			})
+	}
+
+	const handleCancelDelete = () => {
+		setShowConfirmDelete(false)
 	}
 
 	const handleAutoApproveChange = () => {
@@ -171,16 +181,21 @@ const ServerRow = ({
 				style={{
 					display: "flex",
 					alignItems: "center",
-					padding: "2px",
+					paddingLeft: !server.error ? "0px" : "15px",
 					paddingRight: "8px",
+					minHeight: "22px",
 					background: server.disabled ? rowBackgroundDisabled : rowBackground,
-
 					cursor: server.error ? "default" : isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || server.error ? "4px 4px 0 0" : "4px",
-					opacity: server.disabled ? 0.8 : 1,
+					opacity: server.disabled ? 0.7 : 1,
 				}}
 				onClick={handleRowClick}>
-				{!server.error && isExpandable && <span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`} />}
+				{!server.error && isExpandable && (
+					<span
+						style={{ fontSize: "13px", marginLeft: "2px" }}
+						className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
+					/>
+				)}
 				<span
 					style={{
 						flex: 1,
@@ -190,36 +205,27 @@ const ServerRow = ({
 						display: "flex",
 						alignItems: "center",
 						marginRight: "4px",
-						marginLeft: "3px",
-						fontSize: "13px",
+						marginLeft: "0px",
+						//fontSize: "13px",
 						padding: "1px ",
 					}}>
+					<span
+						className="codicon codicon-combine"
+						style={{ opacity: 0.9, fontSize: "13px", marginRight: "5px", verticalAlign: "middle" }}
+					/>
 					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
 				</span>
 				{/* Collapsed view controls */}
-				{!server.error && (
-					<div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "8px" }}>
-						<VSCodeButton
-							appearance="icon"
-							title="Restart Server"
-							onClick={(e) => {
-								e.stopPropagation()
-								handleRestart()
-							}}
-							disabled={server.status === "connecting" || isRestarting}>
-							<span className="codicon codicon-sync"></span>
-						</VSCodeButton>
-					</div>
-				)}
+
 				{/* Toggle Switch */}
-				<div style={{ display: "flex", alignItems: "center", marginLeft: "8px" }} onClick={(e) => e.stopPropagation()}>
+				<div style={{ display: "flex", alignItems: "center", marginLeft: "3px" }} onClick={(e) => e.stopPropagation()}>
 					<div
 						role="switch"
 						aria-checked={!server.disabled}
 						tabIndex={0}
 						style={{
 							width: "20px",
-							height: "10px",
+							height: "11px",
 							backgroundColor: server.disabled
 								? "var(--vscode-titleBar-inactiveForeground)"
 								: "var(--vscode-testing-iconPassed)",
@@ -240,40 +246,83 @@ const ServerRow = ({
 						}}>
 						<div
 							style={{
-								width: "6px",
-								height: "6px",
+								width: "8px",
+								height: "8px",
 								backgroundColor: "white",
 								border: "1px solid color-mix(in srgb, #666666 65%, transparent)",
 								borderRadius: "50%",
 								position: "absolute",
-								top: "1px",
-								left: server.disabled ? "2px" : "12px",
+								top: "0.5px",
+								left: server.disabled ? "1px" : "10px",
 								transition: "left 0.2s",
 							}}
 						/>
 					</div>
 				</div>
+				{
+					<div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "3px", marginRight: "-4px" }}>
+						<VSCodeButton
+							appearance="icon"
+							title="Restart Server"
+							onClick={(e) => {
+								e.stopPropagation()
+								handleRestart()
+							}}
+							disabled={server.status === "connecting" || isRestarting}>
+							<span className="codicon codicon-sync" style={{ fontSize: "15px", marginBottom: "-1px" }}></span>
+						</VSCodeButton>
+					</div>
+				}
 				<div
 					style={{
 						width: "8px",
 						height: "8px",
 						borderRadius: "50%",
 						background: getStatusColor(server.status),
-						marginLeft: "8px",
+						marginLeft: "7px",
+						marginRight: "-2px",
 					}}
 				/>
 				{hasTrashIcon && (
-					<VSCodeButton
-						style={{ marginLeft: "8px" }}
-						appearance="icon"
-						title="Delete Server"
-						onClick={(e) => {
-							e.stopPropagation()
-							handleDelete()
-						}}
-						disabled={isDeleting}>
-						<span className="codicon codicon-trash"></span>
-					</VSCodeButton>
+					<div style={{ marginLeft: "3px", marginRight: "-6px" }}>
+						{!showConfirmDelete ? (
+							<VSCodeButton
+								appearance="icon"
+								title="Delete Server"
+								onClick={(e) => {
+									e.stopPropagation()
+									handleDelete()
+								}}
+								disabled={isDeleting}>
+								<span className="codicon codicon-trash" style={{ fontSize: "14px" }}></span>
+							</VSCodeButton>
+						) : (
+							<div style={{ display: "flex", gap: "2px", marginRight: "3px", padding: 2, overflow: "hidden" }}>
+								<VSCodeButton
+									appearance="secondary"
+									aria-label="Confirm delete"
+									title="Confirm delete"
+									onClick={(e) => {
+										e.stopPropagation()
+										handleConfirmDelete()
+									}}
+									style={{ width: "25px", height: "20px" }}>
+									✓
+								</VSCodeButton>
+								<VSCodeButton
+									appearance="secondary"
+									aria-label="Cancel delete"
+									title="Cancel delete"
+									onClick={(e) => {
+										e.stopPropagation()
+										handleCancelDelete()
+									}}
+									style={{ width: "25px", height: "20px" }}>
+									✗
+								</VSCodeButton>
+							</div>
+						)}
+					</div>
 				)}
 			</div>
 
@@ -308,12 +357,31 @@ const ServerRow = ({
 							{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
 						</VSCodeButton>
 
-						<DangerButton
-							style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}
-							disabled={isDeleting}
-							onClick={handleDelete}>
-							{isDeleting ? "Deleting..." : "Delete Server"}
-						</DangerButton>
+						{!showConfirmDelete ? (
+							<DangerButton
+								style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}
+								disabled={isDeleting}
+								onClick={() => {
+									setShowConfirmDelete(true)
+								}}>
+								{isDeleting ? "Deleting..." : "Delete Server"}
+							</DangerButton>
+						) : (
+							<div style={{ display: "flex", gap: "5px", width: "calc(100% - 20px)", margin: "0 10px 10px 10px" }}>
+								<VSCodeButton
+									appearance="secondary"
+									onClick={handleConfirmDelete}
+									style={{ flex: 1, scale: "0.9" }}>
+									✓ Confirm
+								</VSCodeButton>
+								<VSCodeButton
+									appearance="secondary"
+									onClick={handleCancelDelete}
+									style={{ flex: 1, scale: "0.9" }}>
+									✗ Cancel
+								</VSCodeButton>
+							</div>
+						)}
 					</div>
 				</div>
 			) : (
@@ -325,6 +393,16 @@ const ServerRow = ({
 							fontSize: "12px",
 							borderRadius: "0 0 4px 4px",
 						}}>
+						<div style={{ margin: "7px 5px 0" }}>
+							<label style={{ display: "block", marginBottom: "8px" }}>Request Timeout</label>
+							<VSCodeDropdown
+								style={{ width: "50px", height: "90%" }}
+								value={timeoutValue}
+								onChange={handleTimeoutChange}>
+								{TimeoutOptions}
+							</VSCodeDropdown>
+						</div>
+
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
 								Tools ({server.tools?.length || 0})
@@ -396,13 +474,7 @@ const ServerRow = ({
 							</VSCodePanelView>
 						</VSCodePanels>
 
-						<div style={{ scale: "0.95", margin: "7px 0px" }}>
-							<label style={{ display: "block", marginBottom: "4px" }}>Request Timeout</label>
-							<VSCodeDropdown style={{ width: "100%" }} value={timeoutValue} onChange={handleTimeoutChange}>
-								{TimeoutOptions}
-							</VSCodeDropdown>
-						</div>
-						<span style={{ display: "flex" }}>
+						{/* <span style={{ display: "flex" }}>
 							<VSCodeButton
 								appearance="icon"
 								onClick={handleRestart}
@@ -416,13 +488,32 @@ const ServerRow = ({
 								{server.status === "connecting" || isRestarting ? "Restarting..." : "Restart Server"}
 							</VSCodeButton>
 
-							<DangerButton
-								style={{ scale: "0.9", width: "calc(100% - 14px)" }}
-								disabled={isDeleting}
-								onClick={handleDelete}>
-								{isDeleting ? "Deleting..." : "Delete Server"}
-							</DangerButton>
-						</span>
+							{!showConfirmDelete ? (
+								<DangerButton
+									style={{ scale: "0.9", width: "calc(100% - 14px)" }}
+									disabled={isDeleting}
+									onClick={() => {
+										setShowConfirmDelete(true)
+									}}>
+									{isDeleting ? "Deleting..." : "Delete Server"}
+								</DangerButton>
+							) : (
+								<div style={{ display: "flex", gap: "4px", width: "calc(100% - 14px)", scale: "0.9" }}>
+									<VSCodeButton
+										appearance="secondary"
+										onClick={handleConfirmDelete}
+										style={{ flex: 1 }}>
+										✓ Confirm
+									</VSCodeButton>
+									<VSCodeButton
+										appearance="secondary"
+										onClick={handleCancelDelete}
+										style={{ flex: 1 }}>
+										✗ Cancel
+									</VSCodeButton>
+								</div>
+							)}
+						</span> */}
 					</div>
 				)
 			)}

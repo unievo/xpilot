@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 import { McpTool } from "@shared/mcp"
@@ -12,8 +13,8 @@ type McpToolRowProps = {
 
 const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 	const { autoApprovalSettings } = useExtensionState()
-
 	const { setMcpServers } = useExtensionState()
+	const [isParametersExpanded, setIsParametersExpanded] = useState(false)
 
 	// Accept the event object
 	const handleAutoApproveChange = (event: any) => {
@@ -77,61 +78,74 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 						style={{
 							marginTop: "8px",
 							fontSize: "inherit",
-							border: "1px solid color-mix(in srgb, var(--vscode-descriptionForeground) 30%, transparent)",
+							border: "0.5px solid color-mix(in srgb, var(--vscode-descriptionForeground) 30%, transparent)",
 							borderRadius: "6px",
 							padding: "5px",
 						}}>
 						<div
 							style={{
-								marginBottom: "4px",
+								marginBottom: "0px",
 								opacity: 0.8,
 								fontSize: "0.8em",
 								textTransform: "uppercase",
-							}}>
-							Parameters
+								cursor: "pointer",
+								display: "flex",
+								alignItems: "center",
+								userSelect: "none",
+							}}
+							onClick={() => setIsParametersExpanded(!isParametersExpanded)}>
+							<span
+								className={`codicon ${isParametersExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
+								style={{ marginRight: "4px", fontSize: "1em" }}></span>
+							Parameters ({Object.keys(tool.inputSchema.properties as Record<string, any>).length})
 						</div>
-						{Object.entries(tool.inputSchema.properties as Record<string, any>).map(([paramName, schema]) => {
-							const isRequired =
-								tool.inputSchema &&
-								"required" in tool.inputSchema &&
-								Array.isArray(tool.inputSchema.required) &&
-								tool.inputSchema.required.includes(paramName)
+						{isParametersExpanded && (
+							<div>
+								<div style={{ height: "3px" }}></div>
+								{Object.entries(tool.inputSchema.properties as Record<string, any>).map(([paramName, schema]) => {
+									const isRequired =
+										tool.inputSchema &&
+										"required" in tool.inputSchema &&
+										Array.isArray(tool.inputSchema.required) &&
+										tool.inputSchema.required.includes(paramName)
 
-							return (
-								<div
-									key={paramName}
-									style={{
-										display: "flex",
-										alignItems: "baseline",
-										marginTop: "4px",
-										fontSize: "0.95em",
-									}}>
-									<code
-										style={{
-											color: "var(--vscode-textPreformat-foreground)",
-											marginRight: "8px",
-										}}>
-										{paramName}
-										{isRequired && (
+									return (
+										<div
+											key={paramName}
+											style={{
+												display: "flex",
+												alignItems: "baseline",
+												marginTop: "4px",
+												fontSize: "0.9em",
+											}}>
+											<code
+												style={{
+													color: "var(--vscode-textPreformat-foreground)",
+													marginRight: "8px",
+												}}>
+												{paramName}
+												{isRequired && (
+													<span
+														style={{
+															color: "var(--vscode-errorForeground)",
+														}}>
+														*
+													</span>
+												)}
+											</code>
 											<span
 												style={{
-													color: "var(--vscode-errorForeground)",
+													opacity: 0.8,
+													overflowWrap: "break-word",
+													wordBreak: "break-word",
 												}}>
-												*
+												{schema.description || "No description"}
 											</span>
-										)}
-									</code>
-									<span
-										style={{
-											opacity: 0.8,
-											overflowWrap: "break-word",
-											wordBreak: "break-word",
-										}}>
-										{schema.description || "No description"}
-									</span>
-								</div>
-							)
-						})}
+										</div>
+									)
+								})}
+							</div>
+						)}
 					</div>
 				)}
 		</div>

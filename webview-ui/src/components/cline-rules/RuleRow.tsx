@@ -3,6 +3,7 @@ import { DeleteRuleFileRequest } from "@shared/proto-conversions/file/rule-files
 import { StringRequest } from "@shared/proto/common"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { rowBackground, rowBackgroundDisabled } from "../theme"
+import { useState } from "react"
 
 const RuleRow: React.FC<{
 	rulePath: string
@@ -11,6 +12,8 @@ const RuleRow: React.FC<{
 	ruleType: string
 	toggleRule: (rulePath: string, enabled: boolean) => void
 }> = ({ rulePath, enabled, isGlobal, toggleRule, ruleType }) => {
+	const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+
 	// Check if the path type is Windows
 	const win32Path = /^[a-zA-Z]:\\/.test(rulePath)
 	// Get the filename from the path for display
@@ -20,6 +23,15 @@ const RuleRow: React.FC<{
 		const dotIndex = filename.lastIndexOf(".")
 		return dotIndex > 0 ? filename.substring(0, dotIndex) : filename
 		//return filename
+	})()
+
+	// Get the directory name from the path for display
+	const directoryName = (() => {
+		const pathSegments = rulePath.split(win32Path ? "\\" : "/")
+		// Remove the filename (last segment) to get directory path
+		const dirSegments = pathSegments.slice(0, -1)
+		// Return the last directory name, or empty string if at root
+		return dirSegments.length > 0 ? dirSegments[dirSegments.length - 1] : ""
 	})()
 
 	const getRuleTypeIcon = () => {
@@ -59,7 +71,7 @@ const RuleRow: React.FC<{
 					</svg>
 				)
 			default:
-				return null
+				return <span className="codicon codicon-markdown" style={{ fontSize: "14px", verticalAlign: "-18%" }}></span>
 		}
 	}
 
@@ -70,6 +82,10 @@ const RuleRow: React.FC<{
 	}
 
 	const handleDeleteClick = () => {
+		setShowConfirmDelete(true)
+	}
+
+	const handleConfirmDelete = () => {
 		FileServiceClient.deleteRuleFile(
 			DeleteRuleFileRequest.create({
 				rulePath: rulePath,
@@ -77,32 +93,62 @@ const RuleRow: React.FC<{
 				type: ruleType || "cline",
 			}),
 		).catch((err) => console.error("Failed to delete file:", err))
+		setShowConfirmDelete(false)
+	}
+
+	const handleCancelDelete = () => {
+		setShowConfirmDelete(false)
 	}
 
 	return (
 		<div className="mb-0.5">
 			{/* Rule Row */}
 			<div
-				style={{ background: enabled ? rowBackground : rowBackgroundDisabled }}
-				className={`flex items-center p-1.5 rounded h-[12px] ${enabled ? "opacity-100" : "opacity-80"}`}>
-				<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center mr-1" title={rulePath}>
-					{getRuleTypeIcon() && <span className="mr-1.5">{getRuleTypeIcon()}</span>}
-					<span style={{ fontSize: "1em" }} className="ph-no-capture">
-						{displayName}
+				style={{
+					display: "flex",
+					alignItems: "center",
+					overflow: "hidden",
+					padding: "1px 1px 1px 2.5px",
+					background: enabled ? rowBackground : rowBackgroundDisabled,
+					borderRadius: "4px",
+					opacity: enabled ? 1 : 0.8,
+				}}>
+				<span
+					style={{
+						flex: 1,
+						overflow: "hidden",
+						whiteSpace: "normal",
+						display: "flex",
+						alignItems: "center",
+						marginRight: "4px",
+					}}
+					className="ph-no-capture"
+					title={rulePath}>
+					{getRuleTypeIcon() && <span style={{ opacity: 0.7 }}>{getRuleTypeIcon()}</span>}
+					<span style={{ marginLeft: "2px" }}>
+						{displayName} <span style={{ fontSize: "10px", opacity: 0.6 }}>/{directoryName}</span>
 					</span>
 				</span>
 
 				{/* Toggle Switch */}
-				<div className="flex items-center mt-0.5 ml-1 -mr-1.5 space-x-1">
+				<div style={{ display: "flex", alignItems: "center", marginTop: "0px", marginLeft: "4px", gap: "0px" }}>
 					<div
 						role="switch"
 						aria-checked={enabled}
 						tabIndex={0}
-						className={`w-[20px] h-[10px] mr-1 rounded-[5px] relative cursor-pointer transition-colors duration-200 ${
-							enabled
-								? "bg-[var(--vscode-testing-iconPassed)] opacity-90"
-								: "bg-[var(--vscode-titleBar-inactiveForeground)] opacity-50"
-						}`}
+						style={{
+							width: "20px",
+							height: "11px",
+							marginRight: "2px",
+							borderRadius: "5px",
+							position: "relative",
+							cursor: "pointer",
+							transition: "background-color 0.2s",
+							backgroundColor: enabled
+								? "var(--vscode-testing-iconPassed)"
+								: "var(--vscode-titleBar-inactiveForeground)",
+							opacity: enabled ? 0.9 : 0.5,
+						}}
 						onClick={() => toggleRule(rulePath, !enabled)}
 						onKeyDown={(e) => {
 							if (e.key === "Enter" || e.key === " ") {
@@ -111,9 +157,17 @@ const RuleRow: React.FC<{
 							}
 						}}>
 						<div
-							className={`w-[6px] h-[6px] bg-white border border-[#66666699] rounded-full absolute top-[1px] transition-all duration-200 ${
-								enabled ? "left-[12px]" : "left-[2px]"
-							}`}
+							style={{
+								width: "8px",
+								height: "8px",
+								backgroundColor: "white",
+								border: "1px solid color-mix(in srgb, #666666 65%, transparent)",
+								borderRadius: "50%",
+								position: "absolute",
+								top: "0.5px",
+								left: enabled ? "10px" : "1px",
+								transition: "left 0.2s",
+							}}
 						/>
 					</div>
 					<VSCodeButton
@@ -122,16 +176,40 @@ const RuleRow: React.FC<{
 						title="Edit file"
 						onClick={handleEditClick}
 						style={{ height: "20px" }}>
-						<span className="codicon codicon-edit" style={{ fontSize: "13px" }} />
+						<span
+							className="codicon codicon-edit"
+							style={{ fontSize: "13px", marginTop: "2px", marginRight: "-2px" }}
+						/>
 					</VSCodeButton>
-					<VSCodeButton
-						appearance="icon"
-						aria-label="Delete file"
-						title="Delete file"
-						onClick={handleDeleteClick}
-						style={{ marginLeft: "-5px", height: "20px" }}>
-						<span className="codicon codicon-trash" style={{ fontSize: "13px" }} />
-					</VSCodeButton>
+					{!showConfirmDelete ? (
+						<VSCodeButton
+							appearance="icon"
+							aria-label="Delete file"
+							title="Delete file"
+							onClick={handleDeleteClick}
+							style={{ height: "20px" }}>
+							<span className="codicon codicon-trash" style={{ fontSize: "14px", marginTop: "2px" }} />
+						</VSCodeButton>
+					) : (
+						<div style={{ display: "flex", gap: "2px", overflow: "hidden", marginRight: "2px" }}>
+							<VSCodeButton
+								appearance="secondary"
+								aria-label="Confirm delete"
+								title="Confirm delete"
+								onClick={handleConfirmDelete}
+								style={{ width: "25px", height: "20px" }}>
+								✓
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="secondary"
+								aria-label="Cancel delete"
+								title="Cancel delete"
+								onClick={handleCancelDelete}
+								style={{ width: "25px", height: "20px" }}>
+								✗
+							</VSCodeButton>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

@@ -16,7 +16,7 @@ const ResponseHeader = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 7px 10px;
+	padding: 6px 6px;
 	//color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	user-select: none;
@@ -33,14 +33,14 @@ const ResponseHeader = styled.div`
 	}
 
 	.header-icon {
-		margin-right: 6px;
+		margin-right: 5px;
 	}
 `
 
 const ToggleSwitch = styled.div`
 	display: flex;
 	align-items: center;
-	font-size: 12px;
+	font-size: 11px;
 	color: var(--vscode-descriptionForeground);
 
 	.toggle-label {
@@ -49,8 +49,8 @@ const ToggleSwitch = styled.div`
 
 	.toggle-container {
 		position: relative;
-		width: 40px;
-		height: 20px;
+		width: 30px;
+		height: 16px;
 		background-color: var(--vscode-button-secondaryBackground);
 		border-radius: 10px;
 		cursor: pointer;
@@ -65,15 +65,15 @@ const ToggleSwitch = styled.div`
 		position: absolute;
 		top: 2px;
 		left: 2px;
-		width: 16px;
-		height: 16px;
+		width: 12px;
+		height: 12px;
 		background-color: var(--vscode-button-foreground);
 		border-radius: 50%;
 		transition: transform 0.3s;
 	}
 
 	.toggle-container.active .toggle-handle {
-		transform: translateX(20px);
+		transform: translateX(14px);
 	}
 `
 
@@ -91,7 +91,10 @@ const ResponseContainer = styled.div`
 		overflow-x: auto;
 		overflow-y: hidden;
 		max-width: 100%;
-		padding: 10px;
+		padding: 8px;
+		margin: 6px;
+		background-color: ${CODE_BLOCK_BG_COLOR};
+		border-radius: 3px;
 	}
 `
 
@@ -101,7 +104,7 @@ const UrlText = styled.div`
 	word-break: break-all;
 	overflow-wrap: break-word;
 	font-family: var(--vscode-editor-font-family, monospace);
-	font-size: 11px; // var(--vscode-editor-font-size, 12px);
+	font-size: 10px; // var(--vscode-editor-font-size, 12px);
 `
 
 interface McpResponseDisplayProps {
@@ -130,11 +133,6 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 	const [error, setError] = useState<string | null>(null)
 	// Add a counter state for forcing re-renders to make toggling run smoother
 	const [forceUpdateCounter, setForceUpdateCounter] = useState(0)
-	const [isExpanded, setIsExpanded] = useState(() => {
-		// Get saved expanded state from localStorage, default to false
-		const savedExpandedState = localStorage.getItem("mcpResponseExpandedState")
-		return savedExpandedState === "true"
-	})
 
 	const toggleDisplayMode = useCallback(() => {
 		const newMode = displayMode === "rich" ? "plain" : "rich"
@@ -419,14 +417,19 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 				<ResponseHeader
 					onClick={toggleExpand}
 					style={{
-						borderBottom: isExpanded ? "1px dashed var(--vscode-editorGroup-border)" : "none",
-						marginBottom: isExpanded ? "8px" : "0px",
+						//borderBottom: isExpanded ? "1px dashed var(--vscode-editorGroup-border)" : "none",
+						marginBottom: isExpanded ? "-6px" : "0px",
 					}}>
 					<div className="header-title">
 						<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}></span>
-						Response
+						<span style={{ opacity: 0.8, color: "var(--vscode-textLink-foreground)" }}>Response</span>
 					</div>
-					<div style={{ minWidth: isExpanded ? "auto" : "0", visibility: isExpanded ? "visible" : "hidden" }}>
+					<div
+						style={{
+							marginTop: "2px",
+							minWidth: isExpanded ? "auto" : "0",
+							visibility: isExpanded ? "visible" : "hidden",
+						}}>
 						<ToggleSwitch onClick={(e) => e.stopPropagation()}>
 							<span className="toggle-label">{displayMode === "rich" ? "Rich Display" : "Plain Text"}</span>
 							<div
