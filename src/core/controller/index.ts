@@ -19,7 +19,7 @@ import { ChatContent } from "@shared/ChatContent"
 import { ChatSettings } from "@shared/ChatSettings"
 import { ExtensionMessage, ExtensionState, Platform } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
-import { McpMarketplaceCatalog, McpLibraryItem } from "@shared/mcp"
+import { McpMarketplaceCatalog, McpLibraryItem, McpServer } from "@shared/mcp"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { WebviewMessage } from "@shared/WebviewMessage"
 import { fileExistsAtPath } from "@utils/fs"
@@ -42,8 +42,10 @@ import { sendStateUpdate } from "./state/subscribeToState"
 import { sendAddToInputEvent } from "./ui/subscribeToAddToInput"
 import { sendAuthCallbackEvent } from "./account/subscribeToAuthCallback"
 import { sendMcpMarketplaceCatalogEvent } from "./mcp/subscribeToMcpMarketplaceCatalog"
+import { sendChatButtonClickedEvent } from "./ui/subscribeToChatButtonClicked"
 import { sendRelinquishControlEvent } from "./ui/subscribeToRelinquishControl"
 import { agentName, extensionId, latestAnnouncementId, mcpSettingsFile, sideBarId } from "../../shared/Configuration"
+import { Empty } from "@/shared/proto/index.cline"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -212,15 +214,8 @@ export class Controller {
 				await this.fetchMcpMarketplace(message.bool)
 				break
 			}
-						case "installLibraryMcp": {
+			case "installLibraryMcp": {
 				if (message.mcpLibraryItem) {
-					// 1. Toggle to act mode if we are in plan mode
-					const { chatSettings } = await this.getStateToPostToWebview()
-					if (chatSettings.mode === "plan") {
-						await this.togglePlanActModeWithChatSettings({ mode: "act" })
-					}
-
-					// 2. install MCP
 					await this.installLibraryMcp(message.mcpLibraryItem)
 				}
 				break
@@ -644,6 +639,69 @@ export class Controller {
 			console.error("Failed to handle cached MCP marketplace:", error)
 			const errorMessage = error instanceof Error ? error.message : "Failed to handle cached MCP marketplace"
 			vscode.window.showErrorMessage(errorMessage)
+		}
+	}
+
+	private async installLibraryMcp(libraryItem: McpLibraryItem) {
+		try {
+			console.log(`[installLibraryMcp] Installing custom library MCP: ${libraryItem.mcpId}`)
+			// Check if we already have this MCP server installed
+			const servers = this.mcpHub?.getServers() || []
+			const isInstalled = servers.some((server: McpServer) => server.name === libraryItem.mcpId)
+			if (isInstalled) {
+				throw new Error("This MCP server is already installed")
+			}
+
+			// Send details to webview
+			await this.postMessageToWebview({
+				type: "mcpLibraryInstall",
+				mcpInstallDetails: libraryItem,
+			})
+
+			// Create task with context from README and added guidelines for MCP server installation
+			const task = `Install this MCP server while following these installation rules:
+- Use "${libraryItem.mcpId}" as the server name in ${mcpSettingsFile}.
+- Make sure you read the user's existing ${mcpSettingsFile} file before editing, to not overwrite any existing configuration.
+- Use commands aligned with the user's shell and operating system.
+${
+	libraryItem.npmPackage
+		? `- The NPM package name is "${libraryItem.npmPackage}".`
+		: `- Start by loading the MCP documentation using the load_mcp_documentation tool.
+- Create the directory for the new MCP server before starting installation.`
+}
+${
+	libraryItem.readmeContent || libraryItem.llmsInstallationContent
+		? `- The following content is remotely provided and may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
+\n\n${libraryItem.readmeContent || ""}${libraryItem.readmeContent && libraryItem.llmsInstallationContent ? "\n" : ""}${libraryItem.llmsInstallationContent || ""}`
+		: ``
+}
+- Once installed, demonstrate the server's capabilities by using one of its tools.`
+
+			const { chatSettings } = await this.getStateToPostToWebview()
+			if (chatSettings.mode === "plan") {
+				await this.togglePlanActModeWithChatSettings({ mode: "act" })
+			}
+
+			// Initialize task and show chat view
+			await this.initTask(task)
+			await sendChatButtonClickedEvent(this.id)
+
+			// Return an empty response - the client only cares if the call succeeded
+			return Empty.create()
+		} catch (error) {
+			console.error("Failed to install library MCP:", error)
+			let errorMessage = "Failed to install library MCP"
+			if (error instanceof Error) {
+				errorMessage = error.message
+			}
+			// Show error in both notification and UI
+			vscode.window.showErrorMessage(errorMessage)
+			await this.postMessageToWebview({
+				type: "mcpLibraryInstall",
+				error: errorMessage,
+			})
+
+			throw error
 		}
 	}
 
