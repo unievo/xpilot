@@ -4,7 +4,7 @@ import { mcpResourcesUse } from "../custom/mcp/mcpResourcesUse"
 
 export const McpServerUsePrompt = async (
 	cwd: string,
-	supportsComputerUse: boolean,
+	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => {

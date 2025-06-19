@@ -8,7 +8,7 @@ import { ensureGlobalInstructionsDirectoryExists } from "@/core/storage/disk"
 
 export const SystemInformationPrompt = async (
 	cwd: string,
-	supportsComputerUse: boolean,
+	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `

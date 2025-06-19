@@ -3,7 +3,7 @@ import { BrowserSettings } from "../../../shared/BrowserSettings"
 
 export const EditingFilesPrompt = async (
 	cwd: string,
-	supportsComputerUse: boolean,
+	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
