@@ -14,6 +14,7 @@ import {
 	VSCodePanels,
 	VSCodePanelTab,
 	VSCodePanelView,
+	VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useState } from "react"
 import McpResourceRow from "./McpResourceRow"
@@ -48,6 +49,7 @@ const ServerRow = ({
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [isRestarting, setIsRestarting] = useState(false)
 	const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+	const [searchQuery, setSearchQuery] = useState("")
 
 	const getStatusColor = useCallback((status: McpServer["status"]) => {
 		switch (status) {
@@ -174,6 +176,23 @@ const ServerRow = ({
 				console.error("Error toggling MCP server", error)
 			})
 	}
+
+	// Filter tools and resources based on search query
+	const filteredTools =
+		server.tools?.filter(
+			(tool) =>
+				tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				tool.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+		) || []
+
+	const filteredResources = [...(server.resourceTemplates || []), ...(server.resources || [])].filter((item) => {
+		const name = "uriTemplate" in item ? item.name || item.uriTemplate : item.name || item.uri
+		const description = item.description || ""
+		return (
+			name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			description.toLowerCase().includes(searchQuery.toLowerCase())
+		)
+	})
 
 	return (
 		<div style={{ marginBottom: "0px" }}>
@@ -393,26 +412,84 @@ const ServerRow = ({
 							fontSize: "12px",
 							borderRadius: "0 0 4px 4px",
 						}}>
-						<div style={{ margin: "7px 5px 0" }}>
-							<label style={{ display: "block", marginBottom: "8px" }}>Request Timeout</label>
-							<VSCodeDropdown
-								style={{ width: "50px", height: "90%" }}
-								value={timeoutValue}
-								onChange={handleTimeoutChange}>
-								{TimeoutOptions}
-							</VSCodeDropdown>
+						<div style={{ margin: "7px 5px 0", display: "flex", gap: "15px", alignItems: "end" }}>
+							<div style={{ flex: 1 }}>
+								<label
+									style={{
+										display: "block",
+										marginBottom: "8px",
+										fontSize: "11px",
+										fontWeight: "bold",
+										color: "var(--vscode-foreground)",
+									}}>
+									Search in Tools & Resources
+								</label>
+								<VSCodeTextField
+									style={{ width: "100%", height: "28px" }}
+									placeholder="Search"
+									value={searchQuery}
+									onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}>
+									<div
+										slot="start"
+										className="codicon codicon-search"
+										style={{
+											fontSize: 12,
+											opacity: 0.8,
+										}}
+									/>
+									{searchQuery && (
+										<div
+											className="codicon codicon-close"
+											aria-label="Clear search"
+											onClick={() => setSearchQuery("")}
+											slot="end"
+											style={{
+												display: "flex",
+												justifyContent: "center",
+												alignItems: "center",
+												cursor: "pointer",
+												fontSize: 12,
+												opacity: 0.8,
+												padding: "2px",
+											}}
+										/>
+									)}
+								</VSCodeTextField>
+							</div>
+							<div style={{ minWidth: "100px", maxWidth: "100px" }}>
+								<label
+									style={{
+										display: "block",
+										marginBottom: "8px",
+										fontSize: "11px",
+										fontWeight: "bold",
+										color: "var(--vscode-foreground)",
+									}}>
+									Request Timeout
+								</label>
+								<VSCodeDropdown
+									style={{ width: "100%", height: "28px" }}
+									value={timeoutValue}
+									onChange={handleTimeoutChange}>
+									{TimeoutOptions}
+								</VSCodeDropdown>
+							</div>
 						</div>
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
-								Tools ({server.tools?.length || 0})
+								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="resources">
-								Resources ({[...(server.resourceTemplates || []), ...(server.resources || [])].length || 0})
+								Resources (
+								{searchQuery
+									? filteredResources.length
+									: [...(server.resourceTemplates || []), ...(server.resources || [])].length || 0}
+								)
 							</VSCodePanelTab>
 
 							<VSCodePanelView style={{ fontSize: "inherit" }} id="tools-view">
-								{server.tools && server.tools.length > 0 ? (
+								{filteredTools.length > 0 ? (
 									<div
 										style={{
 											fontSize: "inherit",
@@ -421,16 +498,19 @@ const ServerRow = ({
 											gap: "8px",
 											width: "100%",
 										}}>
-										{server.name && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
-											<VSCodeCheckbox
-												style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}
-												checked={server.tools.every((tool) => tool.autoApprove)}
-												onChange={handleAutoApproveChange}
-												data-tool="all-tools">
-												Auto-approve all
-											</VSCodeCheckbox>
-										)}
-										{server.tools.map((tool) => (
+										{server.name &&
+											autoApprovalSettings.enabled &&
+											autoApprovalSettings.actions.useMcp &&
+											!searchQuery && (
+												<VSCodeCheckbox
+													style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}
+													checked={server.tools?.every((tool) => tool.autoApprove) || false}
+													onChange={handleAutoApproveChange}
+													data-tool="all-tools">
+													Auto-approve all
+												</VSCodeCheckbox>
+											)}
+										{filteredTools.map((tool) => (
 											<McpToolRow key={tool.name} tool={tool} serverName={server.name} />
 										))}
 									</div>
@@ -440,14 +520,13 @@ const ServerRow = ({
 											padding: "10px 0",
 											color: "var(--vscode-descriptionForeground)",
 										}}>
-										No tools found
+										{searchQuery ? "No tools match your search" : "No tools found"}
 									</div>
 								)}
 							</VSCodePanelView>
 
 							<VSCodePanelView style={{ fontSize: "inherit" }} id="resources-view">
-								{(server.resources && server.resources.length > 0) ||
-								(server.resourceTemplates && server.resourceTemplates.length > 0) ? (
+								{filteredResources.length > 0 ? (
 									<div
 										style={{
 											display: "flex",
@@ -455,7 +534,7 @@ const ServerRow = ({
 											gap: "8px",
 											width: "100%",
 										}}>
-										{[...(server.resourceTemplates || []), ...(server.resources || [])].map((item) => (
+										{filteredResources.map((item) => (
 											<McpResourceRow
 												key={"uriTemplate" in item ? item.uriTemplate : item.uri}
 												item={item}
@@ -468,7 +547,7 @@ const ServerRow = ({
 											padding: "10px 0",
 											color: "var(--vscode-descriptionForeground)",
 										}}>
-										No resources found
+										{searchQuery ? "No resources match your search" : "No resources found"}
 									</div>
 								)}
 							</VSCodePanelView>
