@@ -266,6 +266,11 @@ const ClineRulesToggleModal: React.FC = () => {
 								Workflows
 							</TabButton>
 						</div>
+						<div
+							onMouseDown={() => setIsVisible(false)}
+							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+							<span className="codicon codicon-close" />
+						</div>
 					</div>
 
 					{/* Description text */}

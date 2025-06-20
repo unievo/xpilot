@@ -1779,12 +1779,19 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										bottom: `calc(100vh - ${menuPosition}px + 6px)`,
 										minHeight: "300px",
 									}}>
-									<ApiOptions
-										showModelOptions={true}
-										apiErrorMessage={undefined}
-										modelIdErrorMessage={undefined}
-										isPopup={true}
-									/>
+									<div className="relative">
+										<div
+											onMouseDown={() => setShowModelSelector(false)}
+											className="absolute top-0 right-0 cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+											<span className="codicon codicon-close" />
+										</div>
+										<ApiOptions
+											showModelOptions={true}
+											apiErrorMessage={undefined}
+											modelIdErrorMessage={undefined}
+											isPopup={true}
+										/>
+									</div>
 								</ModelSelectorTooltip>
 							)}
 						</ModelContainer>

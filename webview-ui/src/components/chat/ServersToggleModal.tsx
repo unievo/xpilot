@@ -92,18 +92,31 @@ const ServersToggleModal: React.FC = () => {
 					/>
 
 					<div className="flex justify-between items-center mb-2.5">
-						<div className="ml-0.5 text-[13px] font-semibold">MCP Servers</div>
-						<VSCodeButton
-							appearance="icon"
-							onClick={() => {
-								setIsVisible(false)
-								navigateToMcp("installed")
-							}}>
-							<span className="codicon codicon-gear text-[10px]"></span>
-						</VSCodeButton>
+						<div className="flex items-center gap-1">
+							<div className="ml-0.5 text-[13px] font-semibold">MCP Servers</div>
+							<VSCodeButton
+								appearance="icon"
+								onClick={() => {
+									setIsVisible(false)
+									navigateToMcp("installed")
+								}}>
+								<span className="codicon codicon-gear text-[10px]"></span>
+							</VSCodeButton>
+						</div>
+						<div
+							onMouseDown={() => setIsVisible(false)}
+							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+							<span className="codicon codicon-close" />
+						</div>
 					</div>
 					<div>
-						<p style={{ fontSize: "12px", marginLeft: 2, color: "var(--vscode-descriptionForeground)" }}>
+						<p
+							style={{
+								fontSize: "12px",
+								marginLeft: 2,
+								marginTop: -10,
+								color: "var(--vscode-descriptionForeground)",
+							}}>
 							Enable only servers you need to use in your task.
 						</p>
 					</div>
