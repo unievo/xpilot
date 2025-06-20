@@ -42,7 +42,7 @@ interface CopyButtonProps {
 }
 
 const normalColor = "var(--vscode-foreground)"
-const errorColor = "var(--vscode-errorForeground)"
+const errorColor = "var(--vscode-editorWarning-foreground)"
 const successColor = "var(--vscode-charts-green)"
 const cancelledColor = "var(--vscode-descriptionForeground)"
 
@@ -371,7 +371,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>Error</span>,
+					<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Error</span>,
 				]
 			case "mistake_limit_reached":
 				return [
@@ -381,7 +381,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>{agentName} is having trouble...</span>,
+					<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>{agentName} is having trouble...</span>,
 				]
 			case "auto_approval_max_req_reached":
 				return [
@@ -391,7 +391,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>Maximum Requests Reached</span>,
+					<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Maximum Requests Reached</span>,
 				]
 			case "command":
 				return [
@@ -476,7 +476,7 @@ export const ChatRowContent = ({
 							return apiReqCancelReason === "user_cancelled" ? (
 								<span style={{ color: normalColor, fontWeight: "bold" }}>API Request Cancelled</span>
 							) : (
-								<span style={{ color: errorColor, fontWeight: "bold" }}>API Streaming Failed</span>
+								<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>API Streaming Error</span>
 							)
 						}
 
@@ -485,7 +485,7 @@ export const ChatRowContent = ({
 						}
 
 						if (apiRequestFailedMessage) {
-							return <span style={{ color: errorColor, fontWeight: "bold" }}>API Request Failed</span>
+							return <span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>API Request Error</span>
 						}
 						// New: Check for retryStatus to modify the title
 						if (retryStatus && cost == null && !apiReqCancelReason) {
@@ -1039,7 +1039,9 @@ export const ChatRowContent = ({
 											<p
 												style={{
 													...pStyle,
-													color: "var(--vscode-errorForeground)",
+													color: errorColor,
+													fontSize: 11,
+													opacity: 0.7,
 												}}>
 												{apiRequestFailedMessage || apiReqStreamingFailedMessage}
 												{apiRequestFailedMessage?.toLowerCase().includes("powershell") && (
@@ -1220,7 +1222,9 @@ export const ChatRowContent = ({
 							<p
 								style={{
 									...pStyle,
-									color: "var(--vscode-errorForeground)",
+									color: errorColor,
+									fontSize: 11,
+									opacity: 0.7,
 								}}>
 								{message.text}
 							</p>
@@ -1480,7 +1484,8 @@ export const ChatRowContent = ({
 							<p
 								style={{
 									...pStyle,
-									color: "var(--vscode-errorForeground)",
+									color: errorColor,
+									fontSize: 11,
 								}}>
 								{message.text}
 							</p>
@@ -1496,7 +1501,8 @@ export const ChatRowContent = ({
 							<p
 								style={{
 									...pStyle,
-									color: "var(--vscode-errorForeground)",
+									color: errorColor,
+									fontSize: 11,
 								}}>
 								{message.text}
 							</p>
@@ -1649,7 +1655,7 @@ export const ChatRowContent = ({
 										marginBottom: "-1.5px",
 									}}></span>
 								<span style={{ color: normalColor, fontWeight: "bold" }}>
-									{agentName} wants to condense your conversation:
+									{agentName} wants to compact your conversation:
 								</span>
 							</div>
 							<NewTaskPreview context={message.text || ""} />
