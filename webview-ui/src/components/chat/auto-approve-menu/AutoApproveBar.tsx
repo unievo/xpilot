@@ -96,7 +96,11 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 						WebkitOverflowScrolling: "touch",
 					}}>
 					<span>Auto:</span>
-					{autoApprovalSettings.enabled ? <>{getQuickAccessItems()}</> : " none"}
+					{(() => {
+						if (!autoApprovalSettings.enabled) return " off"
+						const items = getQuickAccessItems()
+						return items.length > 0 ? items : " none"
+					})()}
 				</div>
 				{isModalVisible ? (
 					<span className="codicon codicon-chevron-down" />
