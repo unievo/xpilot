@@ -26,6 +26,10 @@ import { migratePlanActGlobalToWorkspaceStorage, migrateCustomInstructionsToGlob
 
 import { sendFocusChatInputEvent } from "./core/controller/ui/subscribeToFocusChatInput"
 import { FileContextTracker } from "./core/context/context-tracking/FileContextTracker"
+import * as hostProviders from "@hosts/host-providers"
+import { vscodeHostBridgeClient } from "@/hosts/vscode/client/host-grpc-client"
+import { VscodeWebviewProvider } from "./core/webview/VscodeWebviewProvider"
+
 import {
 	agentName,
 	plusButtonCommand,
@@ -75,6 +79,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	Logger.initialize(outputChannel)
 	Logger.log(`${agentName} extension activated`)
 
+	maybeSetupHostProviders()
+
 	// Migrate global storage values to workspace storage (one-time cleanup)
 	await migratePlanActGlobalToWorkspaceStorage(context)
 
@@ -87,7 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Version checking for autoupdate notification
 	const currentVersion = context.extension.packageJSON.version
 	const previousVersion = context.globalState.get<string>("agentVersion")
-	const sidebarWebview = new WebviewProvider(context, outputChannel, WebviewProviderType.SIDEBAR)
+	const sidebarWebview = hostProviders.createWebviewProvider(context, outputChannel, WebviewProviderType.SIDEBAR)
 
 	// Initialize test mode and add disposables to context
 	context.subscriptions.push(...initializeTestMode(context, sidebarWebview))
@@ -163,12 +169,26 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(mcpButtonCommand, (webview: any) => {
 			console.log("[DEBUG] mcpButtonClicked", webview)
-			// Pass the webview type to the event sender
-			const isSidebar = !webview
-			const webviewType = isSidebar ? WebviewProviderTypeEnum.SIDEBAR : WebviewProviderTypeEnum.TAB
 
-			// Will send to appropriate subscribers based on the source webview type
-			sendMcpButtonClickedEvent(webviewType)
+			const activeInstance = WebviewProvider.getActiveInstance()
+			const isSidebar = !webview
+
+			if (isSidebar) {
+				const sidebarInstance = WebviewProvider.getSidebarInstance()
+				const sidebarInstanceId = sidebarInstance?.getClientId()
+				if (sidebarInstanceId) {
+					sendMcpButtonClickedEvent(sidebarInstanceId)
+				} else {
+					console.error("[DEBUG] No sidebar instance found, cannot send MCP button event")
+				}
+			} else {
+				const activeInstanceId = activeInstance?.getClientId()
+				if (activeInstanceId) {
+					sendMcpButtonClickedEvent(activeInstanceId)
+				} else {
+					console.error("[DEBUG] No active instance found, cannot send MCP button event")
+				}
+			}
 		}),
 	)
 
@@ -176,7 +196,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		Logger.log(`Opening ${agentName} in new tab`)
 		// (this example uses webviewProvider activation event which is necessary to deserialize cached webview, but since we use retainContextWhenHidden, we don't need to use that event)
 		// https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
-		const tabWebview = new WebviewProvider(context, outputChannel, WebviewProviderType.TAB)
+		const tabWebview = hostProviders.createWebviewProvider(context, outputChannel, WebviewProviderType.TAB)
 		//const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 		const lastCol = Math.max(...vscode.window.visibleTextEditors.map((editor) => editor.viewColumn || 0))
 
@@ -589,8 +609,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			let activeWebviewProvider: WebviewProvider | undefined = WebviewProvider.getVisibleInstance()
 
 			// If a tab is visible and active, ensure it's fully revealed (might be redundant but safe)
-			if (activeWebviewProvider?.view && activeWebviewProvider.view.hasOwnProperty("reveal")) {
-				const panelView = activeWebviewProvider.view as vscode.WebviewPanel
+			if (activeWebviewProvider?.getWebview() && activeWebviewProvider.getWebview().hasOwnProperty("reveal")) {
+				const panelView = activeWebviewProvider.getWebview() as vscode.WebviewPanel
 				panelView.reveal(panelView.viewColumn)
 			} else if (!activeWebviewProvider) {
 				// No webview is currently visible, try to activate the sidebar
@@ -604,8 +624,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					const tabInstances = WebviewProvider.getTabInstances()
 					if (tabInstances.length > 0) {
 						const potentialTabInstance = tabInstances[tabInstances.length - 1] // Get the most recent one
-						if (potentialTabInstance.view && potentialTabInstance.view.hasOwnProperty("reveal")) {
-							const panelView = potentialTabInstance.view as vscode.WebviewPanel
+						if (potentialTabInstance.getWebview() && potentialTabInstance.getWebview().hasOwnProperty("reveal")) {
+							const panelView = potentialTabInstance.getWebview() as vscode.WebviewPanel
 							panelView.reveal(panelView.viewColumn)
 							activeWebviewProvider = potentialTabInstance
 						}
@@ -621,7 +641,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						() => {
 							const visibleInstance = WebviewProvider.getVisibleInstance()
 							// Ensure a boolean is returned
-							return !!(visibleInstance?.view && visibleInstance.view.hasOwnProperty("reveal"))
+							return !!(visibleInstance?.getWebview() && visibleInstance.getWebview().hasOwnProperty("reveal"))
 						},
 						{ timeout: 2000 },
 					)
@@ -654,7 +674,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			} else {
 				// Create a temporary controller just for this operation
 				const outputChannel = vscode.window.createOutputChannel(`${agentName} Commit Generator`)
-				const tempController = new Controller(context, outputChannel, () => Promise.resolve(true))
+				const tempController = new Controller(context, outputChannel, () => Promise.resolve(true), uuidv4())
 
 				await tempController.generateGitCommitMessage()
 				outputChannel.dispose()
@@ -665,13 +685,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	return createClineAPI(outputChannel, sidebarWebview.controller)
 }
 
+function maybeSetupHostProviders() {
+	if (!hostProviders.isSetup) {
+		console.log("Setting up vscode host providers...")
+		hostProviders.initializeHostProviders(VscodeWebviewProvider.create, vscodeHostBridgeClient)
+	}
+}
+
 // TODO: Find a solution for automatically removing DEV related content from production builds.
 //  This type of code is fine in production to keep. We just will want to remove it from production builds
 //  to bring down built asset sizes.
 //
 // This is a workaround to reload the extension when the source code changes
 // since vscode doesn't support hot reload for extensions
-const { IS_DEV, DEV_WORKSPACE_FOLDER } = process.env
+const IS_DEV = process.env.IS_DEV
+const DEV_WORKSPACE_FOLDER = process.env.DEV_WORKSPACE_FOLDER
 
 // This method is called when your extension is deactivated
 export async function deactivate() {
