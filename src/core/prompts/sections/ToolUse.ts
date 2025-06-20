@@ -205,6 +205,18 @@ Usage:
 </arguments>
 </use_mcp_tool>
 
+## get_mcp_tool_input_schema (GMTIS)
+Description: Request to get the input schema for a specific tool provided by a connected MCP server. This returns the JSON schema that defines the expected input parameters for the tool.
+IMPORTANT: If an MCP tool does not have an input schema provided always call this tool before using it to expose all tool functionality and available parameters.
+Parameters:
+- server_name: (required) The name of the MCP server providing the tool
+- tool_name: (required) The name of the tool to get the input schema for
+Usage:
+<get_mcp_tool_input_schema>
+<server_name>server name here</server_name>
+<tool_name>tool name here</tool_name>
+</get_mcp_tool_input_schema>
+
 ## access_mcp_resource
 Description: Request to access a resource provided by a connected MCP server. Resources represent data sources that can be used as context, such as files, API responses, or system information.
 Parameters:

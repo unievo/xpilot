@@ -1321,6 +1321,21 @@ export const ChatRowContent = ({
 							Loading MCP documentation
 						</div>
 					)
+				case "get_mcp_tool_input_schema":
+					return (
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								color: "var(--vscode-foreground)",
+								opacity: 0.7,
+								fontSize: 12,
+								padding: "4px 0",
+							}}>
+							<i className="codicon codicon-bracket-dot" style={{ marginRight: 6 }} />
+							{message.text}
+						</div>
+					)
 				case "completion_result":
 					const hasChanges = message.text?.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
 					const text = hasChanges ? message.text?.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length) : message.text

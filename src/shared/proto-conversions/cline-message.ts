@@ -96,6 +96,7 @@ function convertClineSayToProtoEnum(say: AppClineSay | undefined): ClineSay | un
 		ignorefile_error: ClineSay.CLINEIGNORE_ERROR,
 		checkpoint_created: ClineSay.CHECKPOINT_CREATED,
 		load_mcp_documentation: ClineSay.LOAD_MCP_DOCUMENTATION,
+		get_mcp_tool_input_schema: ClineSay.GET_MCP_TOOL_INPUT_SCHEMA,
 		info: ClineSay.INFO,
 	}
 
@@ -140,6 +141,7 @@ function convertProtoEnumToClineSay(say: ClineSay): AppClineSay | undefined {
 		[ClineSay.CLINEIGNORE_ERROR]: "ignorefile_error",
 		[ClineSay.CHECKPOINT_CREATED]: "checkpoint_created",
 		[ClineSay.LOAD_MCP_DOCUMENTATION]: "load_mcp_documentation",
+		[ClineSay.GET_MCP_TOOL_INPUT_SCHEMA]: "get_mcp_tool_input_schema",
 		[ClineSay.INFO]: "info",
 	}
 

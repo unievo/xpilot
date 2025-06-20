@@ -61,3 +61,5 @@ export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputT
 export const enableTelemetrySettings = false
 export const mcpMarketplaceEnabledDefaultSetting = false
 export const enableNewInstructionsDefaultSetting = false
+export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
+export const mcpServerIncludeToolInputSchema_MaxLength = 100

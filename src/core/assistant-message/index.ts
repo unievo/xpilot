@@ -19,6 +19,7 @@ export const toolUseNames = [
 	"browser_action",
 	"use_mcp_tool",
 	"access_mcp_resource",
+	"get_mcp_tool_input_schema",
 	"ask_followup_question",
 	"plan_mode_respond",
 	"load_mcp_documentation",

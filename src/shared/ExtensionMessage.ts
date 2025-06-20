@@ -171,6 +171,7 @@ export type ClineSay =
 	| "ignorefile_error"
 	| "checkpoint_created"
 	| "load_mcp_documentation"
+	| "get_mcp_tool_input_schema"
 	| "info" // Added for general informational messages like retry status
 
 export interface ClineSayTool {

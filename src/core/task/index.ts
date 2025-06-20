@@ -2102,6 +2102,8 @@ export class Task {
 							return `[${block.name} for '${block.params.server_name}']`
 						case "access_mcp_resource":
 							return `[${block.name} for '${block.params.server_name}']`
+						case "get_mcp_tool_input_schema":
+							return `[${block.name} for '${block.params.tool_name}' on '${block.params.server_name}']`
 						case "ask_followup_question":
 							return `[${block.name} for '${block.params.question}']`
 						case "plan_mode_respond":
@@ -3526,6 +3528,77 @@ export class Task {
 						} catch (error) {
 							await handleError("accessing MCP resource", error)
 							await this.saveCheckpoint()
+							break
+						}
+					}
+					case "get_mcp_tool_input_schema": {
+						const server_name: string | undefined = block.params.server_name
+						const tool_name: string | undefined = block.params.tool_name
+						try {
+							if (block.partial) {
+								// shouldn't happen for this tool
+								break
+							} else {
+								if (!server_name) {
+									this.consecutiveMistakeCount++
+									pushToolResult(
+										await this.sayAndCreateMissingParamError("get_mcp_tool_input_schema", "server_name"),
+									)
+									//await this.saveCheckpoint()
+									break
+								}
+								if (!tool_name) {
+									this.consecutiveMistakeCount++
+									pushToolResult(
+										await this.sayAndCreateMissingParamError("get_mcp_tool_input_schema", "tool_name"),
+									)
+									//await this.saveCheckpoint()
+									break
+								}
+								this.consecutiveMistakeCount = 0
+
+								await this.say(
+									"get_mcp_tool_input_schema",
+									`Getting input schema for ${tool_name} on ${server_name}`,
+									undefined,
+									undefined,
+									false,
+								)
+
+								// Find the tool in the connected servers
+								const connectedServers = this.mcpHub
+									.getServers()
+									.filter((server) => server.status === "connected")
+								const targetServer = connectedServers.find((server) => server.name === server_name)
+
+								if (!targetServer) {
+									const errorMessage = `MCP server "${server_name}" not found or not connected`
+									pushToolResult(formatResponse.toolError(errorMessage))
+									//await this.saveCheckpoint()
+									break
+								}
+
+								const targetTool = targetServer.tools?.find((tool) => tool.name === tool_name)
+
+								if (!targetTool) {
+									const errorMessage = `Tool "${tool_name}" not found on MCP server "${server_name}"`
+									pushToolResult(formatResponse.toolError(errorMessage))
+									//await this.saveCheckpoint()
+									break
+								}
+
+								const inputSchema = targetTool.inputSchema
+								const schemaResult = inputSchema
+									? JSON.stringify(inputSchema, null, 2)
+									: "No input schema defined for this tool"
+
+								pushToolResult(formatResponse.toolResult(schemaResult))
+								//await this.saveCheckpoint()
+								break
+							}
+						} catch (error) {
+							await handleError("getting MCP tool input schema", error)
+							//await this.saveCheckpoint()
 							break
 						}
 					}

@@ -1,3 +1,4 @@
+import { mcpServerIncludeFullSchema_ToolsMaxCount, mcpServerIncludeToolInputSchema_MaxLength } from "@/shared/Configuration"
 import { McpHub } from "../../../services/mcp/McpHub"
 import { BrowserSettings } from "../../../shared/BrowserSettings"
 import { mcpResourcesUse } from "../custom/mcp/mcpResourcesUse"
@@ -53,19 +54,28 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
 When a server is connected, you can use the server's tools via the \`use_mcp_tool\` tool, and access the server's resources via the \`access_mcp_resource\` tool.
 
 ${
-	servers.length > 0
-		? `${connectedServers
+	mcpHub.getServers().length > 0
+		? `${mcpHub
+				.getServers()
+				.filter((server) => server.status === "connected")
 				.map((server) => {
 					const tools = server.tools
 						?.map((tool) => {
-							const schemaStr = tool.inputSchema
-								? `    Input Schema:
-    ${JSON.stringify(tool.inputSchema, null, 2).split("\n").join("\n    ")}`
-								: ""
-
+							let schemaStr = ""
+							if (tool.inputSchema) {
+								const schemaJson = JSON.stringify(tool.inputSchema, null, 2)
+								const serverMaxToolsCount =
+									server.tools && server.tools.length <= mcpServerIncludeFullSchema_ToolsMaxCount
+								if (serverMaxToolsCount || schemaJson.length < mcpServerIncludeToolInputSchema_MaxLength) {
+									schemaStr = `  Input Schema:
+	${schemaJson.split("\n").join("\n  ")}\n`
+								} else {
+									//schemaStr = `  Input Schema: use GMITS\n`
+								}
+							}
 							return `- ${tool.name}: ${tool.description}\n${schemaStr}`
 						})
-						.join("\n\n")
+						.join("")
 
 					const templates = server.resourceTemplates
 						?.map((template) => `- ${template.uriTemplate} (${template.name}): ${template.description}`)
@@ -79,7 +89,9 @@ ${
 
 					return (
 						`## ${server.name} (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` +
-						(tools ? `\n\n### ATL - Available Tools List\n${tools}` : "") +
+						(tools
+							? `\n\n### ATL - Available Tools List - Always use get_mcp_tool_input_schema before calling a tool that does not have a defined input schema as it exposes all tool functionality and available parameters such as sorting, ordering, filtering, etc.\n${tools}`
+							: "") +
 						(templates ? `\n\n### RTL - Resource Templates List\n${templates}` : "") +
 						(resources ? `\n\n### DRL - Direct Resources List\n${resources}` : "")
 					)
