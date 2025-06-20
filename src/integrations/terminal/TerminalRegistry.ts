@@ -6,6 +6,8 @@ export interface TerminalInfo {
 	busy: boolean
 	lastCommand: string
 	id: number
+	shellPath?: string
+	lastActive: number
 	pendingCwdChange?: string
 	cwdResolved?: {
 		resolve: () => void
@@ -19,9 +21,9 @@ export class TerminalRegistry {
 	private static terminals: TerminalInfo[] = []
 	private static nextTerminalId = 1
 
-	static createTerminal(cwd?: string | vscode.Uri | undefined): TerminalInfo {
+	static createTerminal(cwd?: string | vscode.Uri | undefined, shellPath?: string): TerminalInfo {
 		const extensionUri = vscode.extensions.getExtension(extensionId)?.extensionUri
-		const terminal = vscode.window.createTerminal(<vscode.TerminalOptions>{
+		const terminalOptions: vscode.TerminalOptions = <vscode.TerminalOptions>{
 			cwd,
 			name: agentName,
 			iconPath: {
@@ -32,12 +34,21 @@ export class TerminalRegistry {
 					? vscode.Uri.joinPath(extensionUri, ...extensionIconDarkPath.split(pathSeparator))
 					: new vscode.ThemeIcon("terminal"),
 			},
-		})
+		}
+
+		// If a specific shell path is provided, use it
+		if (shellPath) {
+			terminalOptions.shellPath = shellPath
+		}
+
+		const terminal = vscode.window.createTerminal(terminalOptions)
 		const newInfo: TerminalInfo = {
 			terminal,
 			busy: false,
 			lastCommand: "",
 			id: this.nextTerminalId++,
+			shellPath,
+			lastActive: Date.now(),
 		}
 		this.terminals.push(newInfo)
 		return newInfo

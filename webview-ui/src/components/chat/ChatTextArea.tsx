@@ -83,6 +83,7 @@ interface ChatTextAreaProps {
 	shouldDisableFilesAndImages: boolean
 	onHeightChange?: (height: number) => void
 	onFocusChange?: (isFocused: boolean) => void
+	isTaskView: boolean
 }
 
 interface GitCommit {
@@ -275,6 +276,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			shouldDisableFilesAndImages,
 			onHeightChange,
 			onFocusChange,
+			isTaskView,
 		},
 		ref,
 	) => {
@@ -1022,6 +1024,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				)
 				// Focus the textarea after mode toggle with slight delay
 				setTimeout(() => {
+					if (isTaskView) {
+						setInputValue("")
+					}
 					textAreaRef.current?.focus()
 				}, 100)
 			}, changeModeDelay)
