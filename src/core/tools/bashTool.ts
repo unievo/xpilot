@@ -1,9 +1,11 @@
+import { agentName, homePageUrl } from "@/shared/Configuration"
+
 export const bashToolName = "Bash"
 
-const CO_AUTHORED_COMMIT_MSG = `\uD83E\uDD16 Generated with [Cline](https://docs.cline.bot)
+const CO_AUTHORED_COMMIT_MSG = `\uD83E\uDD16 Generated with [${agentName}](${homePageUrl})
 
-   Co-Authored-By: Cline <noreply@cline.bot>`
-const CO_AUTHORED_PR_MSG = `\uD83E\uDD16 Generated with [Cline](https://docs.cline.bot)`
+   Co-Authored-By: ${agentName}`
+const CO_AUTHORED_PR_MSG = `\uD83E\uDD16 Generated with [${agentName}](${homePageUrl})`
 
 const descriptionForAgent = (
 	cwd: string,

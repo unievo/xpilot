@@ -94,7 +94,7 @@ export const TerminalSettingsSection: React.FC = () => {
 					))}
 				</VSCodeDropdown>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: "5px 0 0 0" }}>
-					Select the default terminal Cline will use. 'Default' uses your VSCode global setting.
+					Select the default terminal. 'Default' uses your VSCode global setting.
 				</p>
 			</div>
 

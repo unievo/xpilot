@@ -99,7 +99,7 @@ export class MessageStateHandler {
 				isFavorited: this.taskIsFavorited,
 			})
 		} catch (error) {
-			console.error("Failed to save cline messages:", error)
+			console.error("Failed to save messages:", error)
 		}
 	}
 

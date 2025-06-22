@@ -4000,7 +4000,7 @@ export class Task {
 									)
 								} else {
 									showNotificationForApprovalIfAutoApprovalEnabled(
-										`Cline wants to fetch content from ${url}`,
+										`${agentName} wants to fetch content from ${url}`,
 										this.autoApprovalSettings.enabled,
 										this.autoApprovalSettings.enableNotifications,
 									)
@@ -4503,8 +4503,7 @@ export class Task {
 					CheckpointTracker.create(this.taskId, this.context.globalStorageUri.fsPath, this.enableCheckpoints),
 					{
 						milliseconds: 15_000,
-						message:
-							"Checkpoints taking too long to initialize. Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+						message: `Checkpoints taking too long to initialize. Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
 					},
 				)
 			} catch (error) {

@@ -1,6 +1,7 @@
 import { ApiConfiguration } from "@shared/api"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { ApiKeyField } from "../common/ApiKeyField"
+import { agentName } from "@shared/Configuration"
 
 /**
  * Props for the TogetherProvider component
@@ -37,8 +38,8 @@ export const TogetherProvider = ({ apiConfiguration, handleInputChange, showMode
 					color: "var(--vscode-descriptionForeground)",
 				}}>
 				<span style={{ color: "var(--vscode-errorForeground)" }}>
-					(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude models.
-					Less capable models may not work as expected.)
+					(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with Claude
+					models. Less capable models may not work as expected.)
 				</span>
 			</p>
 		</div>
