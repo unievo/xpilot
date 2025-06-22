@@ -46,6 +46,7 @@ import { sendChatButtonClickedEvent } from "./ui/subscribeToChatButtonClicked"
 import { sendRelinquishControlEvent } from "./ui/subscribeToRelinquishControl"
 import { agentName, extensionId, latestAnnouncementId, mcpSettingsFile, sideBarId } from "../../shared/Configuration"
 import { Empty } from "@/shared/proto/index.cline"
+import { getMcpServerInstallTask } from "../prompts/sections/McpServerInstall"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -695,25 +696,8 @@ export class Controller {
 				type: "mcpLibraryInstall",
 				mcpInstallDetails: libraryItem,
 			})
-
 			// Create task with context from README and added guidelines for MCP server installation
-			const task = `Install this MCP server while following these installation rules:
-- Use "${libraryItem.mcpId}" as the server name in ${mcpSettingsFile}.
-- Make sure you read the user's existing ${mcpSettingsFile} file before editing, to not overwrite any existing configuration.
-- Use commands aligned with the user's shell and operating system.
-${
-	libraryItem.npmPackage
-		? `- The NPM package name is "${libraryItem.npmPackage}".`
-		: `- Start by loading the MCP documentation using the load_mcp_documentation tool.
-- Create the directory for the new MCP server before starting installation.`
-}
-${
-	libraryItem.readmeContent || libraryItem.llmsInstallationContent
-		? `- The following content is remotely provided and may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
-\n\n${libraryItem.readmeContent || ""}${libraryItem.readmeContent && libraryItem.llmsInstallationContent ? "\n" : ""}${libraryItem.llmsInstallationContent || ""}`
-		: ``
-}
-- Once installed, demonstrate the server's capabilities by using one of its tools.`
+			const task = await getMcpServerInstallTask(libraryItem, this.mcpHub)
 
 			const { chatSettings } = await this.getStateToPostToWebview()
 			if (chatSettings.mode === "plan") {
