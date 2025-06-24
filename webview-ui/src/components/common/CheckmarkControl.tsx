@@ -181,7 +181,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 				<CustomButton
 					$isCheckedOut={isCheckpointCheckedOut}
 					disabled={compareDisabled}
-					style={{ cursor: compareDisabled ? "wait" : "pointer" }}
+					style={{ cursor: compareDisabled ? "not-allowed" : "pointer" }}
 					onClick={async () => {
 						setCompareDisabled(true)
 						try {
@@ -218,21 +218,23 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 									<VSCodeButton
 										appearance="secondary"
 										onClick={handleRestoreTask}
-										disabled={restoreTaskDisabled}
+										// disabled={restoreTaskDisabled}
 										style={{
 											backgroundColor: "var(--vscode-input-background)",
-											cursor: restoreTaskDisabled ? "wait" : "pointer",
+											// cursor: restoreTaskDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
 										}}
 										onMouseEnter={(e) => {
-											if (!restoreBothDisabled) {
+											// if (!restoreBothDisabled)
+											{
 												e.currentTarget.style.backgroundColor =
 													"var(--vscode-inputOption-activeBackground)"
 											}
 										}}
 										onMouseLeave={(e) => {
-											if (!restoreBothDisabled) {
+											// if (!restoreBothDisabled)
+											{
 												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
 											}
 										}}>
@@ -244,21 +246,23 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 									<VSCodeButton
 										appearance="secondary"
 										onClick={handleRestoreWorkspace}
-										disabled={restoreWorkspaceDisabled || isCheckpointCheckedOut}
+										// disabled={restoreWorkspaceDisabled}
 										style={{
 											backgroundColor: "var(--vscode-button-secondaryBackground)",
-											cursor: restoreWorkspaceDisabled || isCheckpointCheckedOut ? "wait" : "pointer",
+											// cursor: restoreWorkspaceDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
 										}}
 										onMouseEnter={(e) => {
-											if (!restoreWorkspaceDisabled) {
+											// if (!restoreWorkspaceDisabled)
+											{
 												e.currentTarget.style.backgroundColor =
 													"var(--vscode-inputOption-activeBackground)"
 											}
 										}}
 										onMouseLeave={(e) => {
-											if (!restoreWorkspaceDisabled) {
+											// if (!restoreWorkspaceDisabled)
+											{
 												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
 											}
 										}}>
@@ -274,21 +278,23 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 									<VSCodeButton
 										appearance="secondary"
 										onClick={handleRestoreBoth}
-										disabled={restoreBothDisabled}
+										// disabled={restoreBothDisabled}
 										style={{
 											backgroundColor: "var(--vscode-button-secondaryBackground)",
-											cursor: restoreBothDisabled ? "wait" : "pointer",
+											// cursor: restoreBothDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
 										}}
 										onMouseEnter={(e) => {
-											if (!restoreBothDisabled) {
+											// if (!restoreBothDisabled)
+											{
 												e.currentTarget.style.backgroundColor =
 													"var(--vscode-inputOption-activeBackground)"
 											}
 										}}
 										onMouseLeave={(e) => {
-											if (!restoreBothDisabled) {
+											// if (!restoreBothDisabled)
+											{
 												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
 											}
 										}}>
