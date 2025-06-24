@@ -27,6 +27,8 @@ import {
 	SlashCommand,
 	slashCommandDeleteRegex,
 	validateSlashCommand,
+	getWorkflowCommands,
+	DEFAULT_SLASH_COMMANDS,
 } from "@/utils/slash-commands"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import { vscode } from "@/utils/vscode"
@@ -611,16 +613,45 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						setJustDeletedSpaceAfterMention(true)
 						setJustDeletedSpaceAfterSlashCommand(false)
 					} else if (charBeforeIsWhitespace && inputValue.slice(0, cursorPosition - 1).match(slashCommandDeleteRegex)) {
-						// New slash command handling
-						const newCursorPosition = cursorPosition - 1
-						if (!charAfterIsWhitespace) {
-							event.preventDefault()
-							textAreaRef.current?.setSelectionRange(newCursorPosition, newCursorPosition)
-							setCursorPosition(newCursorPosition)
+						// Check if this is the space immediately after a complete slash command
+						const textBeforeCursor = inputValue.slice(0, cursorPosition - 1)
+						const slashIndex = textBeforeCursor.lastIndexOf("/")
+
+						if (slashIndex !== -1) {
+							const commandText = textBeforeCursor.slice(slashIndex + 1)
+
+							// Get all available commands
+							const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
+							const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
+
+							// Check if this is exactly a complete command (no extra text after)
+							const isExactCompleteCommand = allCommands.some(
+								(cmd) => cmd.name.toLowerCase() === commandText.toLowerCase(),
+							)
+
+							// Only trigger slash command deletion if:
+							// 1. It's an exact complete command, AND
+							// 2. There's no more text after the cursor (or only whitespace)
+							const textAfterCursor = inputValue.slice(cursorPosition)
+							const hasOnlyWhitespaceAfter = /^\s*$/.test(textAfterCursor)
+
+							if (isExactCompleteCommand && hasOnlyWhitespaceAfter) {
+								// This is the space immediately after a complete command with no additional text
+								const newCursorPosition = cursorPosition - 1
+								if (!charAfterIsWhitespace) {
+									event.preventDefault()
+									textAreaRef.current?.setSelectionRange(newCursorPosition, newCursorPosition)
+									setCursorPosition(newCursorPosition)
+								}
+								setCursorPosition(newCursorPosition)
+								setJustDeletedSpaceAfterSlashCommand(true)
+								setJustDeletedSpaceAfterMention(false)
+							} else {
+								// This is a space within additional text after a command, handle normally
+								setJustDeletedSpaceAfterMention(false)
+								setJustDeletedSpaceAfterSlashCommand(false)
+							}
 						}
-						setCursorPosition(newCursorPosition)
-						setJustDeletedSpaceAfterSlashCommand(true)
-						setJustDeletedSpaceAfterMention(false)
 					}
 					// Handle the second backspace press for mentions or slash commands
 					else if (justDeletedSpaceAfterMention) {
@@ -712,7 +743,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setInputValue(newValue)
 				setCursorPosition(newCursorPosition)
 				let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
-				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
+				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(
+					newValue,
+					newCursorPosition,
+					localWorkflowToggles,
+					globalWorkflowToggles,
+				)
 
 				// we do not allow both menus to be shown at the same time
 				// the slash commands menu has precedence bc its a narrower component
@@ -930,16 +966,36 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			// check for highlighting /slash-commands
 			if (/^\s*\//.test(processedText)) {
 				const slashIndex = processedText.indexOf("/")
+				const textAfterSlash = processedText.substring(slashIndex + 1)
 
-				// end of command is end of text or first whitespace
-				const spaceIndex = processedText.indexOf(" ", slashIndex)
-				const endIndex = spaceIndex > -1 ? spaceIndex : processedText.length
+				// Get all available commands for matching
+				const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
+				const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-				// extract and validate the exact command text
-				const commandText = processedText.substring(slashIndex + 1, endIndex)
-				const isValidCommand = validateSlashCommand(commandText, localWorkflowToggles, globalWorkflowToggles)
+				// Find the longest matching valid command that is complete
+				let longestMatch = ""
+				let longestMatchLength = 0
 
-				if (isValidCommand) {
+				for (const command of allCommands) {
+					const commandName = command.name.toLowerCase()
+					const textToMatch = textAfterSlash.toLowerCase()
+
+					// Check if the command matches exactly at the start of the text
+					if (textToMatch.startsWith(commandName)) {
+						// Ensure the match is followed by a space or end of text (complete command)
+						const nextChar = textAfterSlash[commandName.length]
+						if (!nextChar || nextChar === " ") {
+							if (commandName.length > longestMatchLength) {
+								longestMatch = command.name
+								longestMatchLength = commandName.length
+							}
+						}
+					}
+				}
+
+				// If we found a complete valid command match, highlight only that command
+				if (longestMatch) {
+					const endIndex = slashIndex + 1 + longestMatchLength
 					const fullCommand = processedText.substring(slashIndex, endIndex) // includes slash
 
 					const highlighted = `<mark class="mention-context-textarea-highlight">${fullCommand}</mark>`

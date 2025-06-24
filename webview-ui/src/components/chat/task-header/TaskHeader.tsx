@@ -4,7 +4,7 @@ import { normalizeApiConfiguration } from "@/components/settings/utils/providerU
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient, TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber, formatSize } from "@/utils/format"
-import { validateSlashCommand } from "@/utils/slash-commands"
+import { validateSlashCommand, DEFAULT_SLASH_COMMANDS, getWorkflowCommands } from "@/utils/slash-commands"
 import { mentionRegexGlobal } from "@shared/context-mentions"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { StringArrayRequest, StringRequest } from "@shared/proto/common"
@@ -44,8 +44,15 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	onClose,
 	onScrollToMessage,
 }) => {
-	const { apiConfiguration, currentTaskItem, checkpointTrackerErrorMessage, clineMessages, navigateToSettings } =
-		useExtensionState()
+	const {
+		apiConfiguration,
+		currentTaskItem,
+		checkpointTrackerErrorMessage,
+		clineMessages,
+		navigateToSettings,
+		localWorkflowToggles,
+		globalWorkflowToggles,
+	} = useExtensionState()
 	const [isTaskExpanded, setIsTaskExpanded] = useState(() => {
 		try {
 			const saved = window.localStorage.getItem("taskHeader.isTaskExpanded")
@@ -286,7 +293,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							</span>
 							{!isTaskExpanded && (
 								<span className="ph-no-capture" style={{ marginLeft: 4 }}>
-									{highlightText(task.text, false)}
+									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
 								</span>
 							)}
 						</div>
@@ -338,7 +345,9 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									wordBreak: "break-word",
 									overflowWrap: "anywhere",
 								}}>
-								<span className="ph-no-capture">{highlightText(task.text, false)}</span>
+								<span className="ph-no-capture">
+									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
+								</span>
 							</div>
 							{!isTextExpanded && showSeeMore && (
 								<div
@@ -576,30 +585,65 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 /**
  * Highlights slash-command in this text if it exists
  */
-const highlightSlashCommands = (text: string, withShadow = true) => {
-	const match = text.match(/^\s*\/([a-zA-Z0-9_-]+)(\s*|$)/)
-	if (!match) {
+const highlightSlashCommands = (
+	text: string,
+	withShadow = true,
+	localWorkflowToggles: Record<string, boolean> = {},
+	globalWorkflowToggles: Record<string, boolean> = {},
+) => {
+	if (!text.trim().startsWith("/")) {
 		return text
 	}
 
-	const commandName = match[1]
-	const validationResult = validateSlashCommand(commandName)
+	// Get all available commands including workflows
+	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
+	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-	if (!validationResult || validationResult !== "full") {
-		return text
+	// Sort by length (longest first) to ensure we match the longest command first
+	const sortedCommands = allCommands.sort((a, b) => b.name.length - a.name.length)
+
+	// Extract the text after the slash
+	const textAfterSlash = text.substring(1)
+
+	// Find the longest matching valid command that is complete
+	let longestMatch = ""
+	let longestMatchLength = 0
+
+	for (const command of sortedCommands) {
+		const commandName = command.name.toLowerCase()
+		const textToMatch = textAfterSlash.toLowerCase()
+
+		// Check if the command matches exactly at the start of the text
+		if (textToMatch.startsWith(commandName)) {
+			// Ensure the match is followed by a space or end of text (complete command)
+			const nextChar = textAfterSlash[commandName.length]
+			if (!nextChar || nextChar === " ") {
+				if (commandName.length > longestMatchLength) {
+					longestMatch = command.name
+					longestMatchLength = commandName.length
+				}
+			}
+		}
 	}
 
-	const commandEndIndex = match[0].length
-	const beforeCommand = text.substring(0, text.indexOf("/"))
-	const afterCommand = match[2] + text.substring(commandEndIndex)
+	// If we found a complete valid command match, highlight only that command
+	if (longestMatch) {
+		const commandEndIndex = 1 + longestMatchLength // +1 for the slash
+		const beforeCommand = text.substring(0, 0) // empty since command starts at beginning
+		const afterCommand = text.substring(commandEndIndex)
 
-	return [
-		beforeCommand,
-		<span key="slashCommand" className={withShadow ? "mention-context-highlight-with-shadow" : "mention-context-highlight"}>
-			/{commandName}
-		</span>,
-		afterCommand,
-	]
+		return [
+			beforeCommand,
+			<span
+				key="slashCommand"
+				className={withShadow ? "mention-context-highlight-with-shadow" : "mention-context-highlight"}>
+				/{longestMatch}
+			</span>,
+			afterCommand,
+		]
+	}
+
+	return text
 }
 
 /**
@@ -630,12 +674,17 @@ export const highlightMentions = (text: string, withShadow = true) => {
 /**
  * Handles parsing both mentions and slash-commands
  */
-export const highlightText = (text?: string, withShadow = true) => {
+export const highlightText = (
+	text?: string,
+	withShadow = true,
+	localWorkflowToggles: Record<string, boolean> = {},
+	globalWorkflowToggles: Record<string, boolean> = {},
+) => {
 	if (!text) {
 		return text
 	}
 
-	const resultWithSlashHighlighting = highlightSlashCommands(text, withShadow)
+	const resultWithSlashHighlighting = highlightSlashCommands(text, withShadow, localWorkflowToggles, globalWorkflowToggles)
 
 	if (resultWithSlashHighlighting === text) {
 		// no highlighting done

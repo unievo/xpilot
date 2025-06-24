@@ -1,24 +1,29 @@
 export interface SlashCommand {
 	name: string
 	description?: string
-	section?: "default" | "custom"
+	section?: "task" | "instructions" | "custom"
 }
 
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	{
-		name: "newtask",
+		name: "New Task",
 		description: "New task with context from current task",
-		section: "default",
+		section: "task",
 	},
 	{
-		name: "compact",
-		description: "Compact the current context window",
-		section: "default",
+		name: "Compact Task",
+		description: "Compact the current task context window",
+		section: "task",
 	},
 	{
-		name: "instructions",
-		description: "New instructions file based on the task",
-		section: "default",
+		name: "Generate Instructions",
+		description: "New instructions from the task",
+		section: "instructions",
+	},
+	{
+		name: "Sync Instructions",
+		description: "Sync instructions from git repo",
+		section: "instructions",
 	},
 
 	// {
@@ -37,15 +42,16 @@ export function getWorkflowCommands(
 		.reduce(
 			(acc, [filePath, _]) => {
 				const fileName = filePath.replace(/^.*[/\\]/, "")
+				const fileNameWithoutExtension = fileName.replace(/\.[^/.]+$/, "")
 
 				// Add to array of workflows
 				acc.workflows.push({
-					name: fileName,
+					name: fileNameWithoutExtension,
 					section: "custom",
 				} as SlashCommand)
 
 				// Add to set of names
-				acc.nameSet.add(fileName)
+				acc.nameSet.add(fileNameWithoutExtension)
 
 				return acc
 			},
@@ -56,15 +62,16 @@ export function getWorkflowCommands(
 		.filter(([_, enabled]) => enabled)
 		.flatMap(([filePath, _]) => {
 			const fileName = filePath.replace(/^.*[/\\]/, "")
+			const fileNameWithoutExtension = fileName.replace(/\.[^/.]+$/, "")
 
 			// skip if a local workflow with the same name exists
-			if (localWorkflowNames.has(fileName)) {
+			if (localWorkflowNames.has(fileNameWithoutExtension)) {
 				return []
 			}
 
 			return [
 				{
-					name: fileName,
+					name: fileNameWithoutExtension,
 					section: "custom",
 				},
 			] as SlashCommand[]
@@ -75,10 +82,10 @@ export function getWorkflowCommands(
 }
 
 // Regex for detecting slash commands in text
-// currently doesn't allow whitespace inside of the filename
-export const slashCommandRegex = /\/([a-zA-Z0-9_.-]+)(\s|$)/
+// Updated to allow whitespace inside command names
+export const slashCommandRegex = /\/([a-zA-Z0-9_.\s-]+?)(?=\s|$)/
 export const slashCommandRegexGlobal = new RegExp(slashCommandRegex.source, "g")
-export const slashCommandDeleteRegex = /^\s*\/([a-zA-Z0-9_.-]+)$/
+export const slashCommandDeleteRegex = /^\s*\/([a-zA-Z0-9_.\s-]+?)$/
 
 /**
  * Removes a slash command at the cursor position
@@ -92,7 +99,7 @@ export function removeSlashCommand(text: string, position: number): { newText: s
 
 	if (matchEnd) {
 		// If we're at the end of a slash command, remove it
-		const newText = text.slice(0, position - matchEnd[0].length) + afterCursor.replace(" ", "") // removes the first space after the command
+		const newText = text.slice(0, position - matchEnd[0].length) + afterCursor.replace(/^\s/, "") // removes the first space after the command
 		const newPosition = position - matchEnd[0].length
 		return { newText, newPosition }
 	}
@@ -104,7 +111,12 @@ export function removeSlashCommand(text: string, position: number): { newText: s
 /**
  * Determines whether the slash command menu should be displayed based on text input
  */
-export function shouldShowSlashCommandsMenu(text: string, cursorPosition: number): boolean {
+export function shouldShowSlashCommandsMenu(
+	text: string,
+	cursorPosition: number,
+	localWorkflowToggles: Record<string, boolean> = {},
+	globalWorkflowToggles: Record<string, boolean> = {},
+): boolean {
 	const beforeCursor = text.slice(0, cursorPosition)
 
 	// first check if there is a slash before the cursor
@@ -123,8 +135,29 @@ export function shouldShowSlashCommandsMenu(text: string, cursorPosition: number
 	// potential partial or full command
 	const textAfterSlash = beforeCursor.slice(slashIndex + 1)
 
-	// don't show menu if there's whitespace after the slash but before the cursor
-	if (/\s/.test(textAfterSlash)) {
+	// get all available commands including workflow commands
+	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
+	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
+
+	// check if we have a complete valid command followed by a space
+	const hasCompleteCommand = allCommands.some((cmd) => {
+		const commandName = cmd.name.toLowerCase()
+		const textToCheck = textAfterSlash.toLowerCase()
+
+		// Check if the text starts with this command and is followed by a space
+		if (textToCheck.startsWith(commandName)) {
+			const nextChar = textAfterSlash[commandName.length]
+			// If there's a space after the command, this is a complete command
+			// We should not show the menu regardless of what comes after the space
+			const isComplete = nextChar === " "
+
+			return isComplete
+		}
+		return false
+	})
+
+	// if we have a complete command followed by a space, don't show menu
+	if (hasCompleteCommand) {
 		return false
 	}
 
@@ -146,8 +179,26 @@ export function getMatchingSlashCommands(
 		return allCommands
 	}
 
-	// filter commands that start with the query (case sensitive)
-	return allCommands.filter((cmd) => cmd.name.startsWith(query))
+	// normalize query by trimming and lowercasing for matching
+	const normalizedQuery = query.trim().toLowerCase()
+
+	// filter commands that start with the query or contain all words from the query
+	return allCommands.filter((cmd) => {
+		const normalizedCommandName = cmd.name.toLowerCase()
+
+		// exact prefix match (case insensitive)
+		if (normalizedCommandName.startsWith(normalizedQuery)) {
+			return true
+		}
+
+		// check if all words in the query are present in the command name
+		const queryWords = normalizedQuery.split(/\s+/).filter((word) => word.length > 0)
+		if (queryWords.length > 1) {
+			return queryWords.every((word) => normalizedCommandName.includes(word))
+		}
+
+		return false
+	})
 }
 
 /**
@@ -156,12 +207,16 @@ export function getMatchingSlashCommands(
 export function insertSlashCommand(text: string, commandName: string): { newValue: string; commandIndex: number } {
 	const slashIndex = text.indexOf("/")
 
-	// where the command ends, at the end of entire text or first space
-	const commandEndIndex = text.indexOf(" ", slashIndex)
+	// where the command ends, look for first space or end of text
+	let commandEndIndex = text.indexOf(" ", slashIndex)
+	if (commandEndIndex === -1) {
+		// if no space found, command goes to end of text
+		commandEndIndex = text.length
+	}
 
 	// replace the partial command with the full command
 	const newValue =
-		text.substring(0, slashIndex + 1) + commandName + (commandEndIndex > -1 ? text.substring(commandEndIndex) : " ") // add extra space at the end if only slash command
+		text.substring(0, slashIndex + 1) + commandName + (commandEndIndex < text.length ? text.substring(commandEndIndex) : " ") // add single space at the end if only slash command
 
 	return { newValue, commandIndex: slashIndex }
 }
@@ -182,14 +237,33 @@ export function validateSlashCommand(
 	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
 	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-	// case sensitive matching
-	const exactMatch = allCommands.some((cmd) => cmd.name === command)
+	// normalize command for matching
+	const normalizedCommand = command.trim().toLowerCase()
+
+	// case insensitive exact matching
+	const exactMatch = allCommands.some((cmd) => cmd.name.toLowerCase() === normalizedCommand)
 
 	if (exactMatch) {
 		return "full"
 	}
 
-	const partialMatch = allCommands.some((cmd) => cmd.name.startsWith(command))
+	// check for partial matches - either prefix match or all words present
+	const partialMatch = allCommands.some((cmd) => {
+		const normalizedCmdName = cmd.name.toLowerCase()
+
+		// prefix match
+		if (normalizedCmdName.startsWith(normalizedCommand)) {
+			return true
+		}
+
+		// check if all words in the command are present in a valid command
+		const commandWords = normalizedCommand.split(/\s+/).filter((word) => word.length > 0)
+		if (commandWords.length > 1) {
+			return commandWords.every((word) => normalizedCmdName.includes(word))
+		}
+
+		return false
+	})
 
 	if (partialMatch) {
 		return "partial"

@@ -48,7 +48,8 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 	// Filter commands based on query
 	const filteredCommands = getMatchingSlashCommands(query, localWorkflowToggles, globalWorkflowToggles)
-	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "default" || !cmd.section)
+	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "task" || !cmd.section)
+	const instructionsCommands = filteredCommands.filter((cmd) => cmd.section === "instructions")
 	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "custom")
 
 	// Create a reusable function for rendering a command section
@@ -78,7 +79,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 									className="codicon codicon-sparkle"
 									style={{ opacity: 0.9, fontSize: "13px", marginRight: 4 }}
 								/>
-								<span>{command.name.replace(/\.[^/.]+$/, "")}</span>
+								<span>{command.name}</span>
 								{showDescriptions && command.description && (
 									<span className="text-[0.8em] text-[var(--vscode-descriptionForeground)] whitespace-nowrap overflow-hidden text-ellipsis">
 										<span className="ph-no-capture ml-1.5 opacity-80">{command.description}</span>
@@ -99,12 +100,34 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 			onMouseDown={onMouseDown}>
 			<div
 				ref={menuRef}
-				className="border border-[var(--vscode-editorGroup-border)] rounded-md shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
-				style={{ background: dropdownBackground, maxHeight: "min(800px, calc(50vh))", overscrollBehavior: "contain" }}>
+				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				style={{
+					paddingBottom: 3,
+					background: dropdownBackground,
+					maxHeight: "min(800px, calc(50vh))",
+					overscrollBehavior: "contain",
+				}}>
 				{filteredCommands.length > 0 ? (
 					<>
-						{renderCommandSection(defaultCommands, "Commands", 0, true)}
-						{renderCommandSection(workflowCommands, "Workflows", defaultCommands.length, false)}
+						{(() => {
+							const sections = [
+								{ commands: defaultCommands, title: "Task", showDescriptions: true },
+								{ commands: instructionsCommands, title: "Instructions", showDescriptions: true },
+								{ commands: workflowCommands, title: "Workflows", showDescriptions: false },
+							]
+
+							let currentIndex = 0
+							return sections.map((section, sectionIndex) => {
+								const sectionElement = renderCommandSection(
+									section.commands,
+									section.title,
+									currentIndex,
+									section.showDescriptions,
+								)
+								currentIndex += section.commands.length
+								return sectionElement
+							})
+						})()}
 					</>
 				) : (
 					<div className="py-2 px-3 cursor-default flex flex-col">

@@ -19,7 +19,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 	const [isEditing, setIsEditing] = useState(false)
 	const [editedText, setEditedText] = useState(text || "")
 	const textAreaRef = useRef<HTMLTextAreaElement>(null)
-	const { checkpointTrackerErrorMessage } = useExtensionState()
+	const { checkpointTrackerErrorMessage, localWorkflowToggles, globalWorkflowToggles } = useExtensionState()
 
 	// Create refs for the buttons to check in the blur handler
 	const restoreAllButtonRef = useRef<HTMLButtonElement>(null)
@@ -157,7 +157,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 				</>
 			) : (
 				<span className="ph-no-capture" style={{ display: "block" }}>
-					{highlightText(editedText || text)}
+					{highlightText(editedText || text, true, localWorkflowToggles, globalWorkflowToggles)}
 				</span>
 			)}
 			{((images && images.length > 0) || (files && files.length > 0)) && (

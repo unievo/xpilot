@@ -349,7 +349,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						case "condense":
 							setSendingDisabled(isPartial)
 							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Condense Conversation")
+							setPrimaryButtonText("Compact Conversation")
 							setSecondaryButtonText(undefined)
 							break
 						case "report_bug":
