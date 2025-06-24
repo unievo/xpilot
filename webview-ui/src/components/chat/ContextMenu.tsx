@@ -179,16 +179,17 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			onMouseDown={onMouseDown}>
 			<div
 				ref={menuRef}
+				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				style={{
 					backgroundColor: dropdownBackground,
-					border: "1px solid var(--vscode-editorGroup-border)",
-					borderRadius: "6px",
-					boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
-					zIndex: 1000,
-					display: "flex",
-					flexDirection: "column",
+					// border: "1px solid var(--vscode-editorGroup-border)",
+					// borderRadius: "6px",
+					// boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
+					// zIndex: 1000,
+					// display: "flex",
+					// flexDirection: "column",
 					maxHeight: "600px",
-					overflowY: "auto",
+					// overflowY: "auto",
 				}}>
 				{/* Can't use virtuoso since it requires fixed height and menu height is dynamic based on # of items */}
 				{showDelayedLoading && searchQuery && (
