@@ -26,5 +26,4 @@ ${await CapabilitiesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await RulesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await ObjectivesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await McpServerUsePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
-${await GuidelinesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 `

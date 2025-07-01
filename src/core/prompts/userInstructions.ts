@@ -1,3 +1,5 @@
+import { GuidelinesPrompt } from "./sections/Guidelines"
+
 export function addUserInstructions(
 	settingsCustomInstructions?: string,
 	globalClineRulesFileInstructions?: string,
@@ -37,9 +39,8 @@ export function addUserInstructions(
 	return `
 ====
 
-USER'S CUSTOM INSTRUCTIONS
+${customInstructions.trim()}
 
-The following additional instructions are provided by the user.
-
-${customInstructions.trim()}`
+${GuidelinesPrompt()}
+`
 }
