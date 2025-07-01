@@ -1,4 +1,4 @@
-import { workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
+import { gitInstructionsRepo, gitWorkflowsRepo, workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
 
 export const newTaskToolResponse = () =>
 	`<explicit_instructions type="new_task">
@@ -176,5 +176,61 @@ Usage:
 </report_bug>
 
 Below is the user's input when they indicated that they wanted to submit a Github issue.
+</explicit_instructions>\n
+`
+
+export const gitInstructionsToolResponse = () =>
+	`<explicit_instructions>
+This command is for syncing instruction files from a git repository, by cloning a new source or pulling the latest version for an existing one.
+
+Arguments are the following, specify possible choices and use default values if some or all are not specified:
+
+- Git repository source {repository}, default: {${gitInstructionsRepo}} (optional)
+- Location, in the Workspace Instructions Directory or the Global Instructions Directory {workspace, global}, default: {workspace}  (optional)
+
+Before executing any command, confirm the current arguments values, urls and paths using options (not by pressing any keys).
+
+Steps:
+
+The default name of the local directory for the instructions library {directory-name} is the name of the {repository}
+
+1. Use list_files to determine if the Workspace Instructions Directory or Global Instructions Directory location already exists.
+2. If it doesn't exist, create it, change directory into it and run the Clone command. 
+3. If it exists:
+    - If the {directory-name} sub-folder exists, change directory into it and run the Pull command
+    - If not, run the Clone command 
+
+- Clone command: git clone {repository} {directory-name}
+- Pull command: git pull
+
+After the successful execution of the command, inform the user that instructions are now available in the Instructions chat menu.
+</explicit_instructions>\n
+`
+
+export const gitWorkflowsToolResponse = () =>
+	`<explicit_instructions>
+This command is for syncing workflow files from a git repository, by cloning a new source or pulling the latest version for an existing one.
+
+Arguments are the following, specify possible choices and use default values if some or all are not specified:
+
+- Git repository source {repository}, default: {${gitWorkflowsRepo}} (optional)
+- Location, in the Workspace Workflows Directory or the Global Workflows Directory {workspace, global}, default: {workspace}  (optional)
+
+Before executing any command, confirm the current arguments values, urls and paths using options (not by pressing any keys).
+
+Steps:
+
+The default name of the local directory for the workflows library {directory-name} is the name of the {repository}
+
+1. Use list_files to determine if the Workspace Workflows Directory or Global Workflows Directory location already exists.
+2. If it doesn't exist, create it, change directory into it and run the Clone command. 
+3. If it exists:
+    - If the {directory-name} sub-folder exists, change directory into it and run the Pull command
+    - If not, run the Clone command 
+
+- Clone command: git clone {repository} {directory-name}
+- Pull command: git pull
+
+After the successful execution of the command, inform the user that workflows are now available in the Workflows chat menu.
 </explicit_instructions>\n
 `

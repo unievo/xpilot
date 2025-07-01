@@ -1,4 +1,11 @@
-import { newTaskToolResponse, condenseToolResponse, newRuleToolResponse, reportBugToolResponse } from "../prompts/commands"
+import {
+	newTaskToolResponse,
+	condenseToolResponse,
+	newRuleToolResponse,
+	reportBugToolResponse,
+	gitInstructionsToolResponse,
+	gitWorkflowsToolResponse,
+} from "../prompts/commands"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import fs from "fs/promises"
 
@@ -11,12 +18,14 @@ export async function parseSlashCommands(
 	localWorkflowToggles: ClineRulesToggles,
 	globalWorkflowToggles: ClineRulesToggles,
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
-	const SUPPORTED_DEFAULT_COMMANDS = ["New Task", "Compact Task", "Generate Instructions"] //, "Report Bug"]
+	const SUPPORTED_DEFAULT_COMMANDS = ["New Task", "Compact Task", "New Instructions", "Git Instructions", "Git Workflows"] //, "Report Bug"]
 
 	const commandReplacements: Record<string, string> = {
 		"New Task": newTaskToolResponse(),
 		"Compact Task": condenseToolResponse(),
-		"Generate Instructions": newRuleToolResponse(),
+		"New Instructions": newRuleToolResponse(),
+		"Git Instructions": gitInstructionsToolResponse(),
+		"Git Workflows": gitWorkflowsToolResponse(),
 		//"Report Bug": reportBugToolResponse(),
 	}
 
@@ -97,7 +106,9 @@ export async function parseSlashCommands(
 				const commandWithSlash = "/" + matchedCommand
 				const commandIndex = fullMatch.indexOf(commandWithSlash)
 
-				if (commandIndex === -1) continue // Safety check
+				if (commandIndex === -1) {
+					continue // Safety check
+				}
 
 				// calculate absolute indices in the original string
 				const slashCommandStartIndex = fullMatchStartIndex + commandIndex
@@ -124,7 +135,9 @@ export async function parseSlashCommands(
 					const commandWithSlash = "/" + matchedCommand
 					const commandIndex = fullMatch.indexOf(commandWithSlash)
 
-					if (commandIndex === -1) continue // Safety check
+					if (commandIndex === -1) {
+						continue // Safety check
+					}
 
 					// calculate absolute indices in the original string
 					const slashCommandStartIndex = fullMatchStartIndex + commandIndex

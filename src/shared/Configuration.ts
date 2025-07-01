@@ -7,12 +7,15 @@ export const discordUrl = "https://discord.gg/"
 export const repoUrl = "https://github.com/unievo/astro"
 export const homePageUrl = "https://github.com/unievo/astro"
 export const apiBaseUrl = "https://api.astro.unievo.com/v1"
+export const gitInstructionsRepo = ""
+export const gitWorkflowsRepo = ""
 export const latestAnnouncementId = "0.1.0"
 
 // Files & Folders
 export const pathSeparator = "/"
 export const workspaceDirectory = `.${productName}`
 export const instructionsDirectory = `instructions`
+export const workflowsDirectory = `workflows`
 export const instructionsFilesExtension = `.md`
 export const instructionsExcludedDirectories = [".git", "content"]
 export const instructionsExcludedFiles = ["README.md"]

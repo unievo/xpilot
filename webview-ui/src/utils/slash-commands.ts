@@ -7,22 +7,27 @@ export interface SlashCommand {
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	{
 		name: "New Task",
-		description: "New task with context from current task",
+		description: "Start new task with current context summary",
 		section: "task",
 	},
 	{
 		name: "Compact Task",
-		description: "Compact the current task context window",
+		description: "Summarize current task context",
 		section: "task",
 	},
 	{
-		name: "Generate Instructions",
-		description: "New instructions from the task",
+		name: "New Instructions",
+		description: "Create new instructions from the task",
 		section: "instructions",
 	},
 	{
-		name: "Sync Instructions",
-		description: "Sync instructions from git repo",
+		name: "Git Instructions",
+		description: "Get instructions from git",
+		section: "instructions",
+	},
+	{
+		name: "Git Workflows",
+		description: "Get workflows from git",
 		section: "instructions",
 	},
 
