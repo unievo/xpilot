@@ -11,15 +11,21 @@ export const gitInstructionsRepo = ""
 export const gitWorkflowsRepo = ""
 export const latestAnnouncementId = "0.1.0"
 
+// Settings
+export const enableTelemetrySettings = false
+export const mcpMarketplaceEnabledDefaultSetting = false
+export const enableNewInstructionsDefaultSetting = false
+export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
+export const mcpServerIncludeToolInputSchema_MaxLength = 100
+
 // Files & Folders
 export const pathSeparator = "/"
-export const workspaceDirectory = `.${productName}`
+export const agentWorkspaceDirectory = `.${productName}`
 export const instructionsDirectory = `instructions`
 export const workflowsDirectory = `workflows`
 export const instructionsFilesExtension = `.md`
 export const instructionsExcludedDirectories = [".git", "content"]
 export const instructionsExcludedFiles = ["README.md"]
-export const workflowsDirectory = `workflows`
 export const settingsDirectory = `settings`
 export const mcpDirectory = `mcp`
 export const mcpServersDirectory = `servers`
@@ -32,8 +38,33 @@ export const contextHistoryFile = `context_history.json`
 export const apiConversationHistoryFile = `api_conversation_history.json`
 export const extensionIconLightPath = `assets/icons/icon_light.png`
 export const extensionIconDarkPath = `assets/icons/icon_dark.png`
-export const workspaceInstructionsDirectoryPath = `${workspaceDirectory}/${instructionsDirectory}`
-export const workspaceWorkflowsDirectoryPath = `${workspaceDirectory}/${workflowsDirectory}`
+export const workspaceInstructionsDirectoryPath = `${agentWorkspaceDirectory}/${instructionsDirectory}`
+export const workspaceWorkflowsDirectoryPath = `${agentWorkspaceDirectory}/${workflowsDirectory}`
+export const ignoreWorkspaceDirectories = [
+	agentWorkspaceDirectory,
+	".git",
+	".github",
+	"node_modules",
+	"__pycache__",
+	"env",
+	".env",
+	"venv",
+	".venv",
+	".cache",
+	"target",
+	"build",
+	"debug",
+	"release",
+	"dist",
+	"out",
+	"bundle",
+	"vendor",
+	"tmp",
+	"temp",
+	"deps",
+	"pkg",
+	"Pods",
+]
 
 // Extension
 export const extensionId = `${publisherName}.${productName}`
@@ -59,10 +90,3 @@ export const fixWithAgentCommand = `${productName}.fixWithAgent`
 export const explainWithAgentCommand = `${productName}.explainCode`
 export const improveWithAgentCommand = `${productName}.improveCode`
 export const addTerminalOutputToChatCommand = `${productName}.addTerminalOutputToChat`
-
-// Settings
-export const enableTelemetrySettings = false
-export const mcpMarketplaceEnabledDefaultSetting = false
-export const enableNewInstructionsDefaultSetting = false
-export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
-export const mcpServerIncludeToolInputSchema_MaxLength = 100

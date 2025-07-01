@@ -113,6 +113,12 @@ class WorkspaceTracker {
 			const isDirectory = (stat.type & vscode.FileType.Directory) !== 0
 			const pathWithSlash = isDirectory && !normalizedPath.endsWith("/") ? normalizedPath + "/" : normalizedPath
 			this.filePaths.add(pathWithSlash)
+
+			// If it's a directory, recursively scan its contents
+			if (isDirectory && cwd) {
+				await this.scanDirectoryContents(normalizedPath)
+			}
+
 			return pathWithSlash
 		} catch {
 			// If stat fails, assume it's a file (this can happen for newly created files)
@@ -123,7 +129,49 @@ class WorkspaceTracker {
 
 	private async removeFilePath(filePath: string): Promise<boolean> {
 		const normalizedPath = this.normalizeFilePath(filePath)
-		return this.filePaths.delete(normalizedPath) || this.filePaths.delete(normalizedPath + "/")
+		let wasRemoved = false
+
+		// Remove the specific path (both with and without trailing slash)
+		if (this.filePaths.delete(normalizedPath)) {
+			wasRemoved = true
+		}
+		if (this.filePaths.delete(normalizedPath + "/")) {
+			wasRemoved = true
+		}
+
+		// If this was a directory, also remove all files/folders that were inside it
+		const directoryPath = normalizedPath.endsWith("/") ? normalizedPath : normalizedPath + "/"
+		const pathsToRemove: string[] = []
+
+		for (const existingPath of this.filePaths) {
+			if (existingPath.startsWith(directoryPath)) {
+				pathsToRemove.push(existingPath)
+			}
+		}
+
+		pathsToRemove.forEach((pathToRemove) => {
+			if (this.filePaths.delete(pathToRemove)) {
+				wasRemoved = true
+			}
+		})
+
+		return wasRemoved
+	}
+
+	private async scanDirectoryContents(directoryPath: string): Promise<void> {
+		try {
+			// Use listFiles to recursively scan the directory contents
+			const [files, _] = await listFiles(directoryPath, true, 1_000)
+
+			// Add all found files and folders to our filePaths set
+			files.forEach((file) => {
+				// listFiles returns absolute paths, so we can normalize them directly
+				const normalizedPath = this.normalizeFilePath(file)
+				this.filePaths.add(normalizedPath)
+			})
+		} catch (error) {
+			console.warn(`Failed to scan directory contents for ${directoryPath}:`, error)
+		}
 	}
 
 	public dispose() {

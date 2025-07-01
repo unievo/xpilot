@@ -2,25 +2,28 @@ import { globby, Options } from "globby"
 import * as os from "os"
 import * as path from "path"
 import { arePathsEqual } from "@utils/path"
+import { ignoreWorkspaceDirectories } from "@/shared/Configuration"
 
 // Constants
-const DEFAULT_IGNORE_DIRECTORIES = [
-	"node_modules",
-	"__pycache__",
-	"env",
-	"venv",
-	"target/dependency",
-	"build/dependencies",
-	"dist",
-	"out",
-	"bundle",
-	"vendor",
-	"tmp",
-	"temp",
-	"deps",
-	"pkg",
-	"Pods",
-]
+// const DEFAULT_IGNORE_DIRECTORIES = [
+// 	"node_modules",
+// 	"__pycache__",
+// 	"env",
+// 	"venv",
+// 	"target",
+// 	"build",
+// 	"debug",
+// 	"release",
+// 	"dist",
+// 	"out",
+// 	"bundle",
+// 	"vendor",
+// 	"tmp",
+// 	"temp",
+// 	"deps",
+// 	"pkg",
+// 	"Pods",
+// ]
 
 // Helper functions
 function isRestrictedPath(absolutePath: string): boolean {
@@ -47,7 +50,7 @@ function isTargetingHiddenDirectory(absolutePath: string): boolean {
 function buildIgnorePatterns(absolutePath: string): string[] {
 	const isTargetHidden = isTargetingHiddenDirectory(absolutePath)
 
-	const patterns = [...DEFAULT_IGNORE_DIRECTORIES]
+	const patterns = [...ignoreWorkspaceDirectories]
 
 	// Only ignore hidden directories if we're not explicitly targeting a hidden directory
 	if (!isTargetHidden) {
