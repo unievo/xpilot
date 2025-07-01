@@ -5,6 +5,7 @@ import { McpTool } from "@shared/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { ToggleToolAutoApproveRequest } from "@shared/proto/mcp"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
+import { itemIconColor } from "@/components/theme"
 
 type McpToolRowProps = {
 	tool: McpTool
@@ -48,7 +49,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 				style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
 				onClick={(e) => e.stopPropagation()}>
 				<div style={{ display: "flex", alignItems: "center" }}>
-					<span className="codicon codicon-symbol-method" style={{ marginRight: "6px" }}></span>
+					<span className="codicon codicon-symbol-method" style={{ color: itemIconColor, marginRight: "6px" }}></span>
 					<span style={{ fontWeight: 500 }}>{tool.name}</span>
 				</div>
 				{serverName && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
@@ -96,7 +97,8 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 							onClick={() => setIsParametersExpanded(!isParametersExpanded)}>
 							<span
 								className={`codicon ${isParametersExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
-								style={{ marginRight: "4px", fontSize: "1em" }}></span>
+								style={{ color: itemIconColor, marginRight: "4px", fontSize: "14px", fontWeight: "bold" }}
+							/>
 							Parameters ({Object.keys(tool.inputSchema.properties as Record<string, any>).length})
 						</div>
 						{isParametersExpanded && (
@@ -117,6 +119,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 												alignItems: "baseline",
 												marginTop: "4px",
 												fontSize: "0.9em",
+												opacity: 0.9,
 											}}>
 											<code
 												style={{

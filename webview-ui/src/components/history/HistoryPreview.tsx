@@ -6,6 +6,7 @@ import { GetTaskHistoryRequest } from "@shared/proto/task"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { memo, useState, useEffect, useCallback } from "react"
 import HeroTooltip from "../common/HeroTooltip"
+import { itemIconColor } from "../theme"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -179,7 +180,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 						fontSize: "0.85em",
 						textTransform: "uppercase",
 					}}>
-					Task History
+					Recent Tasks
 				</span>
 			</div>
 
@@ -205,7 +206,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 						<span
 							style={{
 								marginLeft: "-5px",
-								opacity: 0.5,
+								opacity: 0.8,
 								fontSize: "12px",
 							}}
 							className="codicon codicon-info"

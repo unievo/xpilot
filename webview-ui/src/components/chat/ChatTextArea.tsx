@@ -47,8 +47,9 @@ import { useClickAway, useEvent, useWindowSize } from "react-use"
 import styled from "styled-components"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 import ServersToggleModal from "./ServersToggleModal"
-import { chatTextAreaBackground, menuBackground } from "../theme"
+import { actModeColor, chatTextAreaBackground, itemIconColor, menuBackground, planModeColor } from "../theme"
 import HeroTooltip from "../common/HeroTooltip"
+import { ignoreWorkspaceDirectories } from "@shared/Configuration"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -95,8 +96,8 @@ interface GitCommit {
 	description: string
 }
 
-const PLAN_MODE_COLOR = "var(--vscode-terminal-ansiBrightBlack)"
-const ACT_MODE_COLOR = "var(--vscode-terminal-ansiBlue)"
+const PLAN_MODE_COLOR = planModeColor
+const ACT_MODE_COLOR = actModeColor
 
 const SwitchOption = styled.div<{ isActive: boolean }>`
 	padding: 2px 8px;
@@ -116,7 +117,7 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 	display: flex;
 	align-items: center;
 	background-color: var(--vscode-editor-background);
-	border: 1px solid var(--vscode-charts-lines);
+	border: 0px solid var(--vscode-charts-lines);
 	border-radius: 5px;
 	overflow: hidden;
 	cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
@@ -357,19 +358,54 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			}
 		}, [selectedType, searchQuery])
 
+		// Function to filter out excluded directories
+		const filterExcludedDirectories = useCallback(
+			(filePaths: string[]) => {
+				const excludePatterns = ignoreWorkspaceDirectories.map((pattern: string) => pattern.trim())
+
+				return filePaths.filter((filePath) => {
+					// Normalize the file path by removing leading slash
+					const normalizedPath = filePath.startsWith("/") ? filePath.slice(1) : filePath
+
+					// Check if any exclude pattern matches the path
+					return !excludePatterns.some((pattern: string) => {
+						// Handle different types of path matching
+						if (pattern.includes("/")) {
+							// Pattern contains slash, match as exact path prefix
+							return normalizedPath.startsWith(pattern + "/") || normalizedPath === pattern
+						} else {
+							// Pattern is a directory name, check if it appears as a complete directory component
+							const pathSegments = normalizedPath.split("/")
+							return pathSegments.includes(pattern)
+						}
+					})
+				})
+			},
+			[ignoreWorkspaceDirectories],
+		)
+
 		const queryItems = useMemo(() => {
-			return [
+			const filteredFilePaths = filterExcludedDirectories(filePaths)
+
+			let items = [
 				{ type: ContextMenuOptionType.Problems, value: "problems" },
 				{ type: ContextMenuOptionType.Terminal, value: "terminal" },
 				...gitCommits,
-				...filePaths
+				...filteredFilePaths
 					.map((file) => "/" + file)
 					.map((path) => ({
 						type: path.endsWith("/") ? ContextMenuOptionType.Folder : ContextMenuOptionType.File,
 						value: path,
 					})),
 			]
-		}, [filePaths, gitCommits])
+
+			// Filter by selected type if one is set
+			if (selectedType) {
+				items = items.filter((item) => item.type === selectedType)
+			}
+
+			return items
+		}, [filePaths, gitCommits, filterExcludedDirectories, selectedType])
 
 		useEffect(() => {
 			const handleClickOutside = (event: MouseEvent) => {
@@ -597,6 +633,16 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					const charAfterIsWhitespace =
 						charAfterCursor === " " || charAfterCursor === "\n" || charAfterCursor === "\r\n"
 
+					// Check if we're at @ with a selected type (after filtering files/folders)
+					if (charBeforeCursor === "@" && selectedType) {
+						// Reset to main menu instead of deleting @
+						event.preventDefault()
+						setSelectedType(null)
+						setSearchQuery("")
+						setSelectedMenuIndex(DEFAULT_CONTEXT_MENU_OPTION)
+						return
+					}
+
 					// Check if we're right after a space that follows a mention or slash command
 					if (
 						charBeforeIsWhitespace &&
@@ -794,7 +840,16 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								}),
 							)
 								.then((results) => {
-									setFileSearchResults(results.results || [])
+									// Filter search results through the same exclusion logic
+									const filteredResults = (results.results || []).filter((result: SearchResult) => {
+										// Create a mock file path array to use our existing filter
+										const mockFilePaths = [result.path || ""]
+										const filtered = filterExcludedDirectories(mockFilePaths)
+										return filtered.length > 0
+									})
+
+									setFileSearchResults([])
+									setFileSearchResults(filteredResults)
 									setSearchLoading(false)
 								})
 								.catch((error) => {
@@ -803,6 +858,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									setSearchLoading(false)
 								})
 						}, 200) // 200ms debounce
+					} else if (query.length > 0 && selectedType) {
+						// When filtering within a selected type, always highlight the first item
+						setSelectedMenuIndex(0)
 					} else {
 						setSelectedMenuIndex(DEFAULT_CONTEXT_MENU_OPTION)
 					}
@@ -810,6 +868,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					setSearchQuery("")
 					setSelectedMenuIndex(-1)
 					setFileSearchResults([])
+					setSelectedType(null) // Reset selected type when menu is hidden
 				}
 			},
 			[setInputValue, setFileSearchResults, selectedType],
@@ -1692,8 +1751,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								position: "absolute",
 								paddingTop: 4,
 								bottom: 14,
-								left: 22,
-								right: 47, // (54 + 9) + 4 extra padding
+								left: 8,
+								right: 34,
 								zIndex: 2,
 							}}
 						/>
@@ -1789,6 +1848,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</ButtonContainer>
 							</VSCodeButton>
 						</HeroTooltip>
+
 						<HeroTooltip delay={1000} content="Execute commands and workflows">
 							<VSCodeButton
 								data-testid="command-button"
@@ -1809,20 +1869,52 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 						<ClineRulesToggleModal />
 
-						<ModelContainer ref={modelSelectorRef}>
+						<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
+							<HeroTooltip
+								delay={1000}
+								content="Attach files & images. File types are limited to specific formats that are compatible with the selected AI provider/model.">
+								<VSCodeButton
+									data-testid="files-button"
+									appearance="icon"
+									aria-label="Add Files & Images"
+									disabled={shouldDisableFilesAndImages}
+									onClick={() => {
+										if (!shouldDisableFilesAndImages) {
+											onSelectFilesAndImages()
+										}
+									}}
+									style={{ padding: "0px 0px", height: "20px" }}>
+									<ButtonContainer>
+										<span
+											className="codicon codicon-file-add flex items-center"
+											style={{
+												opacity: 0.6,
+												fontWeight: "600",
+												fontSize: "16px",
+												marginTop: 6,
+												marginRight: 0,
+												marginLeft: "-2px",
+											}}
+										/>
+									</ButtonContainer>
+								</VSCodeButton>
+							</HeroTooltip>
 							<div
 								className="codicon codicon-sparkle-filled"
 								style={{
-									fontSize: "13px",
-									color: "var(--vscode-focusBorder)",
+									fontSize: "12px",
+									color: itemIconColor,
 									marginLeft: "0px",
-									marginTop: "7px",
+									marginTop: "8px",
 									opacity: 0.7,
+									//overflow: "hidden",
+									textOverflow: "ellipsis",
+									whiteSpace: "nowrap",
 								}}
 							/>
 							<ModelButtonWrapper ref={buttonRef}>
 								<ModelDisplayButton
-									style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px" }}
+									style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
 									role="button"
 									isActive={showModelSelector}
 									disabled={false}
@@ -1855,34 +1947,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</ModelSelectorTooltip>
 							)}
 						</ModelContainer>
-						<HeroTooltip
-							delay={1000}
-							content="Attach files & images for capable models and API providers. Only compatible files can be attached for the current provider/model selection.">
-							<VSCodeButton
-								data-testid="files-button"
-								appearance="icon"
-								aria-label="Add Files & Images"
-								disabled={shouldDisableFilesAndImages}
-								onClick={() => {
-									if (!shouldDisableFilesAndImages) {
-										onSelectFilesAndImages()
-									}
-								}}
-								style={{ padding: "0px 0px", height: "20px" }}>
-								<ButtonContainer>
-									<span
-										className="codicon codicon-file-add flex items-center"
-										style={{
-											opacity: 0.7,
-											fontWeight: "600",
-											fontSize: "15px",
-											marginTop: 3,
-											marginRight: 1,
-										}}
-									/>
-								</ButtonContainer>
-							</VSCodeButton>
-						</HeroTooltip>
 					</ButtonGroup>
 				</ControlsContainer>
 			</div>

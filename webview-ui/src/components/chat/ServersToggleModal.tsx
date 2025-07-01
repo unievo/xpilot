@@ -10,7 +10,7 @@ import Tooltip from "@/components/common/Tooltip"
 import { McpServers } from "@shared/proto/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { EmptyRequest } from "@shared/proto/common"
-import { menuBackground } from "../theme"
+import { itemIconColor, menuBackground } from "../theme"
 import HeroTooltip from "../common/HeroTooltip"
 
 const ServersToggleModal: React.FC = () => {
@@ -57,10 +57,10 @@ const ServersToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="MCP Servers">
+				<HeroTooltip delay={1000} content="Enable / Disable MCP Servers">
 					<VSCodeButton
 						appearance="icon"
-						aria-label="MCP Servers"
+						aria-label="Enable / Disable MCP Servers"
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-3px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
@@ -100,7 +100,7 @@ const ServersToggleModal: React.FC = () => {
 									setIsVisible(false)
 									navigateToMcp("installed")
 								}}>
-								<span className="codicon codicon-gear text-[10px]"></span>
+								<span className="codicon codicon-gear text-[10px]" style={{ color: itemIconColor }}></span>
 							</VSCodeButton>
 						</div>
 						<div

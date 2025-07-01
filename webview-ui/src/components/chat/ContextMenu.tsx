@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
 import { cleanPathPrefix } from "@/components/common/CodeAccordian"
-import { dropdownBackground } from "../theme"
+import { dropdownBackground, itemIconColor } from "../theme"
 
 interface ContextMenuProps {
 	onSelect: (type: ContextMenuOptionType, value?: string) => void
@@ -237,7 +237,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<i
 								className={`codicon codicon-${getIconForOption(option)}`}
 								style={{
-									opacity: 0.9,
+									color: itemIconColor,
 									marginRight: "5px",
 									flexShrink: 0,
 									fontSize: "13px",

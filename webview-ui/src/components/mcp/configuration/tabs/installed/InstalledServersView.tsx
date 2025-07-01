@@ -22,8 +22,8 @@ const InstalledServersView = () => {
 				<p style={{ fontSize: "11px", margin: 5, marginBottom: 0 }}>
 					Metadata (tools, resources, parameters) for enabled servers is sent with every task message. To keep the
 					context memory usage optimal, especially with servers with many tools and resources, enable only servers that
-					you are using for the current tasks. You can quickly enable or disable servers from the chat window footer
-					when needed.
+					you are using for the current tasks. You can quickly enable or disable servers from the chat tools menu when
+					needed.
 				</p>
 			</div>
 			<VSCodeButton

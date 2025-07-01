@@ -19,7 +19,7 @@ import {
 import { useCallback, useState } from "react"
 import McpResourceRow from "./McpResourceRow"
 import McpToolRow from "./McpToolRow"
-import { rowBackground, rowBackgroundDisabled } from "@/components/theme"
+import { itemIconColor, rowBackground, rowBackgroundDisabled } from "@/components/theme"
 // constant JSX.Elements
 const TimeoutOptions = [
 	{ value: "30", label: "30 seconds" },
@@ -230,7 +230,7 @@ const ServerRow = ({
 					}}>
 					<span
 						className="codicon codicon-combine"
-						style={{ opacity: 0.9, fontSize: "13px", marginRight: "5px", verticalAlign: "middle" }}
+						style={{ color: itemIconColor, fontSize: "13px", marginRight: "5px", verticalAlign: "middle" }}
 					/>
 					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
 				</span>
@@ -478,9 +478,17 @@ const ServerRow = ({
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
+								<span
+									className="codicon codicon-symbol-method"
+									style={{ color: itemIconColor, marginRight: "6px" }}
+								/>
 								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="resources">
+								<span
+									className={`codicon codicon-symbol-file`}
+									style={{ color: itemIconColor, marginRight: "6px" }}
+								/>
 								Resources (
 								{searchQuery
 									? filteredResources.length

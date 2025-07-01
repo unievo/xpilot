@@ -704,25 +704,11 @@ export const ChatRowContent = ({
 								overflow: "hidden",
 								border: "1px solid var(--vscode-editorGroup-border)",
 								padding: "9px 10px",
-								cursor: "pointer",
-								userSelect: "none",
-								WebkitUserSelect: "none",
-								MozUserSelect: "none",
-								msUserSelect: "none",
-							}}
-							onClick={() => {
-								// Attempt to open the URL in the default browser
-								if (tool.path) {
-									// Assuming 'openUrl' is a valid action the extension can handle.
-									// If not, this might need adjustment based on how other external link openings are handled.
-									vscode.postMessage({
-										type: "action", // This should be a valid MessageType from WebviewMessage
-										action: "openUrl", // This should be a valid WebviewAction from WebviewMessage
-										url: tool.path,
-									} as any) // Using 'as any' for now if 'openUrl' isn't strictly typed yet
-								}
 							}}>
-							<span
+							<a
+								href={tool.path}
+								target="_blank"
+								rel="noopener noreferrer"
 								className="ph-no-capture"
 								style={{
 									whiteSpace: "nowrap",
@@ -733,9 +719,10 @@ export const ChatRowContent = ({
 									textAlign: "left",
 									color: "var(--vscode-textLink-foreground)",
 									textDecoration: "underline",
+									display: "block",
 								}}>
 								{tool.path + "\u200E"}
-							</span>
+							</a>
 						</div>
 						{/* Displaying the 'content' which now holds "Fetching URL: [URL]" */}
 						{/* <div style={{ paddingTop: 5, fontSize: '0.9em', opacity: 0.8 }}>{tool.content}</div> */}

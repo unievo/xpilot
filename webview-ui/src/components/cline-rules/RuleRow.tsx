@@ -124,7 +124,11 @@ const RuleRow: React.FC<{
 					}}
 					className="ph-no-capture"
 					title={rulePath}>
-					{getRuleTypeIcon() && <span style={{ opacity: 0.7 }}>{getRuleTypeIcon()}</span>}
+					{getRuleTypeIcon() && (
+						<span style={{ color: "var(--vscode-textLink-activeForeground)", opacity: 0.7 }}>
+							{getRuleTypeIcon()}
+						</span>
+					)}
 					<span style={{ marginLeft: "2px" }}>
 						{displayName} <span style={{ fontSize: "10px", opacity: 0.6 }}>/{directoryName}</span>
 					</span>

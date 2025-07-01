@@ -7,7 +7,7 @@ interface NewTaskPreviewProps {
 
 const NewTaskPreview: React.FC<NewTaskPreviewProps> = ({ context }) => {
 	return (
-		<div className="bg-[var(--vscode-input-background)] rounded-[8px] p-[14px] pb-[6px]">
+		<div className="bg-[var(--vscode-input-background)] rounded-[8px] p-[14px] pb-[6px] overflow-scroll">
 			<span style={{ fontWeight: "bold" }}>New Task Context:</span>
 			<MarkdownBlock markdown={context} />
 		</div>

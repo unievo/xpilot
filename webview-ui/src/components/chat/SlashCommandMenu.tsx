@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect } from "react"
 import { SlashCommand, getMatchingSlashCommands } from "@/utils/slash-commands"
-import { dropdownBackground } from "../theme"
+import { dropdownBackground, itemIconColor } from "../theme"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -77,7 +77,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 								style={{ paddingTop: "1px", paddingBottom: "2px" }}>
 								<span
 									className="codicon codicon-sparkle"
-									style={{ opacity: 0.9, fontSize: "13px", marginRight: 4 }}
+									style={{ color: itemIconColor, opacity: 0.9, fontSize: "13px", marginRight: 4 }}
 								/>
 								<span>{command.name}</span>
 								{showDescriptions && command.description && (

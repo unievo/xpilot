@@ -103,6 +103,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		taskHistory,
 		apiConfiguration,
 		telemetrySetting,
+		chatSettings,
 		navigateToChat,
 	} = useExtensionState()
 	const shouldShowQuickWins = false // !taskHistory || taskHistory.length < QUICK_WINS_HISTORY_THRESHOLD
@@ -1035,9 +1036,11 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	useEvent("wheel", handleWheel, window, { passive: true }) // passive improves scrolling performance
 
 	const placeholderText = useMemo(() => {
-		const text = task ? "Type a message" : "Type a task"
-		return text
-	}, [task])
+		if (task) {
+			return chatSettings.mode === "plan" ? "Type a message to plan" : "Type a message to execute"
+		}
+		return chatSettings.mode === "plan" ? "Type to plan a task" : "Type to execute a task"
+	}, [task, chatSettings.mode])
 
 	const itemContent = useCallback(
 		(index: number, messageOrGroup: ClineMessage | ClineMessage[]) => {
