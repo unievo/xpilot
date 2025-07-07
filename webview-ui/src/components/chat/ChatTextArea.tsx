@@ -1819,18 +1819,22 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						disabled={false}
 						onClick={onModeToggle}>
 						<Slider isAct={chatSettings.mode === "act"} isPlan={chatSettings.mode === "plan"} />
-						<SwitchOption
-							isActive={chatSettings.mode === "plan"}
-							onMouseOver={() => setShownTooltipMode("plan")}
-							onMouseLeave={() => setShownTooltipMode(null)}>
-							Plan
-						</SwitchOption>
-						<SwitchOption
-							isActive={chatSettings.mode === "act"}
-							onMouseOver={() => setShownTooltipMode("act")}
-							onMouseLeave={() => setShownTooltipMode(null)}>
-							Act
-						</SwitchOption>
+						<HeroTooltip delay={1000} content="Switch to Plan Mode">
+							<SwitchOption
+								isActive={chatSettings.mode === "plan"}
+								onMouseOver={() => setShownTooltipMode("plan")}
+								onMouseLeave={() => setShownTooltipMode(null)}>
+								Plan
+							</SwitchOption>
+						</HeroTooltip>
+						<HeroTooltip delay={1000} content="Switch to Act Mode">
+							<SwitchOption
+								isActive={chatSettings.mode === "act"}
+								onMouseOver={() => setShownTooltipMode("act")}
+								onMouseLeave={() => setShownTooltipMode(null)}>
+								Act
+							</SwitchOption>
+						</HeroTooltip>
 					</SwitchContainer>
 
 					<ButtonGroup>
@@ -1865,9 +1869,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</VSCodeButton>
 						</HeroTooltip>
 
-						<ServersToggleModal />
-
 						<ClineRulesToggleModal />
+
+						<ServersToggleModal />
 
 						<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
 							<HeroTooltip
@@ -1902,10 +1906,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<div
 								className="codicon codicon-sparkle-filled"
 								style={{
-									fontSize: "12px",
+									fontSize: "14px",
 									color: itemIconColor,
 									marginLeft: "0px",
-									marginTop: "8px",
+									marginTop: "6px",
 									opacity: 0.7,
 									//overflow: "hidden",
 									textOverflow: "ellipsis",

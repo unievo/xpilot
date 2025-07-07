@@ -40,10 +40,10 @@ const FeatureSettingsSection = () => {
 						const checked = e.target.checked === true
 						setMcpMarketplaceEnabled(checked)
 					}}>
-					Enable MCP Marketplace
+					Enable Cline MCP Marketplace
 				</VSCodeCheckbox>
 				<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-					Enables the MCP Marketplace tab for discovering and installing MCP servers.
+					Enables the Cline MCP Marketplace tab for MCP servers.
 				</p>
 			</div>
 			<div style={{ marginTop: 10 }}>
@@ -53,10 +53,10 @@ const FeatureSettingsSection = () => {
 						const checked = e.target.checked === true
 						setMcpRichDisplayEnabled(checked)
 					}}>
-					Enable Rich MCP Display
+					Rich Display for MCP Responses
 				</VSCodeCheckbox>
 				<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-					Enables rich formatting for MCP responses. When disabled, responses will be shown in plain text.
+					Sets the default MCP response formatting to rich display mode.
 				</p>
 			</div>
 			<div style={{ marginTop: 10 }}>

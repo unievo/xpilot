@@ -2,6 +2,7 @@ import { McpServer } from "@shared/mcp"
 import ServerRow from "./server-row/ServerRow"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { mcpLibraryEnabled } from "@shared/Configuration"
 
 const ServersToggleList = ({
 	servers,
@@ -22,7 +23,7 @@ const ServersToggleList = ({
 
 	const gapClass = gapClasses[listGap]
 
-	const { navigateToMcp } = useExtensionState()
+	const { navigateToMcp, mcpMarketplaceEnabled } = useExtensionState()
 
 	return servers.length > 0 ? (
 		<div className={`flex flex-col ${gapClass}`}>
@@ -32,26 +33,14 @@ const ServersToggleList = ({
 		</div>
 	) : (
 		<div style={{ padding: "10px", textAlign: "center", opacity: 0.9 }}>
-			No MCP servers installed.
-			<br />
-			<br />
-			Install servers from the{" "}
-			<VSCodeLink
-				style={{ display: "" }}
-				onClick={() => {
-					navigateToMcp("library")
-				}}>
-				Library
-			</VSCodeLink>
-			, or use
+			No servers installed, set up in
 			<VSCodeLink
 				style={{ display: "inline" }}
 				onClick={() => {
 					navigateToMcp("installed")
 				}}>
-				Configure
+				MCP Servers
 			</VSCodeLink>
-			to edit the configuration file.
 		</div>
 	)
 }

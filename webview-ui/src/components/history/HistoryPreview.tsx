@@ -7,6 +7,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { memo, useState, useEffect, useCallback } from "react"
 import HeroTooltip from "../common/HeroTooltip"
 import { itemIconColor } from "../theme"
+import { maxHistoryPreviewItems } from "@shared/Configuration"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -44,10 +45,10 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 	const [isExpanded, setIsExpanded] = useState(() => {
 		try {
 			const saved = localStorage.getItem("historyPreview-isExpanded")
-			return saved ? JSON.parse(saved) : true
+			return saved ? JSON.parse(saved) : false
 		} catch (error) {
 			console.warn("Failed to load expansion state from localStorage:", error)
-			return true
+			return false
 		}
 	})
 	const [showCurrentWorkspaceOnly, setShowCurrentWorkspaceOnly] = useState(() => {
@@ -98,7 +99,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 	}, [loadTaskHistory, showCurrentWorkspaceOnly, taskHistory])
 
 	// Get tasks to display
-	const tasksToDisplay = filteredTasks.filter((item) => item.ts && item.task).slice(0, 10)
+	const tasksToDisplay = filteredTasks.filter((item) => item.ts && item.task).slice(0, maxHistoryPreviewItems)
 
 	const handleHistorySelect = (id: string) => {
 		TaskServiceClient.showTaskWithId(StringRequest.create({ value: id })).catch((error) =>
@@ -157,7 +158,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 				className="history-header"
 				onClick={toggleExpanded}
 				style={{
-					color: "var(--vscode-descriptionForeground)",
+					//color: "var(--vscode-descriptionForeground)",
 					margin: "10px 20px 15px 20px",
 					display: "flex",
 					alignItems: "center",
@@ -165,20 +166,20 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 				<span
 					className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
 					style={{
-						marginRight: "2px",
-						transform: "scale(0.9)",
+						marginRight: "0px",
+						//transform: "scale(0.9)",
 					}}></span>
 				<span
 					className="codicon codicon-tasklist"
 					style={{
-						marginRight: "4px",
-						transform: "scale(0.9)",
+						marginRight: "6px",
+						//transform: "scale(0.9)",
 					}}></span>
 				<span
 					style={{
 						fontWeight: 600,
-						fontSize: "0.85em",
 						textTransform: "uppercase",
+						fontSize: "12px",
 					}}>
 					Recent Tasks
 				</span>
@@ -216,7 +217,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 			)}
 
 			{isExpanded && (
-				<div style={{ padding: "5px 20px 0 20px" }}>
+				<div style={{ padding: "5px 3px 0 20px" }}>
 					{tasksToDisplay.length > 0 ? (
 						<>
 							{tasksToDisplay.map((item) => (

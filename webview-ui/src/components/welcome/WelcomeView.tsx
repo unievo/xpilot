@@ -43,35 +43,39 @@ const WelcomeView = memo(() => {
 	}, [apiConfiguration])
 
 	return (
-		<div className="fixed inset-0 p-0 flex flex-col">
-			<div className="h-full px-5 overflow-auto">
+		<div className="fixed inset-0 p-0 flex flex-col" style={{ scrollbarGutter: "stable" }}>
+			<div className="h-full px-5 overflow-auto" style={{ scrollbarGutter: "stable" }}>
 				<div className="flex justify-center my-5">
-					<AgentLogo className="size-16" />
+					<AgentLogo size={50} />
 				</div>
-				<h2 className="flex justify-center my-5">Hi, I am {agentName}!</h2>
-				<p>I'm an AI software engineering agent.</p>
+				<h2 className="flex justify-center my-5">Welcome to {agentName}!</h2>
 				<p>
-					I can work with different AI models to plan and execute tasks. I achieve the best results with models trained
-					for coding and tool use such as Claude Sonnet.
+					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source agent for VS
+					Code, designed to support many AI providers and models, and to handle a wide range of development tasks.
 				</p>
 				<p>
-					To access an AI model I need to use an AI provider. I can use many different providers and you can also bring
-					your own API key if you already have one. Or you can sign up with Open Router or Cline, from the providers
-					list.
+					{agentName} achieves the best results with models trained for coding and tool use, currently Claude Sonnet
+					3.5–4, Google Gemini 2.5 Pro, xAI Grok 3, and OpenAI GPT-4.1. For easier tasks, it can also use simpler
+					models.
 				</p>
 				<p>
-					I can also use supported models in VS Code, or any VS Code based IDE. The easiest way is to set up{" "}
+					To access AI models, {agentName} needs to use an AI provider. It can use many different providers, and you can
+					also bring your own AI API key.
+					<br />
+					Or, you can sign up with OpenRouter or Cline, for a variety of model options, using the providers list below.
+				</p>
+				<p>
+					{agentName} can also use models available in VS Code. The easiest way is to set up{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						Copilot
 					</VSCodeLink>{" "}
-					and
+					and{" "}
 					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
 						enable
 					</VSCodeLink>{" "}
-					the Copilot models. I can use them without another API key or subscription. After setting up Copilot, select
-					VS Code from the providers list.
+					the models you want to use. {agentName} can use them based on your Copilot plan. After setting up Copilot, you
+					can select VS Code from the providers list.
 				</p>
-				<p></p>
 
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4

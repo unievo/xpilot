@@ -53,6 +53,7 @@ const ClineRulesToggleModal: React.FC = () => {
 	const [arrowPosition, setArrowPosition] = useState(0)
 	const [menuPosition, setMenuPosition] = useState(0)
 	const [currentView, setCurrentView] = useState<"rules" | "workflows">("rules")
+	const [descCollapsed, setDescCollapsed] = useState(true)
 
 	useEffect(() => {
 		if (isVisible) {
@@ -213,13 +214,13 @@ const ClineRulesToggleModal: React.FC = () => {
 				<HeroTooltip delay={1000} content="Instructions and workflows">
 					<VSCodeButton
 						appearance="icon"
-						aria-label={`${agentName} Instructions`}
+						aria-label={`Instructions and workflows`}
 						onClick={() => setIsVisible(!isVisible)}
-						style={{ marginLeft: "-3px", height: "20px" }}>
+						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 							<span
 								className="codicon codicon-folder-active flex items-center"
-								style={{ fontSize: "16px", marginBottom: 1 }}
+								style={{ fontSize: "17px", marginBottom: 1 }}
 							/>
 						</div>
 					</VSCodeButton>
@@ -268,22 +269,19 @@ const ClineRulesToggleModal: React.FC = () => {
 										marginLeft: -3,
 										paddingRight: 5,
 										verticalAlign: "-20%",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
 									}}
 								/>
-								Instructions{" "}
-								<HeroTooltip content="Instruction files allow enhancing the AI context with specialized information such as coding rules, specifications, documentation. Add new instruction files, or type the `/Git Instructions` command to get instruction from git.">
-									<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.6 }} />
-								</HeroTooltip>
+								Instructions
 							</TabButton>
 							<TabButton isActive={currentView === "workflows"} onClick={() => setCurrentView("workflows")}>
 								<span
 									className="codicon codicon-server-process flex items-center"
 									style={{ color: itemIconColor, fontSize: "18px", paddingRight: 5, verticalAlign: "-20%" }}
 								/>
-								Workflows{" "}
-								<HeroTooltip content="Workflow files allow defining executable instructions that can be invoked like commands, by typing `/Workflow name`. Add new workflow files, or use the `/Git Workflows` command to get workflows from git.">
-									<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.6 }} />
-								</HeroTooltip>
+								Workflows
 							</TabButton>
 						</div>
 						<div
@@ -293,21 +291,75 @@ const ClineRulesToggleModal: React.FC = () => {
 						</div>
 					</div>
 
-					{/* Description text */}
-					<div className="text-xs text-[var(--vscode-descriptionForeground)] mb-0">
-						{currentView === "rules" ? <p></p> : <p></p>}
+					{/* Description text (chevron collapsible) */}
+					<div
+						style={{
+							color: descCollapsed ? "var(--vscode-descriptionForeground)" : "",
+							paddingBottom: 3,
+						}}>
+						<div
+							style={{ display: "flex", alignItems: "center", gap: 2, cursor: "pointer", userSelect: "none" }}
+							onClick={() => setDescCollapsed((v) => !v)}
+							aria-expanded={!descCollapsed}
+							tabIndex={0}
+							role="button">
+							<span
+								className={`codicon codicon-chevron-${descCollapsed ? "right" : "down"}`}
+								style={{ marginLeft: -3, fontSize: 10 }}
+							/>
+							<span style={{ fontWeight: descCollapsed ? "normal" : "bold" }}>
+								{currentView === "rules" ? "Instructions Overview" : "Workflows Overview"}
+							</span>
+						</div>
+						{!descCollapsed && (
+							<div className="mt-1">
+								{currentView === "rules" ? (
+									<p>
+										Use instruction files for rules, specifications, documentation, or any information that is
+										relevant for the AI model to achieve optimal task completion.
+										<br />
+										<br />
+										Add new instructions or use the <strong>/Git Instructions</strong> command to get existing
+										instructions from a git repository.
+										<br />
+										<br />
+										<strong>Global</strong> instructions are available for all workspaces.
+										<br />
+										<strong>Workspace</strong> instructions are available only in the current workspace.
+										<br />
+										<br />
+										Enable relevant instructions for the task. Enabled instructions are always included in the
+										task context.
+										<br />
+									</p>
+								) : (
+									<p>
+										Use workflow files to define a sequence of executable steps that can be triggered as a
+										command, by typing <strong>/Workflow name</strong> in chat. Workflows can be used to
+										automate complex or repetitive tasks.
+										<br />
+										<br />
+										Add new workflows or use the <strong>/Git Workflows</strong> command to get existing
+										workflows from a git repository.
+										<br />
+										<br />
+										<strong>Global</strong> workflows are available for all workspaces.
+										<br />
+										<strong>Workspace</strong> workflows are available only in the current workspace.
+										<br />
+										<br />
+										Enable relevant workflows to be available in the commands list.
+									</p>
+								)}
+							</div>
+						)}
 					</div>
 
 					{currentView === "rules" ? (
 						<>
 							{/* Global Rules Section */}
 							<div style={{ marginBottom: 2 }}>
-								<HeroTooltip content="Global instructions are saved in a global location and can be used for general information available for all workspaces. They can be activated or deactivated at any time from this menu.">
-									<div className="font-normal mt-3 mb-2">
-										Global{" "}
-										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.6 }} />
-									</div>
-								</HeroTooltip>
+								<div className="font-normal mt-3 mb-2">Global</div>
 								<RulesToggleList
 									rules={globalRules}
 									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
@@ -321,12 +373,7 @@ const ClineRulesToggleModal: React.FC = () => {
 
 							{/* Local Rules Section */}
 							<div style={{ marginBottom: 2 }}>
-								<HeroTooltip content="Workspace instructions are saved in the current workspace and can be used for specific information for each workspace. They can be activated or deactivated at any time from this menu.">
-									<div className="font-normal mt-3 mb-2">
-										Workspace{" "}
-										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.6 }} />
-									</div>
-								</HeroTooltip>
+								<div className="font-normal mt-3 mb-2">Workspace </div>
 								<RulesToggleList
 									rules={localRules}
 									toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
@@ -362,12 +409,7 @@ const ClineRulesToggleModal: React.FC = () => {
 						<>
 							{/* Global Workflows Section */}
 							<div style={{ marginBottom: 2 }}>
-								<HeroTooltip content="Global workflows are saved in a global location and can be invoked from any workspace. They can be activated or deactivated at any time from this menu.">
-									<div className="font-normal mt-3 mb-2">
-										Global{" "}
-										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.6 }} />
-									</div>
-								</HeroTooltip>
+								<div className="font-normal mt-3 mb-2">Global</div>
 								<RulesToggleList
 									rules={globalWorkflows}
 									toggleRule={(rulePath, enabled) => toggleWorkflow(true, rulePath, enabled)}
@@ -378,15 +420,9 @@ const ClineRulesToggleModal: React.FC = () => {
 									showNoRules={false}
 								/>
 							</div>
-
 							{/* Local Workflows Section */}
 							<div style={{ marginBottom: 2 }}>
-								<HeroTooltip content="Workspace workflows are saved in the current workspace and can be invoked in the current workspace. They can be activated or deactivated at any time from this menu.">
-									<div className="font-normal mt-3 mb-2">
-										Workspace{" "}
-										<span className="codicon codicon-info" style={{ fontSize: "13px", opacity: 0.6 }} />
-									</div>
-								</HeroTooltip>
+								<div className="font-normal mt-3 mb-2">Workspace</div>
 								<RulesToggleList
 									rules={localWorkflows}
 									toggleRule={(rulePath, enabled) => toggleWorkflow(false, rulePath, enabled)}

@@ -13,14 +13,14 @@ interface AnnouncementProps {
 const containerStyle: CSSProperties = {
 	backgroundColor: getAsVar(VSC_INACTIVE_SELECTION_BACKGROUND),
 	borderRadius: "10px",
-	padding: "10px 10px",
-	margin: "5px 15px 5px 15px",
+	padding: "5px",
+	margin: "0px 2px 5px 17px",
 	position: "relative",
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "5px 10px 8px", fontSize: "15px" }
-const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "10px", fontSize: "12px" }
+const h3TitleStyle: CSSProperties = { margin: "5px 15px 8px", fontSize: "16px", fontWeight: "bold" }
+const ulStyle: CSSProperties = { listStyle: "disc", margin: "5px", paddingLeft: "10px", fontSize: "12px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
@@ -41,37 +41,40 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<VSCodeButton data-testid="close-button" appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
-			<span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "25px" }}></span>
-			<h3 style={h3TitleStyle}>Release v{version}</h3>
+			{/* <span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "20px" }}></span> */}
+			<div style={h3TitleStyle}>Release v{version}</div>
 			{
 				<ul style={ulStyle}>
-					Welcome to <b>{agentName}</b>!
+					Welcome to <b>{agentName}</b>!<br />
+					<br />
 					{/* <li>
-					<b>Task Timeline:</b> See the history of your coding journey with a visual timeline of checkpoints, letting
-					you understand what Cline did at a glance.
-				</li>
-				<li>
-					<b>New Settings Page:</b> Redesigned settings, now split into tabs for easier navigation and a cleaner
-					experience.
-				</li>
-				<li>
-					<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for Vertex AI
-					users.
-				</li>
-				<li>
-					<b>New User Experience:</b> Special components and guidance for new users to help them get started with Cline.
-				</li>
-				<li>
-					<b>Auto Caching for Gemini:</b> Native support for Gemini's recently released Implicit Caching.
-				</li> */}
+						<b>Task Timeline:</b> See the history of your coding journey with a visual timeline of checkpoints,
+						letting you understand what Cline did at a glance.
+					</li>
+					<li>
+						<b>New Settings Page:</b> Redesigned settings, now split into tabs for easier navigation and a cleaner
+						experience.
+					</li>
+					<li>
+						<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for Vertex AI
+						users.
+					</li>
+					<li>
+						<b>New User Experience:</b> Special components and guidance for new users to help them get started with
+						Cline.
+					</li>
+					<li>
+						<b>Auto Caching for Gemini:</b> Native support for Gemini's recently released Implicit Caching.
+					</li> */}
 				</ul>
 			}
-			{/*
-			<Accordion isCompact className="pl-0">
+
+			{/* <Accordion isCompact className="pl-0">
 				<AccordionItem
 					key="1"
 					aria-label="Previous Updates"
 					title="Previous Updates:"
+					style={{ padding: "0px 15px" }}
 					classNames={{
 						trigger: "bg-transparent border-0 pl-0 pb-0 w-fit",
 						title: "font-bold text-[var(--vscode-foreground)]",
@@ -119,18 +122,19 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</Accordion> */}
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
-				{" "}
-				<VSCodeLink style={linkStyle} href={xUrl}>
-					X.com{" "}
-				</VSCodeLink>{" "}
-				|
-				<VSCodeLink style={linkStyle} href={repoUrl}>
-					GitHub{" "}
-				</VSCodeLink>{" "}
-				|
-				<VSCodeLink style={linkStyle} href={discordUrl}>
-					Discord
-				</VSCodeLink>{" "}
+				<VSCodeLink href={repoUrl}>GitHub</VSCodeLink>
+				{xUrl && (
+					<span>
+						{" | "}
+						<VSCodeLink href={xUrl}>X.com</VSCodeLink>
+					</span>
+				)}
+				{discordUrl && (
+					<span>
+						{" | "}
+						<VSCodeLink href={discordUrl}>Discord</VSCodeLink>
+					</span>
+				)}
 			</p>
 		</div>
 	)

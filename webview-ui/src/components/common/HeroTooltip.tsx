@@ -27,7 +27,7 @@ const HeroTooltip: React.FC<HeroTooltipProps> = ({
 		typeof content === "string" ? (
 			<div
 				className={`bg-[var(--vscode-editor-background)] text-[var(--vscode-editor-foreground)] 
-      border border-[var(--vscode-widget-border)] rounded p-2 w-full shadow-md text-xs max-w-[250px] ${className}`}>
+      border border-[var(--vscode-textBlockQuote-border)] rounded-2xl p-2 w-full shadow-md text-xs max-w-[250px] ${className}`}>
 				<div
 					className="whitespace-pre-wrap break-words max-h-[150px] overflow-y-auto text-[12px] 
         font-[var(--vscode-editor-font-family)]  p-1 rounded">

@@ -7,6 +7,7 @@ import AutoApproveMenuItem from "./AutoApproveMenuItem"
 import AutoApproveModal from "./AutoApproveModal"
 import { ACTION_METADATA, NOTIFICATIONS_SETTING } from "./constants"
 import { chatTextAreaBackground } from "@/components/theme"
+import HeroTooltip from "@/components/common/HeroTooltip"
 
 interface AutoApproveBarProps {
 	style?: React.CSSProperties
@@ -80,34 +81,36 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 				//backgroundColor: isModalVisible ? chatTextAreaBackgroundActive : chatTextAreaBackground,
 				...style,
 			}}>
-			<div
-				ref={buttonRef}
-				className="cursor-pointer py-[8px] pr-[0px] flex items-center justify-between gap-[8px]"
-				onClick={() => {
-					setIsModalVisible((prev) => !prev)
-				}}>
+			<HeroTooltip content="Quick Access Auto-Approve Settings">
 				<div
-					className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
-					style={{
-						opacity: isModalVisible ? 1 : 0.7,
-						fontSize: "0.88em",
-						msOverflowStyle: "none",
-						scrollbarWidth: "none",
-						WebkitOverflowScrolling: "touch",
+					ref={buttonRef}
+					className="cursor-pointer py-[8px] pr-[0px] flex items-center justify-between gap-[8px]"
+					onClick={() => {
+						setIsModalVisible((prev) => !prev)
 					}}>
-					<span>Auto:</span>
-					{(() => {
-						if (!autoApprovalSettings.enabled) return " off"
-						const items = getQuickAccessItems()
-						return items.length > 0 ? items : " none"
-					})()}
+					<div
+						className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
+						style={{
+							opacity: isModalVisible ? 1 : 0.7,
+							fontSize: "0.88em",
+							msOverflowStyle: "none",
+							scrollbarWidth: "none",
+							WebkitOverflowScrolling: "touch",
+						}}>
+						<span>Auto:</span>
+						{(() => {
+							if (!autoApprovalSettings.enabled) return " off"
+							const items = getQuickAccessItems()
+							return items.length > 0 ? items : " none"
+						})()}
+					</div>
+					{isModalVisible ? (
+						<span className="codicon codicon-chevron-down" />
+					) : (
+						<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
+					)}
 				</div>
-				{isModalVisible ? (
-					<span className="codicon codicon-chevron-down" />
-				) : (
-					<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
-				)}
-			</div>
+			</HeroTooltip>
 
 			<AutoApproveModal
 				isVisible={isModalVisible}

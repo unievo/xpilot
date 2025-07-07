@@ -60,7 +60,7 @@
 				{
 					"type": "webview",
 					"id": "astro.SidebarProvider",
-					"name": "",
+					"name": "Astro",
 					"icon": "assets/icons/icon_light.png"
 				}
 			]

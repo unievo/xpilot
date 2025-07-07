@@ -12,6 +12,7 @@ import McpMarketplaceView from "./tabs/marketplace/McpMarketplaceView"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { McpServers } from "@shared/proto/mcp"
 import McpLibraryView from "./tabs/library/McpLibraryView"
+import { mcpLibraryEnabled } from "@shared/Configuration"
 
 type McpViewProps = {
 	onDone: () => void
@@ -95,23 +96,25 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					<TabButton isActive={activeTab === "installed"} onClick={() => handleTabChange("installed")}>
 						Installed
 					</TabButton>
-					<TabButton isActive={activeTab === "library"} onClick={() => handleTabChange("library")}>
-						Library
-					</TabButton>
+					{mcpLibraryEnabled && (
+						<TabButton isActive={activeTab === "library"} onClick={() => handleTabChange("library")}>
+							Library
+						</TabButton>
+					)}
 					{mcpMarketplaceEnabled && (
 						<TabButton isActive={activeTab === "marketplace"} onClick={() => handleTabChange("marketplace")}>
 							Marketplace
 						</TabButton>
 					)}
-					<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
+					{/* <TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
 						Remote
-					</TabButton>
+					</TabButton> */}
 				</div>
 
 				{/* Content container */}
 				<div style={{ width: "100%" }}>
 					{mcpMarketplaceEnabled && activeTab === "marketplace" && <McpMarketplaceView />}
-					{activeTab === "addRemote" && <AddRemoteServerForm onServerAdded={() => handleTabChange("installed")} />}
+					{/* {activeTab === "addRemote" && <AddRemoteServerForm onServerAdded={() => handleTabChange("installed")} />} */}
 					{activeTab === "installed" && <InstalledServersView />}
 					{activeTab === "library" && <McpLibraryView />}
 				</div>

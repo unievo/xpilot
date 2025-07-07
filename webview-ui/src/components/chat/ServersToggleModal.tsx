@@ -62,11 +62,11 @@ const ServersToggleModal: React.FC = () => {
 						appearance="icon"
 						aria-label="Enable / Disable MCP Servers"
 						onClick={() => setIsVisible(!isVisible)}
-						style={{ marginLeft: "-3px", height: "20px" }}>
+						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 							<span
 								className="codicon codicon-server flex items-center"
-								style={{ fontSize: "15px", marginBottom: 1 }}
+								style={{ fontSize: "15px", marginBottom: 0 }}
 							/>
 						</div>
 					</VSCodeButton>
@@ -117,7 +117,7 @@ const ServersToggleModal: React.FC = () => {
 								marginTop: -10,
 								color: "var(--vscode-descriptionForeground)",
 							}}>
-							Enable only servers you need to use in your task.
+							Enable servers you need to use in your tasks.
 						</p>
 					</div>
 					<div style={{ marginBottom: 0, fontSize: "12px" }}>

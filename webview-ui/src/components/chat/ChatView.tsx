@@ -1128,26 +1128,28 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 			) : (
 				<div
 					style={{
+						//fontSize: "13px",
 						flex: "1 1 0", // flex-grow: 1, flex-shrink: 1, flex-basis: 0
 						minHeight: 0,
 						overflowY: "auto",
 						display: "flex",
 						flexDirection: "column",
 						paddingBottom: "1px",
-						marginLeft: "-5px",
+						marginLeft: "-6px",
+						scrollbarGutter: "stable",
 					}}>
 					{enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />}
 
 					{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
 
 					<HomeHeader />
-					{!shouldShowQuickWins && taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}
+					<HistoryPreview showHistoryView={showHistoryView} />
 				</div>
 			)}
 
 			{!task && (
 				<>
-					<SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} />
+					{/* <SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} /> */}
 					<AutoApproveBar />
 				</>
 			)}

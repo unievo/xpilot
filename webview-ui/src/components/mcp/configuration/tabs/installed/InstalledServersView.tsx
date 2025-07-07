@@ -1,12 +1,15 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { useState } from "react"
 
 import { McpServiceClient, UiServiceClient } from "@/services/grpc-client"
 
 import { EmptyRequest, StringRequest } from "@shared/proto/common"
 import ServersToggleList from "./ServersToggleList"
+import AddRemoteServerForm from "../add-server/AddRemoteServerForm"
 const InstalledServersView = () => {
 	const { mcpServers: servers, navigateToSettings } = useExtensionState()
+	const [showAddServer, setShowAddServer] = useState(false)
 
 	return (
 		<div style={{ padding: "5px 15px" }}>
@@ -19,24 +22,48 @@ const InstalledServersView = () => {
 					marginBottom: "10px",
 					opacity: 0.7,
 				}}>
-				<p style={{ fontSize: "11px", margin: 5, marginBottom: 0 }}>
-					Metadata (tools, resources, parameters) for enabled servers is sent with every task message. To keep the
-					context memory usage optimal, especially with servers with many tools and resources, enable only servers that
-					you are using for the current tasks. You can quickly enable or disable servers from the chat tools menu when
-					needed.
+				<p style={{ fontSize: "12px", margin: 5, marginBottom: 0 }}>
+					Model Context Protocol (MCP) servers provide a standard way for AI models to use external tools. You can
+					quickly enable or disable servers from the chat tools menu.
 				</p>
 			</div>
-			<VSCodeButton
-				appearance="icon"
-				style={{ width: "100%", marginBottom: "20px", background: "var(--vscode-button-secondaryBackground)" }}
-				onClick={() => {
-					McpServiceClient.openMcpSettings(EmptyRequest.create({})).catch((error) => {
-						console.error("Error opening MCP settings:", error)
-					})
-				}}>
-				<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
-				Configure
-			</VSCodeButton>
+			{/* Button Row */}
+			<div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+				<VSCodeButton
+					appearance="icon"
+					style={{ flex: 1, background: "var(--vscode-button-Background)" }}
+					onClick={() => {
+						McpServiceClient.openMcpSettings(EmptyRequest.create({})).catch((error) => {
+							console.error("Error opening MCP settings:", error)
+						})
+					}}>
+					<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
+					Configure
+				</VSCodeButton>
+
+				{/* Collapsible Add Server Section styled as a button */}
+				<VSCodeButton
+					appearance="icon"
+					style={{
+						flex: 1,
+						background: "var(--vscode-button-Background)",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "flex-start",
+					}}
+					onClick={() => setShowAddServer((v) => !v)}>
+					<span
+						className={`codicon ${showAddServer ? "codicon-chevron-down" : "codicon-chevron-right"}`}
+						style={{ marginRight: "2px", fontSize: "16px" }}></span>
+					Add Remote
+				</VSCodeButton>
+			</div>
+			{showAddServer && (
+				<div style={{ marginTop: "30px", marginBottom: "10px" }}>
+					<AddRemoteServerForm onServerAdded={() => {}} />
+				</div>
+			)}
+
 			{/* Settings Section */}
 			{/* <div style={{ marginBottom: "10px", marginTop: 3 }}>
 				<div style={{ textAlign: "right" }}>
@@ -55,10 +82,13 @@ const InstalledServersView = () => {
 							}, 300)
 						}}
 						style={{ fontSize: "12px" }}>
-						Advanced MCP Settings
+						MCP Settings
 					</VSCodeLink>
 				</div>
 			</div> */}
+
+			<hr style={{ opacity: 0.1 }}></hr>
+			<br />
 			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={true} listGap="small" />
 		</div>
 	)

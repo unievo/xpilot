@@ -65,7 +65,7 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 	}
 
 	return (
-		<div className="p-4 px-5">
+		<div style={{ scale: "0.95", marginTop: "-20px" }}>
 			<div className="text-[var(--vscode-foreground)] mb-2">
 				Add a remote MCP server by providing a name and its URL endpoint.
 				{/* Learn more{" "}
@@ -110,14 +110,14 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 						{isSubmitting ? "Adding..." : "Add Server"}
 					</VSCodeButton>
 
-					{showConnectingMessage && (
+					{/* {showConnectingMessage && (
 						<div className="ml-3 text-[var(--vscode-notificationsInfoIcon-foreground)] text-sm">
 							Connecting to server... This may take a few seconds.
 						</div>
-					)}
+					)} */}
 				</div>
 
-				<VSCodeButton
+				{/* <VSCodeButton
 					appearance="secondary"
 					style={{ width: "100%", marginBottom: "5px", marginTop: 15 }}
 					onClick={() => {
@@ -126,7 +126,7 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 						})
 					}}>
 					Edit Configuration
-				</VSCodeButton>
+				</VSCodeButton> */}
 			</form>
 		</div>
 	)

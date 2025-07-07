@@ -478,10 +478,7 @@ const ServerRow = ({
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
-								<span
-									className="codicon codicon-symbol-method"
-									style={{ color: itemIconColor, marginRight: "6px" }}
-								/>
+								<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }} />
 								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="resources">
