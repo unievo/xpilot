@@ -1,18 +1,23 @@
+import exp from "node:constants"
+
 // Product
 export const agentName = "Astro"
 export const productName = "astro"
 export const publisherName = "unievo"
-export const xUrl = "https://x.com/"
-export const discordUrl = "https://discord.gg/"
+export const xUrl = "https://x.com/unievo_ai"
+export const discordUrl = ""
 export const repoUrl = "https://github.com/unievo/astro"
 export const homePageUrl = "https://github.com/unievo/astro"
-export const apiBaseUrl = "https://api.astro.unievo.com/v1"
+export const apiBaseUrl = ""
 export const gitInstructionsRepo = ""
 export const gitWorkflowsRepo = ""
 export const latestAnnouncementId = "0.1.0"
 
 // Settings
+export const defaultChatMode = "act"
 export const enableTelemetrySettings = false
+export const maxHistoryPreviewItems = 10
+export const mcpLibraryEnabled = false
 export const mcpMarketplaceEnabledDefaultSetting = false
 export const enableNewInstructionsDefaultSetting = false
 export const mcpServerIncludeFullSchema_ToolsMaxCount = 5

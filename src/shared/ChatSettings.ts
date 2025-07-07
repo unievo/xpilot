@@ -1,3 +1,5 @@
+import { defaultChatMode } from "./Configuration"
+
 export type OpenAIReasoningEffort = "low" | "medium" | "high"
 
 export interface ChatSettings {
@@ -9,7 +11,7 @@ export interface ChatSettings {
 export type PartialChatSettings = Partial<ChatSettings>
 
 export const DEFAULT_CHAT_SETTINGS: ChatSettings = {
-	mode: "act",
+	mode: defaultChatMode,
 	preferredLanguage: "English",
 	openAIReasoningEffort: "medium",
 }

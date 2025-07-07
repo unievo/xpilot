@@ -414,6 +414,9 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 					global: resetGlobalState,
 				}),
 			)
+			if (resetGlobalState) {
+				localStorage.clear() // Clear local storage to reset any saved state
+			}
 		} catch (error) {
 			console.error("Failed to reset state:", error)
 		}
@@ -738,15 +741,24 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 								<div>
 									{renderSectionHeader("about")}
 									<Section>
-										<div className="text-center text-[var(--vscode-descriptionForeground)] text-xs leading-[1.2] px-0 py-0 pr-2 pb-[15px] mt-auto">
+										<div className="text-center text-xs leading-[1.2] px-0 py-0 pr-2 pb-[15px] mt-auto">
 											<div style={{ fontSize: "18px", fontWeight: "bold" }}>
 												<p>{agentName}</p>
 											</div>
 											<p style={{ margin: "0 0 0 5px", fontSize: "13px", textAlign: "center" }}>
-												{" "}
-												<VSCodeLink href={repoUrl}>GitHub </VSCodeLink> |{" "}
-												<VSCodeLink href={xUrl}>X.com </VSCodeLink> |{" "}
-												<VSCodeLink href={discordUrl}>Discord</VSCodeLink>
+												<VSCodeLink href={repoUrl}>GitHub</VSCodeLink>
+												{xUrl && (
+													<span>
+														{" | "}
+														<VSCodeLink href={xUrl}>X.com</VSCodeLink>
+													</span>
+												)}
+												{discordUrl && (
+													<span>
+														{" | "}
+														<VSCodeLink href={discordUrl}>Discord</VSCodeLink>
+													</span>
+												)}
 											</p>
 											<p className="italic mt-[10px] mb-0 p-0">v{version}</p>
 										</div>

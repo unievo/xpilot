@@ -14,10 +14,10 @@ import { sendChatButtonClickedEvent } from "../ui/subscribeToChatButtonClicked"
 export async function resetState(controller: Controller, request: ResetStateRequest): Promise<Empty> {
 	try {
 		if (request.global) {
-			vscode.window.showInformationMessage("Resetting global state...")
+			// vscode.window.showInformationMessage("Resetting global state...")
 			await resetGlobalState(controller.context)
 		} else {
-			vscode.window.showInformationMessage("Resetting workspace state...")
+			// vscode.window.showInformationMessage("Resetting workspace state...")
 			await resetWorkspaceState(controller.context)
 		}
 

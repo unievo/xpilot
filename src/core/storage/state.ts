@@ -542,7 +542,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		previousModeSapAiCoreResourceGroup,
 		previousModeSapAiCoreModelId,
 		mcpMarketplaceEnabled: mcpMarketplaceEnabled,
-		mcpRichDisplayEnabled: mcpRichDisplayEnabled ?? true,
+		mcpRichDisplayEnabled: mcpRichDisplayEnabled ?? false,
 		mcpResponsesCollapsed: mcpResponsesCollapsed,
 		telemetrySetting: enableTelemetrySettings ? telemetrySetting || "unset" : "disabled",
 		planActSeparateModelsSetting,
