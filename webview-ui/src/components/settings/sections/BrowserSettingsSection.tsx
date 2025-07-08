@@ -8,6 +8,7 @@ import { EmptyRequest, StringRequest } from "@shared/proto/common"
 import { updateBrowserSetting } from "../utils/settingsHandlers"
 import { DebouncedTextField } from "../common/DebouncedTextField"
 import Section from "../Section"
+import { agentName } from "@shared/Configuration"
 
 interface BrowserSettingsSectionProps {
 	renderSectionHeader: (tabId: string) => JSX.Element | null
@@ -252,7 +253,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									color: "var(--vscode-descriptionForeground)",
 									margin: "0 0 6px 0px",
 								}}>
-								Enable Cline to use your Chrome
+								Enable {agentName} to use your Chrome
 								{isBundled
 									? "(not detected on your machine)"
 									: detectedChromePath

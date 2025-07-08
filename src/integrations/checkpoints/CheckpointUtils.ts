@@ -2,7 +2,7 @@ import { mkdir, access, constants } from "fs/promises"
 import * as path from "path"
 import * as vscode from "vscode"
 import os from "os"
-import { getCwd } from "@/utils/path"
+import { getCwd, getDesktopDir } from "@/utils/path"
 import { agentName } from "@shared/Configuration"
 
 /**
@@ -62,7 +62,7 @@ export async function getWorkingDirectory(): Promise<string> {
 	}
 
 	const homedir = os.homedir()
-	const desktopPath = path.join(homedir, "Desktop")
+	const desktopPath = getDesktopDir()
 	const documentsPath = path.join(homedir, "Documents")
 	const downloadsPath = path.join(homedir, "Downloads")
 

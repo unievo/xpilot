@@ -12,27 +12,41 @@ import { agentName, homePageUrl } from "../../shared/Configuration"
 
 export class OpenRouterHandler implements ApiHandler {
 	private options: ApiHandlerOptions
-	private client: OpenAI
+	private client: OpenAI | undefined
 	lastGenerationId?: string
 
 	constructor(options: ApiHandlerOptions) {
 		this.options = options
-		this.client = new OpenAI({
-			baseURL: "https://openrouter.ai/api/v1",
-			apiKey: this.options.openRouterApiKey,
-			defaultHeaders: {
-				"HTTP-Referer": `${homePageUrl}`, // Optional, for including your app on openrouter.ai rankings.
-				"X-Title": `${agentName}`, // Optional. Shows in rankings on openrouter.ai.
-			},
-		})
+	}
+
+	private ensureClient(): OpenAI {
+		if (!this.client) {
+			if (!this.options.openRouterApiKey) {
+				throw new Error("OpenRouter API key is required")
+			}
+			try {
+				this.client = new OpenAI({
+					baseURL: "https://openrouter.ai/api/v1",
+					apiKey: this.options.openRouterApiKey,
+					defaultHeaders: {
+						"HTTP-Referer": `${homePageUrl}`, // Optional, for including your app on openrouter.ai rankings.
+						"X-Title": `${agentName}`, // Optional. Shows in rankings on openrouter.ai.
+					},
+				})
+			} catch (error: any) {
+				throw new Error(`Error creating OpenRouter client: ${error.message}`)
+			}
+		}
+		return this.client
 	}
 
 	@withRetry()
 	async *createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream {
+		const client = this.ensureClient()
 		this.lastGenerationId = undefined
 
 		const stream = await createOpenRouterStream(
-			this.client,
+			client,
 			systemPrompt,
 			messages,
 			this.getModel(),
