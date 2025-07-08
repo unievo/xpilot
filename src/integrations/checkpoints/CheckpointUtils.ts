@@ -2,7 +2,8 @@ import { mkdir, access, constants } from "fs/promises"
 import * as path from "path"
 import * as vscode from "vscode"
 import os from "os"
-import { agentName } from "../../shared/Configuration"
+import { getCwd } from "@/utils/path"
+import { agentName } from "@shared/Configuration"
 
 /**
  * Gets the path to the shadow Git repository in globalStorage.
@@ -46,7 +47,7 @@ export async function getShadowGitPath(globalStoragePath: string, taskId: string
  * @throws Error if no workspace is detected, if in a protected directory, or if no read access
  */
 export async function getWorkingDirectory(): Promise<string> {
-	const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0)
+	const cwd = await getCwd()
 	if (!cwd) {
 		throw new Error(`No workspace detected. Please open ${agentName} in a workspace to use checkpoints.`)
 	}

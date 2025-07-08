@@ -2,14 +2,11 @@ import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState, memo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration } from "@/utils/validate"
-import { vscode } from "@/utils/vscode"
 import ApiOptions from "@/components/settings/ApiOptions"
 import { agentName } from "@shared/Configuration"
 import AgentLogo from "@/assets/AgentLogo"
-import { AccountServiceClient, ModelsServiceClient } from "@/services/grpc-client"
-import { EmptyRequest } from "@shared/proto/common"
-import { UpdateApiConfigurationRequest } from "@shared/proto/models"
-import { convertApiConfigurationToProto } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { AccountServiceClient, ModelsServiceClient, StateServiceClient } from "@/services/grpc-client"
+import { EmptyRequest, BooleanRequest } from "@shared/proto/common"
 
 const WelcomeView = memo(() => {
 	const { apiConfiguration } = useExtensionState()
@@ -25,16 +22,10 @@ const WelcomeView = memo(() => {
 	}
 
 	const handleSubmit = async () => {
-		if (apiConfiguration) {
-			try {
-				await ModelsServiceClient.updateApiConfigurationProto(
-					UpdateApiConfigurationRequest.create({
-						apiConfiguration: convertApiConfigurationToProto(apiConfiguration),
-					}),
-				)
-			} catch (error) {
-				console.error("Failed to update API configuration:", error)
-			}
+		try {
+			await StateServiceClient.setWelcomeViewCompleted(BooleanRequest.create({ value: true }))
+		} catch (error) {
+			console.error("Failed to update API configuration or complete welcome view:", error)
 		}
 	}
 

@@ -22,13 +22,20 @@ import { WebviewProviderType as WebviewProviderTypeEnum } from "@shared/proto/ui
 import { WebviewProviderType } from "./shared/webview/types"
 import { sendHistoryButtonClickedEvent } from "./core/controller/ui/subscribeToHistoryButtonClicked"
 import { sendAccountButtonClickedEvent } from "./core/controller/ui/subscribeToAccountButtonClicked"
-import { migratePlanActGlobalToWorkspaceStorage, migrateCustomInstructionsToGlobalRules } from "./core/storage/state"
+import {
+	migrateWorkspaceToGlobalStorage,
+	migrateCustomInstructionsToGlobalRules,
+	migrateModeFromWorkspaceStorageToControllerState,
+	migrateWelcomeViewCompleted,
+} from "./core/storage/state-migrations"
 
 import { sendFocusChatInputEvent } from "./core/controller/ui/subscribeToFocusChatInput"
 import { FileContextTracker } from "./core/context/context-tracking/FileContextTracker"
 import * as hostProviders from "@hosts/host-providers"
 import { vscodeHostBridgeClient } from "@/hosts/vscode/client/host-grpc-client"
 import { VscodeWebviewProvider } from "./core/webview/VscodeWebviewProvider"
+import { ExtensionContext } from "vscode"
+import { writeTextToClipboard, readTextFromClipboard } from "@/utils/env"
 
 import {
 	agentName,
@@ -55,6 +62,8 @@ import {
 	improveWithAgentCodeActionName,
 	explainWithAgentCommand,
 	improveWithAgentCommand,
+	extensionId,
+	openWalkthroughCommand,
 } from "@shared/Configuration"
 import exp from "node:constants"
 
@@ -79,13 +88,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	Logger.initialize(outputChannel)
 	Logger.log(`${agentName} extension activated`)
 
-	maybeSetupHostProviders()
-
-	// Migrate global storage values to workspace storage (one-time cleanup)
-	await migratePlanActGlobalToWorkspaceStorage(context)
+	maybeSetupHostProviders(context)
 
 	// Migrate custom instructions to global Cline rules (one-time cleanup)
 	await migrateCustomInstructionsToGlobalRules(context)
+
+	// Migrate mode from workspace storage to controller state (one-time cleanup)
+	await migrateModeFromWorkspaceStorageToControllerState(context)
+
+	// Migrate welcomeViewCompleted setting based on existing API keys (one-time cleanup)
+	await migrateWelcomeViewCompleted(context)
+
+	// Migrate workspace storage values back to global storage (reverting previous migration)
+	await migrateWorkspaceToGlobalStorage(context)
 
 	// Clean up orphaned file context warnings (startup cleanup)
 	await FileContextTracker.cleanupOrphanedWarnings(context)
@@ -93,10 +108,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Version checking for autoupdate notification
 	const currentVersion = context.extension.packageJSON.version
 	const previousVersion = context.globalState.get<string>("agentVersion")
-	const sidebarWebview = hostProviders.createWebviewProvider(context, outputChannel, WebviewProviderType.SIDEBAR)
+	const sidebarWebview = hostProviders.createWebviewProvider(WebviewProviderType.SIDEBAR)
 
+	const testModeWatchers = await initializeTestMode(sidebarWebview)
 	// Initialize test mode and add disposables to context
-	context.subscriptions.push(...initializeTestMode(context, sidebarWebview))
+	context.subscriptions.push(...testModeWatchers)
 
 	vscode.commands.executeCommand("setContext", `${isDevMode}`, IS_DEV && IS_DEV === "true")
 
@@ -196,7 +212,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		Logger.log(`Opening ${agentName} in new tab`)
 		// (this example uses webviewProvider activation event which is necessary to deserialize cached webview, but since we use retainContextWhenHidden, we don't need to use that event)
 		// https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
-		const tabWebview = hostProviders.createWebviewProvider(context, outputChannel, WebviewProviderType.TAB)
+		const tabWebview = hostProviders.createWebviewProvider(WebviewProviderType.TAB)
 		//const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 		const lastCol = Math.max(...vscode.window.visibleTextEditors.map((editor) => editor.viewColumn || 0))
 
@@ -389,17 +405,17 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Save current clipboard content
-			const tempCopyBuffer = await vscode.env.clipboard.readText()
+			const tempCopyBuffer = await readTextFromClipboard()
 
 			try {
 				// Copy the *existing* terminal selection (without selecting all)
 				await vscode.commands.executeCommand("workbench.action.terminal.copySelection")
 
 				// Get copied content
-				let terminalContents = (await vscode.env.clipboard.readText()).trim()
+				let terminalContents = (await readTextFromClipboard()).trim()
 
 				// Restore original clipboard content
-				await vscode.env.clipboard.writeText(tempCopyBuffer)
+				await writeTextToClipboard(tempCopyBuffer)
 
 				if (!terminalContents) {
 					// No terminal content was copied (either nothing selected or some error)
@@ -425,7 +441,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				await visibleWebview?.controller.addSelectedTerminalOutputToChat(terminalContents, terminal.name)
 			} catch (error) {
 				// Ensure clipboard is restored even if an error occurs
-				await vscode.env.clipboard.writeText(tempCopyBuffer)
+				await writeTextToClipboard(tempCopyBuffer)
 				console.error("Error getting terminal contents:", error)
 				vscode.window.showErrorMessage("Failed to get terminal contents")
 			}
@@ -662,6 +678,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
+	// Register the openWalkthrough command handler
+	context.subscriptions.push(
+		vscode.commands.registerCommand(openWalkthroughCommand, async () => {
+			await vscode.commands.executeCommand("workbench.action.openWalkthrough", `${extensionId}#Walkthrough`)
+			telemetryService.captureButtonClick("command_openWalkthrough", undefined, true)
+		}),
+	)
+
 	// Register the generateGitCommitMessage command handler
 	context.subscriptions.push(
 		vscode.commands.registerCommand(generateGitCommitMessageCommand, async () => {
@@ -685,10 +709,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	return createClineAPI(outputChannel, sidebarWebview.controller)
 }
 
-function maybeSetupHostProviders() {
+function maybeSetupHostProviders(context: ExtensionContext) {
 	if (!hostProviders.isSetup) {
 		console.log("Setting up vscode host providers...")
-		hostProviders.initializeHostProviders(VscodeWebviewProvider.create, vscodeHostBridgeClient)
+		const createWebview = function (type: WebviewProviderType) {
+			return new VscodeWebviewProvider(context, outputChannel, type)
+		}
+		hostProviders.initializeHostProviders(createWebview, vscodeHostBridgeClient)
 	}
 }
 

@@ -83,6 +83,17 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					}}>
 					<ul style={ulStyle}>
 						<li>
+							<b>Claude 4 Models:</b> Now with support for Anthropic Claude Sonnet 4 and Claude Opus 4 in both
+							Anthropic and Vertex providers.
+						</li>
+						<li>
+							<b>New Settings Page:</b> Redesigned settings, now split into tabs for easier navigation and a cleaner
+							experience.
+						</li>
+						<li>
+							<b>Nebius AI Studio:</b> Added Nebius AI Studio as a new provider. (Thanks @Aktsvigun!)
+						</li>
+						<li>
 							<b>Workflows:</b> Create and manage workflow files that can be injected into conversations via slash
 							commands, making it easy to automate repetitive tasks.
 						</li>
@@ -93,29 +104,6 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 						<li>
 							<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for
 							Vertex AI users.
-						</li>
-						<li>
-							<b>New User Experience:</b> Special components and guidance for new users to help them get started
-							with Cline.
-						</li>
-						<li>
-							<b>UI Improvements:</b> Fixed loading states and improved settings organization for a smoother
-							experience.
-						</li>
-						<li>
-							<b>Task Timeline:</b> See the history of your coding journey with a visual timeline of checkpoints.
-						</li>
-						<li>
-							<b>UX Improvements:</b> Type while Cline works, smarter auto-scrolling, and copy buttons for task
-							headers and messages.
-						</li>
-						<li>
-							<b>Gemini prompt caching:</b> Gemini and Vertex providers now support prompt caching and price
-							tracking.
-						</li>
-						<li>
-							<b>Global Cline Rules:</b> Store multiple rules files in Documents/Cline/Rules to share between
-							projects.
 						</li>
 					</ul>
 				</AccordionItem>

@@ -6,6 +6,8 @@ tmp
 .vscode-test/
 *.vsix
 .DS_Store
+.idea
+
 pnpm-lock.yaml
 .clineignore
 .venv
