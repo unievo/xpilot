@@ -84,6 +84,7 @@ export const historyButtonCommand = `${productName}.historyButtonClicked`
 export const accountButtonCommand = `${productName}.accountButtonClicked`
 export const focusChatInputCommand = `${productName}.focusChatInput`
 export const generateGitCommitMessageCommand = `${productName}.generateGitCommitMessage`
+export const openWalkthroughCommand = `${productName}.openWalkthrough`
 export const isDevMode = `${productName}.isDevMode`
 export const createTestTasksCommand = `${productName}.dev.createTestTasks`
 export const addToAgentCodeActionName = `Add to ${agentName}`
