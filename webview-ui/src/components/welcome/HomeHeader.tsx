@@ -165,7 +165,7 @@ const HomeHeader = () => {
 					}
 				`}
 			</style>
-			<div className="flex justify-center my-4 mt-5 mb-5">
+			<div className="flex justify-center ml-5 mt-5 mb-5">
 				<AgentLogo size={35} />
 			</div>
 
@@ -218,7 +218,7 @@ const HomeHeader = () => {
 						paddingRight: "5px",
 						paddingBottom: "15px",
 						marginLeft: "22px",
-						marginRight: "0px",
+						marginRight: "-5px",
 						marginTop: "15px",
 					}}>
 					<div>

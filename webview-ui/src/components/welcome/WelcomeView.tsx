@@ -35,11 +35,11 @@ const WelcomeView = memo(() => {
 
 	return (
 		<div className="fixed inset-0 p-0 flex flex-col" style={{ scrollbarGutter: "stable" }}>
-			<div className="h-full px-5 overflow-auto" style={{ scrollbarGutter: "stable" }}>
-				<div className="flex justify-center my-5">
+			<div className="h-full px-5 pr-1 overflow-auto" style={{ scrollbarGutter: "stable" }}>
+				<div className="flex justify-center mt-10">
 					<AgentLogo size={50} />
 				</div>
-				<h2 className="flex justify-center my-5">Welcome to {agentName}!</h2>
+				<h2 className="flex justify-center">Welcome to {agentName}!</h2>
 				<p>
 					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source coding agent
 					for VS Code, designed to support many AI providers and models, and to handle a wide range of development
