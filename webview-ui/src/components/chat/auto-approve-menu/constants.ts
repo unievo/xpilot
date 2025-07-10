@@ -50,7 +50,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		id: "executeSafeCommands",
 		label: "Execute safe commands",
 		shortName: "Cmds",
-		description: `Allows ${agentName} to execute safe terminal commands. If the model determines a command is potentially destructive, it will still require approval.`,
+		description: `Allows ${agentName} to execute safe terminal commands. If the model determines a command can have impactful or potentially destructive effects, it will still require approval.`,
 		icon: "codicon-terminal",
 		subAction: {
 			id: "executeAllCommands",

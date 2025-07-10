@@ -26,9 +26,9 @@ export const DEFAULT_AUTO_APPROVAL_SETTINGS: AutoApprovalSettings = {
 	actions: {
 		readFiles: true,
 		readFilesExternally: false,
-		editFiles: false,
+		editFiles: true,
 		editFilesExternally: false,
-		executeSafeCommands: true,
+		executeSafeCommands: false,
 		executeAllCommands: false,
 		useBrowser: false,
 		useMcp: true,
