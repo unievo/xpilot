@@ -3,11 +3,18 @@ import { useClickAway, useWindowSize } from "react-use"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import ServersToggleList from "@/components/mcp/configuration/tabs/installed/ServersToggleList"
-import { vscode } from "@/utils/vscode"
+
+import { McpServiceClient } from "@/services/grpc-client"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import Tooltip from "@/components/common/Tooltip"
+import { McpServers } from "@shared/proto/mcp"
+import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
+import { EmptyRequest } from "@shared/proto/common"
+import { itemIconColor, menuBackground } from "../theme"
+import HeroTooltip from "../common/HeroTooltip"
 
 const ServersToggleModal: React.FC = () => {
-	const { mcpServers } = useExtensionState()
+	const { mcpServers, navigateToMcp, setMcpServers } = useExtensionState()
 	const [isVisible, setIsVisible] = useState(false)
 	const buttonRef = useRef<HTMLDivElement>(null)
 	const modalRef = useRef<HTMLDivElement>(null)
@@ -25,7 +32,7 @@ const ServersToggleModal: React.FC = () => {
 		if (isVisible && buttonRef.current) {
 			const buttonRect = buttonRef.current.getBoundingClientRect()
 			const buttonCenter = buttonRect.left + buttonRect.width / 2
-			const rightPosition = document.documentElement.clientWidth - buttonCenter - 5
+			const rightPosition = document.documentElement.clientWidth - buttonCenter - 4
 
 			setArrowPosition(rightPosition)
 			setMenuPosition(buttonRect.top + 1)
@@ -34,34 +41,45 @@ const ServersToggleModal: React.FC = () => {
 
 	useEffect(() => {
 		if (isVisible) {
-			vscode.postMessage({ type: "fetchLatestMcpServersFromHub" })
+			McpServiceClient.getLatestMcpServers(EmptyRequest.create({}))
+				.then((response: McpServers) => {
+					if (response.mcpServers) {
+						const mcpServers = convertProtoMcpServersToMcpServers(response.mcpServers)
+						setMcpServers(mcpServers)
+					}
+				})
+				.catch((error) => {
+					console.error("Failed to fetch MCP servers:", error)
+				})
 		}
 	}, [isVisible])
 
 	return (
 		<div ref={modalRef}>
-			<div ref={buttonRef} className="inline-flex min-w-0 max-w-full">
-				<VSCodeButton
-					appearance="icon"
-					aria-label="MCP Servers"
-					onClick={() => setIsVisible(!isVisible)}
-					style={{ padding: "0px 0px", height: "20px" }}>
-					<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
-						<span
-							className="codicon codicon-server flex items-center"
-							style={{ fontSize: "14px", marginBottom: 1 }}
-						/>
-					</div>
-				</VSCodeButton>
+			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
+				<HeroTooltip delay={1000} content="Enable / Disable MCP Servers">
+					<VSCodeButton
+						appearance="icon"
+						aria-label="Enable / Disable MCP Servers"
+						onClick={() => setIsVisible(!isVisible)}
+						style={{ marginLeft: "-3px", height: "20px" }}>
+						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
+							<span
+								className="codicon codicon-server flex items-center"
+								style={{ fontSize: "15px", marginBottom: 1 }}
+							/>
+						</div>
+					</VSCodeButton>
+				</HeroTooltip>
 			</div>
 
 			{isVisible && (
 				<div
-					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-3 rounded z-[1000] overflow-y-auto"
+					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-2 rounded-md z-[1000] overflow-y-auto"
 					style={{
 						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-						background: CODE_BLOCK_BG_COLOR,
-						maxHeight: "calc(100vh - 100px)",
+						background: menuBackground,
+						maxHeight: "calc(100vh - 70px)",
 						overscrollBehavior: "contain",
 					}}>
 					<div
@@ -69,39 +87,41 @@ const ServersToggleModal: React.FC = () => {
 						style={{
 							bottom: `calc(100vh - ${menuPosition}px)`,
 							right: arrowPosition,
-							background: CODE_BLOCK_BG_COLOR,
+							background: menuBackground,
 						}}
 					/>
 
 					<div className="flex justify-between items-center mb-2.5">
-						<div className="m-0 text-base font-semibold">MCP Servers</div>
-						<VSCodeButton
-							appearance="icon"
-							onClick={() => {
-								vscode.postMessage({
-									type: "showMcpView",
-									tab: "installed",
-								})
-								setIsVisible(false)
-							}}>
-							<span className="codicon codicon-gear text-[10px]"></span>
-						</VSCodeButton>
+						<div className="flex items-center gap-1">
+							<div className="ml-0.5 text-[13px] font-semibold">MCP Servers</div>
+							<VSCodeButton
+								appearance="icon"
+								onClick={() => {
+									setIsVisible(false)
+									navigateToMcp("installed")
+								}}>
+								<span className="codicon codicon-gear text-[10px]" style={{ color: itemIconColor }}></span>
+							</VSCodeButton>
+						</div>
+						<div
+							onMouseDown={() => setIsVisible(false)}
+							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+							<span className="codicon codicon-close" />
+						</div>
 					</div>
-					<div
-						style={{
-							//display: "flex",
-							flexDirection: "column",
-							alignItems: "left",
-							textAlign: "left",
-						}}>
-						<p style={{ fontSize: "11px", marginLeft: 10, opacity: 0.9 }}>
-							<ul style={{ listStyleType: "disc", paddingLeft: 0, paddingRight: 0 }}>
-								<li>Enable only servers you need to use in your task.</li>
-							</ul>
+					<div>
+						<p
+							style={{
+								fontSize: "12px",
+								marginLeft: 2,
+								marginTop: -10,
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Enable only servers you need to use in your task.
 						</p>
 					</div>
-					<div style={{ marginBottom: -10 }}>
-						<ServersToggleList servers={mcpServers} isExpandable={false} hasTrashIcon={false} listGap="small" />
+					<div style={{ marginBottom: 0, fontSize: "12px" }}>
+						<ServersToggleList servers={mcpServers} isExpandable={true} hasTrashIcon={false} listGap="small" />
 					</div>
 				</div>
 			)}

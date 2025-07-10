@@ -59,7 +59,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		word-wrap: break-word;
 		border-radius: 5px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+		font-size: 11px; //var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
 		font-family: var(--vscode-editor-font-family);
 	}
 
@@ -151,7 +151,9 @@ const CodeBlock = memo(({ source, forceWrap = false }: CodeBlockProps) => {
 				maxHeight: forceWrap ? "none" : "100%",
 				backgroundColor: CODE_BLOCK_BG_COLOR,
 			}}>
-			<StyledMarkdown forceWrap={forceWrap}>{reactContent}</StyledMarkdown>
+			<StyledMarkdown className="ph-no-capture" forceWrap={forceWrap}>
+				{reactContent}
+			</StyledMarkdown>
 		</div>
 	)
 })

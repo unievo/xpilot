@@ -3,10 +3,12 @@ import osName from "os-name"
 import { getShell } from "../../../utils/shell"
 import { McpHub } from "../../../services/mcp/McpHub"
 import { BrowserSettings } from "../../../shared/BrowserSettings"
+import { workspaceInstructionsDirectoryPath, workspaceWorkflowsDirectoryPath } from "@/shared/Configuration"
+import { ensureGlobalInstructionsDirectoryExists, ensureGlobalWorkflowsDirectoryExists } from "@/core/storage/disk"
 
 export const SystemInformationPrompt = async (
 	cwd: string,
-	supportsComputerUse: boolean,
+	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
@@ -17,4 +19,8 @@ Default Shell: ${getShell()}
 Home Directory: ${os.homedir().toPosix()}
 Current Working Directory: ${cwd.toPosix()}
 MCP Servers configuration file: ${await mcpHub.getMcpSettingsFilePath()}
+Workspace Instructions Directory: ${workspaceInstructionsDirectoryPath.toPosix()}
+Global Instructions Directory: ${(await ensureGlobalInstructionsDirectoryExists()).toPosix()}
+Workspace Workflows Directory: ${workspaceWorkflowsDirectoryPath.toPosix()}
+Global Workflows Directory: ${(await ensureGlobalWorkflowsDirectoryExists()).toPosix()}
 `

@@ -1,7 +1,7 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import OpenAI, { AzureOpenAI } from "openai"
 import { withRetry } from "../retry"
-import { ApiHandlerOptions, azureOpenAiDefaultApiVersion, ModelInfo, openAiModelInfoSaneDefaults } from "../../shared/api"
+import { ApiHandlerOptions, azureOpenAiDefaultApiVersion, ModelInfo, openAiModelInfoSaneDefaults } from "@shared/api"
 import { ApiHandler } from "../index"
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
@@ -18,7 +18,8 @@ export class OpenAiHandler implements ApiHandler {
 		// Use azureApiVersion to determine if this is an Azure endpoint, since the URL may not always contain 'azure.com'
 		if (
 			this.options.azureApiVersion ||
-			(this.options.openAiBaseUrl?.toLowerCase().includes("azure.com") &&
+			((this.options.openAiBaseUrl?.toLowerCase().includes("azure.com") ||
+				this.options.openAiBaseUrl?.toLowerCase().includes("azure.us")) &&
 				!this.options.openAiModelId?.toLowerCase().includes("deepseek"))
 		) {
 			this.client = new AzureOpenAI({
@@ -41,7 +42,7 @@ export class OpenAiHandler implements ApiHandler {
 		const modelId = this.options.openAiModelId ?? ""
 		const isDeepseekReasoner = modelId.includes("deepseek-reasoner")
 		const isR1FormatRequired = this.options.openAiModelInfo?.isR1FormatRequired ?? false
-		const isReasoningModelFamily = modelId.includes("o3") || modelId.includes("o4")
+		const isReasoningModelFamily = modelId.includes("o1") || modelId.includes("o3") || modelId.includes("o4")
 
 		let openAiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
 			{ role: "system", content: systemPrompt },
@@ -64,7 +65,7 @@ export class OpenAiHandler implements ApiHandler {
 		if (isReasoningModelFamily) {
 			openAiMessages = [{ role: "developer", content: systemPrompt }, ...convertToOpenAiMessages(messages)]
 			temperature = undefined // does not support temperature
-			reasoningEffort = (this.options.o3MiniReasoningEffort as ChatCompletionReasoningEffort) || "medium"
+			reasoningEffort = (this.options.reasoningEffort as ChatCompletionReasoningEffort) || "medium"
 		}
 
 		const stream = await this.client.chat.completions.create({
@@ -97,6 +98,10 @@ export class OpenAiHandler implements ApiHandler {
 					type: "usage",
 					inputTokens: chunk.usage.prompt_tokens || 0,
 					outputTokens: chunk.usage.completion_tokens || 0,
+					// @ts-ignore-next-line
+					cacheReadTokens: chunk.usage.prompt_tokens_details?.cached_tokens || 0,
+					// @ts-ignore-next-line
+					cacheWriteTokens: chunk.usage.prompt_cache_miss_tokens || 0,
 				}
 			}
 		}

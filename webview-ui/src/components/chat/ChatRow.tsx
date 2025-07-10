@@ -1,8 +1,25 @@
-import { VSCodeBadge, VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeBadge, VSCodeButton, VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import deepEqual from "fast-deep-equal"
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useEvent, useSize } from "react-use"
+import React, { memo, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
+import { useEvent, useSize } from "react-use"
+
+import CreditLimitError from "@/components/chat/CreditLimitError"
+import { OptionsButtons } from "@/components/chat/OptionsButtons"
+import TaskFeedbackButtons from "@/components/chat/TaskFeedbackButtons"
+import { CheckmarkControl } from "@/components/common/CheckmarkControl"
+import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import MarkdownBlock from "@/components/common/MarkdownBlock"
+import SuccessButton from "@/components/common/SuccessButton"
+import { WithCopyButton } from "@/components/common/CopyButton"
+import Thumbnails from "@/components/common/Thumbnails"
+import McpResponseDisplay from "@/components/mcp/chat-display/McpResponseDisplay"
+import McpResourceRow from "@/components/mcp/configuration/tabs/installed/server-row/McpResourceRow"
+import McpToolRow from "@/components/mcp/configuration/tabs/installed/server-row/McpToolRow"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { FileServiceClient, TaskServiceClient } from "@/services/grpc-client"
+import { findMatchingResourceOrTemplate, getMcpServerDisplayName } from "@/utils/mcp"
+import { vscode } from "@/utils/vscode"
 import {
 	ClineApiReqInfo,
 	ClineAskQuestion,
@@ -14,29 +31,23 @@ import {
 	ExtensionMessage,
 } from "@shared/ExtensionMessage"
 import { COMMAND_OUTPUT_STRING, COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { findMatchingResourceOrTemplate, getMcpServerDisplayName } from "@/utils/mcp"
-import { vscode } from "@/utils/vscode"
-import { CheckmarkControl } from "@/components/common/CheckmarkControl"
-import { CheckpointControls, CheckpointOverlay } from "../common/CheckpointControls"
+import { Int64Request, StringRequest } from "@shared/proto/common"
+
 import CodeAccordian, { cleanPathPrefix } from "../common/CodeAccordian"
-import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import MarkdownBlock from "@/components/common/MarkdownBlock"
-import Thumbnails from "@/components/common/Thumbnails"
-import McpToolRow from "@/components/mcp/configuration/tabs/installed/server-row/McpToolRow"
-import McpResponseDisplay from "@/components/mcp/chat-display/McpResponseDisplay"
-import CreditLimitError from "@/components/chat/CreditLimitError"
-import { OptionsButtons } from "@/components/chat/OptionsButtons"
-import { highlightText } from "./TaskHeader"
-import SuccessButton from "@/components/common/SuccessButton"
-import TaskFeedbackButtons from "@/components/chat/TaskFeedbackButtons"
+import { CheckpointControls } from "../common/CheckpointControls"
 import NewTaskPreview from "./NewTaskPreview"
-import McpResourceRow from "@/components/mcp/configuration/tabs/installed/server-row/McpResourceRow"
+import ReportBugPreview from "./ReportBugPreview"
 import UserMessage from "./UserMessage"
-import { agentName, ignoreFile } from "../../../../src/shared/Configuration"
+import QuoteButton from "./QuoteButton"
+
+const normalColor = "var(--vscode-foreground)"
+const errorColor = "var(--vscode-editorWarning-foreground)"
+const successColor = "var(--vscode-charts-green)"
+const cancelledColor = "var(--vscode-descriptionForeground)"
+import { agentName, ignoreFile } from "@shared/Configuration"
 
 const ChatRowContainer = styled.div`
-	padding: 10px 6px 10px 15px;
+	padding: 10px 8px 10px 13px;
 	position: relative;
 
 	&:hover ${CheckpointControls} {
@@ -52,7 +63,15 @@ interface ChatRowProps {
 	isLast: boolean
 	onHeightChange: (isTaller: boolean) => void
 	inputValue?: string
-	sendMessageFromChatRow?: (text: string, images: string[]) => void
+	sendMessageFromChatRow?: (text: string, images: string[], files: string[]) => void
+	onSetQuote: (text: string) => void
+}
+
+interface QuoteButtonState {
+	visible: boolean
+	top: number
+	left: number
+	selectedText: string
 }
 
 interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
@@ -80,11 +99,46 @@ const Markdown = memo(({ markdown }: { markdown?: string }) => {
 				overflowWrap: "anywhere",
 				marginBottom: -15,
 				marginTop: -15,
+				overflow: "hidden", // contain child margins so that parent diff matches height of children
 			}}>
 			<MarkdownBlock markdown={markdown} />
 		</div>
 	)
 })
+
+const RetryMessage = ({ seconds, attempt, retryOperations }: { retryOperations: number; attempt: number; seconds?: number }) => {
+	const [remainingSeconds, setRemainingSeconds] = useState(seconds || 0)
+
+	useEffect(() => {
+		if (seconds && seconds > 0) {
+			setRemainingSeconds(seconds)
+
+			const interval = setInterval(() => {
+				setRemainingSeconds((prev) => {
+					if (prev <= 1) {
+						clearInterval(interval)
+						return 0
+					}
+					return prev - 1
+				})
+			}, 1000)
+
+			return () => clearInterval(interval)
+		}
+	}, [seconds])
+
+	return (
+		<span
+			style={{
+				color: normalColor,
+				fontWeight: "bold",
+			}}>
+			{`API Request (Retrying failed attempt ${attempt}/${retryOperations}`}
+			{remainingSeconds > 0 && ` in ${remainingSeconds} seconds`}
+			)...
+		</span>
+	)
+}
 
 const ChatRow = memo(
 	(props: ChatRowProps) => {
@@ -129,29 +183,36 @@ export const ChatRowContent = ({
 	isLast,
 	inputValue,
 	sendMessageFromChatRow,
+	onSetQuote,
 }: ChatRowContentProps) => {
-	const { mcpServers, mcpMarketplaceCatalog } = useExtensionState()
+	const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl } = useExtensionState()
 	const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
+	const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
+		visible: false,
+		top: 0,
+		left: 0,
+		selectedText: "",
+	})
+	const contentRef = useRef<HTMLDivElement>(null)
+	// Get saved collapsed state from webview state or default to true
+	const savedState = (vscode.getState() as { mcpArgumentsCollapsed?: boolean }) || {}
+	const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(savedState.mcpArgumentsCollapsed ?? true)
 
-	// Get saved expanded state from webview state or default to false
-	const savedState = (vscode.getState() as { mcpArgumentsExpanded?: boolean }) || {}
-	const [mcpArgumentsExpanded, setMcpArgumentsExpanded] = useState(savedState.mcpArgumentsExpanded || false)
-
-	// Update the saved state when the expanded state changes
+	// Update the saved state when the collapsed state changes
 	useEffect(() => {
 		const currentState = (vscode.getState() as Record<string, any>) || {}
 		vscode.setState({
 			...currentState,
-			mcpArgumentsExpanded,
+			mcpArgumentsCollapsed: mcpArgumentsCollapsed,
 		})
-	}, [mcpArgumentsExpanded])
+	}, [mcpArgumentsCollapsed])
 
-	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage] = useMemo(() => {
+	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, retryStatus] = useMemo(() => {
 		if (message.text != null && message.say === "api_req_started") {
 			const info: ClineApiReqInfo = JSON.parse(message.text)
-			return [info.cost, info.cancelReason, info.streamingFailedMessage]
+			return [info.cost, info.cancelReason, info.streamingFailedMessage, info.retryStatus]
 		}
-		return [undefined, undefined, undefined]
+		return [undefined, undefined, undefined, undefined]
 	}, [message.text, message.say])
 
 	// when resuming task last won't be api_req_failed but a resume_task message so api_req_started will show loading spinner. that's why we just remove the last api_req_started that failed without streaming anything
@@ -169,22 +230,83 @@ export const ChatRowContent = ({
 
 	const type = message.type === "ask" ? message.ask : message.say
 
-	const normalColor = "var(--vscode-foreground)"
-	const errorColor = "var(--vscode-errorForeground)"
-	const successColor = "var(--vscode-charts-green)"
-	const cancelledColor = "var(--vscode-descriptionForeground)"
+	// Use the onRelinquishControl hook instead of message event
+	useEffect(() => {
+		return onRelinquishControl(() => {
+			setSeeNewChangesDisabled(false)
+		})
+	}, [onRelinquishControl])
 
-	const handleMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
-		switch (message.type) {
-			case "relinquishControl": {
-				setSeeNewChangesDisabled(false)
-				break
+	// --- Quote Button Logic ---
+	// MOVE handleQuoteClick INSIDE ChatRowContent
+	const handleQuoteClick = useCallback(() => {
+		onSetQuote(quoteButtonState.selectedText)
+		window.getSelection()?.removeAllRanges() // Clear the browser selection
+		setQuoteButtonState({ visible: false, top: 0, left: 0, selectedText: "" })
+	}, [onSetQuote, quoteButtonState.selectedText]) // <-- Use onSetQuote from props
+
+	const handleMouseUp = useCallback((event: MouseEvent<HTMLDivElement>) => {
+		// Get the target element immediately, before the timeout
+		const targetElement = event.target as Element
+		const isClickOnButton = !!targetElement.closest(".quote-button-class")
+
+		// Delay the selection check slightly
+		setTimeout(() => {
+			// Now, check the selection state *after* the browser has likely updated it
+			const selection = window.getSelection()
+			const selectedText = selection?.toString().trim() ?? ""
+
+			let shouldShowButton = false
+			let buttonTop = 0
+			let buttonLeft = 0
+			let textToQuote = ""
+
+			// Condition 1: Check if there's a valid, non-collapsed selection within bounds
+			// Ensure contentRef.current still exists in case component unmounted during timeout
+			if (selectedText && contentRef.current && selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+				const range = selection.getRangeAt(0)
+				const rangeRect = range.getBoundingClientRect()
+				// Re-check ref inside timeout and ensure containerRect is valid
+				const containerRect = contentRef.current?.getBoundingClientRect()
+
+				if (containerRect) {
+					// Check if containerRect was successfully obtained
+					const tolerance = 5 // Allow for a small pixel overflow (e.g., for margins)
+					const isSelectionWithin =
+						rangeRect.top >= containerRect.top &&
+						rangeRect.left >= containerRect.left &&
+						rangeRect.bottom <= containerRect.bottom + tolerance && // Added tolerance
+						rangeRect.right <= containerRect.right
+
+					if (isSelectionWithin) {
+						shouldShowButton = true // Mark that we should show the button
+						const buttonHeight = 30
+						// Calculate the raw top position relative to the container, placing it above the selection
+						const calculatedTop = rangeRect.top - containerRect.top - buttonHeight - 5 // Subtract button height and a small margin
+						// Allow the button to potentially have a negative top value
+						buttonTop = calculatedTop
+						buttonLeft = Math.max(0, rangeRect.left - containerRect.left) // Still prevent going left of container
+						textToQuote = selectedText
+					}
+				}
 			}
-		}
-	}, [])
 
-	useEvent("message", handleMessage)
+			// Decision: Set the state based on whether we should show or hide
+			if (shouldShowButton) {
+				// Scenario A: Valid selection exists -> Show button
+				setQuoteButtonState({
+					visible: true,
+					top: buttonTop,
+					left: buttonLeft,
+					selectedText: textToQuote,
+				})
+			} else if (!isClickOnButton) {
+				// Scenario B: No valid selection AND click was NOT on button -> Hide button
+				setQuoteButtonState({ visible: false, top: 0, left: 0, selectedText: "" })
+			}
+			// Scenario C (Click WAS on button): Do nothing here, handleQuoteClick takes over.
+		}, 0) // Delay of 0ms pushes execution after current event cycle
+	}, []) // Dependencies remain empty
 
 	const [icon, title] = useMemo(() => {
 		switch (type) {
@@ -196,7 +318,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>Error</span>,
+					<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Error</span>,
 				]
 			case "mistake_limit_reached":
 				return [
@@ -206,7 +328,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>{agentName} is having trouble...</span>,
+					<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>{agentName} is having trouble...</span>,
 				]
 			case "auto_approval_max_req_reached":
 				return [
@@ -216,7 +338,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>Maximum Requests Reached</span>,
+					<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Maximum Requests Reached</span>,
 				]
 			case "command":
 				return [
@@ -245,7 +367,7 @@ export const ChatRowContent = ({
 								marginBottom: "-1.5px",
 							}}></span>
 					),
-					<span style={{ color: normalColor, fontWeight: "bold", wordBreak: "break-word" }}>
+					<span className="ph-no-capture" style={{ color: normalColor, fontWeight: "bold", wordBreak: "break-word" }}>
 						{agentName} wants to {mcpServerUse.type === "use_mcp_tool" ? "use a tool" : "access a resource"} on the{" "}
 						<code style={{ wordBreak: "break-all" }}>
 							{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
@@ -301,7 +423,7 @@ export const ChatRowContent = ({
 							return apiReqCancelReason === "user_cancelled" ? (
 								<span style={{ color: normalColor, fontWeight: "bold" }}>API Request Cancelled</span>
 							) : (
-								<span style={{ color: errorColor, fontWeight: "bold" }}>API Streaming Failed</span>
+								<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>API Streaming Error</span>
 							)
 						}
 
@@ -310,7 +432,18 @@ export const ChatRowContent = ({
 						}
 
 						if (apiRequestFailedMessage) {
-							return <span style={{ color: errorColor, fontWeight: "bold" }}>API Request Failed</span>
+							return <span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>API Request Error</span>
+						}
+						// New: Check for retryStatus to modify the title
+						if (retryStatus && cost == null && !apiReqCancelReason) {
+							const retryOperations = retryStatus.maxAttempts > 0 ? retryStatus.maxAttempts - 1 : 0
+							return (
+								<RetryMessage
+									seconds={retryStatus.delaySec}
+									attempt={retryStatus.attempt}
+									retryOperations={retryOperations}
+								/>
+							)
 						}
 
 						return <span style={{ color: normalColor, fontWeight: "bold" }}>API Request...</span>
@@ -334,8 +467,8 @@ export const ChatRowContent = ({
 	const headerStyle: React.CSSProperties = {
 		display: "flex",
 		alignItems: "center",
-		gap: "10px",
-		marginBottom: "12px",
+		gap: "6px",
+		marginBottom: "8px",
 	}
 
 	const pStyle: React.CSSProperties = {
@@ -360,7 +493,7 @@ export const ChatRowContent = ({
 		}
 		const toolIcon = (name: string, color?: string, rotation?: number, title?: string) => (
 			<span
-				className={`codicon codicon-${name}`}
+				className={`codicon codicon-${name} ph-no-capture`}
 				style={{
 					color: color ? colorMap[color as keyof typeof colorMap] || color : "var(--vscode-foreground)",
 					marginBottom: "-1.5px",
@@ -438,13 +571,13 @@ export const ChatRowContent = ({
 									msUserSelect: "none",
 								}}
 								onClick={() => {
-									vscode.postMessage({
-										type: "openFile",
-										text: tool.content,
-									})
+									FileServiceClient.openFile(StringRequest.create({ value: tool.content })).catch((err) =>
+										console.error("Failed to open file:", err),
+									)
 								}}>
 								{tool.path?.startsWith(".") && <span>.</span>}
 								<span
+									className="ph-no-capture"
 									style={{
 										whiteSpace: "nowrap",
 										overflow: "hidden",
@@ -516,7 +649,7 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							{toolIcon("file-code")}
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+								toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
 									? `${agentName} wants to view source code definition names used in this directory:`
@@ -549,6 +682,50 @@ export const ChatRowContent = ({
 							isExpanded={isExpanded}
 							onToggleExpand={onToggleExpand}
 						/>
+					</>
+				)
+			case "webFetch":
+				return (
+					<>
+						<div style={headerStyle}>
+							<span className="codicon codicon-link" style={{ color: normalColor, marginBottom: "-1.5px" }}></span>
+							{tool.operationIsLocatedInWorkspace === false &&
+								toolIcon("sign-out", "yellow", -90, "This URL is external")}
+							<span style={{ fontWeight: "bold" }}>
+								{message.type === "ask"
+									? `${agentName} wants to fetch content from this URL:`
+									: `${agentName} fetched content from this URL:`}
+							</span>
+						</div>
+						<div
+							style={{
+								borderRadius: 3,
+								backgroundColor: CODE_BLOCK_BG_COLOR,
+								overflow: "hidden",
+								border: "1px solid var(--vscode-editorGroup-border)",
+								padding: "9px 10px",
+							}}>
+							<a
+								href={tool.path}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="ph-no-capture"
+								style={{
+									whiteSpace: "nowrap",
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									marginRight: "8px",
+									direction: "rtl",
+									textAlign: "left",
+									color: "var(--vscode-textLink-foreground)",
+									textDecoration: "underline",
+									display: "block",
+								}}>
+								{tool.path + "\u200E"}
+							</a>
+						</div>
+						{/* Displaying the 'content' which now holds "Fetching URL: [URL]" */}
+						{/* <div style={{ paddingTop: 5, fontSize: '0.9em', opacity: 0.8 }}>{tool.content}</div> */}
 					</>
 				)
 			default:
@@ -656,8 +833,8 @@ export const ChatRowContent = ({
 				<div
 					style={{
 						background: "var(--vscode-textCodeBlock-background)",
-						//borderRadius: "3px",
-						padding: "8px 10px",
+						borderRadius: "6px 6px 0 0",
+						padding: "8px 6px",
 						marginTop: "8px",
 					}}>
 					{useMcpServer.type === "access_mcp_resource" && (
@@ -696,21 +873,24 @@ export const ChatRowContent = ({
 								<div style={{ marginTop: "8px" }}>
 									<div
 										style={{
-											marginBottom: "4px",
-											opacity: 0.8,
-											fontSize: "13px",
-											//textTransform: "uppercase",
 											display: "flex",
 											alignItems: "center",
 											cursor: "pointer",
 										}}
-										onClick={() => setMcpArgumentsExpanded(!mcpArgumentsExpanded)}>
+										onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}>
 										<span
-											className={`codicon codicon-chevron-${mcpArgumentsExpanded ? "down" : "right"}`}
+											className={`codicon codicon-chevron-${mcpArgumentsCollapsed ? "down" : "right"}`}
 											style={{ marginRight: "4px" }}></span>
-										<span style={{ color: "var(--vscode-textLink-foreground)" }}>Arguments</span>
+										<span
+											style={{
+												opacity: 0.8,
+												fontSize: "12px",
+												color: "var(--vscode-textLink-foreground)",
+											}}>
+											Arguments
+										</span>
 									</div>
-									{mcpArgumentsExpanded && (
+									{mcpArgumentsCollapsed && (
 										<CodeAccordian
 											code={useMcpServer.arguments}
 											language="json"
@@ -793,7 +973,9 @@ export const ChatRowContent = ({
 											<p
 												style={{
 													...pStyle,
-													color: "var(--vscode-errorForeground)",
+													color: errorColor,
+													fontSize: 11,
+													opacity: 0.7,
 												}}>
 												{apiRequestFailedMessage || apiReqStreamingFailedMessage}
 												{apiRequestFailedMessage?.toLowerCase().includes("powershell") && (
@@ -834,11 +1016,54 @@ export const ChatRowContent = ({
 					return null // we should never see this message type
 				case "mcp_server_response":
 					return <McpResponseDisplay responseText={message.text || ""} />
+				case "mcp_notification":
+					return (
+						<div
+							style={{
+								display: "flex",
+								alignItems: "flex-start",
+								gap: "8px",
+								padding: "8px 12px",
+								backgroundColor: "var(--vscode-textBlockQuote-background)",
+								borderRadius: "4px",
+								fontSize: "13px",
+								color: "var(--vscode-foreground)",
+								opacity: 0.9,
+								marginBottom: "8px",
+							}}>
+							<i
+								className="codicon codicon-bell"
+								style={{
+									marginTop: "2px",
+									fontSize: "14px",
+									color: "var(--vscode-notificationsInfoIcon-foreground)",
+									flexShrink: 0,
+								}}
+							/>
+							<div style={{ flex: 1, wordBreak: "break-word" }}>
+								<span style={{ fontWeight: 500 }}>MCP Notification: </span>
+								<span className="ph-no-capture">{message.text}</span>
+							</div>
+						</div>
+					)
 				case "text":
 					return (
-						<div>
+						<WithCopyButton
+							ref={contentRef}
+							onMouseUp={handleMouseUp}
+							textToCopy={message.text}
+							position="bottom-right">
 							<Markdown markdown={message.text} />
-						</div>
+							{quoteButtonState.visible && (
+								<QuoteButton
+									top={quoteButtonState.top}
+									left={quoteButtonState.left}
+									onClick={() => {
+										handleQuoteClick()
+									}}
+								/>
+							)}
+						</WithCopyButton>
 					)
 				case "reasoning":
 					return (
@@ -867,12 +1092,13 @@ export const ChatRowContent = ({
 													}}
 												/>
 											</span>
-											{message.text}
+											<span className="ph-no-capture">{message.text}</span>
 										</div>
 									) : (
 										<div style={{ display: "flex", alignItems: "center" }}>
 											<span style={{ fontWeight: "bold", marginRight: "4px" }}>Thinking:</span>
 											<span
+												className="ph-no-capture"
 												style={{
 													whiteSpace: "nowrap",
 													overflow: "hidden",
@@ -901,6 +1127,7 @@ export const ChatRowContent = ({
 						<UserMessage
 							text={message.text}
 							images={message.images}
+							files={message.files}
 							messageTs={message.ts}
 							sendMessageFromChatRow={sendMessageFromChatRow}
 						/>
@@ -933,7 +1160,9 @@ export const ChatRowContent = ({
 							<p
 								style={{
 									...pStyle,
-									color: "var(--vscode-errorForeground)",
+									color: errorColor,
+									fontSize: 11,
+									opacity: 0.7,
 								}}>
 								{message.text}
 							</p>
@@ -1034,6 +1263,21 @@ export const ChatRowContent = ({
 							Loading MCP documentation
 						</div>
 					)
+				case "get_mcp_tool_input_schema":
+					return (
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								color: "var(--vscode-foreground)",
+								opacity: 0.7,
+								fontSize: 12,
+								padding: "4px 0",
+							}}>
+							<i className="codicon codicon-bracket-dot" style={{ marginRight: 6 }} />
+							{message.text}
+						</div>
+					)
 				case "completion_result":
 					const hasChanges = message.text?.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
 					const text = hasChanges ? message.text?.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length) : message.text
@@ -1058,27 +1302,42 @@ export const ChatRowContent = ({
 									}}
 								/>
 							</div>
-							<div
+							<WithCopyButton
+								ref={contentRef}
+								onMouseUp={handleMouseUp}
+								textToCopy={text}
+								position="bottom-right"
 								style={{
 									color: "var(--vscode-charts-white)",
 									paddingTop: 10,
 								}}>
 								<Markdown markdown={text} />
-							</div>
+								{quoteButtonState.visible && (
+									<QuoteButton
+										top={quoteButtonState.top}
+										left={quoteButtonState.left}
+										onClick={handleQuoteClick}
+									/>
+								)}
+							</WithCopyButton>
 							{message.partial !== true && hasChanges && (
 								<div style={{ paddingTop: 17 }}>
 									<SuccessButton
 										disabled={seeNewChangesDisabled}
 										onClick={() => {
 											setSeeNewChangesDisabled(true)
-											vscode.postMessage({
-												type: "taskCompletionViewChanges",
-												number: message.ts,
-											})
+											TaskServiceClient.taskCompletionViewChanges(
+												Int64Request.create({
+													value: message.ts,
+												}),
+											).catch((err) => console.error("Failed to show task completion view changes:", err))
 										}}
 										style={{
 											cursor: seeNewChangesDisabled ? "wait" : "pointer",
-											width: "100%",
+											marginLeft: "2px",
+											marginRight: "2px",
+											display: "block",
+											textAlign: "center",
 										}}>
 										<i className="codicon codicon-new-file" style={{ marginRight: 6 }} />
 										See new changes
@@ -1164,7 +1423,8 @@ export const ChatRowContent = ({
 							<p
 								style={{
 									...pStyle,
-									color: "var(--vscode-errorForeground)",
+									color: errorColor,
+									fontSize: 11,
 								}}>
 								{message.text}
 							</p>
@@ -1180,7 +1440,8 @@ export const ChatRowContent = ({
 							<p
 								style={{
 									...pStyle,
-									color: "var(--vscode-errorForeground)",
+									color: errorColor,
+									fontSize: 11,
 								}}>
 								{message.text}
 							</p>
@@ -1211,36 +1472,50 @@ export const ChatRowContent = ({
 										}}
 									/>
 								</div>
-								<div
+								<WithCopyButton
+									ref={contentRef}
+									onMouseUp={handleMouseUp}
+									textToCopy={text}
+									position="bottom-right"
 									style={{
 										color: "var(--vscode-charts-green)",
 										paddingTop: 10,
 									}}>
 									<Markdown markdown={text} />
-									{message.partial !== true && hasChanges && (
-										<div style={{ marginTop: 15 }}>
-											<SuccessButton
-												appearance="secondary"
-												disabled={seeNewChangesDisabled}
-												onClick={() => {
-													setSeeNewChangesDisabled(true)
-													vscode.postMessage({
-														type: "taskCompletionViewChanges",
-														number: message.ts,
-													})
-												}}>
-												<i
-													className="codicon codicon-new-file"
-													style={{
-														marginRight: 6,
-														cursor: seeNewChangesDisabled ? "wait" : "pointer",
-													}}
-												/>
-												See new changes
-											</SuccessButton>
-										</div>
+									{quoteButtonState.visible && (
+										<QuoteButton
+											top={quoteButtonState.top}
+											left={quoteButtonState.left}
+											onClick={handleQuoteClick}
+										/>
 									)}
-								</div>
+								</WithCopyButton>
+								{message.partial !== true && hasChanges && (
+									<div style={{ marginTop: 15 }}>
+										<SuccessButton
+											appearance="icon"
+											disabled={seeNewChangesDisabled}
+											onClick={() => {
+												setSeeNewChangesDisabled(true)
+												TaskServiceClient.taskCompletionViewChanges(
+													Int64Request.create({
+														value: message.ts,
+													}),
+												).catch((err) =>
+													console.error("Failed to show task completion view changes:", err),
+												)
+											}}>
+											<i
+												className="codicon codicon-new-file"
+												style={{
+													marginRight: 6,
+													cursor: seeNewChangesDisabled ? "wait" : "pointer",
+												}}
+											/>
+											See new changes
+										</SuccessButton>
+									</div>
+								)}
 							</div>
 						)
 					} else {
@@ -1268,7 +1543,12 @@ export const ChatRowContent = ({
 									{title}
 								</div>
 							)}
-							<div style={{ paddingTop: 10 }}>
+							<WithCopyButton
+								ref={contentRef}
+								onMouseUp={handleMouseUp}
+								textToCopy={question}
+								position="bottom-right"
+								style={{ paddingTop: 10 }}>
 								<Markdown markdown={question} />
 								<OptionsButtons
 									options={options}
@@ -1276,7 +1556,16 @@ export const ChatRowContent = ({
 									isActive={isLast && lastModifiedMessage?.ask === "followup"}
 									inputValue={inputValue}
 								/>
-							</div>
+								{quoteButtonState.visible && (
+									<QuoteButton
+										top={quoteButtonState.top}
+										left={quoteButtonState.left}
+										onClick={() => {
+											handleQuoteClick()
+										}}
+									/>
+								)}
+							</WithCopyButton>
 						</>
 					)
 				case "new_task":
@@ -1296,6 +1585,40 @@ export const ChatRowContent = ({
 							<NewTaskPreview context={message.text || ""} />
 						</>
 					)
+				case "condense":
+					return (
+						<>
+							<div style={headerStyle}>
+								<span
+									className="codicon codicon-new-file"
+									style={{
+										color: normalColor,
+										marginBottom: "-1.5px",
+									}}></span>
+								<span style={{ color: normalColor, fontWeight: "bold" }}>
+									{agentName} wants to compact your conversation:
+								</span>
+							</div>
+							<NewTaskPreview context={message.text || ""} />
+						</>
+					)
+				case "report_bug":
+					return (
+						<>
+							<div style={headerStyle}>
+								<span
+									className="codicon codicon-new-file"
+									style={{
+										color: normalColor,
+										marginBottom: "-1.5px",
+									}}></span>
+								<span style={{ color: normalColor, fontWeight: "bold" }}>
+									{agentName} wants to create a Github issue:
+								</span>
+							</div>
+							<ReportBugPreview data={message.text || ""} />
+						</>
+					)
 				case "plan_mode_respond": {
 					let response: string | undefined
 					let options: string[] | undefined
@@ -1310,7 +1633,7 @@ export const ChatRowContent = ({
 						response = message.text
 					}
 					return (
-						<div style={{}}>
+						<WithCopyButton ref={contentRef} onMouseUp={handleMouseUp} textToCopy={response} position="bottom-right">
 							<Markdown markdown={response} />
 							<OptionsButtons
 								options={options}
@@ -1318,7 +1641,16 @@ export const ChatRowContent = ({
 								isActive={isLast && lastModifiedMessage?.ask === "plan_mode_respond"}
 								inputValue={inputValue}
 							/>
-						</div>
+							{quoteButtonState.visible && (
+								<QuoteButton
+									top={quoteButtonState.top}
+									left={quoteButtonState.left}
+									onClick={() => {
+										handleQuoteClick()
+									}}
+								/>
+							)}
+						</WithCopyButton>
 					)
 				}
 				default:

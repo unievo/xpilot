@@ -2,27 +2,30 @@ import * as path from "path"
 import * as vscode from "vscode"
 import fs from "fs/promises"
 import { Anthropic } from "@anthropic-ai/sdk"
-import { fileExistsAtPath } from "../../utils/fs"
-import { ClineMessage } from "../../shared/ExtensionMessage"
-import { TaskMetadata } from "../context/context-tracking/ContextTrackerTypes"
+import { fileExistsAtPath } from "@utils/fs"
+import { ClineMessage } from "@shared/ExtensionMessage"
+import { TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
 import os from "os"
-import { execa } from "execa"
+import { execa } from "@packages/execa"
 
 import {
 	apiConversationHistoryFile,
 	contextHistoryFile,
 	mcpSettingsFile,
 	openRouterModelsFile,
-	instructionsFileOrDirectoryName,
+	workspaceInstructionsDirectoryPath,
 	taskMetadataFile,
 	uiMessagesFile,
 	publisherName,
 	productName,
-	settingsDirectoryName,
-	mcpDirectoryName,
-	mcpServersDirectoryName,
+	settingsDirectory,
+	mcpDirectory,
+	mcpServersDirectory,
 	agentName,
-} from "../../shared/Configuration"
+	workspaceWorkflowsDirectoryPath,
+	instructionsDirectory,
+	workflowsDirectory,
+} from "@shared/Configuration"
 
 export const GlobalFileNames = {
 	apiConversationHistory: apiConversationHistoryFile,
@@ -30,7 +33,11 @@ export const GlobalFileNames = {
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
 	mcpSettings: mcpSettingsFile,
-	clineRules: instructionsFileOrDirectoryName,
+	clineRules: workspaceInstructionsDirectoryPath,
+	workflows: workspaceWorkflowsDirectoryPath,
+	cursorRulesDir: ".cursor/rules",
+	cursorRulesFile: ".cursorrules",
+	windsurfRules: ".windsurf/rules",
 	taskMetadata: taskMetadataFile,
 }
 
@@ -76,12 +83,12 @@ export async function getUserProductDirectoryPath(): Promise<string> {
 }
 
 export async function getUserMcpDirectoryPath(): Promise<string> {
-	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectoryName)
+	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectory)
 	return mcpDir
 }
 
 export async function getUserMcpServersPath(): Promise<string> {
-	const mcpServersDir = path.join(await getUserMcpDirectoryPath(), mcpServersDirectoryName)
+	const mcpServersDir = path.join(await getUserMcpDirectoryPath(), mcpServersDirectory)
 	return mcpServersDir
 }
 
@@ -92,15 +99,24 @@ export async function ensureTaskDirectoryExists(context: vscode.ExtensionContext
 	return taskDir
 }
 
-export async function ensureRulesDirectoryExists(): Promise<string> {
-	const userDocumentsPath = await getDocumentsPath()
-	const clineRulesDir = path.join(userDocumentsPath, agentName, "Instructions")
+export async function ensureGlobalInstructionsDirectoryExists(): Promise<string> {
+	const clineRulesDir = path.join(await getUserProductDirectoryPath(), instructionsDirectory)
 	try {
 		await fs.mkdir(clineRulesDir, { recursive: true })
 	} catch (error) {
-		return path.join(os.homedir(), "Documents", agentName, "Instructions") // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+		return path.join(os.homedir(), `.${publisherName}`, productName, instructionsDirectory)
 	}
 	return clineRulesDir
+}
+
+export async function ensureGlobalWorkflowsDirectoryExists(): Promise<string> {
+	const clineWorkflowsDir = path.join(await getUserProductDirectoryPath(), workflowsDirectory)
+	try {
+		await fs.mkdir(clineWorkflowsDir, { recursive: true })
+	} catch (error) {
+		return path.join(os.homedir(), `.${publisherName}`, productName, workflowsDirectory)
+	}
+	return clineWorkflowsDir
 }
 
 export async function ensureMcpServersDirectoryExists(): Promise<string> {
@@ -108,13 +124,13 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 	try {
 		await fs.mkdir(mcpServersDir, { recursive: true })
 	} catch (error) {
-		return `~/.${publisherName}/${productName}/mcp/servers` // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine since this path is only ever used in the system prompt
+		return path.join(os.homedir(), `.${publisherName}`, productName, mcpDirectory, mcpServersDirectory)
 	}
 	return mcpServersDir
 }
 
 export async function ensureSettingsDirectoryExists(): Promise<string> {
-	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectoryName)
+	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectory)
 	await fs.mkdir(settingsDir, { recursive: true })
 	return settingsDir
 }

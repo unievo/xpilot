@@ -86,16 +86,62 @@ const OS_GENERATED_FILES = [
  * Recursively reads a directory and returns an array of absolute file paths.
  *
  * @param directoryPath - The path to the directory to read.
+ * @param excludedPaths - Nested array of paths to ignore.
+ * @param excludedDirectories - Array of strings to exclude directories containing them in their names.
+ * @param excludedFiles - Array of strings to exclude files containing them in their filenames.
  * @returns A promise that resolves to an array of absolute file paths.
  * @throws Error if the directory cannot be read.
  */
-export const readDirectory = async (directoryPath: string) => {
+export const readDirectory = async (
+	directoryPath: string,
+	excludedPaths: string[][] = [],
+	excludedDirectories: string[] = [],
+	excludedFiles: string[] = [],
+) => {
 	try {
 		const filePaths = await fs
 			.readdir(directoryPath, { withFileTypes: true, recursive: true })
 			.then((entries) => entries.filter((entry) => !OS_GENERATED_FILES.includes(entry.name)))
 			.then((entries) => entries.filter((entry) => entry.isFile()))
 			.then((files) => files.map((file) => path.resolve(file.parentPath, file.name)))
+			.then((filePaths) =>
+				filePaths.filter((filePath) => {
+					if (excludedPaths.length > 0) {
+						for (const excludedPathList of excludedPaths) {
+							const pathToSearchFor = path.sep + excludedPathList.join(path.sep) + path.sep
+							if (filePath.includes(pathToSearchFor)) {
+								return false
+							}
+						}
+					}
+
+					// Filter based on excludedDirectories
+					if (excludedDirectories.length > 0) {
+						const relativePath = path.relative(directoryPath, filePath)
+						const pathSegments = relativePath.split(path.sep)
+						const directorySegmentsInRelativePath = pathSegments.slice(0, -1)
+
+						const isInExcludedDirectory = directorySegmentsInRelativePath.some((segment) =>
+							excludedDirectories.some((excludedDir) => segment.includes(excludedDir)),
+						)
+						if (isInExcludedDirectory) {
+							return false
+						}
+					}
+
+					// Filter based on excludedFiles
+					if (excludedFiles.length > 0) {
+						const fileName = path.basename(filePath)
+						const containsExcludedString = excludedFiles.some((excludedString) => fileName.includes(excludedString))
+						if (containsExcludedString) {
+							return false
+						}
+					}
+
+					return true
+				}),
+			)
+
 		return filePaths
 	} catch {
 		throw new Error(`Error reading directory at ${directoryPath}`)

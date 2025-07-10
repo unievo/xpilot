@@ -40,7 +40,7 @@ const CodeAccordian = ({
 
 	const numberOfEdits = useMemo(() => {
 		if (code) {
-			return (code.match(/>>>>>>> REPLACE/g) || []).length || undefined
+			return (code.match(/[-]{3,} SEARCH/g) || []).length || undefined
 		}
 		return undefined
 	}, [code])
@@ -48,10 +48,11 @@ const CodeAccordian = ({
 	return (
 		<div
 			style={{
+				marginTop: "8px",
 				borderRadius: 3,
 				backgroundColor: CODE_BLOCK_BG_COLOR,
 				overflow: "hidden", // This ensures the inner scrollable area doesn't overflow the rounded corners
-				border: "1px solid var(--vscode-editorGroup-border)",
+				//border: "1px solid var(--vscode-editorGroup-border)",
 			}}>
 			{(path || isFeedback || isConsoleLogs) && (
 				<div

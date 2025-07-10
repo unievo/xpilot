@@ -1,16 +1,20 @@
-import React, { useState, useRef, useLayoutEffect, memo } from "react"
+import { FileServiceClient } from "@/services/grpc-client"
+import { StringRequest } from "@shared/proto/common"
+import React, { memo, useLayoutEffect, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
-import { vscode } from "@/utils/vscode"
+import { itemIconColor } from "../theme"
 
 interface ThumbnailsProps {
 	images: string[]
+	files: string[]
 	style?: React.CSSProperties
 	setImages?: React.Dispatch<React.SetStateAction<string[]>>
+	setFiles?: React.Dispatch<React.SetStateAction<string[]>>
 	onHeightChange?: (height: number) => void
 }
 
-const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProps) => {
-	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange }: ThumbnailsProps) => {
+	const [hoveredIndex, setHoveredIndex] = useState<string | null>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { width } = useWindowSize()
 
@@ -24,16 +28,29 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 			onHeightChange?.(height)
 		}
 		setHoveredIndex(null)
-	}, [images, width, onHeightChange])
+	}, [images, files, width, onHeightChange])
 
-	const handleDelete = (index: number) => {
+	const handleDeleteImages = (index: number) => {
 		setImages?.((prevImages) => prevImages.filter((_, i) => i !== index))
 	}
 
-	const isDeletable = setImages !== undefined
+	const handleDeleteFiles = (index: number) => {
+		setFiles?.((prevFiles) => prevFiles.filter((_, i) => i !== index))
+	}
+
+	const isDeletableImages = setImages !== undefined
+	const isDeletableFiles = setFiles !== undefined
 
 	const handleImageClick = (image: string) => {
-		vscode.postMessage({ type: "openImage", text: image })
+		FileServiceClient.openImage(StringRequest.create({ value: image })).catch((err) =>
+			console.error("Failed to open image:", err),
+		)
+	}
+
+	const handleFileClick = (filePath: string) => {
+		FileServiceClient.openFile(StringRequest.create({ value: filePath })).catch((err) =>
+			console.error("Failed to open file:", err),
+		)
 	}
 
 	return (
@@ -46,51 +63,135 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 				rowGap: 3,
 				...style,
 			}}>
-			{images.map((image, index) => (
-				<div
-					key={index}
-					style={{ position: "relative" }}
-					onMouseEnter={() => setHoveredIndex(index)}
-					onMouseLeave={() => setHoveredIndex(null)}>
-					<img
-						src={image}
-						alt={`Thumbnail ${index + 1}`}
-						style={{
-							width: 34,
-							height: 34,
-							objectFit: "cover",
-							borderRadius: 4,
-							cursor: "pointer",
-						}}
-						onClick={() => handleImageClick(image)}
-					/>
-					{isDeletable && hoveredIndex === index && (
+			{images.map((image, index) => {
+				const imageName = image.split(/[\\/]/).pop() || `image-${index + 1}`
+
+				return (
+					<div
+						key={`image-${index}`}
+						style={{ marginLeft: -0, position: "relative", overflow: "hidden" }}
+						onMouseMove={() => setHoveredIndex(`image-${index}`)}
+						onMouseLeave={() => setHoveredIndex(null)}>
 						<div
-							onClick={() => handleDelete(index)}
 							style={{
-								position: "absolute",
-								top: -4,
-								right: -4,
-								width: 13,
-								height: 13,
-								borderRadius: "50%",
-								backgroundColor: "var(--vscode-badge-background)",
-								display: "flex",
-								justifyContent: "center",
-								alignItems: "center",
+								minWidth: 30,
+								height: 16,
+								paddingRight: 3,
+								paddingTop: 3,
+								paddingBottom: 3,
+								borderRadius: 4,
 								cursor: "pointer",
-							}}>
+								border: "1px solid var(--vscode-checkbox-border)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+							onClick={() => handleImageClick(image)}>
+							{hoveredIndex === `image-${index}` && isDeletableImages ? (
+								<span
+									className="codicon codicon-close"
+									style={{
+										fontSize: 14,
+										paddingRight: 2,
+										color: "var(--vscode-textColor)",
+									}}
+									onClick={(e) => {
+										e.stopPropagation()
+										handleDeleteImages(index)
+									}}></span>
+							) : (
+								<img
+									src={image}
+									alt={`Thumbnail`}
+									style={{
+										width: 16,
+										height: 16,
+										objectFit: "cover",
+										borderRadius: 2,
+										marginRight: 2,
+									}}
+								/>
+							)}
 							<span
-								className="codicon codicon-close"
 								style={{
-									color: "var(--vscode-foreground)",
 									fontSize: 10,
-									fontWeight: "bold",
-								}}></span>
+									opacity: 0.8,
+									marginTop: 1,
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									whiteSpace: "nowrap",
+									textAlign: "center",
+								}}
+								title="Image">
+								image
+							</span>
 						</div>
-					)}
-				</div>
-			))}
+					</div>
+				)
+			})}
+
+			{files.map((filePath, index) => {
+				const fileName = filePath.split(/[\\/]/).pop() || filePath
+
+				return (
+					<div
+						key={`file-${index}`}
+						style={{ marginLeft: -0, position: "relative", overflow: "hidden" }}
+						onMouseMove={() => setHoveredIndex(`file-${index}`)}
+						onMouseLeave={() => setHoveredIndex(null)}>
+						<div
+							style={{
+								minWidth: 30,
+								height: 16,
+								paddingRight: 3,
+								paddingTop: 3,
+								paddingBottom: 3,
+								borderRadius: 4,
+								cursor: "pointer",
+								//backgroundColor: "var(--vscode-editor-background)",
+								border: "1px solid var(--vscode-checkbox-border)",
+								display: "flex",
+								//flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+							onClick={() => handleFileClick(filePath)}>
+							<span
+								className={`codicon ${hoveredIndex === `file-${index}` && isDeletableFiles ? "codicon-close" : "codicon-file"}`}
+								style={{
+									fontSize: 16,
+									paddingRight: 2,
+									color:
+										hoveredIndex === `file-${index}` && isDeletableFiles
+											? "var(--vscode-textColor)"
+											: itemIconColor,
+								}}
+								onClick={
+									hoveredIndex === `file-${index}` && isDeletableFiles
+										? (e) => {
+												e.stopPropagation()
+												handleDeleteFiles(index)
+											}
+										: undefined
+								}></span>
+							<span
+								style={{
+									fontSize: 10,
+									opacity: 0.8,
+									marginTop: 1,
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									whiteSpace: "nowrap",
+									textAlign: "center",
+								}}
+								title={fileName}>
+								{fileName}
+							</span>
+						</div>
+						{/* Removed separate delete button since icon now handles deletion */}
+					</div>
+				)
+			})}
 		</div>
 	)
 }

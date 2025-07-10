@@ -5,6 +5,7 @@ import * as childProcess from "child_process"
 import * as readline from "readline"
 import { getBinPath } from "../ripgrep"
 import type { Fzf, FzfResultItem } from "fzf"
+import { ignoreWorkspaceDirectories } from "@/shared/Configuration"
 
 // Wrapper function for childProcess.spawn
 export type SpawnFunction = typeof childProcess.spawn
@@ -17,14 +18,7 @@ export async function executeRipgrepForFiles(
 ): Promise<{ path: string; type: "file" | "folder"; label?: string }[]> {
 	return new Promise((resolve, reject) => {
 		// Arguments for ripgrep to list files, follow symlinks, include hidden, and exclude common directories
-		const args = [
-			"--files",
-			"--follow",
-			"--hidden",
-			"-g",
-			"!**/{node_modules,.git,.github,out,dist,__pycache__,.venv,.env,venv,env,.cache,tmp,temp}/**",
-			workspacePath,
-		]
+		const args = ["--files", "--follow", "--hidden", "-g", `!**/{${ignoreWorkspaceDirectories.join(",")}}/**`, workspacePath]
 
 		// Spawn the ripgrep process with the specified arguments
 		const rgProcess = getSpawnFunction()(rgPath, args)
@@ -120,15 +114,15 @@ export async function searchWorkspaceFiles(
 			limit: limit * 2,
 		})
 
-		// The min threshold value will require some testing and tuning as the scores are exponential, and exaggerated
-		const MIN_SCORE_THRESHOLD = 100
+		// The min threshold value - fzf scores are negative, lower is better
+		// Use a reasonable negative threshold (e.g., -50) to filter out very poor matches
+		const MIN_SCORE_THRESHOLD = -50
 
 		// Filter results by score and map to original items
-		// Use exponential scaling for normalization
-		// This gives a more dramatic difference between good and bad matches
+		// fzf scores are negative, so we want scores greater than (less negative than) our threshold
 		const filteredResults = fzf
 			.find(query)
-			.filter(({ score }: { score: number }) => Math.exp(score / 20) >= MIN_SCORE_THRESHOLD)
+			.filter(({ score }: { score: number }) => score >= MIN_SCORE_THRESHOLD)
 			.slice(0, limit)
 
 		// Verify if the path exists and is actually a directory
@@ -147,8 +141,11 @@ export async function searchWorkspaceFiles(
 				return { ...item, type }
 			},
 		)
-
-		return await Promise.all(verifiedResultsPromises)
+		if (verifiedResultsPromises.length > 0) {
+			return await Promise.all(verifiedResultsPromises)
+		} else {
+			return allItems.slice(0, limit)
+		}
 	} catch (error) {
 		console.error("Error in searchWorkspaceFiles:", error)
 		return []

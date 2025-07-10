@@ -1,18 +1,103 @@
+import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { StateServiceClient } from "@/services/grpc-client"
+import { openRouterDefaultModelId } from "@shared/api"
+import { StringRequest } from "@shared/proto/common"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
-import Fuse from "fuse.js"
+import Fuse, { FuseResult } from "fuse.js"
 import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
 import { useRemark } from "react-remark"
 import { useMount } from "react-use"
 import styled from "styled-components"
-import { openRouterDefaultModelId } from "@shared/api"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { vscode } from "@/utils/vscode"
-import { highlight } from "../history/HistoryView"
-import { ModelInfoView, normalizeApiConfiguration } from "./ApiOptions"
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import { ModelInfoView } from "./ApiOptions"
+import { normalizeApiConfiguration } from "./utils/providerUtils"
+import FeaturedModelCard from "./FeaturedModelCard"
 import { agentName } from "../../../../src/shared/Configuration"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
-import FeaturedModelCard from "./FeaturedModelCard"
+
+const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
+	const set = (obj: Record<string, any>, path: string, value: any) => {
+		const pathValue = path.split(".")
+		let i: number
+
+		for (i = 0; i < pathValue.length - 1; i++) {
+			obj = obj[pathValue[i]] as Record<string, any>
+		}
+
+		obj[pathValue[i]] = value
+	}
+
+	// Function to merge overlapping regions
+	const mergeRegions = (regions: [number, number][]): [number, number][] => {
+		if (regions.length === 0) return regions
+
+		// Sort regions by start index
+		regions.sort((a, b) => a[0] - b[0])
+
+		const merged: [number, number][] = [regions[0]]
+
+		for (let i = 1; i < regions.length; i++) {
+			const last = merged[merged.length - 1]
+			const current = regions[i]
+
+			if (current[0] <= last[1] + 1) {
+				// Overlapping or adjacent regions
+				last[1] = Math.max(last[1], current[1])
+			} else {
+				merged.push(current)
+			}
+		}
+
+		return merged
+	}
+
+	const generateHighlightedText = (inputText: string, regions: [number, number][] = []) => {
+		if (regions.length === 0) {
+			return inputText
+		}
+
+		// Sort and merge overlapping regions
+		const mergedRegions = mergeRegions(regions)
+
+		let content = ""
+		let nextUnhighlightedRegionStartingIndex = 0
+
+		mergedRegions.forEach((region) => {
+			const start = region[0]
+			const end = region[1]
+			const lastRegionNextIndex = end + 1
+
+			content += [
+				inputText.substring(nextUnhighlightedRegionStartingIndex, start),
+				`<span class="${highlightClassName}">`,
+				inputText.substring(start, lastRegionNextIndex),
+				"</span>",
+			].join("")
+
+			nextUnhighlightedRegionStartingIndex = lastRegionNextIndex
+		})
+
+		content += inputText.substring(nextUnhighlightedRegionStartingIndex)
+
+		return content
+	}
+
+	return fuseSearchResult
+		.filter(({ matches }) => matches && matches.length)
+		.map(({ item, matches }) => {
+			const highlightedItem = { ...item }
+
+			matches?.forEach((match) => {
+				if (match.key && typeof match.value === "string" && match.indices) {
+					// Merge overlapping regions before generating highlighted text
+					const mergedIndices = mergeRegions([...match.indices])
+					set(highlightedItem, match.key, generateHighlightedText(match.value, mergedIndices))
+				}
+			})
+
+			return highlightedItem
+		})
+}
 
 // Star icon for favorites
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
@@ -43,23 +128,23 @@ export interface OpenRouterModelPickerProps {
 const featuredModels = [
 	{
 		id: "anthropic/claude-3.7-sonnet",
-		description: "Leading model for agentic coding",
+		description: "Recommended for agentic coding in Cline",
 		label: "Best",
 	},
 	{
-		id: "google/gemini-2.5-pro-preview-03-25",
+		id: "google/gemini-2.5-pro",
 		description: "Large 1M context window, great value",
 		label: "Trending",
 	},
 	{
-		id: "openai/gpt-4.1",
-		description: "1M context window, blazing fast",
-		label: "New",
+		id: "x-ai/grok-3",
+		description: "Latest flagship model from xAI, free for now!",
+		label: "Free",
 	},
 ]
 
 const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }) => {
-	const { apiConfiguration, setApiConfiguration, openRouterModels } = useExtensionState()
+	const { apiConfiguration, setApiConfiguration, openRouterModels, refreshOpenRouterModels } = useExtensionState()
 	const [searchTerm, setSearchTerm] = useState(apiConfiguration?.openRouterModelId || openRouterDefaultModelId)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
@@ -84,9 +169,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 		return normalizeApiConfiguration(apiConfiguration)
 	}, [apiConfiguration])
 
-	useMount(() => {
-		vscode.postMessage({ type: "refreshOpenRouterModels" })
-	})
+	useMount(refreshOpenRouterModels)
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -197,6 +280,8 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 
 	const showBudgetSlider = useMemo(() => {
 		return (
+			selectedModelId?.toLowerCase().includes("claude-sonnet-4") ||
+			selectedModelId?.toLowerCase().includes("claude-opus-4") ||
 			selectedModelId?.toLowerCase().includes("claude-3-7-sonnet") ||
 			selectedModelId?.toLowerCase().includes("claude-3.7-sonnet") ||
 			selectedModelId?.toLowerCase().includes("claude-3.7-sonnet:thinking")
@@ -290,10 +375,9 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 												isFavorite={isFavorite}
 												onClick={(e) => {
 													e.stopPropagation()
-													vscode.postMessage({
-														type: "toggleFavoriteModel",
-														modelId: item.id,
-													})
+													StateServiceClient.toggleFavoriteModel(
+														StringRequest.create({ value: item.id }),
+													).catch((error) => console.error("Failed to toggle favorite model:", error))
 												}}
 											/>
 										</div>
@@ -502,7 +586,7 @@ export const ModelDescriptionMarkdown = memo(
 								style={{
 									width: 30,
 									height: "1.2em",
-									background: "linear-gradient(to right, transparent, var(--vscode-sideBar-background))",
+									background: "linear-gradient(to right, transparent, var(--vscode-input-background))",
 								}}
 							/>
 							<VSCodeLink
@@ -512,7 +596,7 @@ export const ModelDescriptionMarkdown = memo(
 									fontSize: "inherit",
 									paddingRight: 0,
 									paddingLeft: 3,
-									backgroundColor: isPopup ? CODE_BLOCK_BG_COLOR : "var(--vscode-sideBar-background)",
+									backgroundColor: "var(--vscode-input-background)",
 								}}
 								onClick={() => setIsExpanded(true)}>
 								See more

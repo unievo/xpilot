@@ -2,8 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
-import { McpToolCallResponse } from "../../shared/mcp"
-import { ignoreFile, instructionsFileOrDirectoryName } from "../../shared/Configuration"
+import { ignoreFile, workspaceInstructionsDirectoryPath } from "../../shared/Configuration"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
@@ -11,6 +10,9 @@ export const formatResponse = {
 
 	contextTruncationNotice: () =>
 		`[NOTE] Some previous conversation history with the user has been removed to maintain optimal context window length. The initial user task and the most recent exchanges have been retained for continuity, while intermediate conversation history has been removed. Please keep this in mind as you continue assisting the user.`,
+
+	condense: () =>
+		`The user has accepted the condensed conversation summary you generated. This summary covers important details of the historical conversation with the user which has been truncated.\n<explicit_instructions type="condense_response">It's crucial that you respond by ONLY asking the user what you should work on next. You should NOT take any initiative or make any assumptions about continuing with work. For example you should NOT suggest file changes or attempt to read any files.\nWhen asking the user what you should work on next, you can reference information in the summary which was just generated. However, you should NOT reference information outside of what's contained in the summary for this response. Keep this response CONCISE.</explicit_instructions>`,
 
 	toolDenied: () => `The user denied this operation.`,
 
@@ -40,15 +42,31 @@ Otherwise, if you have not completed the task and do not need additional informa
 	invalidMcpToolArgumentError: (serverName: string, toolName: string) =>
 		`Invalid JSON argument used with ${serverName} for ${toolName}. Please retry with a properly formatted JSON argument.`,
 
-	toolResult: (text: string, images?: string[]): string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam> => {
-		if (images && images.length > 0) {
-			const textBlock: Anthropic.TextBlockParam = { type: "text", text }
-			const imageBlocks: Anthropic.ImageBlockParam[] = formatImagesIntoBlocks(images)
-			// Placing images after text leads to better results
-			return [textBlock, ...imageBlocks]
-		} else {
+	toolResult: (
+		text: string,
+		images?: string[],
+		fileString?: string,
+	): string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam> => {
+		let toolResultOutput = []
+
+		if (!(images && images.length > 0) && !fileString) {
 			return text
 		}
+
+		const textBlock: Anthropic.TextBlockParam = { type: "text", text }
+		toolResultOutput.push(textBlock)
+
+		if (images && images.length > 0) {
+			const imageBlocks: Anthropic.ImageBlockParam[] = formatImagesIntoBlocks(images)
+			toolResultOutput.push(...imageBlocks)
+		}
+
+		if (fileString) {
+			const fileBlock: Anthropic.TextBlockParam = { type: "text", text: fileString }
+			toolResultOutput.push(fileBlock)
+		}
+
+		return toolResultOutput
 	},
 
 	imageBlocks: (images?: string[]): Anthropic.ImageBlockParam[] => {
@@ -132,13 +150,14 @@ Otherwise, if you have not completed the task and do not need additional informa
 		cwd: string,
 		wasRecent: boolean | 0 | undefined,
 		responseText?: string,
+		hasPendingFileContextWarnings?: boolean,
 	): [string, string] => {
 		const taskResumptionMessage = `[TASK RESUMPTION] ${
 			mode === "plan"
 				? `This task was interrupted ${agoText}. The conversation may have been incomplete. Be aware that the project state may have changed since then. The current working directory is now '${cwd.toPosix()}'.\n\nNote: If you previously attempted a tool use that the user did not provide a result for, you should assume the tool use was not successful. However you are in PLAN MODE, so rather than continuing the task, you must respond to the user's message.`
 				: `This task was interrupted ${agoText}. It may or may not be complete, so please reassess the task context. Be aware that the project state may have changed since then. The current working directory is now '${cwd.toPosix()}'. If the task has not been completed, retry the last step before interruption and proceed with completing the task.\n\nNote: If you previously attempted a tool use that the user did not provide a result for, you should assume the tool use was not successful and assess whether you should retry. If the last tool was a browser_action, the browser has been closed and you must launch a new browser if needed.`
 		}${
-			wasRecent
+			wasRecent && !hasPendingFileContextWarnings
 				? "\n\nIMPORTANT: If the last tool use was a replace_in_file or write_to_file that was interrupted, the file was reverted back to its original state before the interrupted edit, and you do NOT need to re-read the file as you already have its up-to-date contents."
 				: ""
 		}`
@@ -195,7 +214,7 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`${newProblemsMessage}`,
 
 	diffError: (relPath: string, originalContent: string | undefined) =>
-		`This is likely because the SEARCH block content doesn't match exactly with what's in the file, or if you used multiple SEARCH/REPLACE blocks they may not have been in the order they appear in the file.\n\n` +
+		`This is likely because the SEARCH block content doesn't match exactly with what's in the file, or if you used multiple SEARCH/REPLACE blocks they may not have been in the order they appear in the file. (Please also ensure that when using the replace_in_file tool, Do NOT add extra characters to the markers (e.g., ------- SEARCH> is INVALID). Do NOT forget to use the closing +++++++ REPLACE marker. Do NOT modify the marker format in any way. Malformed XML will cause complete tool failure and break the entire editing process.)\n\n` +
 		`The file was reverted to its original state:\n\n` +
 		`<file_content path="${relPath.toPosix()}">\n${originalContent}\n</file_content>\n\n` +
 		`Now that you have the latest state of the file, try the operation again with fewer, more precise SEARCH blocks. For large files especially, it may be prudent to try to limit yourself to <5 SEARCH/REPLACE blocks at a time, then wait for the user to respond with the result of the operation before following up with another replace_in_file call to make additional edits.\n(If you run into this error 3 times in a row, you may use the write_to_file tool as a fallback.)`,
@@ -204,16 +223,38 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`Tool [${toolName}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
 
 	clineIgnoreInstructions: (content: string) =>
-		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${instructionsFileOrDirectoryName}`,
+		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${workspaceInstructionsDirectoryPath}`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
-		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a global .clinerules/ directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
+		`# Global instructions\n\nThe following is provided by a global instructions directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# ${instructionsFileOrDirectoryName}/\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName}/ directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions\n\nThe following content is from instruction files in the root-level ./${workspaceInstructionsDirectoryPath}/ directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# ${instructionsFileOrDirectoryName}\n\nThe following is provided by a root-level ${instructionsFileOrDirectoryName} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# ${workspaceInstructionsDirectoryPath}\n\nThe following is provided by a root-level ${workspaceInstructionsDirectoryPath} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
+		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	cursorRulesLocalFileInstructions: (cwd: string, content: string) =>
+		`# .cursorrules\n\nThe following is provided by a root-level .cursorrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	cursorRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
+		`# .cursor/rules\n\nThe following is provided by a root-level .cursor/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	fileContextWarning: (editedFiles: string[]): string => {
+		const fileCount = editedFiles.length
+		const fileVerb = fileCount === 1 ? "file has" : "files have"
+		const fileDemonstrativePronoun = fileCount === 1 ? "this file" : "these files"
+		const filePersonalPronoun = fileCount === 1 ? "it" : "they"
+
+		return (
+			`<explicit_instructions>\nCRITICAL FILE STATE ALERT: ${fileCount} ${fileVerb} been externally modified since your last interaction. Your cached understanding of ${fileDemonstrativePronoun} is now stale and unreliable. Before making ANY modifications to ${fileDemonstrativePronoun}, you must execute read_file to obtain the current state, as ${filePersonalPronoun} may contain completely different content than what you expect:\n` +
+			`${editedFiles.map((file) => ` ${path.resolve(file).toPosix()}`).join("\n")}\n` +
+			`Failure to re-read before editing will result in replace_in_file edit errors, requiring subsequent attempts and wasting tokens. You DO NOT need to re-read these files after subsequent edits, unless instructed to do so.\n</explicit_instructions>`
+		)
+	},
 }
 
 // to avoid circular dependency

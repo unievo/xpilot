@@ -1,12 +1,14 @@
-import { useCallback, useRef, useState, useEffect } from "react"
-import { useEvent } from "react-use"
-import styled from "styled-components"
-import { ExtensionMessage } from "@shared/ExtensionMessage"
-import { vscode } from "@/utils/vscode"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import { CheckpointsServiceClient } from "@/services/grpc-client"
+import { flip, offset, shift, useFloating } from "@floating-ui/react"
+import { CheckpointRestoreRequest } from "@shared/proto/checkpoints"
+import { Int64Request } from "@shared/proto/common"
+import { ClineCheckpointRestore } from "@shared/WebviewMessage"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useFloating, offset, flip, shift } from "@floating-ui/react"
+import styled from "styled-components"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 
 interface CheckmarkControlProps {
 	messageTs?: number
@@ -19,9 +21,42 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 	const [restoreWorkspaceDisabled, setRestoreWorkspaceDisabled] = useState(false)
 	const [restoreBothDisabled, setRestoreBothDisabled] = useState(false)
 	const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
-	const [hasMouseEntered, setHasMouseEntered] = useState(false)
-	const containerRef = useRef<HTMLDivElement>(null)
-	const tooltipRef = useRef<HTMLDivElement>(null)
+	const { onRelinquishControl } = useExtensionState()
+
+	// Debounce
+	const closeMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const scheduleCloseRestore = useCallback(() => {
+		if (closeMenuTimeoutRef.current) {
+			clearTimeout(closeMenuTimeoutRef.current)
+		}
+		closeMenuTimeoutRef.current = setTimeout(() => {
+			setShowRestoreConfirm(false)
+		}, 350)
+	}, [])
+
+	const cancelCloseRestore = useCallback(() => {
+		if (closeMenuTimeoutRef.current) {
+			clearTimeout(closeMenuTimeoutRef.current)
+			closeMenuTimeoutRef.current = null
+		}
+	}, [])
+
+	// Debounce cleanup
+	useEffect(() => {
+		return () => {
+			if (closeMenuTimeoutRef.current) {
+				clearTimeout(closeMenuTimeoutRef.current)
+				closeMenuTimeoutRef.current = null
+			}
+		}
+	}, [showRestoreConfirm])
+
+	// Clear "Restore Files" button when checkpoint is no longer checked out
+	useEffect(() => {
+		if (!isCheckpointCheckedOut && restoreWorkspaceDisabled) {
+			setRestoreWorkspaceDisabled(false)
+		}
+	}, [isCheckpointCheckedOut, restoreWorkspaceDisabled])
 
 	const { refs, floatingStyles, update, placement } = useFloating({
 		placement: "bottom-end",
@@ -49,78 +84,87 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 		}
 	}, [showRestoreConfirm, update])
 
-	const handleMessage = useCallback((event: MessageEvent<ExtensionMessage>) => {
-		if (event.data.type === "relinquishControl") {
+	// Use the onRelinquishControl hook instead of message event
+	useEffect(() => {
+		return onRelinquishControl(() => {
 			setCompareDisabled(false)
 			setRestoreTaskDisabled(false)
 			setRestoreWorkspaceDisabled(false)
 			setRestoreBothDisabled(false)
 			setShowRestoreConfirm(false)
-		}
-	}, [])
+		})
+	}, [onRelinquishControl])
 
-	const handleRestoreTask = () => {
+	const handleRestoreTask = async () => {
 		setRestoreTaskDisabled(true)
-		vscode.postMessage({
-			type: "checkpointRestore",
-			number: messageTs,
-			text: "task",
-		})
+		try {
+			const restoreType: ClineCheckpointRestore = "task"
+			await CheckpointsServiceClient.checkpointRestore(
+				CheckpointRestoreRequest.create({
+					number: messageTs,
+					restoreType,
+				}),
+			)
+		} catch (err) {
+			console.error("Checkpoint restore task error:", err)
+			setRestoreTaskDisabled(false)
+		}
 	}
 
-	const handleRestoreWorkspace = () => {
+	const handleRestoreWorkspace = async () => {
 		setRestoreWorkspaceDisabled(true)
-		vscode.postMessage({
-			type: "checkpointRestore",
-			number: messageTs,
-			text: "workspace",
-		})
+		try {
+			const restoreType: ClineCheckpointRestore = "workspace"
+			await CheckpointsServiceClient.checkpointRestore(
+				CheckpointRestoreRequest.create({
+					number: messageTs,
+					restoreType,
+				}),
+			)
+		} catch (err) {
+			console.error("Checkpoint restore workspace error:", err)
+			setRestoreWorkspaceDisabled(false)
+		}
 	}
 
-	const handleRestoreBoth = () => {
+	const handleRestoreBoth = async () => {
 		setRestoreBothDisabled(true)
-		vscode.postMessage({
-			type: "checkpointRestore",
-			number: messageTs,
-			text: "taskAndWorkspace",
-		})
+		try {
+			const restoreType: ClineCheckpointRestore = "taskAndWorkspace"
+			await CheckpointsServiceClient.checkpointRestore(
+				CheckpointRestoreRequest.create({
+					number: messageTs,
+					restoreType,
+				}),
+			)
+		} catch (err) {
+			console.error("Checkpoint restore both error:", err)
+			setRestoreBothDisabled(false)
+		}
 	}
 
 	const handleMouseEnter = () => {
-		setHasMouseEntered(true)
+		cancelCloseRestore()
 	}
 
 	const handleMouseLeave = () => {
-		if (hasMouseEntered) {
-			setShowRestoreConfirm(false)
-			setHasMouseEntered(false)
-		}
+		scheduleCloseRestore()
 	}
 
-	const handleControlsMouseLeave = (e: React.MouseEvent) => {
-		const tooltipElement = tooltipRef.current
-
-		if (tooltipElement && showRestoreConfirm) {
-			const tooltipRect = tooltipElement.getBoundingClientRect()
-
-			if (
-				e.clientY >= tooltipRect.top &&
-				e.clientY <= tooltipRect.bottom &&
-				e.clientX >= tooltipRect.left &&
-				e.clientX <= tooltipRect.right
-			) {
-				return
-			}
-		}
-
-		setShowRestoreConfirm(false)
-		setHasMouseEntered(false)
+	const handleControlsMouseEnter = () => {
+		cancelCloseRestore()
 	}
 
-	useEvent("message", handleMessage)
+	const handleControlsMouseLeave = () => {
+		scheduleCloseRestore()
+	}
 
 	return (
-		<Container isMenuOpen={showRestoreConfirm} $isCheckedOut={isCheckpointCheckedOut} onMouseLeave={handleControlsMouseLeave}>
+		<Container
+			isMenuOpen={showRestoreConfirm}
+			$isCheckedOut={isCheckpointCheckedOut}
+			onMouseEnter={handleControlsMouseEnter}
+			onMouseLeave={handleControlsMouseLeave}>
 			<i
 				className="codicon codicon-bookmark"
 				style={{
@@ -137,13 +181,20 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 				<CustomButton
 					$isCheckedOut={isCheckpointCheckedOut}
 					disabled={compareDisabled}
-					style={{ cursor: compareDisabled ? "wait" : "pointer" }}
-					onClick={() => {
+					style={{ cursor: compareDisabled ? "not-allowed" : "pointer" }}
+					onClick={async () => {
 						setCompareDisabled(true)
-						vscode.postMessage({
-							type: "checkpointDiff",
-							number: messageTs,
-						})
+						try {
+							await CheckpointsServiceClient.checkpointDiff(
+								Int64Request.create({
+									value: messageTs,
+								}),
+							)
+						} catch (err) {
+							console.error("CheckpointDiff error:", err)
+						} finally {
+							setCompareDisabled(false)
+						}
 					}}>
 					Compare
 				</CustomButton>
@@ -165,45 +216,91 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 								onMouseLeave={handleMouseLeave}>
 								<RestoreOption>
 									<VSCodeButton
-										onClick={handleRestoreWorkspace}
-										disabled={restoreWorkspaceDisabled}
+										appearance="secondary"
+										onClick={handleRestoreTask}
+										// disabled={restoreTaskDisabled}
 										style={{
-											cursor: restoreWorkspaceDisabled ? "wait" : "pointer",
+											backgroundColor: "var(--vscode-input-background)",
+											// cursor: restoreTaskDisabled ? "not-allowed" : "pointer",
 											width: "100%",
-											marginBottom: "10px",
+											marginBottom: "3px",
+										}}
+										onMouseEnter={(e) => {
+											// if (!restoreBothDisabled)
+											{
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}
+										}}
+										onMouseLeave={(e) => {
+											// if (!restoreBothDisabled)
+											{
+												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											}
 										}}>
-										Restore Files
+										<div style={{ fontSize: "12px" }}>Task</div>
 									</VSCodeButton>
-									<p>
+									{/* <p>Deletes messages after this point (does not affect workspace files)</p> */}
+								</RestoreOption>
+								<RestoreOption>
+									<VSCodeButton
+										appearance="secondary"
+										onClick={handleRestoreWorkspace}
+										// disabled={restoreWorkspaceDisabled}
+										style={{
+											backgroundColor: "var(--vscode-button-secondaryBackground)",
+											// cursor: restoreWorkspaceDisabled ? "not-allowed" : "pointer",
+											width: "100%",
+											marginBottom: "3px",
+										}}
+										onMouseEnter={(e) => {
+											// if (!restoreWorkspaceDisabled)
+											{
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}
+										}}
+										onMouseLeave={(e) => {
+											// if (!restoreWorkspaceDisabled)
+											{
+												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											}
+										}}>
+										<div style={{ fontSize: "12px" }}>Workspace</div>
+									</VSCodeButton>
+									{/* <p>
 										Restores your project's files back to a snapshot taken at this point (use "Compare" to see
 										what will be reverted)
-									</p>
+									</p> */}
 								</RestoreOption>
+
 								<RestoreOption>
 									<VSCodeButton
-										onClick={handleRestoreTask}
-										disabled={restoreTaskDisabled}
-										style={{
-											cursor: restoreTaskDisabled ? "wait" : "pointer",
-											width: "100%",
-											marginBottom: "10px",
-										}}>
-										Restore Task Only
-									</VSCodeButton>
-									<p>Deletes messages after this point (does not affect workspace files)</p>
-								</RestoreOption>
-								<RestoreOption>
-									<VSCodeButton
+										appearance="secondary"
 										onClick={handleRestoreBoth}
-										disabled={restoreBothDisabled}
+										// disabled={restoreBothDisabled}
 										style={{
-											cursor: restoreBothDisabled ? "wait" : "pointer",
+											backgroundColor: "var(--vscode-button-secondaryBackground)",
+											// cursor: restoreBothDisabled ? "not-allowed" : "pointer",
 											width: "100%",
-											marginBottom: "10px",
+											marginBottom: "3px",
+										}}
+										onMouseEnter={(e) => {
+											// if (!restoreBothDisabled)
+											{
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}
+										}}
+										onMouseLeave={(e) => {
+											// if (!restoreBothDisabled)
+											{
+												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											}
 										}}>
-										Restore Files & Task
+										<div style={{ fontSize: "12px" }}>Task & Workspace</div>
 									</VSCodeButton>
-									<p>Restores your project's files and deletes all messages after this point</p>
+									{/* <p>Restores your project's files and deletes all messages after this point</p> */}
 								</RestoreOption>
 							</RestoreConfirmTooltip>,
 							document.body,
@@ -288,9 +385,9 @@ const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $is
 			props.isActive || props.disabled
 				? "none"
 				: `linear-gradient(to right, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
-			linear-gradient(to bottom, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
-			linear-gradient(to right, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
-			linear-gradient(to bottom, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%)`};
+            linear-gradient(to bottom, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
+            linear-gradient(to right, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
+            linear-gradient(to bottom, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%)`};
 		background-size: ${(props) => (props.isActive || props.disabled ? "auto" : `4px 1px, 1px 4px, 4px 1px, 1px 4px`)};
 		background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
 		background-position:
@@ -317,9 +414,9 @@ const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $is
 
 const RestoreOption = styled.div`
 	&:not(:last-child) {
-		margin-bottom: 10px;
-		padding-bottom: 4px;
-		border-bottom: 1px solid var(--vscode-editorGroup-border);
+		margin-bottom: 0px;
+		padding-bottom: 3px;
+		//border-bottom: 1px solid var(--vscode-editorGroup-border);
 	}
 
 	p {
@@ -338,10 +435,11 @@ const RestoreConfirmTooltip = styled.div`
 	position: fixed;
 	background: ${CODE_BLOCK_BG_COLOR};
 	border: 1px solid var(--vscode-editorGroup-border);
-	padding: 12px;
-	border-radius: 3px;
-	width: min(calc(100vw - 54px), 600px);
+	padding: 8px;
+	border-radius: 10px;
+	width: min(calc(100vw - 54px), 130px);
 	z-index: 1000;
+	margin-top: -3px;
 
 	// Add invisible padding to create a safe hover zone
 	&::before {
@@ -357,10 +455,10 @@ const RestoreConfirmTooltip = styled.div`
 	&::after {
 		content: "";
 		position: absolute;
-		top: -6px;
-		right: 24px;
-		width: 10px;
-		height: 10px;
+		top: -4px;
+		right: 26px;
+		width: 6px;
+		height: 6px;
 		background: ${CODE_BLOCK_BG_COLOR};
 		border-left: 1px solid var(--vscode-editorGroup-border);
 		border-top: 1px solid var(--vscode-editorGroup-border);

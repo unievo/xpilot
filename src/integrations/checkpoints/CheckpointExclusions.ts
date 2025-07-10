@@ -1,6 +1,6 @@
 import fs from "fs/promises"
 import { join } from "path"
-import { fileExistsAtPath } from "../../utils/fs"
+import { fileExistsAtPath } from "@utils/fs"
 import { GIT_DISABLED_SUFFIX } from "./CheckpointGitOperations"
 
 /**
@@ -83,6 +83,7 @@ function getBuildArtifactPatterns(): string[] {
 		".sass-cache/",
 		".vs/",
 		".vscode/",
+		".clinerules/",
 		"Pods/",
 		"__pycache__/",
 		"bin/",

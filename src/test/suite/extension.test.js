@@ -54,14 +54,4 @@ describe("Extension Tests", function () {
 		await vscode.commands.executeCommand(historyButtonCommand)
 		// Success if no error thrown
 	})
-
-	it("should handle advanced settings configuration", async () => {
-		// Test browser session setting
-		await vscode.workspace.getConfiguration().update(`${productName}.disableBrowserTool`, true, true)
-		const updatedConfig = vscode.workspace.getConfiguration(productName)
-		expect(updatedConfig.get("disableBrowserTool")).to.be.true
-
-		// Reset settings
-		await vscode.workspace.getConfiguration().update(`${productName}.disableBrowserTool`, undefined, true)
-	})
 })

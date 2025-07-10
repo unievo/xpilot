@@ -1,6 +1,7 @@
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
+import { Accordion, AccordionItem } from "@heroui/react"
 import { vscode } from "../../utils/vscode"
 import { agentName, discordUrl, repoUrl, xUrl } from "../../../../src/shared/Configuration"
 
@@ -37,7 +38,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
 	return (
 		<div style={containerStyle}>
-			<VSCodeButton appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
+			<VSCodeButton data-testid="close-button" appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
 			<span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "25px" }}></span>
@@ -50,7 +51,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					<p style={{ fontSize: "13px", fontWeight: "bold" }}>Previous updates:</p>
 					<li>
 						New{" "}
-						<VSCodeLink
+						{/* <VSCodeLink
 							onClick={() => {
 								vscode.postMessage({
 									type: "showMcpView",
@@ -59,7 +60,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 							}}
 							style={{}}>
 							MCP server library
-						</VSCodeLink>{" "}
+						</VSCodeLink>{" "} */}
 						in server configuration, for discovering and installing servers.
 					</li>
 					<li>

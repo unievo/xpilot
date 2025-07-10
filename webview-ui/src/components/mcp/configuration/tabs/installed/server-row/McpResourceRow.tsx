@@ -1,3 +1,4 @@
+import { itemIconColor } from "@/components/theme"
 import { McpResource, McpResourceTemplate } from "@shared/mcp"
 
 type McpResourceRowProps = {
@@ -20,14 +21,14 @@ const McpResourceRow = ({ item }: McpResourceRowProps) => {
 					alignItems: "center",
 					marginBottom: "4px",
 				}}>
-				<span className={`codicon codicon-symbol-file`} style={{ marginRight: "6px" }} />
+				<span className={`codicon codicon-symbol-file`} style={{ color: itemIconColor, marginRight: "6px" }} />
 				<span style={{ fontWeight: 500, wordBreak: "break-all" }}>{uri}</span>
 			</div>
 			<div
 				style={{
-					fontSize: "12px",
 					opacity: 0.8,
-					margin: "4px 0",
+					fontSize: "0.9em",
+					margin: "6px 0",
 				}}>
 				{item.name && item.description
 					? `${item.name}: ${item.description}`
@@ -39,9 +40,10 @@ const McpResourceRow = ({ item }: McpResourceRowProps) => {
 			</div>
 			<div
 				style={{
-					fontSize: "12px",
+					opacity: 0.7,
+					fontSize: "0.9em",
 				}}>
-				<span style={{ opacity: 0.8 }}>Returns </span>
+				<span>Returns </span>
 				<code
 					style={{
 						color: "var(--vscode-textPreformat-foreground)",
