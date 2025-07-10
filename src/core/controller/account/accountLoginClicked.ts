@@ -1,8 +1,9 @@
-import * as vscode from "vscode"
-import crypto from "crypto"
 import { Controller } from "../index"
-import { storeSecret } from "../../storage/state"
+import { AuthService } from "@/services/auth/AuthService"
 import { EmptyRequest, String } from "../../../shared/proto/common"
+import { openExternal } from "@utils/env"
+
+const authService = AuthService.getInstance()
 import { extensionId } from "@/shared/Configuration"
 
 /**
@@ -14,21 +15,5 @@ import { extensionId } from "@/shared/Configuration"
  * @returns The login URL as a string.
  */
 export async function accountLoginClicked(controller: Controller, _: EmptyRequest): Promise<String> {
-	// Generate nonce for state validation
-	const nonce = crypto.randomBytes(32).toString("hex")
-	await storeSecret(controller.context, "authNonce", nonce)
-
-	// Open browser for authentication with state param
-	console.log("Login button clicked in account page")
-	console.log("Opening auth page with state param")
-
-	const uriScheme = vscode.env.uriScheme
-
-	const authUrl = vscode.Uri.parse(
-		`https://app.cline.bot/auth?state=${encodeURIComponent(nonce)}&callback_url=${encodeURIComponent(`${uriScheme || "vscode"}://${extensionId}/auth`)}`,
-	)
-	await vscode.env.openExternal(authUrl)
-	return String.create({
-		value: authUrl.toString(),
-	})
+	return await authService.createAuthRequest()
 }

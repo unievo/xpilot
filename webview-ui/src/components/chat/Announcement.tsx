@@ -13,14 +13,14 @@ interface AnnouncementProps {
 const containerStyle: CSSProperties = {
 	backgroundColor: getAsVar(VSC_INACTIVE_SELECTION_BACKGROUND),
 	borderRadius: "10px",
-	padding: "10px 10px",
-	margin: "5px 15px 5px 15px",
+	padding: "5px",
+	margin: "0px 2px 5px 17px",
 	position: "relative",
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "5px 10px 8px", fontSize: "15px" }
-const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "10px", fontSize: "13px" }
+const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "16px", fontWeight: "bold" }
+const ulStyle: CSSProperties = { listStyle: "disc", margin: "4px", paddingLeft: "10px", fontSize: "12px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
@@ -28,8 +28,8 @@ const hrStyle: CSSProperties = {
 	opacity: 0.1,
 	margin: "8px 0",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px", fontSize: "12px", textAlign: "left" }
-const linkStyle: CSSProperties = { display: "inline", fontSize: "12px" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "11px", textAlign: "left" }
+const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
 
 /*
 You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with what's in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
@@ -41,8 +41,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<VSCodeButton data-testid="close-button" appearance="icon" onClick={hideAnnouncement} style={closeIconStyle}>
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
-			<span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "25px" }}></span>
-			<h3 style={h3TitleStyle}>Release v{version}</h3>
+			{/* <span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "20px" }}></span> */}
+			<div style={h3TitleStyle}>Release v{version}</div>
 			{
 				<ul style={ulStyle}>
 					<li>Chat toolbar redesign</li>
@@ -151,18 +151,19 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			}
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
-				{" "}
-				<VSCodeLink style={linkStyle} href={xUrl}>
-					X.com{" "}
-				</VSCodeLink>{" "}
-				|
-				<VSCodeLink style={linkStyle} href={repoUrl}>
-					GitHub{" "}
-				</VSCodeLink>{" "}
-				|
-				<VSCodeLink style={linkStyle} href={discordUrl}>
-					Discord
-				</VSCodeLink>{" "}
+				<VSCodeLink href={repoUrl}>GitHub</VSCodeLink>
+				{xUrl && (
+					<span>
+						{" | "}
+						<VSCodeLink href={xUrl}>X.com</VSCodeLink>
+					</span>
+				)}
+				{discordUrl && (
+					<span>
+						{" | "}
+						<VSCodeLink href={discordUrl}>Discord</VSCodeLink>
+					</span>
+				)}
 			</p>
 		</div>
 	)

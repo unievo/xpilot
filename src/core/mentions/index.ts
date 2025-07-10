@@ -11,13 +11,15 @@ import { getLatestTerminalOutput } from "@integrations/terminal/get-latest-outpu
 import { getCommitInfo } from "@utils/git"
 import { getWorkingState } from "@utils/git"
 import { FileContextTracker } from "../context/context-tracking/FileContextTracker"
+import { getCwd } from "@/utils/path"
+import { openExternal } from "@utils/env"
 
-export function openMention(mention?: string): void {
+export async function openMention(mention?: string): Promise<void> {
 	if (!mention) {
 		return
 	}
 
-	const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0)
+	const cwd = await getCwd()
 	if (!cwd) {
 		return
 	}
@@ -35,7 +37,7 @@ export function openMention(mention?: string): void {
 	} else if (mention === "terminal") {
 		vscode.commands.executeCommand("workbench.action.terminal.focus")
 	} else if (mention.startsWith("http")) {
-		vscode.env.openExternal(vscode.Uri.parse(mention))
+		await openExternal(mention)
 	}
 }
 

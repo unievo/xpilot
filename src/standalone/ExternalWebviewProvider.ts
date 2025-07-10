@@ -1,9 +1,7 @@
 import { ExtensionMessage } from "@/shared/ExtensionMessage"
 import { WebviewProviderType } from "@/shared/webview/types"
-import { sendThemeEvent } from "@core/controller/ui/subscribeToTheme"
-import { getTheme } from "@integrations/theme/getTheme"
 import * as vscode from "vscode"
-import { Uri } from "vscode"
+import { URI } from "vscode-uri"
 import { WebviewProvider } from "@core/webview"
 
 /*
@@ -12,28 +10,21 @@ https://github.com/KumarVariable/vscode-extension-sidebar-html/blob/master/src/c
 */
 
 export class ExternalWebviewProvider extends WebviewProvider {
-	public webview?: vscode.WebviewView | vscode.WebviewPanel
-
-	public static create(
-		context: vscode.ExtensionContext,
-		outputChannel: vscode.OutputChannel,
-		providerType: WebviewProviderType,
-	) {
-		return new ExternalWebviewProvider(context, outputChannel, providerType)
-	}
+	// This hostname cannot be changed without updating the external webview handler.
+	private RESOURCE_HOSTNAME: string = "internal.resources"
 
 	constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, providerType: WebviewProviderType) {
 		super(context, outputChannel, providerType)
 	}
 
-	override getWebviewUri(uri: Uri) {
-		return uri.with({
-			scheme: "http",
-			authority: "resources",
-		})
+	override getWebviewUri(uri: URI) {
+		if (uri.scheme !== "file") {
+			return uri
+		}
+		return URI.from({ scheme: "https", authority: this.RESOURCE_HOSTNAME, path: uri.fsPath })
 	}
 	override getCspSource() {
-		return "csp-source"
+		return `'self' https://${this.RESOURCE_HOSTNAME}`
 	}
 	override postMessageToWebview(message: ExtensionMessage) {
 		console.log(`postMessageToWebview: ${message}`)
@@ -46,7 +37,7 @@ export class ExternalWebviewProvider extends WebviewProvider {
 		return {}
 	}
 
-	override resolveWebviewView(_: vscode.WebviewView | vscode.WebviewPanel): Promise<void> {
+	override resolveWebviewView(_: any): Promise<void> {
 		return Promise.resolve()
 	}
 }

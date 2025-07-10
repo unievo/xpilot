@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
-import { useEvent } from "react-use"
+import "../../../src/shared/webview/types"
 import {
 	StateServiceClient,
 	ModelsServiceClient,
@@ -14,7 +14,7 @@ import { TerminalProfile } from "@shared/proto/state"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
-import { DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
+import { DEFAULT_BROWSER_SETTINGS, BrowserSettings } from "@shared/BrowserSettings"
 import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "@shared/ChatSettings"
 import { DEFAULT_PLATFORM, ExtensionMessage, ExtensionState } from "@shared/ExtensionMessage"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
@@ -30,6 +30,7 @@ import {
 import { McpMarketplaceCatalog, McpServer, McpViewTab } from "../../../src/shared/mcp"
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
 import { OpenRouterCompatibleModelInfo } from "@shared/proto/models"
+import { UserInfo } from "@shared/proto/account"
 
 interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
@@ -78,9 +79,11 @@ interface ExtensionStateContextType extends ExtensionState {
 	setMcpMarketplaceCatalog: (value: McpMarketplaceCatalog) => void
 	setTotalTasksSize: (value: number | null) => void
 	setAvailableTerminalProfiles: (profiles: TerminalProfile[]) => void // Setter for profiles
+	setBrowserSettings: (value: BrowserSettings) => void
 
 	// Refresh functions
 	refreshOpenRouterModels: () => void
+	setUserInfo: (userInfo?: UserInfo) => void
 
 	// Navigation state setters
 	setShowMcp: (value: boolean) => void
@@ -199,6 +202,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		terminalOutputLineLimit: 500,
 		defaultTerminalProfile: "default",
 		isNewUser: false,
+		welcomeViewCompleted: false,
 		mcpResponsesCollapsed: false, // Default value (expanded), will be overwritten by extension state
 	})
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -250,9 +254,8 @@ export const ExtensionStateContextProvider: React.FC<{
 
 	// Subscribe to state updates and UI events using the gRPC streaming API
 	useEffect(() => {
-		// Determine the webview provider type
-		const webviewType =
-			window.WEBVIEW_PROVIDER_TYPE === "sidebar" ? WebviewProviderTypeEnum.SIDEBAR : WebviewProviderTypeEnum.TAB
+		// Use the already defined webview provider type
+		const webviewType = currentProviderType
 
 		// Set up state subscription
 		stateSubscriptionRef.current = StateServiceClient.subscribeToState(EmptyRequest.create({}), {
@@ -275,35 +278,7 @@ export const ExtensionStateContextProvider: React.FC<{
 							}
 
 							// Update welcome screen state based on API configuration
-							const config = stateData.apiConfiguration
-							const hasKey = config
-								? [
-										config.apiKey,
-										config.openRouterApiKey,
-										config.awsRegion,
-										config.vertexProjectId,
-										config.openAiApiKey,
-										config.ollamaModelId,
-										config.lmStudioModelId,
-										config.liteLlmApiKey,
-										config.geminiApiKey,
-										config.openAiNativeApiKey,
-										config.deepSeekApiKey,
-										config.requestyApiKey,
-										config.togetherApiKey,
-										config.qwenApiKey,
-										config.doubaoApiKey,
-										config.mistralApiKey,
-										config.vsCodeLmModelSelector,
-										config.clineApiKey,
-										config.asksageApiKey,
-										config.xaiApiKey,
-										config.sambanovaApiKey,
-										config.sapAiCoreClientId,
-									].some((key) => key !== undefined)
-								: false
-
-							setShowWelcome(!hasKey)
+							setShowWelcome(!newState.welcomeViewCompleted)
 							setDidHydrateState(true)
 
 							console.log("[DEBUG] returning new state in ESC")
@@ -835,6 +810,12 @@ export const ExtensionStateContextProvider: React.FC<{
 		setTotalTasksSize,
 		refreshOpenRouterModels,
 		onRelinquishControl,
+		setUserInfo: (userInfo?: UserInfo) => setState((prevState) => ({ ...prevState, userInfo })),
+		setBrowserSettings: (value: BrowserSettings) =>
+			setState((prevState) => ({
+				...prevState,
+				browserSettings: value,
+			})),
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

@@ -9,6 +9,8 @@ import * as diff from "diff"
 import { diagnosticsToProblemsString, getNewDiagnostics } from "../diagnostics"
 import { detectEncoding } from "../misc/extract-text"
 import * as iconv from "iconv-lite"
+import { getHostBridgeProvider } from "@/hosts/host-providers"
+import { ShowTextDocumentRequest, ShowTextDocumentOptions, TextEditorInfo } from "@/shared/proto/host/window"
 import { agentName, productName } from "@shared/Configuration"
 
 export const DIFF_VIEW_URI_SCHEME = `${productName}-diff`
@@ -237,10 +239,15 @@ export class DiffViewProvider {
 		// get text after save in case there is any auto-formatting done by the editor
 		const postSaveContent = updatedDocument.getText()
 
-		await vscode.window.showTextDocument(vscode.Uri.file(absolutePath), {
-			preview: false,
-			preserveFocus: true,
-		})
+		await getHostBridgeProvider().windowClient.showTextDocument(
+			ShowTextDocumentRequest.create({
+				path: absolutePath,
+				options: ShowTextDocumentOptions.create({
+					preview: false,
+					preserveFocus: true,
+				}),
+			}),
+		)
 		await this.closeAllDiffViews()
 
 		/*
@@ -338,10 +345,15 @@ export class DiffViewProvider {
 			await updatedDocument.save()
 			console.log(`File ${absolutePath} has been reverted to its original content.`)
 			if (this.documentWasOpen) {
-				await vscode.window.showTextDocument(vscode.Uri.file(absolutePath), {
-					preview: false,
-					preserveFocus: true,
-				})
+				await getHostBridgeProvider().windowClient.showTextDocument(
+					ShowTextDocumentRequest.create({
+						path: absolutePath,
+						options: ShowTextDocumentOptions.create({
+							preview: false,
+							preserveFocus: true,
+						}),
+					}),
+				)
 			}
 			await this.closeAllDiffViews()
 		}
@@ -377,9 +389,19 @@ export class DiffViewProvider {
 					arePathsEqual(tab.input.modified.fsPath, uri.fsPath),
 			)
 		if (diffTab && diffTab.input instanceof vscode.TabInputTextDiff) {
-			const editor = await vscode.window.showTextDocument(diffTab.input.modified, {
-				preserveFocus: true,
-			})
+			const editorInfo = await getHostBridgeProvider().windowClient.showTextDocument(
+				ShowTextDocumentRequest.create({
+					path: diffTab.input.modified.fsPath,
+					options: ShowTextDocumentOptions.create({
+						preserveFocus: true,
+					}),
+				}),
+			)
+			// Find the editor that matches the returned path
+			const editor = vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath === editorInfo.documentPath)
+			if (!editor) {
+				throw new Error("Failed to find opened text editor")
+			}
 			return editor
 		}
 		// Open new diff editor

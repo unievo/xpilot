@@ -1,7 +1,7 @@
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
-import { openRouterDefaultModelId } from "@shared/api"
+import { ApiConfiguration, openRouterDefaultModelId } from "@shared/api"
 import { StringRequest } from "@shared/proto/common"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse, { FuseResult } from "fuse.js"
@@ -9,11 +9,12 @@ import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from
 import { useRemark } from "react-remark"
 import { useMount } from "react-use"
 import styled from "styled-components"
-import { ModelInfoView } from "./ApiOptions"
+import { ModelInfoView } from "./common/ModelInfoView"
 import { normalizeApiConfiguration } from "./utils/providerUtils"
 import FeaturedModelCard from "./FeaturedModelCard"
 import { agentName } from "../../../../src/shared/Configuration"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
+import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
 const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
 	const set = (obj: Record<string, any>, path: string, value: any) => {
@@ -127,7 +128,7 @@ export interface OpenRouterModelPickerProps {
 // Featured models for Cline provider
 const featuredModels = [
 	{
-		id: "anthropic/claude-3.7-sonnet",
+		id: "anthropic/claude-sonnet-4",
 		description: "Recommended for agentic coding in Cline",
 		label: "Best",
 	},
@@ -137,32 +138,32 @@ const featuredModels = [
 		label: "Trending",
 	},
 	{
-		id: "x-ai/grok-3",
-		description: "Latest flagship model from xAI, free for now!",
-		label: "Free",
+		id: "x-ai/grok-4",
+		description: "Latest flagship model from xAI",
+		label: "Fast & Cheap",
 	},
 ]
 
 const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }) => {
-	const { apiConfiguration, setApiConfiguration, openRouterModels, refreshOpenRouterModels } = useExtensionState()
+	const { handleFieldsChange } = useApiConfigurationHandlers()
+	const { apiConfiguration, openRouterModels, refreshOpenRouterModels } = useExtensionState()
 	const [searchTerm, setSearchTerm] = useState(apiConfiguration?.openRouterModelId || openRouterDefaultModelId)
+	const [isSearchInputDirty, setIsSearchInputDirty] = useState(false)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
-	const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
 		// could be setting invalid model id/undefined info but validation will catch it
-		setApiConfiguration({
-			...apiConfiguration,
-			...{
-				openRouterModelId: newModelId,
-				openRouterModelInfo: openRouterModels[newModelId],
-			},
-		})
+
 		setSearchTerm(newModelId)
+
+		handleFieldsChange({
+			openRouterModelId: newModelId,
+			openRouterModelInfo: openRouterModels[newModelId],
+		})
 	}
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
@@ -170,6 +171,23 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 	}, [apiConfiguration])
 
 	useMount(refreshOpenRouterModels)
+
+	// Sync external changes only when user isn't actively typing
+	useEffect(() => {
+		if (!isSearchInputDirty) {
+			const currentModelId = apiConfiguration?.openRouterModelId || openRouterDefaultModelId
+			setSearchTerm(currentModelId)
+		}
+	}, [apiConfiguration?.openRouterModelId, isSearchInputDirty])
+
+	// Reset dirty flag after user stops typing (1 second timeout)
+	useEffect(() => {
+		if (!isSearchInputDirty) return
+		const timeout = setTimeout(() => {
+			setIsSearchInputDirty(false)
+		}, 1000)
+		return () => clearTimeout(timeout)
+	}, [searchTerm, isSearchInputDirty])
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -327,6 +345,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 						placeholder="Search and select a model..."
 						value={searchTerm}
 						onInput={(e) => {
+							setIsSearchInputDirty(true)
 							handleModelChange((e.target as HTMLInputElement)?.value?.toLowerCase())
 							setIsDropdownVisible(true)
 						}}
@@ -391,17 +410,9 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 
 			{hasInfo ? (
 				<>
-					{showBudgetSlider && (
-						<ThinkingBudgetSlider apiConfiguration={apiConfiguration} setApiConfiguration={setApiConfiguration} />
-					)}
+					{showBudgetSlider && <ThinkingBudgetSlider />}
 
-					<ModelInfoView
-						selectedModelId={selectedModelId}
-						modelInfo={selectedModelInfo}
-						isDescriptionExpanded={isDescriptionExpanded}
-						setIsDescriptionExpanded={setIsDescriptionExpanded}
-						isPopup={isPopup}
-					/>
+					<ModelInfoView selectedModelId={selectedModelId} modelInfo={selectedModelInfo} isPopup={isPopup} />
 				</>
 			) : (
 				<p
@@ -418,8 +429,8 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 						If you're unsure which model to choose, {agentName} works best with{" "}
 						<VSCodeLink
 							style={{ display: "inline", fontSize: "inherit" }}
-							onClick={() => handleModelChange("anthropic/claude-3.7-sonnet")}>
-							anthropic/claude-3.7-sonnet.
+							onClick={() => handleModelChange("anthropic/claude-sonnet-4")}>
+							anthropic/claude-sonnet-4.
 						</VSCodeLink>
 						You can also try searching "free" for no-cost options currently available.
 					</>

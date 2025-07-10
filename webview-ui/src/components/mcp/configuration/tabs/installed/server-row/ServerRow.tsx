@@ -219,13 +219,12 @@ const ServerRow = ({
 					style={{
 						flex: 1,
 						overflow: "hidden",
-						//wordBreak: "break-all",
-						whiteSpace: "normal",
+						textOverflow: "ellipsis",
+						whiteSpace: "nowrap",
 						display: "flex",
 						alignItems: "center",
 						marginRight: "4px",
 						marginLeft: "0px",
-						//fontSize: "13px",
 						padding: "1px ",
 					}}>
 					<span
@@ -478,10 +477,7 @@ const ServerRow = ({
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
-								<span
-									className="codicon codicon-symbol-method"
-									style={{ color: itemIconColor, marginRight: "6px" }}
-								/>
+								<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }} />
 								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab style={{ fontSize: "inherit" }} id="resources">

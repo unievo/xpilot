@@ -5,6 +5,7 @@ import { McpLibraryItem } from "../../../shared/mcp"
 // Generates the instructions for installing an MCP server from an NPM package
 async function installFromNPMInstructions(mcpHub: McpHub): Promise<string> {
 	return `To install from a NPM package add the MCP server configuration to the settings file located at '${await mcpHub.getMcpSettingsFilePath()}'. The settings file may have other MCP servers already configured, so you must read it first and then add your new server to the existing \`mcpServers\` object.
+Don't install any packages as they are managed by the npx cli tool.
 
 IMPORTANT: Regardless of any other MCP settings in the file, you must default any new MCP servers you add to disabled=false and autoApprove=[].
 
@@ -24,7 +25,10 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
     },
   }
 }
-\`\`\` 
+\`\`\`
+
+env settings are optional and can be used to set environment variables for the MCP server. If the MCP server requires an API key or other information, you can set it here as well.
+If no env settings are required, you can omit the "env" object.
 `
 }
 

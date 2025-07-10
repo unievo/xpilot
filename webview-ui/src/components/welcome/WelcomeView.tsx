@@ -2,14 +2,11 @@ import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState, memo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration } from "@/utils/validate"
-import { vscode } from "@/utils/vscode"
 import ApiOptions from "@/components/settings/ApiOptions"
 import { agentName } from "@shared/Configuration"
 import AgentLogo from "@/assets/AgentLogo"
-import { AccountServiceClient, ModelsServiceClient } from "@/services/grpc-client"
-import { EmptyRequest } from "@shared/proto/common"
-import { UpdateApiConfigurationRequest } from "@shared/proto/models"
-import { convertApiConfigurationToProto } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { AccountServiceClient, ModelsServiceClient, StateServiceClient } from "@/services/grpc-client"
+import { EmptyRequest, BooleanRequest } from "@shared/proto/common"
 
 const WelcomeView = memo(() => {
 	const { apiConfiguration } = useExtensionState()
@@ -25,16 +22,10 @@ const WelcomeView = memo(() => {
 	}
 
 	const handleSubmit = async () => {
-		if (apiConfiguration) {
-			try {
-				await ModelsServiceClient.updateApiConfigurationProto(
-					UpdateApiConfigurationRequest.create({
-						apiConfiguration: convertApiConfigurationToProto(apiConfiguration),
-					}),
-				)
-			} catch (error) {
-				console.error("Failed to update API configuration:", error)
-			}
+		try {
+			await StateServiceClient.setWelcomeViewCompleted(BooleanRequest.create({ value: true }))
+		} catch (error) {
+			console.error("Failed to update API configuration or complete welcome view:", error)
 		}
 	}
 
@@ -43,10 +34,10 @@ const WelcomeView = memo(() => {
 	}, [apiConfiguration])
 
 	return (
-		<div className="fixed inset-0 p-0 flex flex-col">
-			<div className="h-full px-5 overflow-auto">
-				<div className="flex justify-center my-5">
-					<AgentLogo className="size-16" />
+		<div className="fixed inset-0 p-0 flex flex-col" style={{ scrollbarGutter: "stable" }}>
+			<div className="h-full px-5 pr-1 overflow-auto" style={{ scrollbarGutter: "stable" }}>
+				<div className="flex justify-center mt-10">
+					<AgentLogo size={50} />
 				</div>
 				<h2 className="flex justify-center my-5">Hi, I am {agentName}!</h2>
 				<p>
@@ -56,28 +47,29 @@ const WelcomeView = memo(() => {
 					</VSCodeLink>
 				</p>
 				<p>
-					I can work with different AI models to plan and execute tasks. I achieve the best results with models trained
-					for coding and tool use such as Claude Sonnet.
+					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source coding agent
+					for VS Code, designed to support many AI providers and models, and to handle a wide range of development
+					tasks.
 				</p>
 				<p>
-					To access an AI model I need to use an AI provider. I can use many different providers and you can also bring
-					your own API key if you already have one. Or you can sign up with Open Router or Cline, from the providers
-					list.
-				</p>
-				<p>
-					I can also use supported models in VS Code, or any VS Code based IDE. The easiest way is to set up{" "}
+					It can use available models in VS Code, by setting up{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						Copilot
 					</VSCodeLink>{" "}
-					and
+					and{" "}
 					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
-						enable
+						enabling
 					</VSCodeLink>{" "}
-					the Copilot models. I can use them without another API key or subscription. After setting up Copilot, select
-					VS Code from the providers list.
+					models based on your Copilot plan.
 				</p>
-				<p></p>
-
+				<p>
+					You can also bring your own API key, or you can select and sign up below with providers like OpenRouter or
+					Cline, for a variety of model options.
+				</p>
+				<p>
+					For general tasks, you can use cost effective models such as OpenAI GPT-4.1. <br />
+					For coding tasks use Claude Sonnet 4 or Google Gemini 2.5.
+				</p>
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4
 					Sonnet.
@@ -96,7 +88,7 @@ const WelcomeView = memo(() => {
 					</VSCodeButton>
 				)}
 
-				<div className="mt-4.5">
+				<div className="mt-4.5 mb-4.5">
 					{showApiOptions && (
 						<div>
 							<ApiOptions showModelOptions={false} />

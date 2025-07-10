@@ -1,5 +1,5 @@
 import { URI } from "vscode-uri"
-
+import os from "os"
 import { mkdirSync, readFileSync } from "fs"
 import path, { join } from "path"
 import type { Extension, ExtensionContext } from "vscode"
@@ -7,24 +7,21 @@ import { ExtensionKind, ExtensionMode } from "vscode"
 import { log } from "./utils"
 import { outputChannel, postMessage } from "./vscode-context-stubs"
 import { EnvironmentVariableCollection, MementoStore, readJson, SecretStore } from "./vscode-context-utils"
-
-if (!process.env.CLINE_DIR) {
-	console.warn("Environment variable CLINE_DIR was not set.")
-	process.exit(1)
-}
+import { extensionId } from "@/shared/Configuration"
 
 const VERSION = getPackageVersion()
 log("Running standalone cline ", VERSION)
 
-const DATA_DIR = path.join(process.env.CLINE_DIR, "data")
+const CLINE_DIR = process.env.CLINE_DIR || `${os.homedir()}/.cline`
+const DATA_DIR = path.join(CLINE_DIR, "data")
 mkdirSync(DATA_DIR, { recursive: true })
 log("Using settings dir:", DATA_DIR)
 
-const EXTENSION_DIR = path.join(process.env.CLINE_DIR, "core", VERSION, "extension")
+const EXTENSION_DIR = path.join(CLINE_DIR, "core", VERSION, "extension")
 const EXTENSION_MODE = process.env.IS_DEV === "true" ? ExtensionMode.Development : ExtensionMode.Production
 
 const extension: Extension<void> = {
-	id: "saoudrizwan.claude-dev",
+	id: `${extensionId}`,
 	isActive: true,
 	extensionPath: EXTENSION_DIR,
 	extensionUri: URI.file(EXTENSION_DIR),

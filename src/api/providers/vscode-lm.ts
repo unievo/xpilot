@@ -5,10 +5,14 @@ import { calculateApiCostAnthropic } from "@utils/cost"
 import { ApiStream } from "@api/transform/stream"
 import { convertToVsCodeLmMessages } from "@api/transform/vscode-lm-format"
 import { SELECTOR_SEPARATOR, stringifyVsCodeLmModelSelector } from "@shared/vsCodeSelectorUtils"
-import { ApiHandlerOptions, ModelInfo, openAiModelInfoSaneDefaults } from "@shared/api"
+import { ModelInfo, openAiModelInfoSaneDefaults } from "@shared/api"
 import type { LanguageModelChatSelector as LanguageModelChatSelectorFromTypes } from "./types"
 import { withRetry } from "../retry"
 import { agentName } from "../../shared/Configuration"
+
+interface VsCodeLmHandlerOptions {
+	vsCodeLmModelSelector?: any
+}
 
 // Cline does not update VSCode type definitions or engine requirements to maintain compatibility.
 // This declaration (as seen in src/integrations/TerminalManager.ts) provides types for the Language Model API in newer versions of VSCode.
@@ -125,12 +129,12 @@ declare module "vscode" {
  * ```
  */
 export class VsCodeLmHandler implements ApiHandler, SingleCompletionHandler {
-	private options: ApiHandlerOptions
+	private options: VsCodeLmHandlerOptions
 	private client: vscode.LanguageModelChat | null
 	private disposable: vscode.Disposable | null
 	private currentRequestCancellation: vscode.CancellationTokenSource | null
 
-	constructor(options: ApiHandlerOptions) {
+	constructor(options: VsCodeLmHandlerOptions) {
 		this.options = options
 		this.client = null
 		this.disposable = null

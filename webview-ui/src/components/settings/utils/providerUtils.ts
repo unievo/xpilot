@@ -10,6 +10,8 @@ import {
 	deepSeekModels,
 	geminiDefaultModelId,
 	geminiModels,
+	geminiCliDefaultModelId,
+	geminiCliModels,
 	mistralDefaultModelId,
 	mistralModels,
 	openAiModelInfoSaneDefaults,
@@ -43,6 +45,7 @@ import {
 	claudeCodeDefaultModelId,
 	claudeCodeModels,
 } from "@shared/api"
+import { extensionId } from "@shared/Configuration"
 
 /**
  * Interface for normalized API configuration
@@ -96,6 +99,8 @@ export function normalizeApiConfiguration(apiConfiguration?: ApiConfiguration): 
 			return getProviderData(vertexModels, vertexDefaultModelId)
 		case "gemini":
 			return getProviderData(geminiModels, geminiDefaultModelId)
+		case "gemini-cli":
+			return getProviderData(geminiCliModels, geminiCliDefaultModelId)
 		case "openai-native":
 			return getProviderData(openAiNativeModels, openAiNativeDefaultModelId)
 		case "deepseek":
@@ -129,12 +134,7 @@ export function normalizeApiConfiguration(apiConfiguration?: ApiConfiguration): 
 			return {
 				selectedProvider: provider,
 				selectedModelId: openRouterModelId,
-				// TODO: remove this once we have a better way to handle free models on Cline
-				// Free grok 3 promotion
-				selectedModelInfo:
-					openRouterModelId === "x-ai/grok-3"
-						? { ...openRouterModelInfo, inputPrice: 0, outputPrice: 0 }
-						: openRouterModelInfo,
+				selectedModelInfo: openRouterModelInfo,
 			}
 		case "openai":
 			return {
@@ -190,5 +190,5 @@ export function normalizeApiConfiguration(apiConfiguration?: ApiConfiguration): 
  * Gets the OpenRouter authentication URL
  */
 export function getOpenRouterAuthUrl(uriScheme?: string) {
-	return `https://openrouter.ai/auth?callback_url=${uriScheme || "vscode"}://saoudrizwan.claude-dev/openrouter`
+	return `https://openrouter.ai/auth?callback_url=${uriScheme || "vscode"}://${extensionId}/openrouter`
 }

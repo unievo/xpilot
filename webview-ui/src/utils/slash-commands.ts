@@ -7,7 +7,7 @@ export interface SlashCommand {
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	{
 		name: "New Task",
-		description: "Start new task with current context summary",
+		description: "Start task with current context",
 		section: "task",
 	},
 	{
@@ -16,8 +16,8 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 		section: "task",
 	},
 	{
-		name: "New Instructions",
-		description: "Create new instructions from the task",
+		name: "Generate Instructions",
+		description: "Create task based instructions",
 		section: "instructions",
 	},
 	{

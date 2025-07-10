@@ -422,7 +422,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									<div style={{ display: "flex", alignItems: "center" }}>
 										<span style={{ fontWeight: "bold" }}>Tokens:</span>
 									</div>
-									<HeroTooltip content="Prompt Tokens">
+									<HeroTooltip content="Input Tokens">
 										<span className="flex items-center gap-[3px] cursor-pointer">
 											<i
 												className="codicon codicon-arrow-up"
@@ -435,7 +435,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											{formatLargeNumber(tokensIn || 0)}
 										</span>
 									</HeroTooltip>
-									<HeroTooltip content="Completion Tokens">
+									<HeroTooltip content="Output Tokens">
 										<span className="flex items-center gap-[3px] cursor-pointer">
 											<i
 												className="codicon codicon-arrow-down"

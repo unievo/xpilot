@@ -1,18 +1,20 @@
 import { Controller } from ".."
-import { Empty, StringRequest } from "../../../shared/proto/common"
-import { McpServer, McpDownloadResponse } from "@shared/mcp"
+import { StringRequest } from "../../../shared/proto/common"
+import { McpDownloadResponse } from "../../../shared/proto/mcp"
+import { McpServer } from "@shared/mcp"
 import axios from "axios"
 import * as vscode from "vscode"
 import { sendChatButtonClickedEvent } from "../ui/subscribeToChatButtonClicked"
 import { mcpSettingsFile } from "@/shared/Configuration"
+import { TYPE_ERROR_MESSAGE } from "@/services/mcp/constants"
 
 /**
  * Download an MCP server from the marketplace
  * @param controller The controller instance
  * @param request The request containing the MCP ID
- * @returns Empty response
+ * @returns MCP download response with details or error
  */
-export async function downloadMcp(controller: Controller, request: StringRequest): Promise<Empty> {
+export async function downloadMcp(controller: Controller, request: StringRequest): Promise<McpDownloadResponse> {
 	try {
 		// Check if mcpId is provided
 		if (!request.value) {
@@ -55,19 +57,15 @@ export async function downloadMcp(controller: Controller, request: StringRequest
 			throw new Error("Missing README content in MCP download response")
 		}
 
-		// Send details to webview
-		await controller.postMessageToWebview({
-			type: "mcpDownloadDetails",
-			mcpDownloadDetails: mcpDetails,
-		})
-
 		// Create task with context from README and added guidelines for MCP server installation
 		const task = `Set up the MCP server from ${mcpDetails.githubUrl} while adhering to these MCP server installation rules:
 - Start by loading the MCP documentation using the load_mcp_documentation tool.
 - Use "${mcpDetails.mcpId}" as the server name in ${mcpSettingsFile}.
-- Create the directory for the new MCP server before starting installation.
+- If the server installation is local, create the directory for the new MCP server before starting installation.
 - Make sure you read the user's existing ${mcpSettingsFile} file before editing it with this new mcp, to not overwrite any existing servers.
 - Use commands aligned with the user's shell and operating system best practices.
+- Use only supported server types: ${TYPE_ERROR_MESSAGE}.
+- OAuth servers without API keys are not supported.
 - The following README may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
 - Once installed, demonstrate the server's capabilities by using one of its tools.
 Here is the project's README to help you get started:\n\n${mcpDetails.readmeContent}\n${mcpDetails.llmsInstallationContent}`
@@ -81,8 +79,17 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 		await controller.initTask(task)
 		await sendChatButtonClickedEvent(controller.id)
 
-		// Return an empty response - the client only cares if the call succeeded
-		return Empty.create()
+		// Return the download details directly
+		return McpDownloadResponse.create({
+			mcpId: mcpDetails.mcpId,
+			githubUrl: mcpDetails.githubUrl,
+			name: mcpDetails.name,
+			author: mcpDetails.author,
+			description: mcpDetails.description,
+			readmeContent: mcpDetails.readmeContent,
+			llmsInstallationContent: mcpDetails.llmsInstallationContent,
+			requiresApiKey: mcpDetails.requiresApiKey,
+		})
 	} catch (error) {
 		console.error("Failed to download MCP:", error)
 		let errorMessage = "Failed to download MCP"
@@ -101,13 +108,17 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 			errorMessage = error.message
 		}
 
-		// Show error in both notification and marketplace UI
-		vscode.window.showErrorMessage(errorMessage)
-		await controller.postMessageToWebview({
-			type: "mcpDownloadDetails",
+		// Return error in the response instead of throwing
+		return McpDownloadResponse.create({
+			mcpId: "",
+			githubUrl: "",
+			name: "",
+			author: "",
+			description: "",
+			readmeContent: "",
+			llmsInstallationContent: "",
+			requiresApiKey: false,
 			error: errorMessage,
 		})
-
-		throw error
 	}
 }

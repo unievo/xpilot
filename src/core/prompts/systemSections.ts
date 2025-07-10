@@ -16,8 +16,10 @@ export const SYSTEM_PROMPT = async (
 	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
-	isClaude4ModelFamily: boolean = false,
-) => `${InitialisationPrompt()}
+	isNextGenModel: boolean = false,
+) => {
+	return `
+${InitialisationPrompt()}
 ${await SystemInformationPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await ToolUsePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await EditingFilesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
@@ -27,3 +29,4 @@ ${await RulesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await ObjectivesPrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 ${await McpServerUsePrompt(cwd, supportsBrowserUse, mcpHub, browserSettings)}
 `
+}

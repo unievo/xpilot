@@ -1,4 +1,6 @@
-import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
+import { CHAT_CONSTANTS } from "@/components/chat/chat-view/constants"
+
+const { MAX_IMAGES_AND_FILES_PER_MESSAGE } = CHAT_CONSTANTS
 import ContextMenu from "@/components/chat/ContextMenu"
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
@@ -31,10 +33,8 @@ import {
 	DEFAULT_SLASH_COMMANDS,
 } from "@/utils/slash-commands"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
-import { vscode } from "@/utils/vscode"
 import { ChatSettings } from "@shared/ChatSettings"
 import { mentionRegex, mentionRegexGlobal } from "@shared/context-mentions"
-import { ExtensionMessage } from "@shared/ExtensionMessage"
 import { EmptyRequest, StringRequest } from "@shared/proto/common"
 import { FileSearchRequest, RelativePathsRequest } from "@shared/proto/file"
 import { UpdateApiConfigurationRequest } from "@shared/proto/models"
@@ -1819,18 +1819,22 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						disabled={false}
 						onClick={onModeToggle}>
 						<Slider isAct={chatSettings.mode === "act"} isPlan={chatSettings.mode === "plan"} />
-						<SwitchOption
-							isActive={chatSettings.mode === "plan"}
-							onMouseOver={() => setShownTooltipMode("plan")}
-							onMouseLeave={() => setShownTooltipMode(null)}>
-							Plan
-						</SwitchOption>
-						<SwitchOption
-							isActive={chatSettings.mode === "act"}
-							onMouseOver={() => setShownTooltipMode("act")}
-							onMouseLeave={() => setShownTooltipMode(null)}>
-							Act
-						</SwitchOption>
+						<HeroTooltip delay={1000} content="Switch to Plan Mode">
+							<SwitchOption
+								isActive={chatSettings.mode === "plan"}
+								onMouseOver={() => setShownTooltipMode("plan")}
+								onMouseLeave={() => setShownTooltipMode(null)}>
+								Plan
+							</SwitchOption>
+						</HeroTooltip>
+						<HeroTooltip delay={1000} content="Switch to Act Mode">
+							<SwitchOption
+								isActive={chatSettings.mode === "act"}
+								onMouseOver={() => setShownTooltipMode("act")}
+								onMouseLeave={() => setShownTooltipMode(null)}>
+								Act
+							</SwitchOption>
+						</HeroTooltip>
 					</SwitchContainer>
 
 					<ButtonGroup>
@@ -1865,9 +1869,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</VSCodeButton>
 						</HeroTooltip>
 
-						<ServersToggleModal />
-
 						<ClineRulesToggleModal />
+
+						<ServersToggleModal />
 
 						<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
 							<HeroTooltip
@@ -1902,10 +1906,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<div
 								className="codicon codicon-sparkle-filled"
 								style={{
-									fontSize: "12px",
+									fontSize: "14px",
 									color: itemIconColor,
 									marginLeft: "0px",
-									marginTop: "8px",
+									marginTop: "6px",
 									opacity: 0.7,
 									//overflow: "hidden",
 									textOverflow: "ellipsis",
@@ -1934,7 +1938,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									<div className="relative">
 										<div
 											onMouseDown={() => setShowModelSelector(false)}
-											className="absolute top-0 right-0 cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+											className="absolute top-0 right-0 cursor-pointer -m-0.5 z-[9999] pointer-events-auto">
 											<span className="codicon codicon-close" />
 										</div>
 										<ApiOptions

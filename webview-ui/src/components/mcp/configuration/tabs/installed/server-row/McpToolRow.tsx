@@ -49,23 +49,23 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 				style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
 				onClick={(e) => e.stopPropagation()}>
 				<div style={{ display: "flex", alignItems: "center" }}>
-					<span className="codicon codicon-symbol-method" style={{ color: itemIconColor, marginRight: "6px" }}></span>
+					<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }}></span>
 					<span style={{ fontWeight: 500 }}>{tool.name}</span>
 				</div>
 				{serverName && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
 					<VSCodeCheckbox
-						style={{ opacity: 0.7, fontSize: "0.9em" }}
+						style={{ opacity: 0.7, scale: "0.8", justifyContent: "flex-end" }}
 						checked={tool.autoApprove ?? false}
 						onChange={handleAutoApproveChange}
 						data-tool={tool.name}>
-						Auto-approve
+						Auto
 					</VSCodeCheckbox>
 				)}
 			</div>
 			{tool.description && (
 				<div
 					style={{
-						marginTop: "0px",
+						marginTop: "5px",
 						opacity: 0.7,
 						fontSize: "0.9em",
 					}}>

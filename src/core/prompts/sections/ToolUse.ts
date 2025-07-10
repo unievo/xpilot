@@ -7,6 +7,8 @@ export const ToolUsePrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
+====
+
 TOOL USE
 
 You have access to a set of tools that are executed upon the user's approval. You can use one tool per message, and will receive the result of that tool use in the user's response. You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
@@ -70,11 +72,11 @@ Parameters:
 - path: (required) The path of the file to modify (relative to the current working directory ${cwd.toPosix()})
 - diff: (required) One or more SEARCH/REPLACE blocks following this exact format:
   \`\`\`
-  <<<<<<< SEARCH
+  ------- SEARCH
   [exact content to find]
   =======
   [new content to replace with]
-  >>>>>>> REPLACE
+  +++++++ REPLACE
   \`\`\`
   Critical rules:
   1. SEARCH content must match the associated file section to find EXACTLY:
@@ -171,22 +173,6 @@ Usage:
 		: ""
 }
 
-## web_fetch
-Description: Fetches content from a specified URL and processes into markdown
-- Takes a URL as input
-- Fetches the URL content, converts HTML to markdown
-- Use this tool when you need to retrieve and analyze web content
-- IMPORTANT: If an MCP-provided web fetch tool is available, prefer using that tool instead of this one, as it may have fewer restrictions.
-- The URL must be a fully-formed valid URL
-- HTTP URLs will be automatically upgraded to HTTPS
-- This tool is read-only and does not modify any files
-Parameters:
-- url: (required) The URL to fetch content from
-Usage:
-<web_fetch>
-<url>https://example.com/docs</url>
-</web_fetch>
-
 ## use_mcp_tool
 Description: Request to use a tool provided by a connected MCP server. Each MCP server can provide multiple tools with different capabilities. Tools have defined input schemas that specify required and optional parameters.
 Parameters:
@@ -205,9 +191,9 @@ Usage:
 </arguments>
 </use_mcp_tool>
 
-## get_mcp_tool_input_schema (GMTIS)
+## get_mcp_tool_input_schema
 Description: Request to get the input schema for a specific tool provided by a connected MCP server. This returns the JSON schema that defines the expected input parameters for the tool.
-IMPORTANT: If an MCP tool does not have an input schema provided always call this tool before using it to expose all tool functionality and available parameters.
+IMPORTANT: If an MCP tool does not have an input schema provided, always call this tool before using it to expose all tool functionality and available parameters.
 Parameters:
 - server_name: (required) The name of the MCP server providing the tool
 - tool_name: (required) The name of the tool to get the input schema for
@@ -227,6 +213,22 @@ Usage:
 <server_name>server name here</server_name>
 <uri>resource URI here</uri>
 </access_mcp_resource>
+
+## web_fetch
+Description: Fetches content from a specified URL and processes into markdown
+- Takes a URL as input
+- Fetches the URL content, converts HTML to markdown
+- Use this tool when you need to retrieve and analyze web content
+- IMPORTANT: If an MCP-provided web fetch tool is available, prefer using that tool instead of this one, as it may have fewer restrictions.
+- The URL must be a fully-formed valid URL
+- HTTP URLs will be automatically upgraded to HTTPS
+- This tool is read-only and does not modify any files
+Parameters:
+- url: (required) The URL to fetch content from
+Usage:
+<web_fetch>
+<url>https://example.com/docs</url>
+</web_fetch>
 
 ## ask_followup_question
 Description: Ask the user a question to gather additional information needed to complete the task. This tool should be used when you encounter ambiguities, need clarification, or require more details to proceed effectively. It allows for interactive problem-solving by enabling direct communication with the user. Use this tool judiciously to maintain a balance between gathering necessary information and avoiding excessive back-and-forth.
@@ -256,21 +258,24 @@ Your final result description here
 </attempt_completion>
 
 ## new_task
-Description: Request to create a new task with preloaded context. The user will be presented with a preview of the context and can choose to create a new task or keep chatting in the current conversation. The user may choose to start a new task at any point.
+Description: Request to create a new task with preloaded context covering the conversation with the user up to this point and key information for continuing with the new task. With this tool, you will create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions, with a focus on the most relevant information required for the new task.
+Among other important areas of focus, this summary should be thorough in capturing technical details, code patterns, and architectural decisions that would be essential for continuing with the new task. The user will be presented with a preview of your generated context and can choose to create a new task or keep chatting in the current conversation. The user may choose to start a new task at any point.
 Parameters:
-- context: (required) The context to preload the new task with. This should include:
-  * Comprehensively explain what has been accomplished in the current task - mention specific file names that are relevant
-  * The specific next steps or focus for the new task - mention specific file names that are relevant
-  * Any critical information needed to continue the work
-  * Clear indication of how this new task relates to the overall workflow
-  * This should be akin to a long handoff file, enough for a totally new developer to be able to pick up where you left off and know exactly what to do next and which files to look at.
+- Context: (required) The context to preload the new task with. If applicable based on the current task, this should include:
+  1. Current Work: Describe in detail what was being worked on prior to this request to create a new task. Pay special attention to the more recent messages / conversation.
+  2. Key Technical Concepts: List all important technical concepts, technologies, coding conventions, and frameworks discussed, which might be relevant for the new task.
+  3. Relevant Files and Code: If applicable, enumerate specific files and code sections examined, modified, or created for the task continuation. Pay special attention to the most recent messages and changes.
+  4. Problem Solving: Document problems solved thus far and any ongoing troubleshooting efforts.
+  5. Pending Tasks and Next Steps: Outline all pending tasks that you have explicitly been asked to work on, as well as list the next steps you will take for all outstanding work, if applicable. Include code snippets where they add clarity. For any next steps, include direct quotes from the most recent conversation showing exactly what task you were working on and where you left off. This should be verbatim to ensure there's no information loss in context between tasks. It's important to be detailed here.
 Usage:
 <new_task>
 <context>context to preload new task with</context>
 </new_task>
 
 ## plan_mode_respond
-Description: Respond to the user's inquiry in an effort to plan a solution to the user's task. This tool should be used when you need to provide a response to a question or statement from the user about how you plan to accomplish the task. This tool is only available in PLAN MODE. The environment_details will specify the current mode, if it is not PLAN MODE then you should not use this tool. Depending on the user's message, you may ask questions to get clarification about the user's request, architect a solution to the task, and to brainstorm ideas with the user. For example, if the user's task is to create a website, you may start by asking some clarifying questions, then present a detailed plan for how you will accomplish the task given the context, and perhaps engage in a back and forth to finalize the details before the user switches you to ACT MODE to implement the solution.
+Description: Respond to the user's inquiry in an effort to plan a solution to the user's task. This tool should ONLY be used when you have already explored the relevant files and are ready to present a concrete plan. DO NOT use this tool to announce what files you're going to read - just read them first. This tool is only available in PLAN MODE. The environment_details will specify the current mode, if it is not PLAN_MODE then you should not use this tool. For example, if the user's task is to create a website, you may start by asking some clarifying questions with the ask_followup_question tool if their message was vague, explore the codebase, read files, then present a detailed plan for how you will accomplish the task given the context, and perhaps engage in a back and forth to finalize the details before the user switches you to ACT_MODE to implement the solution. 
+CRITICAL: You must complete your information gathering (reading files, exploring the codebase) BEFORE using this tool. The user expects to see a well thought-out plan based on actual analysis, not intentions.
+
 Parameters:
 - response: (required) The response to provide to the user. Do not try to use tools in this parameter, this is simply a chat response. (You MUST use the response parameter, do not simply place the response text directly within <plan_mode_respond> tags.)
 Usage:
@@ -320,17 +325,30 @@ Usage:
 
 <new_task>
 <context>
-Authentication System Implementation:
-- We've implemented the basic user model with email/password
-- Password hashing is working with bcrypt
-- Login endpoint is functional with proper validation
-- JWT token generation is implemented
+1. Current Work:
+   [Detailed description]
 
-Next Steps:
-- Implement refresh token functionality
-- Add token validation middleware
-- Create password reset flow
-- Implement role-based access control
+2. Key Technical Concepts:
+   - [Concept 1]
+   - [Concept 2]
+   - [...]
+
+3. Relevant Files and Code:
+   - [File Name 1]
+      - [Summary of why this file is important]
+      - [Summary of the changes made to this file, if any]
+      - [Important Code Snippet]
+   - [File Name 2]
+      - [Important Code Snippet]
+   - [...]
+
+4. Problem Solving:
+   [Detailed description]
+
+5. Pending Tasks and Next Steps:
+   - [Task 1 details & next steps]
+   - [Task 2 details & next steps]
+   - [...]
 </context>
 </new_task>
 
@@ -339,22 +357,22 @@ Next Steps:
 <replace_in_file>
 <path>src/components/App.tsx</path>
 <diff>
-<<<<<<< SEARCH
+------- SEARCH
 import React from 'react';
 =======
 import React, { useState } from 'react';
->>>>>>> REPLACE
++++++++ REPLACE
 
-<<<<<<< SEARCH
+------- SEARCH
 function handleSubmit() {
   saveData();
   setLoading(false);
 }
 
 =======
->>>>>>> REPLACE
++++++++ REPLACE
 
-<<<<<<< SEARCH
+------- SEARCH
 return (
   <div>
 =======
@@ -365,7 +383,7 @@ function handleSubmit() {
 
 return (
   <div>
->>>>>>> REPLACE
++++++++ REPLACE
 </diff>
 </replace_in_file>
 

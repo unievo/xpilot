@@ -1,6 +1,6 @@
 export type SecretKey =
 	| "apiKey"
-	| "clineApiKey"
+	| "clineAccountId"
 	| "openRouterApiKey"
 	| "awsAccessKey"
 	| "awsSecretKey"
@@ -72,19 +72,16 @@ export type GlobalStateKey =
 	| "terminalReuseEnabled"
 	| "defaultTerminalProfile"
 	| "isNewUser"
+	| "welcomeViewCompleted"
 	| "terminalOutputLineLimit"
 	| "mcpRichDisplayEnabled"
 	| "sapAiCoreTokenUrl"
 	| "sapAiCoreBaseUrl"
 	| "sapAiResourceGroup"
-	| "sapAiCoreClientId"
-	| "sapAiCoreClientSecret"
-	| "sapAiCoreModelId"
 	| "claudeCodePath"
-
-export type LocalStateKey =
-	| "localClineRulesToggles"
+	// Settings around plan/act and ephemeral model configuration
 	| "chatSettings"
+	| "mode"
 	// Current active model configuration (per workspace)
 	| "apiProvider"
 	| "apiModelId"
@@ -105,6 +102,7 @@ export type LocalStateKey =
 	| "requestyModelInfo"
 	| "togetherModelId"
 	| "fireworksModelId"
+	| "sapAiCoreModelId"
 	// Previous mode saved configurations (per workspace)
 	| "previousModeApiProvider"
 	| "previousModeModelId"
@@ -114,9 +112,6 @@ export type LocalStateKey =
 	| "previousModeReasoningEffort"
 	| "previousModeAwsBedrockCustomSelected"
 	| "previousModeAwsBedrockCustomModelBaseId"
-	| "previousModeSapAiCoreClientId"
-	| "previousModeSapAiCoreClientSecret"
-	| "previousModeSapAiCoreBaseUrl"
-	| "previousModeSapAiCoreTokenUrl"
-	| "previousModeSapAiCoreResourceGroup"
 	| "previousModeSapAiCoreModelId"
+
+export type LocalStateKey = "localClineRulesToggles" | "localCursorRulesToggles" | "localWindsurfRulesToggles" | "workflowToggles"
