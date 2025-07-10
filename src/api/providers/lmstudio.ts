@@ -7,11 +7,16 @@ import { ApiStream } from "../transform/stream"
 import { withRetry } from "../retry"
 import { agentName } from "../../shared/Configuration"
 
+interface LmStudioHandlerOptions {
+	lmStudioBaseUrl?: string
+	lmStudioModelId?: string
+}
+
 export class LmStudioHandler implements ApiHandler {
-	private options: ApiHandlerOptions
+	private options: LmStudioHandlerOptions
 	private client: OpenAI | undefined
 
-	constructor(options: ApiHandlerOptions) {
+	constructor(options: LmStudioHandlerOptions) {
 		this.options = options
 	}
 

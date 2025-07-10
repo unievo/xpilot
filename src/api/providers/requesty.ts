@@ -8,6 +8,14 @@ import { calculateApiCostOpenAI } from "@utils/cost"
 import { ApiStream } from "@api/transform/stream"
 import { agentName, homePageUrl } from "../../shared/Configuration"
 
+interface RequestyHandlerOptions {
+	requestyApiKey?: string
+	reasoningEffort?: string
+	thinkingBudgetTokens?: number
+	requestyModelId?: string
+	requestyModelInfo?: ModelInfo
+}
+
 // Requesty usage includes an extra field for Anthropic use cases.
 // Safely cast the prompt token details section to the appropriate structure.
 interface RequestyUsage extends OpenAI.CompletionUsage {
@@ -19,10 +27,10 @@ interface RequestyUsage extends OpenAI.CompletionUsage {
 }
 
 export class RequestyHandler implements ApiHandler {
-	private options: ApiHandlerOptions
+	private options: RequestyHandlerOptions
 	private client: OpenAI | undefined
 
-	constructor(options: ApiHandlerOptions) {
+	constructor(options: RequestyHandlerOptions) {
 		this.options = options
 	}
 
