@@ -39,17 +39,13 @@ const WelcomeView = memo(() => {
 				<div className="flex justify-center mt-10">
 					<AgentLogo size={50} />
 				</div>
-				<h2 className="flex justify-center my-5">Hi, I am {agentName}!</h2>
+				<h2 className="flex justify-center my-5">Welcome to {agentName}!</h2>
 				<p>
-					I'm an AI software engineering agent with a mission to accelerate development on
-					<VSCodeLink href="https://www.multiversx.com" style={{ display: "inline" }}>
+					{agentName} is an open-source AI coding agent for{" "}
+					<VSCodeLink href="https://www.multiversx.com" style={{ display: "" }}>
 						MultiversX
 					</VSCodeLink>
-				</p>
-				<p>
-					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source coding agent
-					for VS Code, designed to support many AI providers and models, and to handle a wide range of development
-					tasks.
+					. It supports many AI providers and models, and handles a wide range of development tasks.
 				</p>
 				<p>
 					It can use available models in VS Code, by setting up{" "}
