@@ -60,7 +60,8 @@ import { sendRelinquishControlEvent } from "@core/controller/ui/subscribeToRelin
 import { ClineIgnoreController } from "@core/ignore/ClineIgnoreController"
 import { parseMentions } from "@core/mentions"
 import { formatResponse } from "@core/prompts/responses"
-import { addUserInstructions, SYSTEM_PROMPT } from "@core/prompts/system"
+import { SYSTEM_PROMPT } from "@core/prompts/systemSections"
+import { addUserInstructions } from "@core/prompts/userInstructions"
 import { parseSlashCommands } from "@core/slash-commands"
 import {
 	ensureGlobalInstructionsDirectoryExists,

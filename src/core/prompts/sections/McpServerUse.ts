@@ -19,6 +19,8 @@ export const McpServerUsePrompt = async (
 	)
 
 	const mainContent = `
+====
+
 MCP SERVERS
 
 The Model Context Protocol (MCP) enables communication between the system and locally running MCP servers that provide additional tools and resources to extend your capabilities.
@@ -62,9 +64,9 @@ ${
 					const config = JSON.parse(server.config)
 
 					return (
-						`## ${server.name} (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` +
+						`## ${server.name} ${config.command ? `(\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` : "- remote server"}` +
 						(tools
-							? `\n\n### ATL - Available Tools List - Always use get_mcp_tool_input_schema before calling a tool that does not have a defined input schema as it exposes all tool functionality and available parameters such as sorting, ordering, filtering, etc.\n${tools}`
+							? `\n\n### ATL - Available Tools List - Always use get_mcp_tool_input_schema before calling a tool that does not have a defined input schema, as it exposes all tool functionality and available parameters such as sorting, ordering, filtering, etc.\n\n${tools}`
 							: "") +
 						(templates ? `\n\n### RTL - Resource Templates List\n${templates}` : "") +
 						(resources ? `\n\n### DRL - Direct Resources List\n${resources}` : "")

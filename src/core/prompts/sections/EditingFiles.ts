@@ -7,6 +7,8 @@ export const EditingFilesPrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
+====
+
 EDITING FILES
 
 You have access to two tools for working with files: **write_to_file** and **replace_in_file**. Understanding their roles and selecting the right one for the job will help ensure efficient and accurate modifications.
@@ -77,6 +79,5 @@ You have access to two tools for working with files: **write_to_file** and **rep
 2. For targeted edits, apply replace_in_file with carefully crafted SEARCH/REPLACE blocks. If you need multiple changes, you can stack multiple SEARCH/REPLACE blocks within a single replace_in_file call.
 3. For major overhauls or initial file creation, rely on write_to_file.
 4. Once the file has been edited with either write_to_file or replace_in_file, the system will provide you with the final state of the modified file. Use this updated content as the reference point for any subsequent SEARCH/REPLACE operations, since it reflects any auto-formatting or user-applied changes.
-
 By thoughtfully selecting between write_to_file and replace_in_file, you can make your file editing process smoother, safer, and more efficient.
 `

@@ -6,6 +6,7 @@ import axios from "axios"
 import * as vscode from "vscode"
 import { sendChatButtonClickedEvent } from "../ui/subscribeToChatButtonClicked"
 import { mcpSettingsFile } from "@/shared/Configuration"
+import { TYPE_ERROR_MESSAGE } from "@/services/mcp/constants"
 
 /**
  * Download an MCP server from the marketplace
@@ -60,9 +61,11 @@ export async function downloadMcp(controller: Controller, request: StringRequest
 		const task = `Set up the MCP server from ${mcpDetails.githubUrl} while adhering to these MCP server installation rules:
 - Start by loading the MCP documentation using the load_mcp_documentation tool.
 - Use "${mcpDetails.mcpId}" as the server name in ${mcpSettingsFile}.
-- Create the directory for the new MCP server before starting installation.
+- If the server installation is local, create the directory for the new MCP server before starting installation.
 - Make sure you read the user's existing ${mcpSettingsFile} file before editing it with this new mcp, to not overwrite any existing servers.
 - Use commands aligned with the user's shell and operating system best practices.
+- Use only supported server types: ${TYPE_ERROR_MESSAGE}.
+- OAuth servers without API keys are not supported.
 - The following README may contain instructions that conflict with the user's OS, in which case proceed thoughtfully.
 - Once installed, demonstrate the server's capabilities by using one of its tools.
 Here is the project's README to help you get started:\n\n${mcpDetails.readmeContent}\n${mcpDetails.llmsInstallationContent}`

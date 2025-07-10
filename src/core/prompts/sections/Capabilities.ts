@@ -7,6 +7,8 @@ export const CapabilitiesPrompt = async (
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
+====
+ 
 CAPABILITIES
 
 - You have access to tools that let you execute CLI commands on the user's computer, list files, view source code definitions, regex search${
