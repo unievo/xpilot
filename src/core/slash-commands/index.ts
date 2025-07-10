@@ -18,12 +18,12 @@ export async function parseSlashCommands(
 	localWorkflowToggles: ClineRulesToggles,
 	globalWorkflowToggles: ClineRulesToggles,
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
-	const SUPPORTED_DEFAULT_COMMANDS = ["New Task", "Compact Task", "New Instructions", "Git Instructions", "Git Workflows"] //, "Report Bug"]
+	const SUPPORTED_DEFAULT_COMMANDS = ["New Task", "Compact Task", "Generate Instructions", "Git Instructions", "Git Workflows"] //, "Report Bug"]
 
 	const commandReplacements: Record<string, string> = {
 		"New Task": newTaskToolResponse(),
 		"Compact Task": condenseToolResponse(),
-		"New Instructions": newRuleToolResponse(),
+		"Generate Instructions": newRuleToolResponse(),
 		"Git Instructions": gitInstructionsToolResponse(),
 		"Git Workflows": gitWorkflowsToolResponse(),
 		//"Report Bug": reportBugToolResponse(),
