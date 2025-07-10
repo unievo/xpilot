@@ -109,7 +109,7 @@ const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps
 				</>
 			)}
 
-			<div
+			{/* <div
 				style={{
 					backgroundColor: "var(--vscode-editorWarning-background, rgba(255, 191, 0, 0.1))",
 					padding: "8px",
@@ -155,7 +155,7 @@ const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps
 					• Does not use API keys - authentication is handled via OAuth
 					<br />• Requires the Gemini CLI tool to be installed and authenticated first
 				</p>
-			</div>
+			</div> */}
 
 			<p
 				style={{

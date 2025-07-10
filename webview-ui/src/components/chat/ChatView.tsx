@@ -29,7 +29,6 @@ import {
 	InputSection,
 } from "./chat-view"
 
-import { enableTelemetrySettings } from "@shared/Configuration"
 import AutoApproveBar from "./auto-approve-menu/AutoApproveBar"
 
 interface ChatViewProps {
@@ -318,9 +317,11 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	const scrollBehavior = useScrollBehavior(messages, visibleMessages, groupedMessages, expandedRows, setExpandedRows)
 
 	const placeholderText = useMemo(() => {
-		const text = task ? "Type a message..." : "Type your task here..."
-		return text
-	}, [task])
+		if (task) {
+			return chatSettings.mode === "plan" ? "Type a message to plan" : "Type a message to execute"
+		}
+		return chatSettings.mode === "plan" ? "Type to plan a task" : "Type to execute a task"
+	}, [task, chatSettings.mode])
 
 	return (
 		<ChatLayout isHidden={isHidden}>

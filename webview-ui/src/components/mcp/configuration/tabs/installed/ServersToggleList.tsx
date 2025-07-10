@@ -32,16 +32,7 @@ const ServersToggleList = ({
 			))}
 		</div>
 	) : (
-		<div style={{ padding: "10px", textAlign: "center", opacity: 0.9 }}>
-			No servers installed, set up in
-			<VSCodeLink
-				style={{ display: "inline" }}
-				onClick={() => {
-					navigateToMcp("installed")
-				}}>
-				MCP Servers
-			</VSCodeLink>
-		</div>
+		<div style={{ padding: "10px", textAlign: "center", opacity: 0.9 }}>No servers installed</div>
 	)
 }
 

@@ -20,6 +20,7 @@ const ChatLayoutContainer = styled.div<{ isHidden: boolean }>`
 	left: 0;
 	right: 0;
 	bottom: 0;
+	padding-bottom: 5px;
 	display: ${(props) => (props.isHidden ? "none" : "flex")};
 	flex-direction: column;
 	overflow: hidden;

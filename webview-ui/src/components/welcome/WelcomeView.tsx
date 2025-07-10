@@ -41,33 +41,29 @@ const WelcomeView = memo(() => {
 				</div>
 				<h2 className="flex justify-center my-5">Welcome to {agentName}!</h2>
 				<p>
-					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source agent for VS
-					Code, designed to support many AI providers and models, and to handle a wide range of development tasks.
+					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source coding agent
+					for VS Code, designed to support many AI providers and models, and to handle a wide range of development
+					tasks.
 				</p>
 				<p>
-					{agentName} achieves the best results with models trained for coding and tool use, currently Claude Sonnet
-					3.5–4, Google Gemini 2.5 Pro, xAI Grok 3, and OpenAI GPT-4.1. For easier tasks, it can also use simpler
-					models.
-				</p>
-				<p>
-					To access AI models, {agentName} needs to use an AI provider. It can use many different providers, and you can
-					also bring your own AI API key.
-					<br />
-					Or, you can sign up with OpenRouter or Cline, for a variety of model options, using the providers list below.
-				</p>
-				<p>
-					{agentName} can also use models available in VS Code. The easiest way is to set up{" "}
+					It can use available models in VS Code, by setting up{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						Copilot
 					</VSCodeLink>{" "}
 					and{" "}
 					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
-						enable
+						enabling
 					</VSCodeLink>{" "}
-					the models you want to use. {agentName} can use them based on your Copilot plan. After setting up Copilot, you
-					can select VS Code from the providers list.
+					models based on your Copilot plan.
 				</p>
-
+				<p>
+					You can also bring your own API key, or you can select and sign up below with providers like OpenRouter or
+					Cline, for a variety of model options.
+				</p>
+				<p>
+					For general tasks, you can use cost effective models such as OpenAI GPT-4.1. <br />
+					For coding tasks use Claude Sonnet 4 or Google Gemini 2.5.
+				</p>
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4
 					Sonnet.
@@ -86,7 +82,7 @@ const WelcomeView = memo(() => {
 					</VSCodeButton>
 				)}
 
-				<div className="mt-4.5">
+				<div className="mt-4.5 mb-4.5">
 					{showApiOptions && (
 						<div>
 							<ApiOptions showModelOptions={false} />

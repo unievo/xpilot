@@ -182,7 +182,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 								color: "var(--vscode-descriptionForeground)",
 								margin: "4px 0 0 0px",
 							}}>
-							Prevent Cline from using browser actions (e.g. launch, click, type).
+							Prevent {agentName} from using browser actions (e.g. launch, click, type).
 						</p>
 					</div>
 

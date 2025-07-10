@@ -129,8 +129,18 @@ const RuleRow: React.FC<{
 							{getRuleTypeIcon()}
 						</span>
 					)}
-					<span style={{ marginLeft: "2px" }}>
-						{displayName} <span style={{ fontSize: "10px", opacity: 0.6 }}>/{directoryName}</span>
+					<span style={{ marginLeft: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+						{displayName}{" "}
+						<span
+							style={{
+								fontSize: "10px",
+								opacity: 0.6,
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								whiteSpace: "nowrap",
+							}}>
+							/{directoryName}
+						</span>
 					</span>
 				</span>
 

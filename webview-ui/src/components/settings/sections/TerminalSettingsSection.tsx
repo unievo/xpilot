@@ -6,6 +6,7 @@ import { StateServiceClient } from "../../../services/grpc-client"
 import { Int64, Int64Request, StringRequest } from "@shared/proto/common"
 import Section from "../Section"
 import { updateSetting } from "../utils/settingsHandlers"
+import { agentName } from "@shared/Configuration"
 
 interface TerminalSettingsSectionProps {
 	renderSectionHeader: (tabId: string) => JSX.Element | null
@@ -95,7 +96,7 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 							))}
 						</VSCodeDropdown>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-							Select the default terminal Cline will use. 'Default' uses your VSCode global setting.
+							Select the default terminal {agentName} will use. 'Default' uses your VSCode global setting.
 						</p>
 					</div>
 
@@ -114,8 +115,8 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 							{inputError && <div className="text-[var(--vscode-errorForeground)] text-xs mt-1">{inputError}</div>}
 						</div>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-							Set how long Cline waits for shell integration to activate before executing commands. Increase this
-							value if you experience terminal connection timeouts.
+							Set how long {agentName} waits for shell integration to activate before executing commands. Increase
+							this value if you experience terminal connection timeouts.
 						</p>
 					</div>
 
@@ -124,18 +125,18 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 							<VSCodeCheckbox
 								checked={terminalReuseEnabled ?? true}
 								onChange={(event) => handleTerminalReuseChange(event as Event)}>
-								Enable aggressive terminal reuse
+								Enable terminal reuse
 							</VSCodeCheckbox>
 						</div>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-							When enabled, Cline will reuse existing terminal windows that aren't in the current working directory.
-							Disable this if you experience issues with task lockout after a terminal command.
+							When enabled, {agentName} will reuse existing terminal windows that aren't in the current working
+							directory. Disable this if you experience issues with task lockout after a terminal command.
 						</p>
 					</div>
 					<TerminalOutputLineLimitSlider />
 					<div className="mt-5 p-3 bg-[var(--vscode-textBlockQuote-background)] rounded border border-[var(--vscode-textBlockQuote-border)]">
 						<p className="text-[13px] m-0">
-							<strong>Having terminal issues?</strong> Check our{" "}
+							<strong>Having terminal issues?</strong> Check the{" "}
 							<a
 								href="https://docs.cline.bot/troubleshooting/terminal-quick-fixes"
 								className="text-[var(--vscode-textLink-foreground)] underline hover:no-underline"

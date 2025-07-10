@@ -52,7 +52,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								const checked = e.target.checked === true
 								updateSetting("mcpMarketplaceEnabled", checked)
 							}}>
-							Enable MCP Marketplace
+							Enable Cline MCP Marketplace
 						</VSCodeCheckbox>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
 							Enables the MCP Marketplace tab for discovering and installing MCP servers.

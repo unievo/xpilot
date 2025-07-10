@@ -7,7 +7,7 @@ export const mcpLibraryItems: McpLibraryItem[] = [
 		description: "Provides tools for managing and interacting with the MCP.",
 		logoUrl: "https://cdn-icons-png.flaticon.com/512/10439/10439399.png",
 		githubUrl: "https://github.com/",
-		npmPackage: "@npx/mcp-server",
+		npmPackage: "@scope/mcp-server",
 		category: "Category Name",
 		tags: ["Tag1", "Tag2"],
 		author: "unievo",

@@ -23,8 +23,8 @@ const InstalledServersView = () => {
 					opacity: 0.7,
 				}}>
 				<p style={{ fontSize: "12px", margin: 5, marginBottom: 0 }}>
-					Model Context Protocol (MCP) servers provide a standard way for AI models to use external tools. You can
-					quickly enable or disable servers from the chat tools menu.
+					The Model Context Protocol (MCP) is an open protocol that standardizes how applications provide context to AI
+					models.
 				</p>
 			</div>
 			{/* Button Row */}

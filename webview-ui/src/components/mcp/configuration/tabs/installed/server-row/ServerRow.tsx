@@ -219,13 +219,12 @@ const ServerRow = ({
 					style={{
 						flex: 1,
 						overflow: "hidden",
-						//wordBreak: "break-all",
-						whiteSpace: "normal",
+						textOverflow: "ellipsis",
+						whiteSpace: "nowrap",
 						display: "flex",
 						alignItems: "center",
 						marginRight: "4px",
 						marginLeft: "0px",
-						//fontSize: "13px",
 						padding: "1px ",
 					}}>
 					<span

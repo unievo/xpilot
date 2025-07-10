@@ -19,8 +19,8 @@ const containerStyle: CSSProperties = {
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "5px 15px 8px", fontSize: "16px", fontWeight: "bold" }
-const ulStyle: CSSProperties = { listStyle: "disc", margin: "5px", paddingLeft: "10px", fontSize: "12px" }
+const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "16px", fontWeight: "bold" }
+const ulStyle: CSSProperties = { listStyle: "disc", margin: "4px", paddingLeft: "10px", fontSize: "12px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
@@ -28,7 +28,7 @@ const hrStyle: CSSProperties = {
 	opacity: 0.1,
 	margin: "8px 0",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 10px", fontSize: "11px", textAlign: "left" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "11px", textAlign: "left" }
 const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
 
 /*

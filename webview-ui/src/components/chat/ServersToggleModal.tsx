@@ -109,7 +109,7 @@ const ServersToggleModal: React.FC = () => {
 							<span className="codicon codicon-close" />
 						</div>
 					</div>
-					<div>
+					{/* <div>
 						<p
 							style={{
 								fontSize: "12px",
@@ -117,9 +117,9 @@ const ServersToggleModal: React.FC = () => {
 								marginTop: -10,
 								color: "var(--vscode-descriptionForeground)",
 							}}>
-							Enable servers you need to use in your tasks.
+							Enable or disable servers.
 						</p>
-					</div>
+					</div> */}
 					<div style={{ marginBottom: 0, fontSize: "12px" }}>
 						<ServersToggleList servers={mcpServers} isExpandable={true} hasTrashIcon={false} listGap="small" />
 					</div>
