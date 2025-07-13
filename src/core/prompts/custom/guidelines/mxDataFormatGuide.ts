@@ -1,26 +1,12 @@
 export const mxDataFormatGuide = `
 ## For formatting data coming from the MultiversX networks ALWAYS use the following guidelines:
-- The available networks are: mainnet, testnet, devnet.
-- The native token is EGLD for mainnet and xEGLD for testnet and devnet.
-- The native tokens have 18 decimals.
 
-### Format all available data formatted using the following rules:
+### Format all available data using the following rules:
 - Format as bold numbered points for higher levels and nested indented bullet points for lower levels, separate top level by a new line.
 - Format timestamps in standard UTC datetime only if timestamp > 0.
 - Replace base64 encoded strings with their values decoded.
 - For all image URLs always use exactly "[name](url)" not "![name](url)"
-- Format text as embedded links to explorer for:
-    - Accounts/contracts : {explorerUrl}/accounts/{address}
-    - Transactions : {explorerUrl}/transactions/{txHash}
-    - Tokens : {explorerUrl}/tokens/{identifier}
-    - Collections : {explorerUrl}/collections/{collection}
-    - NFTs : {explorerUrl}/nfts/{nftIdentifier}
-    - Blocks : {explorerUrl}/blocks/{blockHash}
-    - Validator Identities : {explorerUrl}/identities/{identity}
-- {explorerUrl} is:
-    - http://explorer.multiversx.com for mainnet
-    - http://testnet-explorer.multiversx.com for testnet
-    - http://devnet-explorer.multiversx.com for devnet
+- Format text as embedded links to explorer URLs
 
 ### Formatting numerical values
 - Format all amounts as denominated values (divide by decimals) without any rounding
@@ -30,5 +16,5 @@ export const mxDataFormatGuide = `
 
 ### General formatting
 - Response must not include "\`\`\`markdown'" and "\`\`\`" syntax in the output
-- Exclude fields containing over 300 characters
+- Exclude fields containing over 300 characters and replace them with a "Exceeded 300 character limit" text
 `
