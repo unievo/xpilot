@@ -112,6 +112,7 @@ const RuleRow: React.FC<{
 					background: enabled ? rowBackground : rowBackgroundDisabled,
 					borderRadius: "4px",
 					opacity: enabled ? 1 : 0.8,
+					cursor: "default",
 				}}>
 				<span
 					style={{
@@ -186,13 +187,13 @@ const RuleRow: React.FC<{
 					</div>
 					<VSCodeButton
 						appearance="icon"
-						aria-label="Edit file"
-						title="Edit file"
+						aria-label="Open file"
+						title="Open file"
 						onClick={handleEditClick}
 						style={{ height: "20px" }}>
 						<span
-							className="codicon codicon-edit"
-							style={{ fontSize: "13px", marginTop: "2px", marginRight: "-2px" }}
+							className="codicon codicon-go-to-file"
+							style={{ fontSize: "15px", opacity: 0.8, marginTop: "2px", marginRight: "-2px" }}
 						/>
 					</VSCodeButton>
 					{!showConfirmDelete ? (
@@ -202,7 +203,10 @@ const RuleRow: React.FC<{
 							title="Delete file"
 							onClick={handleDeleteClick}
 							style={{ height: "20px" }}>
-							<span className="codicon codicon-trash" style={{ fontSize: "14px", marginTop: "2px" }} />
+							<span
+								className="codicon codicon-trash"
+								style={{ fontSize: "15px", opacity: 0.8, marginTop: "3px" }}
+							/>
 						</VSCodeButton>
 					) : (
 						<div style={{ display: "flex", gap: "2px", overflow: "hidden", marginRight: "2px" }}>

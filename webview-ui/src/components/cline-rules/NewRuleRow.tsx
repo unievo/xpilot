@@ -89,10 +89,15 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 	return (
 		<div
 			ref={componentRef}
-			className={`mb-0  transition-all duration-200 ease-in-out ${isExpanded ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
+			className={`mb-0 overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
 			onClick={() => !isExpanded && setIsExpanded(true)}>
 			<div
-				style={{ border: `0.5px solid ${rowBackground}`, marginTop: "3px", paddingLeft: "2px", overflow: "hidden" }}
+				style={{
+					border: `0.5px solid overflow-ellipsis ${rowBackground}`,
+					marginTop: "3px",
+					paddingLeft: "2px",
+					overflow: "hidden",
+				}}
 				className={`flex items-center p-0 rounded transition-all duration-300 ease-in-out min-h-[12px] ${
 					isExpanded ? "shadow-sm" : ""
 				}`}>
@@ -128,10 +133,10 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 					</form>
 				) : (
 					<>
-						<span className="ml-0.5 flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)]">
+						<div className="ml-0.5 overflow-ellipsis overflow-hidden flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)]">
 							{ruleType === "workflow" ? "New workflow file..." : "New instructions file..."}
-						</span>
-						<div className="flex items-center ml-2 space-x-2">
+						</div>
+						<div className="flex overflow-hidden items-center ml-2 space-x-2">
 							<VSCodeButton
 								appearance="icon"
 								aria-label="Add file"
