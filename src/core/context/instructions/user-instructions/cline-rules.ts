@@ -19,7 +19,19 @@ export const getGlobalClineRules = async (globalClineRulesFilePath: string, togg
 					instructionsExcludedDirectories,
 					instructionsExcludedFiles,
 				)
-				const rulesFilesTotalContent = await getRuleFilesTotalContent(rulesFilePaths, globalClineRulesFilePath, toggles)
+				// Filter files by the allowed extension (include all files if no extension is set)
+				const filteredRulesFilePaths = rulesFilePaths.filter((filePath) => {
+					if (!instructionsFilesExtension) {
+						return true // Include all files if no extension is specified
+					}
+					const fileExtension = path.extname(filePath)
+					return fileExtension === instructionsFilesExtension
+				})
+				const rulesFilesTotalContent = await getRuleFilesTotalContent(
+					filteredRulesFilePaths,
+					globalClineRulesFilePath,
+					toggles,
+				)
 				if (rulesFilesTotalContent) {
 					const clineRulesFileInstructions = formatResponse.clineRulesGlobalDirectoryInstructions(
 						globalClineRulesFilePath,
@@ -53,8 +65,16 @@ export const getLocalClineRules = async (cwd: string, toggles: ClineRulesToggles
 					instructionsExcludedDirectories,
 					instructionsExcludedFiles,
 				)
+				// Filter files by the allowed extension (include all files if no extension is set)
+				const filteredRulesFilePaths = rulesFilePaths.filter((filePath) => {
+					if (!instructionsFilesExtension) {
+						return true // Include all files if no extension is specified
+					}
+					const fileExtension = path.extname(filePath)
+					return fileExtension === instructionsFilesExtension
+				})
 
-				const rulesFilesTotalContent = await getRuleFilesTotalContent(rulesFilePaths, cwd, toggles)
+				const rulesFilesTotalContent = await getRuleFilesTotalContent(filteredRulesFilePaths, cwd, toggles)
 				if (rulesFilesTotalContent) {
 					clineRulesFileInstructions = formatResponse.clineRulesLocalDirectoryInstructions(cwd, rulesFilesTotalContent)
 				}
