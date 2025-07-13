@@ -7,8 +7,8 @@ export const discordUrl = "https://discord.gg/bTzeCrhpP8"
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
-export const gitInstructionsRepo = ""
-export const gitWorkflowsRepo = ""
+export const gitInstructionsRepo = "https://github.com/unievo/xpilot-instructions.git"
+export const gitWorkflowsRepo = "https://github.com/unievo/xpilot-workflows.git"
 export const latestAnnouncementId = "1.1.0"
 export const clineVersion = "3.18.10"
 
@@ -16,7 +16,7 @@ export const clineVersion = "3.18.10"
 export const defaultChatMode = "act"
 export const enableTelemetrySettings = false
 export const maxHistoryPreviewItems = 10
-export const mcpLibraryEnabled = false
+export const mcpLibraryEnabled = true
 export const mcpMarketplaceEnabledDefaultSetting = true
 export const enableNewInstructionsDefaultSetting = false
 export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
@@ -71,7 +71,7 @@ export const extensionIconDarkPath = `assets/icons/icon_dark.png`
 export const workspaceInstructionsDirectoryPath = `${agentWorkspaceDirectory}/${instructionsDirectory}`
 export const workspaceWorkflowsDirectoryPath = `${agentWorkspaceDirectory}/${workflowsDirectory}`
 export const ignoreWorkspaceDirectories = [
-	agentWorkspaceDirectory,
+	//agentWorkspaceDirectory,
 	".git",
 	".github",
 	"node_modules",
