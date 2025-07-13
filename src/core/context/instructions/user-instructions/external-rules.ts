@@ -25,8 +25,16 @@ export async function refreshExternalRulesToggles(
 }> {
 	// local windsurf toggles
 	const localWindsurfRulesToggles = ((await getWorkspaceState(context, "localWindsurfRulesToggles")) as ClineRulesToggles) || {}
-	const localWindsurfRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.windsurfRules)
-	const updatedLocalWindsurfToggles = await synchronizeRuleToggles(localWindsurfRulesFilePath, localWindsurfRulesToggles)
+
+	// windsurf has two valid locations for rules files, so we need to check both and combine
+	// synchronizeRuleToggles will drop whichever rules files are not in each given path, but combining the results will result in no data loss
+	let localWindsurfRulesDirPath = path.resolve(workingDirectory, GlobalFileNames.windsurfRulesDir)
+	const updatedLocalWindsurfToggles1 = await synchronizeRuleToggles(localWindsurfRulesDirPath, localWindsurfRulesToggles)
+
+	const localWindsurfRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.windsurfRulesFile)
+	const updatedLocalWindsurfToggles2 = await synchronizeRuleToggles(localWindsurfRulesFilePath, localWindsurfRulesToggles)
+
+	const updatedLocalWindsurfToggles = combineRuleToggles(updatedLocalWindsurfToggles1, updatedLocalWindsurfToggles2)
 	await updateWorkspaceState(context, "localWindsurfRulesToggles", updatedLocalWindsurfToggles)
 
 	// local cursor toggles
@@ -34,10 +42,10 @@ export async function refreshExternalRulesToggles(
 
 	// cursor has two valid locations for rules files, so we need to check both and combine
 	// synchronizeRuleToggles will drop whichever rules files are not in each given path, but combining the results will result in no data loss
-	let localCursorRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesDir)
-	const updatedLocalCursorToggles1 = await synchronizeRuleToggles(localCursorRulesFilePath, localCursorRulesToggles, ".mdc")
+	let localCursorRulesDirPath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesDir)
+	const updatedLocalCursorToggles1 = await synchronizeRuleToggles(localCursorRulesDirPath, localCursorRulesToggles, ".mdc")
 
-	localCursorRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesFile)
+	const localCursorRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesFile)
 	const updatedLocalCursorToggles2 = await synchronizeRuleToggles(localCursorRulesFilePath, localCursorRulesToggles)
 
 	const updatedLocalCursorToggles = combineRuleToggles(updatedLocalCursorToggles1, updatedLocalCursorToggles2)
@@ -50,10 +58,10 @@ export async function refreshExternalRulesToggles(
 }
 
 /**
- * Gather formatted windsurf rules
+ * Gather formatted windsurf rules, which can come from two sources
  */
 export const getLocalWindsurfRules = async (cwd: string, toggles: ClineRulesToggles) => {
-	const windsurfRulesFilePath = path.resolve(cwd, GlobalFileNames.windsurfRules)
+	const windsurfRulesFilePath = path.resolve(cwd, GlobalFileNames.windsurfRulesFile)
 
 	let windsurfRulesFileInstructions: string | undefined
 
@@ -72,7 +80,28 @@ export const getLocalWindsurfRules = async (cwd: string, toggles: ClineRulesTogg
 		}
 	}
 
-	return windsurfRulesFileInstructions
+	// we then check for the .windsurf/rules dir
+	const windsurfRulesDirPath = path.resolve(cwd, GlobalFileNames.windsurfRulesDir)
+	let windsurfRulesDirInstructions: string | undefined
+
+	if (await fileExistsAtPath(windsurfRulesDirPath)) {
+		if (await isDirectory(windsurfRulesDirPath)) {
+			try {
+				const rulesFilePaths = await readDirectoryRecursive(windsurfRulesDirPath, "")
+				const rulesFilesTotalContent = await getRuleFilesTotalContent(rulesFilePaths, cwd, toggles)
+				if (rulesFilesTotalContent) {
+					windsurfRulesDirInstructions = formatResponse.windsurfRulesLocalDirectoryInstructions(
+						cwd,
+						rulesFilesTotalContent,
+					)
+				}
+			} catch {
+				console.error(`Failed to read .windsurf/rules directory at ${windsurfRulesDirPath}`)
+			}
+		}
+	}
+
+	return [windsurfRulesFileInstructions, windsurfRulesDirInstructions]
 }
 
 /**
