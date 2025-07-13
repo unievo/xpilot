@@ -16,7 +16,7 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
     "{server-name}": {
       "command": "npx",
       "args": [
-        "/y",
+        "-y",
         "@{npm-package-name}"],
       "env": {
         "{ENV_SETTING_NAME1}": "env_setting_value1",

@@ -218,7 +218,7 @@ const HomeHeader = () => {
 						paddingRight: "5px",
 						paddingBottom: "15px",
 						marginLeft: "22px",
-						marginRight: "-5px",
+						marginRight: "0px",
 						marginTop: "15px",
 					}}>
 					<div>

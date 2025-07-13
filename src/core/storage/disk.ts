@@ -37,7 +37,8 @@ export const GlobalFileNames = {
 	workflows: workspaceWorkflowsDirectoryPath,
 	cursorRulesDir: ".cursor/rules",
 	cursorRulesFile: ".cursorrules",
-	windsurfRules: ".windsurf/rules",
+	windsurfRulesDir: ".windsurf/rules",
+	windsurfRulesFile: ".windsurfrules",
 	taskMetadata: taskMetadataFile,
 }
 
@@ -99,8 +100,12 @@ export async function ensureTaskDirectoryExists(context: vscode.ExtensionContext
 	return taskDir
 }
 
+export async function getGlobalInstructionsDirectoryPath(): Promise<string> {
+	return path.join(await getUserProductDirectoryPath(), instructionsDirectory)
+}
+
 export async function ensureGlobalInstructionsDirectoryExists(): Promise<string> {
-	const clineRulesDir = path.join(await getUserProductDirectoryPath(), instructionsDirectory)
+	const clineRulesDir = await getGlobalInstructionsDirectoryPath()
 	try {
 		await fs.mkdir(clineRulesDir, { recursive: true })
 	} catch (error) {
@@ -109,8 +114,12 @@ export async function ensureGlobalInstructionsDirectoryExists(): Promise<string>
 	return clineRulesDir
 }
 
+export async function getGlobalWorkflowsDirectoryPath(): Promise<string> {
+	return path.join(await getUserProductDirectoryPath(), workflowsDirectory)
+}
+
 export async function ensureGlobalWorkflowsDirectoryExists(): Promise<string> {
-	const clineWorkflowsDir = path.join(await getUserProductDirectoryPath(), workflowsDirectory)
+	const clineWorkflowsDir = await getGlobalWorkflowsDirectoryPath()
 	try {
 		await fs.mkdir(clineWorkflowsDir, { recursive: true })
 	} catch (error) {

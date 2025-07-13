@@ -229,13 +229,13 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${workspaceInstructionsDirectoryPath}`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
-		`# Global instructions\n\nThe following is provided by a global instructions directory, located at ${globalClineRulesFilePath.toPosix()}, where the user has specified instructions for all working directories:\n\n${content}`,
+		`# Global instructions - (${globalClineRulesFilePath.toPosix()}/)\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions\n\nThe following content is from instruction files in the root-level ./${workspaceInstructionsDirectoryPath}/ directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions\n\nThe following content is from instruction files in the root-level (${workspaceInstructionsDirectoryPath}) directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# ${workspaceInstructionsDirectoryPath}\n\nThe following is provided by a root-level ${workspaceInstructionsDirectoryPath} file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# (${workspaceInstructionsDirectoryPath})\n\nThe following is provided by a root-level (${workspaceInstructionsDirectoryPath}) file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
 		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
@@ -245,6 +245,9 @@ Otherwise, if you have not completed the task and do not need additional informa
 
 	cursorRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
 		`# .cursor/rules\n\nThe following is provided by a root-level .cursor/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
+	windsurfRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
+		`# .windsurf/rules\n\nThe following is provided by a root-level .windsurf/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	fileContextWarning: (editedFiles: string[]): string => {
 		const fileCount = editedFiles.length

@@ -12,9 +12,6 @@ import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { UserInfo } from "@shared/UserInfo"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import { migrateEnableCheckpointsSetting, migrateMcpMarketplaceEnableSetting } from "./state-migrations"
-import { ensureGlobalInstructionsDirectoryExists } from "./disk"
-import fs from "fs/promises"
-import path from "path"
 import { enableTelemetrySettings, mcpMarketplaceEnabledDefaultSetting, productName } from "@shared/Configuration"
 /*
 	Storage

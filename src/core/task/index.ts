@@ -64,8 +64,8 @@ import { SYSTEM_PROMPT } from "@core/prompts/systemSections"
 import { addUserInstructions } from "@core/prompts/userInstructions"
 import { parseSlashCommands } from "@core/slash-commands"
 import {
-	ensureGlobalInstructionsDirectoryExists,
 	ensureTaskDirectoryExists,
+	getGlobalInstructionsDirectoryPath,
 	getSavedApiConversationHistory,
 	getSavedClineMessages,
 	GlobalFileNames,
@@ -1595,7 +1595,7 @@ export class Task {
 		const { globalToggles, localToggles } = await refreshClineRulesToggles(this.getContext(), this.cwd)
 		const { windsurfLocalToggles, cursorLocalToggles } = await refreshExternalRulesToggles(this.getContext(), this.cwd)
 
-		const globalClineRulesFilePath = await ensureGlobalInstructionsDirectoryExists()
+		const globalClineRulesFilePath = await getGlobalInstructionsDirectoryPath()
 		const globalClineRulesFileInstructions = await getGlobalClineRules(globalClineRulesFilePath, globalToggles)
 
 		const localClineRulesFileInstructions = await getLocalClineRules(this.cwd, localToggles)
@@ -1603,7 +1603,10 @@ export class Task {
 			this.cwd,
 			cursorLocalToggles,
 		)
-		const localWindsurfRulesFileInstructions = await getLocalWindsurfRules(this.cwd, windsurfLocalToggles)
+		const [localWindsurfRulesFileInstructions, localWindsurfRulesDirInstructions] = await getLocalWindsurfRules(
+			this.cwd,
+			windsurfLocalToggles,
+		)
 
 		const clineIgnoreContent = this.clineIgnoreController.clineIgnoreContent
 		let clineIgnoreInstructions: string | undefined
@@ -1617,16 +1620,18 @@ export class Task {
 			localCursorRulesFileInstructions ||
 			localCursorRulesDirInstructions ||
 			localWindsurfRulesFileInstructions ||
+			localWindsurfRulesDirInstructions ||
 			clineIgnoreInstructions ||
 			preferredLanguageInstructions
 		) {
 			// altering the system prompt mid-task will break the prompt cache, but in the grand scheme this will not change often so it's better to not pollute user messages with it the way we have to with <potentially relevant details>
-			const userInstructions = addUserInstructions(
+			const userInstructions = await addUserInstructions(
 				globalClineRulesFileInstructions,
 				localClineRulesFileInstructions,
 				localCursorRulesFileInstructions,
 				localCursorRulesDirInstructions,
 				localWindsurfRulesFileInstructions,
+				localWindsurfRulesDirInstructions,
 				clineIgnoreInstructions,
 				preferredLanguageInstructions,
 			)
