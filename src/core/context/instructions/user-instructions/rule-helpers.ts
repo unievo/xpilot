@@ -137,7 +137,10 @@ export const getRuleFilesTotalContent = async (rulesFilePaths: string[], basePat
 				return null
 			}
 
-			return `## File path: ./${ruleFilePathRelative}\n\n` + (await fs.readFile(ruleFilePath, "utf8")).trim()
+			return (
+				`## Instruction File Content - File Path: (${ruleFilePath})\n\n` +
+				(await fs.readFile(ruleFilePath, "utf8")).trim()
+			)
 		}),
 	).then((contents) => contents.filter(Boolean).join("\n\n"))
 	return ruleFilesTotalContent
