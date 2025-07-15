@@ -10,7 +10,7 @@ export const apiBaseUrl = ""
 export const gitInstructionsRepo = ""
 export const gitWorkflowsRepo = ""
 export const latestAnnouncementId = "1.0.0"
-export const clineVersion = "3.18.10"
+export const clineVersion = "3.19.4"
 
 // Settings
 export const defaultChatMode = "act"
