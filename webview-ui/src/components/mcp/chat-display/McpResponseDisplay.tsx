@@ -12,7 +12,7 @@ import { DropdownContainer } from "@/components/settings/ApiOptions"
 import { updateSetting } from "@/components/settings/utils/settingsHandlers"
 import { McpDisplayMode } from "@shared/McpDisplayMode"
 import { UrlMatch, processResponseUrls, DisplaySegment, buildDisplaySegments } from "./utils/mcpRichUtil"
-import { vscode } from "@/utils/vscode"
+import { itemIconColor } from "@/components/theme"
 
 // Maximum number of URLs to process in total, per response
 export const MAX_URLS = 50
@@ -221,11 +221,11 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 					onClick={toggleExpand}
 					style={{
 						//borderBottom: isExpanded ? "1px dashed var(--vscode-editorGroup-border)" : "none",
-						marginBottom: isExpanded ? "-6px" : "0px",
+						marginBottom: isExpanded ? "-6px" : "-2px",
 					}}>
 					<div className="header-title">
 						<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}></span>
-						<span style={{ opacity: 0.8, color: "var(--vscode-textLink-foreground)" }}>Response</span>
+						<span style={{ opacity: 0.8, color: itemIconColor }}>Response</span>
 					</div>
 					<DropdownContainer
 						style={{ minWidth: isExpanded ? "auto" : "0", visibility: isExpanded ? "visible" : "hidden" }}>
@@ -233,7 +233,7 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 							value={mcpDisplayMode}
 							onChange={handleDisplayModeChange}
 							onClick={(e) => e.stopPropagation()}
-							style={{ minWidth: "120px" }}
+							style={{ minWidth: "120px", scale: "0.85" }}
 						/>
 					</DropdownContainer>
 				</ResponseHeader>

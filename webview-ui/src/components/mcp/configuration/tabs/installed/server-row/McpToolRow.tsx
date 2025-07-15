@@ -6,6 +6,7 @@ import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mc
 import { ToggleToolAutoApproveRequest } from "@shared/proto/mcp"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { itemIconColor } from "@/components/theme"
+import HeroTooltip from "@/components/common/HeroTooltip"
 
 type McpToolRowProps = {
 	tool: McpTool
@@ -53,13 +54,15 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 					<span style={{ fontWeight: 500 }}>{tool.name}</span>
 				</div>
 				{serverName && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
-					<VSCodeCheckbox
-						style={{ opacity: 0.7, scale: "0.8", justifyContent: "flex-end" }}
-						checked={tool.autoApprove ?? false}
-						onChange={handleAutoApproveChange}
-						data-tool={tool.name}>
-						Auto
-					</VSCodeCheckbox>
+					<HeroTooltip content="Auto-approve this tool">
+						<VSCodeCheckbox
+							style={{ opacity: 0.7, scale: "0.8", justifyContent: "flex-end" }}
+							checked={tool.autoApprove ?? false}
+							onChange={handleAutoApproveChange}
+							data-tool={tool.name}>
+							Auto
+						</VSCodeCheckbox>
+					</HeroTooltip>
 				)}
 			</div>
 			{tool.description && (

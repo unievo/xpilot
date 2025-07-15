@@ -260,6 +260,8 @@ const ModelButtonContent = styled.div`
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	direction: rtl;
+	text-align: left;
 `
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
@@ -1874,35 +1876,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<ServersToggleModal />
 
 						<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
-							<HeroTooltip
-								delay={1000}
-								content="Attach files & images. File types are limited to specific formats that are compatible with the selected AI provider/model.">
-								<VSCodeButton
-									data-testid="files-button"
-									appearance="icon"
-									aria-label="Add Files & Images"
-									disabled={shouldDisableFilesAndImages}
-									onClick={() => {
-										if (!shouldDisableFilesAndImages) {
-											onSelectFilesAndImages()
-										}
-									}}
-									style={{ padding: "0px 0px", height: "20px" }}>
-									<ButtonContainer>
-										<span
-											className="codicon codicon-file-add flex items-center"
-											style={{
-												opacity: 0.6,
-												fontWeight: "600",
-												fontSize: "16px",
-												marginTop: 6,
-												marginRight: 0,
-												marginLeft: "-2px",
-											}}
-										/>
-									</ButtonContainer>
-								</VSCodeButton>
-							</HeroTooltip>
 							<div
 								className="codicon codicon-sparkle-filled"
 								style={{
@@ -1950,6 +1923,36 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									</div>
 								</ModelSelectorTooltip>
 							)}
+							<HeroTooltip
+								delay={1000}
+								content="Attach files & images. File types are limited to specific formats that are compatible with the selected AI provider/model.">
+								<VSCodeButton
+									data-testid="files-button"
+									appearance="icon"
+									aria-label="Add Files & Images"
+									disabled={shouldDisableFilesAndImages}
+									onClick={() => {
+										if (!shouldDisableFilesAndImages) {
+											onSelectFilesAndImages()
+										}
+									}}
+									style={{ padding: "0px 0px", height: "20px" }}>
+									<ButtonContainer>
+										<span
+											className="codicon codicon-file-add flex items-center"
+											style={{
+												opacity: 0.7,
+												color: itemIconColor,
+												fontWeight: "bold",
+												fontSize: "15px",
+												marginTop: 6,
+												marginRight: 0,
+												marginLeft: "-2px",
+											}}
+										/>
+									</ButtonContainer>
+								</VSCodeButton>
+							</HeroTooltip>
 						</ModelContainer>
 					</ButtonGroup>
 				</ControlsContainer>

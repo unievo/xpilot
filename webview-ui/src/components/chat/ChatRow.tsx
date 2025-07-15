@@ -44,6 +44,7 @@ const errorColor = "var(--vscode-editorWarning-foreground)"
 const successColor = "var(--vscode-charts-green)"
 const cancelledColor = "var(--vscode-descriptionForeground)"
 import { agentName, ignoreFile } from "@shared/Configuration"
+import { itemIconColor } from "../theme"
 
 const ChatRowContainer = styled.div`
 	padding: 10px 8px 10px 13px;
@@ -205,17 +206,24 @@ export const ChatRowContent = memo(
 			return [undefined, undefined, undefined, undefined]
 		}, [message.text, message.say])
 
-		// Get saved collapsed state from webview state or default to true
-		const savedState = (vscode.getState() as { mcpArgumentsCollapsed?: boolean }) || {}
-		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(savedState.mcpArgumentsCollapsed ?? true)
+		// Get saved collapsed state from localStorage or default to false
+		const getMcpArgumentsCollapsedState = () => {
+			try {
+				const saved = localStorage.getItem("mcpArgumentsCollapsed")
+				return saved !== null ? JSON.parse(saved) : false
+			} catch (error) {
+				return false // Default to false if there's an error reading localStorage
+			}
+		}
+		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(getMcpArgumentsCollapsedState())
 
 		// Update the saved state when the collapsed state changes
 		useEffect(() => {
-			const currentState = (vscode.getState() as Record<string, any>) || {}
-			vscode.setState({
-				...currentState,
-				mcpArgumentsCollapsed: mcpArgumentsCollapsed,
-			})
+			try {
+				localStorage.setItem("mcpArgumentsCollapsed", JSON.stringify(mcpArgumentsCollapsed))
+			} catch (error) {
+				console.warn("Failed to save mcpArgumentsCollapsed to localStorage:", error)
+			}
 		}, [mcpArgumentsCollapsed])
 
 		// when resuming task last won't be api_req_failed but a resume_task message so api_req_started will show loading spinner. that's why we just remove the last api_req_started that failed without streaming anything
@@ -900,18 +908,18 @@ export const ChatRowContent = memo(
 											}}
 											onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}>
 											<span
-												className={`codicon codicon-chevron-${mcpArgumentsCollapsed ? "down" : "right"}`}
+												className={`codicon codicon-chevron-${!mcpArgumentsCollapsed ? "down" : "right"}`}
 												style={{ marginRight: "4px" }}></span>
 											<span
 												style={{
 													opacity: 0.8,
 													fontSize: "12px",
-													color: "var(--vscode-textLink-foreground)",
+													color: itemIconColor,
 												}}>
 												Arguments
 											</span>
 										</div>
-										{mcpArgumentsCollapsed && (
+										{!mcpArgumentsCollapsed && (
 											<CodeAccordian
 												code={useMcpServer.arguments}
 												language="json"

@@ -7,6 +7,7 @@ import { ChatSettings } from "@shared/ChatSettings"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useState, useEffect } from "react"
 import { itemIconColor } from "../theme"
+import { a } from "node_modules/framer-motion/dist/types.d-B50aGbjN"
 
 const HomeHeader = () => {
 	const [isExpanded, setIsExpanded] = useState(() => {
@@ -263,15 +264,15 @@ const HomeHeader = () => {
 									isExpanded={sectionStates.introduction}
 									onToggle={() => toggleSection("introduction")}>
 									<div style={{ marginTop: "-8px", paddingLeft: "5px" }}>
-										{agentName} manages your requests using <b>tasks</b>. A task is composed of the agent
-										system prompt, your chat messages, tool responses, and any additional information
-										provided, such as instruction files. This forms the task context, which is sent to the AI
-										model to process and generate responses that also become part of the task context.
+										{agentName} manages your requests using <b>tasks</b>.
+										<br />A task is composed of {agentName}'s system prompt, your chat messages, tool
+										responses, and any additional information provided, such as instruction files. This forms
+										the task context, which is sent to the model for processing and generating responses, that
+										become also part of the context.
 										<br />
 										<br />
-										The current task context is stored in a context window, and it is sent to the AI model
-										with each new task request. The task context window grows with each new request and adds
-										to the total tokens used by the task.
+										The current task context is stored in a context window, and it is sent to the model with
+										each new task request. The task context window grows with each new request.
 										<br />
 										<br />
 										Token usage information is displayed in the task header, including the current context
@@ -289,8 +290,8 @@ const HomeHeader = () => {
 									isExpanded={sectionStates.taskContext}
 									onToggle={() => toggleSection("taskContext")}>
 									<div style={{ marginTop: "-8px", paddingLeft: "5px" }}>
-										The key to having a task completed efficiently is providing the right context information
-										and tools to the AI model -{" "}
+										A key for having a task completed efficiently, is providing the right context information
+										and tools to the model -{" "}
 										<a href="https://www.philschmid.de/context-engineering">context engineering</a>.
 									</div>
 									<ul
@@ -389,13 +390,12 @@ const HomeHeader = () => {
 											useful to correct AI mistakes or change the course of the task.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Do not try to correct AI mistakes using chat messages, as it can degrade model
-											performance. Instead, restore a checkpoint or edit a previous message and restart from
-											that point.
+											Do not try to correct AI mistakes using chat messages. Instead, restore a checkpoint
+											or edit a previous message and restart from that point.
 										</li>
 
 										<li style={{ marginBottom: "5px" }}>
-											Use
+											Use the
 											<VSCodeLink
 												style={{ display: "inline" }}
 												onClick={() => {
@@ -418,9 +418,9 @@ const HomeHeader = () => {
 											that is relevant for the AI model to achieve optimal task completion.
 										</p>
 										<p>
-											Use the <b>/Generate Instructions</b> command to create a new instruction file based
-											on the current task context. This is useful to create reusable instructions for
-											similar tasks in the future.
+											Use <b>/Generate Instructions</b> "follow with the scope...", to create a new
+											instructions file based on the current task context. This is useful to create reusable
+											instructions for similar tasks in the future.
 										</p>
 										<p>
 											Use workflow files to define a sequence of executable steps that can be triggered as a
@@ -428,10 +428,12 @@ const HomeHeader = () => {
 											complex or repetitive tasks.
 										</p>
 										<p>
-											Use the <b>/Git Instructions</b> and <b>/Git Workflows</b> commands, to get
-											instruction and workflow files from a dedicated git repository. The execution will
-											clone the repository into the chosen location (global/workspace). If the repository
-											already exists, it will pull any updates.
+											Use the <b>/Git Instructions</b> and <b>/Git Workflows</b> commands to get instruction
+											and workflow files from a dedicated git repository. You can specify any repository
+											source as an argument.
+											<br />
+											The execution will clone the repository into the specified location
+											(global/workspace). If the repository already exists, it will pull any updates.
 										</p>
 									</div>
 								</CollapsibleSection>
@@ -512,15 +514,18 @@ const HomeHeader = () => {
 												manage MCP servers
 											</li>
 											<li style={{ marginBottom: "5px" }}>
-												<span style={{ verticalAlign: "middle" }} className="codicon codicon-file-add" />{" "}
-												- attach supported files and images
-											</li>
-											<li style={{ marginBottom: "5px" }}>
 												<span
 													style={{ verticalAlign: "middle", color: itemIconColor, fontSize: "14px" }}
 													className="codicon codicon-sparkle-filled"
 												/>{" "}
 												- change the current provider/model
+											</li>
+											<li style={{ marginBottom: "5px" }}>
+												<span
+													style={{ verticalAlign: "middle", color: itemIconColor, fontWeight: "bold" }}
+													className="codicon codicon-file-add"
+												/>{" "}
+												- attach supported files and images
 											</li>
 										</ul>
 									</div>
