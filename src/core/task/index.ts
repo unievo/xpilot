@@ -82,7 +82,7 @@ import { refreshWorkflowToggles } from "../context/instructions/user-instruction
 import { MessageStateHandler } from "./message-state"
 import { TaskState } from "./TaskState"
 import { ToolExecutor } from "./ToolExecutor"
-import { formatErrorWithStatusCode, updateApiReqMsg } from "./utils"
+import { extractErrorDetails, formatErrorWithStatusCode, updateApiReqMsg } from "./utils"
 import { createDiffViewProvider, getHostBridgeProvider } from "@/hosts/host-providers"
 import * as fs from "fs"
 
@@ -1578,8 +1578,9 @@ export class Task {
 
 		await this.migrateDisableBrowserToolSetting()
 		const disableBrowserTool = this.browserSettings.disableToolUse ?? false
+		const modelInfo = this.api.getModel()
 		// cline browser tool uses image recognition for navigation (requires model image support).
-		const modelSupportsBrowserUse = this.api.getModel().info.supportsImages ?? false
+		const modelSupportsBrowserUse = modelInfo.info.supportsImages ?? false
 
 		const supportsBrowserUse = modelSupportsBrowserUse && !disableBrowserTool // only enable browser use if the model supports it and the user hasn't disabled it
 
@@ -1672,6 +1673,17 @@ export class Task {
 			const isAnthropic = this.api instanceof AnthropicHandler
 			const isOpenRouterContextWindowError = checkIsOpenRouterContextWindowError(error) && isOpenRouter
 			const isAnthropicContextWindowError = checkIsAnthropicContextWindowError(error) && isAnthropic
+
+			const { statusCode, message, requestId } = extractErrorDetails(error)
+
+			// Capture provider failure telemetry
+			telemetryService.captureProviderApiError({
+				taskId: this.taskId,
+				model: modelInfo.id,
+				errorMessage: message,
+				errorStatus: statusCode,
+				requestId,
+			})
 
 			if (isAnthropic && isAnthropicContextWindowError && !this.taskState.didAutomaticallyRetryFailedApiRequest) {
 				this.taskState.conversationHistoryDeletedRange = this.contextManager.getNextTruncationRange(

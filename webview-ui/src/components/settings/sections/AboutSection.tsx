@@ -1,4 +1,4 @@
-import { agentName, discordUrl, clineVersion, repoUrl, xUrl } from "@shared/Configuration"
+import { agentName, discordUrl, baseVersion, repoUrl, xUrl, baseVersionUrl, baseName } from "@shared/Configuration"
 import Section from "../Section"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
@@ -12,17 +12,17 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 		<div>
 			{renderSectionHeader("about")}
 			<Section>
-				<div className="text-xs leading-[1.2] px-0 py-0 pr-2 pb-[15px] mt-auto">
+				<div className="text-xs leading-[1.4]">
 					<div style={{ textAlign: "center", fontSize: "18px", fontWeight: "bold" }}>
 						<p>{agentName}</p>
+					</div>
+					<div>
+						<p className="text-center -mt-3 mb-7 p-0">v{version}</p>
 					</div>
 					<p>
 						{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source agent
 						for VS Code, designed to support many AI providers and models, and to handle a wide range of development
-						tasks.
-						<br />
-						<br />
-						Shoutout to the amazing Cline team, contributors and community!
+						tasks. Shoutout to the amazing Cline team, contributors and community!
 					</p>
 					<p>
 						Astro started as an experimental project, to adapt Cline as a foundation for custom and domain specific
@@ -50,9 +50,16 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 					</p>
 					<br />
 					<br />
-					<p className="text-center text-sm mt-[10px] mb-0 p-0 font-bold">Versions</p>
-					<p className="text-center italic mt-[10px] mb-0 p-0">Cline: v{clineVersion}</p>
-					<p className="text-center italic mt-[10px] mb-0 p-0">Astro: v{version}</p>
+					{baseName && (
+						<div>
+							<p className="text-center text-sm mt-5 mb-0 p-0">Base Version</p>
+							<p className="text-center mt-2 mb-0 p-0">
+								<a href={baseVersionUrl}>
+									{baseName} {baseVersion}
+								</a>
+							</p>
+						</div>
+					)}
 				</div>
 			</Section>
 		</div>

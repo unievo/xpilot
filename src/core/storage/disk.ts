@@ -25,6 +25,7 @@ import {
 	workspaceWorkflowsDirectoryPath,
 	instructionsDirectory,
 	workflowsDirectory,
+	groqModelsFile,
 } from "@shared/Configuration"
 
 export const GlobalFileNames = {
@@ -32,6 +33,7 @@ export const GlobalFileNames = {
 	contextHistory: contextHistoryFile,
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
+	groqModels: groqModelsFile,
 	mcpSettings: mcpSettingsFile,
 	clineRules: workspaceInstructionsDirectoryPath,
 	workflows: workspaceWorkflowsDirectoryPath,

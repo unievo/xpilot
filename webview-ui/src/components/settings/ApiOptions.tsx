@@ -1,14 +1,12 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { ModelsServiceClient } from "@/services/grpc-client"
-import { StringRequest } from "@shared/proto/common"
-import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
+import { ModelsServiceClient, StateServiceClient } from "@/services/grpc-client"
+import { BooleanRequest, StringRequest } from "@shared/proto/common"
+import { VSCodeButton, VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useEffect, useState } from "react"
 import { useInterval } from "react-use"
 import styled from "styled-components"
 import { OPENROUTER_MODEL_PICKER_Z_INDEX } from "./OpenRouterModelPicker"
-
-import { normalizeApiConfiguration } from "./utils/providerUtils"
-
+import { validateApiConfiguration } from "@/utils/validate"
 import { ClineProvider } from "./providers/ClineProvider"
 import { OpenRouterProvider } from "./providers/OpenRouterProvider"
 import { MistralProvider } from "./providers/MistralProvider"
@@ -38,9 +36,11 @@ import { LiteLlmProvider } from "./providers/LiteLlmProvider"
 import { VSCodeLmProvider } from "./providers/VSCodeLmProvider"
 import { LMStudioProvider } from "./providers/LMStudioProvider"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
+import { GroqProvider } from "./providers/GroqProvider"
 import { agentName, extensionId } from "../../../../src/shared/Configuration"
 
 interface ApiOptionsProps {
+	showSubmitButton?: boolean
 	showModelOptions: boolean
 	apiErrorMessage?: string
 	modelIdErrorMessage?: string
@@ -71,7 +71,7 @@ declare module "vscode" {
 	}
 }
 
-const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, isPopup }: ApiOptionsProps) => {
+const ApiOptions = ({ showModelOptions, modelIdErrorMessage, isPopup, showSubmitButton }: ApiOptionsProps) => {
 	// Use full context state for immediate save payload
 	const { apiConfiguration, uriScheme } = useExtensionState()
 
@@ -80,6 +80,20 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 	const { handleFieldChange } = useApiConfigurationHandlers()
 
 	const [ollamaModels, setOllamaModels] = useState<string[]>([])
+
+	const handleSubmit = async () => {
+		try {
+			await StateServiceClient.setWelcomeViewCompleted(BooleanRequest.create({ value: true }))
+		} catch (error) {
+			console.error("Failed to update API configuration or complete welcome view:", error)
+		}
+	}
+
+	const [apiErrorMessage, setApiErrorMessage] = useState<string | undefined>(undefined)
+
+	useEffect(() => {
+		setApiErrorMessage(validateApiConfiguration(apiConfiguration))
+	}, [apiConfiguration])
 
 	// Poll ollama/vscode-lm models
 	const requestLocalModels = useCallback(async () => {
@@ -124,7 +138,9 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 				<VSCodeDropdown
 					id="api-provider"
 					value={selectedProvider}
-					onChange={(e: any) => handleFieldChange("apiProvider", e.target.value)}
+					onChange={(e: any) => {
+						handleFieldChange("apiProvider", e.target.value)
+					}}
 					style={{
 						marginTop: 5,
 						width: "100%",
@@ -141,6 +157,7 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 					<VSCodeOption value="openai-native">OpenAI</VSCodeOption>
 					<VSCodeOption value="openai">OpenAI Compatible</VSCodeOption>
 					<VSCodeOption value="xai">xAI</VSCodeOption>
+					<VSCodeOption value="groq">Groq</VSCodeOption>
 					<VSCodeOption value="fireworks">Fireworks</VSCodeOption>
 					<VSCodeOption value="together">Together</VSCodeOption>
 					<VSCodeOption value="bedrock">Amazon Bedrock</VSCodeOption>
@@ -239,6 +256,9 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 
 			{apiConfiguration && selectedProvider === "vscode-lm" && <VSCodeLmProvider />}
 
+			{apiConfiguration && selectedProvider === "groq" && (
+				<GroqProvider showModelOptions={showModelOptions} isPopup={isPopup} />
+			)}
 			{apiConfiguration && selectedProvider === "litellm" && (
 				<LiteLlmProvider showModelOptions={showModelOptions} isPopup={isPopup} />
 			)}
@@ -271,16 +291,6 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 				<SapAiCoreProvider showModelOptions={showModelOptions} isPopup={isPopup} />
 			)}
 
-			{apiErrorMessage && (
-				<p
-					style={{
-						margin: "-10px 0 4px 0",
-						fontSize: 12,
-						color: "var(--vscode-errorForeground)",
-					}}>
-					{apiErrorMessage}
-				</p>
-			)}
 			{modelIdErrorMessage && (
 				<p
 					style={{
@@ -290,6 +300,22 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 					}}>
 					{modelIdErrorMessage}
 				</p>
+			)}
+			{apiErrorMessage && (
+				<p
+					style={{
+						margin: "0px 0 4px 0",
+						fontSize: 12,
+						textAlign: "center",
+						color: "var(--vscode-inputValidation-warningBorder)",
+					}}>
+					{apiErrorMessage}
+				</p>
+			)}
+			{showSubmitButton && (
+				<VSCodeButton onClick={handleSubmit} disabled={apiErrorMessage != null} className="mt-0.75" title="Submit">
+					Let's go!
+				</VSCodeButton>
 			)}
 		</div>
 	)

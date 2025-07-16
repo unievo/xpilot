@@ -1,3 +1,8 @@
+// Base
+export const baseName = "Astro"
+export const baseVersion = "v1.0.0"
+export const baseVersionUrl = `https://github.com/unievo/astro/releases/tag/${baseVersion}`
+
 // Product
 export const agentName = "xPilot"
 export const productName = "xpilot"
@@ -6,11 +11,10 @@ export const xUrl = "https://x.com/xPilotAI"
 export const discordUrl = "https://discord.gg/bTzeCrhpP8"
 export const repoUrl = "https://github.com/unievo/xpilot"
 export const homePageUrl = "https://github.com/unievo/xpilot"
-export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
+export const apiBaseUrl = ""
 export const gitInstructionsRepo = "https://github.com/unievo/xpilot-instructions.git"
 export const gitWorkflowsRepo = "https://github.com/unievo/xpilot-workflows.git"
 export const latestAnnouncementId = "1.1.0"
-export const clineVersion = "3.19.4"
 
 // Settings
 export const defaultChatMode = "act"
@@ -62,6 +66,7 @@ export const mcpServersDirectory = `servers`
 export const mcpSettingsFile = `mcp_settings.json`
 export const ignoreFile = `.${productName}ignore`
 export const openRouterModelsFile = `open_router_models.json`
+export const groqModelsFile = `groq_models.json`
 export const uiMessagesFile = `ui_messages.json`
 export const taskMetadataFile = `task_metadata.json`
 export const contextHistoryFile = `context_history.json`

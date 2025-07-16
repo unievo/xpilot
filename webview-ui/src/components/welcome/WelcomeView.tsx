@@ -1,37 +1,19 @@
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { useEffect, useState, memo } from "react"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { validateApiConfiguration } from "@/utils/validate"
+import { useState, memo } from "react"
 import ApiOptions from "@/components/settings/ApiOptions"
-import { agentName } from "@shared/Configuration"
+import { AccountServiceClient } from "@/services/grpc-client"
+import { EmptyRequest } from "@shared/proto/common"
 import AgentLogo from "@/assets/AgentLogo"
-import { AccountServiceClient, ModelsServiceClient, StateServiceClient } from "@/services/grpc-client"
-import { EmptyRequest, BooleanRequest } from "@shared/proto/common"
+import { agentName } from "@shared/Configuration"
 
 const WelcomeView = memo(() => {
-	const { apiConfiguration } = useExtensionState()
-	const [apiErrorMessage, setApiErrorMessage] = useState<string | undefined>(undefined)
 	const [showApiOptions, setShowApiOptions] = useState(false)
-
-	const disableLetsGoButton = apiErrorMessage != null
 
 	const handleLogin = () => {
 		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
 			console.error("Failed to get login URL:", err),
 		)
 	}
-
-	const handleSubmit = async () => {
-		try {
-			await StateServiceClient.setWelcomeViewCompleted(BooleanRequest.create({ value: true }))
-		} catch (error) {
-			console.error("Failed to update API configuration or complete welcome view:", error)
-		}
-	}
-
-	useEffect(() => {
-		setApiErrorMessage(validateApiConfiguration(apiConfiguration))
-	}, [apiConfiguration])
 
 	return (
 		<div className="fixed inset-0 p-0 flex flex-col" style={{ scrollbarGutter: "stable" }}>
@@ -48,23 +30,23 @@ const WelcomeView = memo(() => {
 					. It supports many AI providers and models, and handles a wide range of development tasks.
 				</p>
 				<p>
-					It can use available models in VS Code, by setting up{" "}
+					It can use available models in VS Code, by{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
-						Copilot
+						setting up
 					</VSCodeLink>{" "}
-					and{" "}
+					Copilot and{" "}
 					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
 						enabling
 					</VSCodeLink>{" "}
 					models based on your Copilot plan.
 				</p>
 				<p>
-					You can also bring your own API key, or you can select and sign up below with providers like OpenRouter or
-					Cline, for a variety of model options.
+					You can also bring your own API key, or sign up below with providers like OpenRouter or Cline, for a variety
+					of model options.
 				</p>
 				<p>
 					For general tasks, you can use cost effective models such as OpenAI GPT-4.1. <br />
-					For coding tasks use Claude Sonnet 4 or Google Gemini 2.5.
+					For complex coding tasks use Claude Sonnet 4 or Google Gemini 2.5.
 				</p>
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4
@@ -85,14 +67,7 @@ const WelcomeView = memo(() => {
 				)}
 
 				<div className="mt-4.5 mb-4.5">
-					{showApiOptions && (
-						<div>
-							<ApiOptions showModelOptions={false} />
-							<VSCodeButton onClick={handleSubmit} disabled={disableLetsGoButton} className="mt-0.75">
-								Let's go!
-							</VSCodeButton>
-						</div>
-					)}
+					{showApiOptions && <ApiOptions showModelOptions={false} showSubmitButton={true} />}
 				</div>
 			</div>
 		</div>
