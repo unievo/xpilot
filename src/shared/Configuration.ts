@@ -10,7 +10,7 @@ export const apiBaseUrl = "https://api.xpilot.unievo.com/v1"
 export const gitInstructionsRepo = "https://github.com/unievo/xpilot-instructions.git"
 export const gitWorkflowsRepo = "https://github.com/unievo/xpilot-workflows.git"
 export const latestAnnouncementId = "1.1.0"
-export const clineVersion = "3.18.10"
+export const clineVersion = "3.19.4"
 
 // Settings
 export const defaultChatMode = "act"

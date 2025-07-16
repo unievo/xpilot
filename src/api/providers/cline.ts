@@ -4,11 +4,14 @@ import { ClineAccountService } from "@/services/account/ClineAccountService"
 import { ModelInfo, openRouterDefaultModelId, openRouterDefaultModelInfo } from "@shared/api"
 import { createOpenRouterStream } from "../transform/openrouter-stream"
 import { ApiStream, ApiStreamUsageChunk } from "../transform/stream"
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios"
+import axios from "axios"
 import { OpenRouterErrorResponse } from "./types"
 import { withRetry } from "../retry"
 import { AuthService } from "@/services/auth/AuthService"
 import OpenAI from "openai"
+import { version as extensionVersion } from "../../../package.json"
+import { shouldSkipReasoningForModel } from "@utils/model-utils"
+import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@/shared/ClineAccount"
 
 interface ClineHandlerOptions {
 	taskId?: string
@@ -39,11 +42,11 @@ export class ClineHandler implements ApiHandler {
 	}
 
 	private async ensureClient(): Promise<OpenAI> {
+		const clineAccountAuthToken = await this._authService.getAuthToken()
+		if (!clineAccountAuthToken) {
+			throw new Error(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE)
+		}
 		if (!this.client) {
-			const clineAccountAuthToken = await this._authService.getAuthToken()
-			if (!clineAccountAuthToken) {
-				throw new Error("Cline account authentication token is required")
-			}
 			try {
 				this.client = new OpenAI({
 					baseURL: `${this._baseUrl}/api/v1`,
@@ -52,34 +55,33 @@ export class ClineHandler implements ApiHandler {
 						"HTTP-Referer": homePageUrl,
 						"X-Title": agentName,
 						"X-Task-ID": this.options.taskId || "",
+						"X-Cline-Version": extensionVersion,
 					},
 				})
 			} catch (error: any) {
 				throw new Error(`Error creating Cline client: ${error.message}`)
 			}
 		}
+		// Ensure the client is always using the latest auth token
+		this.client.apiKey = clineAccountAuthToken
 		return this.client
 	}
 
 	@withRetry()
 	async *createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream {
-		const client = await this.ensureClient()
-		const clineAccountAuthToken = await this._authService.getAuthToken()
-		if (!clineAccountAuthToken) {
-			throw new Error("Unauthorized: Please sign in to Cline before trying again.")
-		}
-
-		this.lastGenerationId = undefined
-
-		const me = await this.clineAccountService.fetchMe()
-		console.log(
-			"SwitchAuthToken: Active Organization",
-			me?.organizations.filter((org) => org.active)[0]?.name || "No active organization",
-		)
-
-		let didOutputUsage: boolean = false
-
 		try {
+			// Only continue the request if the user:
+			// 1. Has signed in to Cline with a token
+			// 2. Has more than 0 credits
+			// Or an error is thrown.
+			await this.clineAccountService.validateRequest()
+
+			const client = await this.ensureClient()
+
+			this.lastGenerationId = undefined
+
+			let didOutputUsage: boolean = false
+
 			const stream = await createOpenRouterStream(
 				client,
 				systemPrompt,
@@ -128,7 +130,8 @@ export class ClineHandler implements ApiHandler {
 				}
 
 				// Reasoning tokens are returned separately from the content
-				if ("reasoning" in delta && delta.reasoning) {
+				// Skip reasoning content for Grok 4 models since it only displays "thinking" without providing useful information
+				if ("reasoning" in delta && delta.reasoning && !shouldSkipReasoningForModel(this.options.openRouterModelId)) {
 					yield {
 						type: "reasoning",
 						// @ts-ignore-next-line
@@ -182,10 +185,19 @@ export class ClineHandler implements ApiHandler {
 				}
 			}
 		} catch (error) {
-			if (error.code === "ERR_BAD_REQUEST" || error.status === 401) {
-				throw new Error("Unauthorized: Please sign in to Cline before trying again.")
-			}
 			console.error("Cline API Error:", error)
+			const requestId = error?.request_id ? ` (Request ID: ${error.request_id})` : ""
+			if (error.code === "ERR_BAD_REQUEST" || error.status === 401) {
+				throw new Error(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE + requestId)
+			} else if (error.code === "insufficient_credits" || error.status === 402) {
+				if (error.error) {
+					error.error.message = error.error.message + requestId
+					throw new Error(JSON.stringify(error.error))
+				}
+			}
+			const _error = error instanceof Error ? error : new Error(String(error))
+			_error.message = _error.message + requestId
+			throw _error
 		}
 	}
 

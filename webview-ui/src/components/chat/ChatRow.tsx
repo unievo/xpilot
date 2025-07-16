@@ -2,7 +2,7 @@ import { VSCodeBadge, VSCodeButton, VSCodeProgressRing } from "@vscode/webview-u
 import deepEqual from "fast-deep-equal"
 import React, { memo, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
-import { useEvent, useSize } from "react-use"
+import { useSize } from "react-use"
 
 import CreditLimitError from "@/components/chat/CreditLimitError"
 import { OptionsButtons } from "@/components/chat/OptionsButtons"
@@ -12,14 +12,12 @@ import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import SuccessButton from "@/components/common/SuccessButton"
 import { WithCopyButton } from "@/components/common/CopyButton"
-import Thumbnails from "@/components/common/Thumbnails"
 import McpResponseDisplay from "@/components/mcp/chat-display/McpResponseDisplay"
 import McpResourceRow from "@/components/mcp/configuration/tabs/installed/server-row/McpResourceRow"
 import McpToolRow from "@/components/mcp/configuration/tabs/installed/server-row/McpToolRow"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient, TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { findMatchingResourceOrTemplate, getMcpServerDisplayName } from "@/utils/mcp"
-import { vscode } from "@/utils/vscode"
 import {
 	ClineApiReqInfo,
 	ClineAskQuestion,
@@ -28,7 +26,6 @@ import {
 	ClinePlanModeResponse,
 	ClineSayTool,
 	COMPLETION_RESULT_CHANGES_FLAG,
-	ExtensionMessage,
 } from "@shared/ExtensionMessage"
 import { COMMAND_OUTPUT_STRING, COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
 import { Int64Request, StringRequest } from "@shared/proto/common"
@@ -39,12 +36,15 @@ import NewTaskPreview from "./NewTaskPreview"
 import ReportBugPreview from "./ReportBugPreview"
 import UserMessage from "./UserMessage"
 import QuoteButton from "./QuoteButton"
+import { useClineAuth } from "@/context/ClineAuthContext"
+import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@shared/ClineAccount"
 
 const normalColor = "var(--vscode-foreground)"
 const errorColor = "var(--vscode-editorWarning-foreground)"
 const successColor = "var(--vscode-charts-green)"
 const cancelledColor = "var(--vscode-descriptionForeground)"
 import { agentName, ignoreFile } from "@shared/Configuration"
+import { itemIconColor } from "../theme"
 
 const ChatRowContainer = styled.div`
 	padding: 10px 8px 10px 13px;
@@ -188,6 +188,7 @@ export const ChatRowContent = memo(
 		sendMessageFromChatRow,
 		onSetQuote,
 	}: ChatRowContentProps) => {
+		const { handleSignIn, clineUser } = useClineAuth()
 		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl, apiConfiguration } = useExtensionState()
 		const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 		const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
@@ -205,17 +206,24 @@ export const ChatRowContent = memo(
 			return [undefined, undefined, undefined, undefined]
 		}, [message.text, message.say])
 
-		// Get saved collapsed state from webview state or default to true
-		const savedState = (vscode.getState() as { mcpArgumentsCollapsed?: boolean }) || {}
-		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(savedState.mcpArgumentsCollapsed ?? true)
+		// Get saved collapsed state from localStorage or default to false
+		const getMcpArgumentsCollapsedState = () => {
+			try {
+				const saved = localStorage.getItem("mcpArgumentsCollapsed")
+				return saved !== null ? JSON.parse(saved) : false
+			} catch (error) {
+				return false // Default to false if there's an error reading localStorage
+			}
+		}
+		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(getMcpArgumentsCollapsedState())
 
 		// Update the saved state when the collapsed state changes
 		useEffect(() => {
-			const currentState = (vscode.getState() as Record<string, any>) || {}
-			vscode.setState({
-				...currentState,
-				mcpArgumentsCollapsed: mcpArgumentsCollapsed,
-			})
+			try {
+				localStorage.setItem("mcpArgumentsCollapsed", JSON.stringify(mcpArgumentsCollapsed))
+			} catch (error) {
+				console.warn("Failed to save mcpArgumentsCollapsed to localStorage:", error)
+			}
 		}, [mcpArgumentsCollapsed])
 
 		// when resuming task last won't be api_req_failed but a resume_task message so api_req_started will show loading spinner. that's why we just remove the last api_req_started that failed without streaming anything
@@ -900,18 +908,18 @@ export const ChatRowContent = memo(
 											}}
 											onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}>
 											<span
-												className={`codicon codicon-chevron-${mcpArgumentsCollapsed ? "down" : "right"}`}
+												className={`codicon codicon-chevron-${!mcpArgumentsCollapsed ? "down" : "right"}`}
 												style={{ marginRight: "4px" }}></span>
 											<span
 												style={{
 													opacity: 0.8,
 													fontSize: "12px",
-													color: "var(--vscode-textLink-foreground)",
+													color: itemIconColor,
 												}}>
 												Arguments
 											</span>
 										</div>
-										{mcpArgumentsCollapsed && (
+										{!mcpArgumentsCollapsed && (
 											<CodeAccordian
 												code={useMcpServer.arguments}
 												language="json"
@@ -969,14 +977,13 @@ export const ChatRowContent = memo(
 									<>
 										{(() => {
 											// Try to parse the error message as JSON for credit limit error
-											const errorData = parseErrorText(apiRequestFailedMessage)
+											const errorData = parseErrorText(
+												apiRequestFailedMessage || apiReqStreamingFailedMessage,
+											)
 											if (errorData) {
 												if (
 													errorData.code === "insufficient_credits" &&
-													typeof errorData.current_balance === "number" &&
-													typeof errorData.total_spent === "number" &&
-													typeof errorData.total_promotions === "number" &&
-													typeof errorData.message === "string"
+													typeof errorData.current_balance === "number"
 												) {
 													return (
 														<CreditLimitError
@@ -984,6 +991,7 @@ export const ChatRowContent = memo(
 															totalSpent={errorData.total_spent}
 															totalPromotions={errorData.total_promotions}
 															message={errorData.message}
+															buyCreditsUrl={errorData.buy_credits_url}
 														/>
 													)
 												}
@@ -1103,6 +1111,21 @@ export const ChatRowContent = memo(
 																troubleshooting guide
 															</a>
 															.
+														</>
+													)}
+													{apiRequestFailedMessage?.includes(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE) && (
+														<>
+															<br />
+															<br />
+															{clineUser ? (
+																<span style={{ color: "var(--vscode-descriptionForeground)" }}>
+																	(Click "Retry" below)
+																</span>
+															) : (
+																<VSCodeButton onClick={handleSignIn} className="w-full mb-4">
+																	Sign in to Cline
+																</VSCodeButton>
+															)}
 														</>
 													)}
 												</p>

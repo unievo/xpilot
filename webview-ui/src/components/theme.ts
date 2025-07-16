@@ -1,7 +1,7 @@
 // Theme
 export const planModeColor = "var(--vscode-terminal-ansiBrightBlack)"
 export const actModeColor = "var(--vscode-focusBorder)"
-export const itemIconColor = "var(--vscode-focusBorder)"
+export const itemIconColor = "color-mix(in srgb, var(--vscode-focusBorder) 60%, var(--vscode-editor-foreground))"
 export const menuBackground = "color-mix(in srgb, var(--vscode-input-background) 100%, var(--vscode-editor-foreground))"
 export const dropdownBackground = "color-mix(in srgb, var(--vscode-dropdown-background) 100%, var(--vscode-editor-background))"
 export const rowBackground = "color-mix(in srgb, var(--vscode-input-background) 80%, var(--vscode-editor-foreground))"
