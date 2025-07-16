@@ -157,7 +157,7 @@ const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps
 				</p>
 			</div> */}
 
-			<p
+			{/* <p
 				style={{
 					fontSize: "12px",
 					marginTop: 5,
@@ -165,7 +165,7 @@ const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps
 					fontWeight: 500,
 				}}>
 				✓ Free tier access via OAuth authentication
-			</p>
+			</p> */}
 		</div>
 	)
 }

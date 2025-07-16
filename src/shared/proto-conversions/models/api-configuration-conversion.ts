@@ -238,6 +238,8 @@ function convertApiProviderToProto(provider: string | undefined): ProtoApiProvid
 			return ProtoApiProvider.SAMBANOVA
 		case "cerebras":
 			return ProtoApiProvider.CEREBRAS
+		case "groq":
+			return ProtoApiProvider.GROQ
 		case "sapaicore":
 			return ProtoApiProvider.SAPAICORE
 		case "claude-code":
@@ -302,6 +304,8 @@ function convertProtoToApiProvider(provider: ProtoApiProvider): ApiProvider {
 			return "sambanova"
 		case ProtoApiProvider.CEREBRAS:
 			return "cerebras"
+		case ProtoApiProvider.GROQ:
+			return "groq"
 		case ProtoApiProvider.SAPAICORE:
 			return "sapaicore"
 		case ProtoApiProvider.CLAUDE_CODE:
@@ -382,6 +386,9 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		reasoningEffort: config.reasoningEffort,
 		sambanovaApiKey: config.sambanovaApiKey,
 		cerebrasApiKey: config.cerebrasApiKey,
+		groqApiKey: config.groqApiKey,
+		groqModelId: config.groqModelId,
+		groqModelInfo: convertModelInfoToProtoOpenRouter(config.groqModelInfo),
 		requestTimeoutMs: config.requestTimeoutMs,
 		apiProvider: config.apiProvider ? convertApiProviderToProto(config.apiProvider) : undefined,
 		favoritedModelIds: config.favoritedModelIds || [],
@@ -467,6 +474,9 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		reasoningEffort: protoConfig.reasoningEffort,
 		sambanovaApiKey: protoConfig.sambanovaApiKey,
 		cerebrasApiKey: protoConfig.cerebrasApiKey,
+		groqApiKey: protoConfig.groqApiKey,
+		groqModelId: protoConfig.groqModelId,
+		groqModelInfo: convertProtoToModelInfo(protoConfig.groqModelInfo),
 		requestTimeoutMs: protoConfig.requestTimeoutMs,
 		apiProvider: protoConfig.apiProvider !== undefined ? convertProtoToApiProvider(protoConfig.apiProvider) : undefined,
 		favoritedModelIds: protoConfig.favoritedModelIds.length > 0 ? protoConfig.favoritedModelIds : undefined,

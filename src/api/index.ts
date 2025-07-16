@@ -29,6 +29,7 @@ import { CerebrasHandler } from "./providers/cerebras"
 import { SapAiCoreHandler } from "./providers/sapaicore"
 import { ClaudeCodeHandler } from "./providers/claude-code"
 import { MoonshotHandler } from "./providers/moonshot"
+import { GroqHandler } from "./providers/groq"
 
 export interface ApiHandler {
 	createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream
@@ -222,6 +223,13 @@ function createHandlerForProvider(apiProvider: string | undefined, options: Omit
 		case "cerebras":
 			return new CerebrasHandler({
 				cerebrasApiKey: options.cerebrasApiKey,
+				apiModelId: options.apiModelId,
+			})
+		case "groq":
+			return new GroqHandler({
+				groqApiKey: options.groqApiKey,
+				groqModelId: options.groqModelId,
+				groqModelInfo: options.groqModelInfo,
 				apiModelId: options.apiModelId,
 			})
 		case "sapaicore":
