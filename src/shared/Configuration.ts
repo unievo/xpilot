@@ -1,3 +1,8 @@
+// Base
+export const baseName = "Cline"
+export const baseVersion = "v3.19.5"
+export const baseVersionUrl = `https://github.com/cline/cline/releases/tag/${baseVersion}`
+
 // Product
 export const agentName = "Astro"
 export const productName = "astro"
@@ -10,7 +15,6 @@ export const apiBaseUrl = ""
 export const gitInstructionsRepo = ""
 export const gitWorkflowsRepo = ""
 export const latestAnnouncementId = "1.0.0"
-export const clineVersion = "3.19.4"
 
 // Settings
 export const defaultChatMode = "act"
@@ -62,6 +66,7 @@ export const mcpServersDirectory = `servers`
 export const mcpSettingsFile = `mcp_settings.json`
 export const ignoreFile = `.${productName}ignore`
 export const openRouterModelsFile = `open_router_models.json`
+export const groqModelsFile = `groq_models.json`
 export const uiMessagesFile = `ui_messages.json`
 export const taskMetadataFile = `task_metadata.json`
 export const contextHistoryFile = `context_history.json`
