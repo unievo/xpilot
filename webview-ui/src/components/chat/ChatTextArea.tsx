@@ -1941,13 +1941,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										<span
 											className="codicon codicon-file-add flex items-center"
 											style={{
-												opacity: 0.7,
-												color: itemIconColor,
+												opacity: 0.6,
+												//color: itemIconColor,
 												fontWeight: "bold",
-												fontSize: "15px",
+												fontSize: "15.5px",
 												marginTop: 6,
-												marginRight: 0,
-												marginLeft: "-2px",
+												marginRight: 1.5,
+												marginLeft: -2,
 											}}
 										/>
 									</ButtonContainer>
