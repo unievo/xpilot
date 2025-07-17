@@ -36,7 +36,7 @@ export const deleteTasksWithIds: TaskMethodHandler = async (
 		}),
 	)
 
-	if (userChoice === undefined) {
+	if (userChoice?.selectedOption === undefined) {
 		return Empty.create()
 	}
 
