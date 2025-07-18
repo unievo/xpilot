@@ -20,15 +20,15 @@ const containerStyle: CSSProperties = {
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
 const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "16px", fontWeight: "bold" }
-const ulStyle: CSSProperties = { listStyle: "disc", margin: "4px", paddingLeft: "10px", fontSize: "12px" }
+const ulStyle: CSSProperties = { listStyle: "disc", margin: "4px", marginBottom: "-10px", paddingLeft: "10px", fontSize: "12px" }
 const accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
 	background: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 	opacity: 0.1,
-	margin: "8px 0",
+	margin: "6px 0",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "11px", textAlign: "left" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "12px", textAlign: "left" }
 const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
 
 /*
@@ -110,17 +110,25 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</Accordion> */}
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
-				<VSCodeLink href={repoUrl}>GitHub</VSCodeLink>
 				{xUrl && (
 					<span>
-						{" | "}
-						<VSCodeLink href={xUrl}>X.com</VSCodeLink>
+						<VSCodeLink style={linkStyle} href={xUrl}>
+							X.com
+						</VSCodeLink>
 					</span>
 				)}
+
+				{" | "}
+				<VSCodeLink style={linkStyle} href={repoUrl}>
+					GitHub
+				</VSCodeLink>
+
 				{discordUrl && (
 					<span>
 						{" | "}
-						<VSCodeLink href={discordUrl}>Discord</VSCodeLink>
+						<VSCodeLink style={linkStyle} href={discordUrl}>
+							Discord
+						</VSCodeLink>
 					</span>
 				)}
 			</p>
