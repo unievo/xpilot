@@ -7,8 +7,9 @@ import { McpServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { EmptyRequest, StringRequest } from "@shared/proto/common"
 import ServersToggleList from "./ServersToggleList"
 import AddRemoteServerForm from "../add-server/AddRemoteServerForm"
+import { mcpLibraryEnabled } from "@shared/Configuration"
 const InstalledServersView = () => {
-	const { mcpServers: servers, navigateToSettings } = useExtensionState()
+	const { mcpServers: servers, navigateToSettings, mcpMarketplaceEnabled, navigateToMcp } = useExtensionState()
 	const [showAddServer, setShowAddServer] = useState(false)
 
 	return (
@@ -20,12 +21,30 @@ const InstalledServersView = () => {
 					alignItems: "left",
 					textAlign: "left",
 					marginBottom: "10px",
-					opacity: 0.7,
+					color: "var(--vscode-descriptionForeground)",
 				}}>
-				<p style={{ fontSize: "12px", margin: 5, marginBottom: 0 }}>
-					The Model Context Protocol (MCP) is an open protocol that standardizes how applications provide context to AI
-					models.
-				</p>
+				<div style={{ fontSize: "12px", margin: 5, marginBottom: 5 }}>
+					Use <b>Configure</b> to edit the MCP settings, or <b>Add Remote</b> to add a remote server{" "}
+					{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
+						<div style={{ marginTop: "-10px" }}>
+							<br />
+							You can install servers from the{" "}
+							{mcpLibraryEnabled && (
+								<VSCodeLink onClick={() => navigateToMcp("library")} style={{ fontSize: "12px" }}>
+									Library
+								</VSCodeLink>
+							)}
+							{mcpMarketplaceEnabled && (
+								<span>
+									{mcpLibraryEnabled && " or the "}
+									<VSCodeLink onClick={() => navigateToMcp("marketplace")} style={{ fontSize: "12px" }}>
+										Marketplace
+									</VSCodeLink>
+								</span>
+							)}
+						</div>
+					)}
+				</div>
 			</div>
 			{/* Button Row */}
 			<div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>

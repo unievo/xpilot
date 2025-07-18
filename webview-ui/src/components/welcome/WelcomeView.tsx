@@ -23,12 +23,12 @@ const WelcomeView = memo(() => {
 				</div>
 				<h2 className="flex mb-10 justify-center">Welcome to {agentName}!</h2>
 				<p>
-					{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source coding agent
+					{agentName} is an AI coding agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source agent
 					for VS Code, designed to support many AI providers and models, and to handle a wide range of development
 					tasks.
 				</p>
 				<p>
-					It can use VS Code as an AI provider, by{" "}
+					{agentName} can use VS Code as an AI provider, by{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						setting up
 					</VSCodeLink>
