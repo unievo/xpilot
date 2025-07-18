@@ -137,7 +137,7 @@ const HomeHeader = () => {
 					<div
 						style={{
 							//fontSize: "12px",
-							marginLeft: "2px",
+							marginLeft: "3px",
 							paddingTop: "5px",
 							//lineHeight: "18px",
 							//borderLeft: "1px dotted var(--vscode-widget-border)"
@@ -251,9 +251,8 @@ const HomeHeader = () => {
 												marginBlockEnd: 0,
 											}}>
 											<li style={{ marginBottom: "8px" }}>
-												To be able to see your file explorer and other views while working with{" "}
-												{agentName}, move it to the secondary side bar. Right-click the {agentName} icon
-												in the activity bar, and use <b>Move To - Secondary Side Bar</b>.
+												Move {agentName} to the secondary side bar. (Right-click the {agentName} icon in
+												the activity bar, and <b>Move To</b> {">"} <b>Secondary Side Bar</b>).
 											</li>
 											<li style={{ marginBottom: "3px" }}>Open a workspace folder in VS Code.</li>
 										</ul>
@@ -420,22 +419,28 @@ const HomeHeader = () => {
 											that is relevant for the AI model to achieve optimal task completion.
 										</p>
 										<p>
-											Use <b>/Generate Instructions</b> "follow with the scope...", to create a new
-											instructions file based on the current task context. This is useful to create reusable
-											instructions for similar tasks in the future.
-										</p>
-										<p>
 											Use workflow files to define a sequence of executable steps that can be triggered as a
 											command by typing <b>/Workflow name</b> in the chat. Workflows can be used to automate
 											complex or repetitive tasks.
 										</p>
 										<p>
+											Use <b>/Generate Instructions</b> <i>followed by a short description of scope</i>, to
+											create a new instructions file based on the current task context. This is useful to
+											create reusable instructions for similar tasks in the future.
+										</p>
+										<p>
 											Use the <b>/Git Instructions</b> and <b>/Git Workflows</b> commands to get instruction
 											and workflow files from a dedicated git repository. You can specify any repository
-											source as an argument.
-											<br />
-											The execution will clone the repository into the specified location
-											(global/workspace). If the repository already exists, it will pull any updates.
+											source as an argument and also the location (global/workspace).
+										</p>
+										<p>
+											The global location is used to store instructions and workflows that are available
+											across all tasks and workspaces. The workspace location is used to store instructions
+											and workflows that are specific to the current workspace.
+										</p>
+										<p>
+											The repository will be cloned into the specified location. If the repository already
+											exists, it will pull any updates.
 										</p>
 									</div>
 								</CollapsibleSection>

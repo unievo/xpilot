@@ -83,18 +83,18 @@ export const VSCodeLmProvider = () => {
 							marginTop: "5px",
 							color: "var(--vscode-descriptionForeground)",
 						}}>
-						The VS Code Language Model API allows you to run models provided by other VS Code extensions (including
-						but not limited to GitHub Copilot).
+						The VS Code Language Model API allows you to use models provided by other VS Code extensions.
 						<br />
-						To get started,{" "}
+						<br />
+						Get started by{" "}
 						<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
-							set up
+							setting up
 						</VSCodeLink>{" "}
-						Copilot and{" "}
+						and{" "}
 						<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
-							enable
+							enabling
 						</VSCodeLink>{" "}
-						the models based on your Copilot plan.
+						the GitHub Copilot models.
 					</p>
 				)}
 			</DropdownContainer>
