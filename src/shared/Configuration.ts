@@ -1,6 +1,6 @@
 // Base
 export const baseName = "Cline"
-export const baseVersion = "v3.19.5"
+export const baseVersion = "v3.19.7"
 export const baseVersionUrl = `https://github.com/cline/cline/releases/tag/${baseVersion}`
 
 // Product
