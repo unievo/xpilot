@@ -393,7 +393,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				languageId,
 				Array.isArray(diagnostics) ? diagnostics : undefined,
 			)
-			telemetryService.captureButtonClick("codeAction_addToChat", visibleWebview?.controller.task?.taskId, true)
+			telemetryService.captureButtonClick("codeAction_addToChat", visibleWebview?.controller.task?.taskId)
 		}),
 	)
 
@@ -576,7 +576,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			// Send to sidebar provider with diagnostics
 			const visibleWebview = WebviewProvider.getVisibleInstance()
 			await visibleWebview?.controller.fixWithCline(selectedText, filePath, languageId, diagnostics)
-			telemetryService.captureButtonClick("codeAction_fixWithCline", visibleWebview?.controller.task?.taskId, true)
+			telemetryService.captureButtonClick("codeAction_fixWithCline", visibleWebview?.controller.task?.taskId)
 		}),
 	)
 
@@ -603,7 +603,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const fileMention = visibleWebview?.controller.getFileMentionFromPath(filePath) || filePath
 			const prompt = `Explain the following code from ${fileMention}:\n\`\`\`${editor.document.languageId}\n${selectedText}\n\`\`\``
 			await visibleWebview?.controller.initTask(prompt)
-			telemetryService.captureButtonClick("codeAction_explainCode", visibleWebview?.controller.task?.taskId, true)
+			telemetryService.captureButtonClick("codeAction_explainCode", visibleWebview?.controller.task?.taskId)
 		}),
 	)
 
@@ -630,7 +630,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const fileMention = visibleWebview?.controller.getFileMentionFromPath(filePath) || filePath
 			const prompt = `Improve the following code from ${fileMention} (e.g., suggest refactorings, optimizations, or better practices):\n\`\`\`${editor.document.languageId}\n${selectedText}\n\`\`\``
 			await visibleWebview?.controller.initTask(prompt)
-			telemetryService.captureButtonClick("codeAction_improveCode", visibleWebview?.controller.task?.taskId, true)
+			telemetryService.captureButtonClick("codeAction_improveCode", visibleWebview?.controller.task?.taskId)
 		}),
 	)
 
@@ -694,7 +694,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					}),
 				)
 			}
-			telemetryService.captureButtonClick("command_focusChatInput", activeWebviewProvider?.controller.task?.taskId, true)
+			telemetryService.captureButtonClick("command_focusChatInput", activeWebviewProvider?.controller.task?.taskId)
 		}),
 	)
 
@@ -702,7 +702,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(openWalkthroughCommand, async () => {
 			await vscode.commands.executeCommand("workbench.action.openWalkthrough", `${extensionId}#Walkthrough`)
-			telemetryService.captureButtonClick("command_openWalkthrough", undefined, true)
+			telemetryService.captureButtonClick("command_openWalkthrough")
 		}),
 	)
 
@@ -727,9 +727,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		context.secrets.onDidChange((event) => {
+		context.secrets.onDidChange(async (event) => {
 			if (event.key === "clineAccountId") {
-				AuthService.getInstance(context)?.restoreRefreshTokenAndRetrieveAuthInfo()
+				// Check if the secret was removed (logout) or added/updated (login)
+				const secretValue = await context.secrets.get("clineAccountId")
+				const authService = AuthService.getInstance(context)
+				if (secretValue) {
+					// Secret was added or updated - restore auth info (login from another window)
+					authService?.restoreRefreshTokenAndRetrieveAuthInfo()
+				} else {
+					// Secret was removed - handle logout for all windows
+					authService?.handleDeauth()
+				}
 			}
 		}),
 	)
@@ -763,8 +772,6 @@ const DEV_WORKSPACE_FOLDER = process.env.DEV_WORKSPACE_FOLDER
 export async function deactivate() {
 	// Dispose all webview instances
 	await WebviewProvider.disposeAllInstances()
-
-	await telemetryService.sendCollectedEvents()
 
 	// Clean up test mode
 	cleanupTestMode()
