@@ -242,7 +242,7 @@ const HomeHeader = () => {
 									title="Workspace Setup"
 									isExpanded={sectionStates.setup}
 									onToggle={() => toggleSection("setup")}>
-									<div style={{ marginTop: "-8px", paddingLeft: "5px" }}>
+									<div style={{ marginTop: "-8px", marginBottom: "16px", paddingLeft: "5px" }}>
 										<ul
 											style={{
 												listStyleType: "disc",
@@ -263,7 +263,7 @@ const HomeHeader = () => {
 									title="Task Overview"
 									isExpanded={sectionStates.introduction}
 									onToggle={() => toggleSection("introduction")}>
-									<div style={{ marginTop: "-8px", paddingLeft: "5px" }}>
+									<div style={{ marginTop: "-8px", marginBottom: "16px", paddingLeft: "5px" }}>
 										{agentName} manages your requests using <b>tasks</b>.
 										<br />A task is composed of {agentName}'s system prompt, your chat messages, tool
 										responses, and any additional information provided, such as instruction files. This forms
@@ -289,7 +289,7 @@ const HomeHeader = () => {
 									title="Task Context"
 									isExpanded={sectionStates.taskContext}
 									onToggle={() => toggleSection("taskContext")}>
-									<div style={{ marginTop: "-8px", paddingLeft: "5px" }}>
+									<div style={{ marginTop: "-4px", paddingLeft: "5px" }}>
 										A key for having a task completed efficiently, is providing the right context information
 										and tools to the model -{" "}
 										<a href="https://www.philschmid.de/context-engineering">context engineering</a>.
@@ -300,6 +300,7 @@ const HomeHeader = () => {
 											paddingLeft: "20px",
 											marginBlockStart: 8,
 											marginBlockEnd: 0,
+											marginBottom: "16px",
 										}}>
 										<li style={{ marginBottom: "5px" }}>
 											When starting a new task, activate relevant context information and tools, by enabling
@@ -358,7 +359,7 @@ const HomeHeader = () => {
 									title="Task Management"
 									isExpanded={sectionStates.taskManagement}
 									onToggle={() => toggleSection("taskManagement")}>
-									<div style={{ marginTop: "-8px", paddingLeft: "5px" }}>
+									<div style={{ marginTop: "-6px", paddingLeft: "5px" }}>
 										Using tasks efficiently optimizes performance, costs, and results.
 									</div>
 									<ul
@@ -367,6 +368,7 @@ const HomeHeader = () => {
 											paddingLeft: "20px",
 											marginBlockStart: 8,
 											marginBlockEnd: 0,
+											marginBottom: "16px",
 										}}>
 										<li style={{ marginBottom: "5px" }}>
 											Always start a new task each time you have a new scope. Keep your task context
@@ -412,7 +414,7 @@ const HomeHeader = () => {
 									title="Instructions and Workflows"
 									isExpanded={sectionStates.instructions}
 									onToggle={() => toggleSection("instructions")}>
-									<div style={{ marginTop: "-20px", marginBottom: "-6px", paddingLeft: "5px" }}>
+									<div style={{ marginTop: "-18px", marginBottom: "-2px", paddingLeft: "5px" }}>
 										<p>
 											Use instruction files for rules, specifications, documentation, or any information
 											that is relevant for the AI model to achieve optimal task completion.
@@ -442,7 +444,7 @@ const HomeHeader = () => {
 									title="Interface Controls"
 									isExpanded={sectionStates.controls}
 									onToggle={() => toggleSection("controls")}>
-									<div style={{ marginTop: "-20px", paddingLeft: "5px" }}>
+									<div style={{ marginTop: "-18px", paddingLeft: "5px" }}>
 										<p>
 											There are two main locations to control the interface: the top bar and the bottom chat
 											bar.
