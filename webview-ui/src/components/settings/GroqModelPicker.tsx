@@ -11,6 +11,7 @@ import { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
 import { ModelInfoView } from "./common/ModelInfoView"
 import { normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
+import { agentName } from "@shared/Configuration"
 
 export interface GroqModelPickerProps {
 	isPopup?: boolean
@@ -327,7 +328,7 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 						<VSCodeLink className="inline text-inherit" href="https://console.groq.com/docs/models">
 							Groq.
 						</VSCodeLink>
-						If you're unsure which model to choose, Cline works best with{" "}
+						If you're unsure which model to choose, {agentName} works best with{" "}
 						<VSCodeLink className="inline text-inherit" onClick={() => handleModelChange("llama-3.3-70b-versatile")}>
 							llama-3.3-70b-versatile.
 						</VSCodeLink>

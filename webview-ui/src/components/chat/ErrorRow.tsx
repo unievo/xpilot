@@ -4,8 +4,9 @@ import { ClineMessage } from "@shared/ExtensionMessage"
 import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 import CreditLimitError from "@/components/chat/CreditLimitError"
 import { useClineAuth } from "@/context/ClineAuthContext"
+import { agentName, ignoreFile } from "@shared/Configuration"
 
-const errorColor = "var(--vscode-errorForeground)"
+const errorColor = "var(--vscode-editorWarning-foreground)" //"var(--vscode-errorForeground)"
 
 interface ErrorRowProps {
 	message: ClineMessage
@@ -46,7 +47,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					if (clineError?.isErrorType(ClineErrorType.RateLimit)) {
 						return (
-							<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">
+							<p className={`m-0 text-xs opacity-80 whitespace-pre-wrap text-[${errorColor}] wrap-anywhere`}>
 								{clineErrorMessage}
 								{requestId && <div>Request ID: {requestId}</div>}
 							</p>
@@ -55,7 +56,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					// Default error display
 					return (
-						<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">
+						<p className={`m-0 text-xs opacity-80 whitespace-pre-wrap text-[${errorColor}] wrap-anywhere`}>
 							{clineErrorMessage}
 							{requestId && <div>Request ID: {requestId}</div>}
 							{clineErrorMessage?.toLowerCase()?.includes("powershell") && (
@@ -76,7 +77,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 									<br />
 									<br />
 									{/* The user is signed in or not using cline provider */}
-									{clineUser && !isClineProvider ? (
+									{/* {clineUser && !isClineProvider ? (
 										<span className="mb-4 text-[var(--vscode-descriptionForeground)]">
 											(Click "Retry" below)
 										</span>
@@ -84,7 +85,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 										<VSCodeButton onClick={handleSignIn} className="w-full mb-4">
 											Sign in to Cline
 										</VSCodeButton>
-									)}
+									)} */}
 								</>
 							)}
 						</p>
@@ -93,7 +94,9 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 				// Regular error message
 				return (
-					<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">{message.text}</p>
+					<p className={`m-0 text-xs opacity-80 whitespace-pre-wrap text-[${errorColor}] wrap-anywhere`}>
+						{message.text}
+					</p>
 				)
 
 			case "diff_error":
@@ -107,7 +110,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 				return (
 					<div className="flex flex-col p-2 rounded text-xs bg-[var(--vscode-textBlockQuote-background)] text-[var(--vscode-foreground)] opacity-80">
 						<div>
-							Cline tried to access <code>{message.text}</code> which is blocked by the <code>.clineignore</code>
+							{agentName} tried to access <code>{message.text}</code> which is blocked by the{" "}
+							<code>{ignoreFile}</code>
 							file.
 						</div>
 					</div>

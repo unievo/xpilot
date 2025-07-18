@@ -2,6 +2,8 @@ import React from "react"
 import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 import { ProgressIndicator } from "./ChatRow"
 
+const errorColor = "var(--vscode-editorWarning-foreground)" //"var(--vscode-errorForeground)"
+
 const RetryMessage = React.memo(
 	({ seconds, attempt, retryOperations }: { retryOperations: number; attempt: number; seconds?: number }) => {
 		const [remainingSeconds, setRemainingSeconds] = React.useState(seconds || 0)
@@ -63,12 +65,12 @@ export const ErrorBlockTitle = ({
 			apiReqCancelReason === "user_cancelled" ? (
 				getIconSpan("error", "text-[var(--vscode-descriptionForeground)]")
 			) : (
-				getIconSpan("error", "text-[var(--vscode-errorForeground)]")
+				getIconSpan("error", `text-[${errorColor}]`)
 			)
 		) : cost != null ? (
 			getIconSpan("check", "text-[var(--vscode-charts-green)]")
 		) : apiRequestFailedMessage ? (
-			getIconSpan("error", "text-[var(--vscode-errorForeground)]")
+			getIconSpan("error", `text-[${errorColor}]`)
 		) : (
 			<ProgressIndicator />
 		)
@@ -82,7 +84,7 @@ export const ErrorBlockTitle = ({
 			details.classNames.push("text-[var(--vscode-foreground)]")
 		} else if (apiReqCancelReason != null) {
 			details.title = "API Streaming Failed"
-			details.classNames.push("text-[var(--vscode-errorForeground)]")
+			details.classNames.push(`text-[${errorColor}]`)
 		} else if (cost != null) {
 			// Handle completed request
 			details.title = "API Request"
@@ -92,7 +94,7 @@ export const ErrorBlockTitle = ({
 			const clineError = ClineError.parse(apiRequestFailedMessage)
 			const titleText = clineError?.isErrorType(ClineErrorType.Balance) ? "Credit Limit Reached" : "API Request Failed"
 			details.title = titleText
-			details.classNames.push("font-bold text-[var(--vscode-errorForeground)]")
+			details.classNames.push(`font-bold text-[${errorColor}]`)
 		} else if (retryStatus) {
 			// Handle retry state
 			const retryOperations = Math.max(0, retryStatus.maxAttempts - 1)
