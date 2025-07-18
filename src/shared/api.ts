@@ -924,7 +924,7 @@ export const geminiModels = {
 
 // Gemini CLI (OAuth-based)
 export type GeminiCliModelId = keyof typeof geminiCliModels
-export const geminiCliDefaultModelId: GeminiCliModelId = "gemini-2.5-flash"
+export const geminiCliDefaultModelId: GeminiCliModelId = "gemini-2.5-pro"
 export const geminiCliModels = {
 	"gemini-2.5-pro": {
 		maxTokens: 65536,
@@ -933,7 +933,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 2.5 Pro model via OAuth (free tier)",
+		description: "Google's Gemini 2.5 Pro model via OAuth",
 	},
 	"gemini-2.5-flash": {
 		maxTokens: 65536,
@@ -942,7 +942,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 2.5 Flash model via OAuth (free tier)",
+		description: "Google's Gemini 2.5 Flash model via OAuth",
 	},
 	"gemini-2.0-flash-001": {
 		maxTokens: 8192,
@@ -951,7 +951,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 2.0 Flash model via OAuth (free tier)",
+		description: "Google's Gemini 2.0 Flash model via OAuth",
 	},
 	"gemini-2.0-flash-lite-preview-02-05": {
 		maxTokens: 8192,
@@ -1005,7 +1005,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 1.5 Flash 002 model via OAuth (free tier)",
+		description: "Google's Gemini 1.5 Flash 002 model via OAuth",
 	},
 	"gemini-1.5-flash-exp-0827": {
 		maxTokens: 8192,
