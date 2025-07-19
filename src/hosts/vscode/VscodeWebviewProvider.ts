@@ -6,6 +6,7 @@ import * as vscode from "vscode"
 import { Uri } from "vscode"
 import { WebviewProvider } from "@core/webview"
 import { sendDidBecomeVisibleEvent } from "@core/controller/ui/subscribeToDidBecomeVisible"
+import { productName } from "@/shared/Configuration"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -112,7 +113,7 @@ export class VscodeWebviewProvider extends WebviewProvider implements vscode.Web
 							await sendThemeEvent(JSON.stringify(theme))
 						}
 					}
-					if (e && e.affectsConfiguration("cline.mcpMarketplace.enabled")) {
+					if (e && e.affectsConfiguration(`${productName}.mcpMarketplace.enabled`)) {
 						// Update state when marketplace tab setting changes
 						await this.controller.postStateToWebview()
 					}

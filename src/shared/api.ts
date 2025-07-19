@@ -30,6 +30,7 @@ export type ApiProvider =
 	| "cerebras"
 	| "sapaicore"
 	| "groq"
+	| "huggingface"
 
 export interface ApiHandlerOptions {
 	apiModelId?: string
@@ -95,6 +96,9 @@ export interface ApiHandlerOptions {
 	qwenApiLine?: string
 	moonshotApiLine?: string
 	moonshotApiKey?: string
+	huggingFaceApiKey?: string
+	huggingFaceModelId?: string
+	huggingFaceModelInfo?: ModelInfo
 	nebiusApiKey?: string
 	asksageApiUrl?: string
 	asksageApiKey?: string
@@ -924,7 +928,7 @@ export const geminiModels = {
 
 // Gemini CLI (OAuth-based)
 export type GeminiCliModelId = keyof typeof geminiCliModels
-export const geminiCliDefaultModelId: GeminiCliModelId = "gemini-2.5-flash"
+export const geminiCliDefaultModelId: GeminiCliModelId = "gemini-2.5-pro"
 export const geminiCliModels = {
 	"gemini-2.5-pro": {
 		maxTokens: 65536,
@@ -933,7 +937,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 2.5 Pro model via OAuth (free tier)",
+		description: "Google's Gemini 2.5 Pro model via OAuth",
 	},
 	"gemini-2.5-flash": {
 		maxTokens: 65536,
@@ -942,7 +946,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 2.5 Flash model via OAuth (free tier)",
+		description: "Google's Gemini 2.5 Flash model via OAuth",
 	},
 	"gemini-2.0-flash-001": {
 		maxTokens: 8192,
@@ -951,7 +955,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 2.0 Flash model via OAuth (free tier)",
+		description: "Google's Gemini 2.0 Flash model via OAuth",
 	},
 	"gemini-2.0-flash-lite-preview-02-05": {
 		maxTokens: 8192,
@@ -1005,7 +1009,7 @@ export const geminiCliModels = {
 		supportsPromptCache: false,
 		inputPrice: 0, // Free tier via OAuth
 		outputPrice: 0, // Free tier via OAuth
-		description: "Google's Gemini 1.5 Flash 002 model via OAuth (free tier)",
+		description: "Google's Gemini 1.5 Flash 002 model via OAuth",
 	},
 	"gemini-1.5-flash-exp-0827": {
 		maxTokens: 8192,
@@ -1206,6 +1210,49 @@ export const deepSeekModels = {
 		outputPrice: 2.19,
 		cacheWritesPrice: 0.55,
 		cacheReadsPrice: 0.14,
+	},
+} as const satisfies Record<string, ModelInfo>
+
+// Hugging Face Inference Providers
+// https://huggingface.co/docs/inference-providers/en/index
+export type HuggingFaceModelId = keyof typeof huggingFaceModels
+export const huggingFaceDefaultModelId: HuggingFaceModelId = "moonshotai/Kimi-K2-Instruct"
+export const huggingFaceModels = {
+	"moonshotai/Kimi-K2-Instruct": {
+		maxTokens: 131_072,
+		contextWindow: 131_072,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0,
+		outputPrice: 0,
+		description: "Advanced reasoning model with superior performance across coding, math, and general capabilities.",
+	},
+	"deepseek-ai/DeepSeek-V3-0324": {
+		maxTokens: 8192,
+		contextWindow: 64_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0,
+		outputPrice: 0,
+		description: "Advanced reasoning model with superior performance across coding, math, and general capabilities.",
+	},
+	"deepseek-ai/DeepSeek-R1": {
+		maxTokens: 8192,
+		contextWindow: 64_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0,
+		outputPrice: 0,
+		description: "DeepSeek's reasoning model with step-by-step thinking capabilities.",
+	},
+	"meta-llama/Llama-3.1-8B-Instruct": {
+		maxTokens: 8192,
+		contextWindow: 128_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0,
+		outputPrice: 0,
+		description: "Efficient 8B parameter Llama model for general-purpose tasks.",
 	},
 } as const satisfies Record<string, ModelInfo>
 

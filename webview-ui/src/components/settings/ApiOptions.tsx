@@ -31,6 +31,7 @@ import { ClaudeCodeProvider } from "./providers/ClaudeCodeProvider"
 import { SapAiCoreProvider } from "./providers/SapAiCoreProvider"
 import { BedrockProvider } from "./providers/BedrockProvider"
 import { MoonshotProvider } from "./providers/MoonshotProvider"
+import { HuggingFaceProvider } from "./providers/HuggingFaceProvider"
 import { NebiusProvider } from "./providers/NebiusProvider"
 import { LiteLlmProvider } from "./providers/LiteLlmProvider"
 import { VSCodeLmProvider } from "./providers/VSCodeLmProvider"
@@ -147,8 +148,8 @@ const ApiOptions = ({ showModelOptions, modelIdErrorMessage, isPopup, showSubmit
 						position: "relative",
 					}}>
 					<VSCodeOption value="vscode-lm">VS Code</VSCodeOption>
-					<VSCodeOption value="openrouter">OpenRouter</VSCodeOption>
 					<VSCodeOption value="cline">Cline</VSCodeOption>
+					<VSCodeOption value="openrouter">OpenRouter</VSCodeOption>
 					<VSCodeOption value="anthropic">Anthropic</VSCodeOption>
 					<VSCodeOption value="claude-code">Claude Code</VSCodeOption>
 					<VSCodeOption value="gemini">Google Gemini</VSCodeOption>
@@ -157,11 +158,14 @@ const ApiOptions = ({ showModelOptions, modelIdErrorMessage, isPopup, showSubmit
 					<VSCodeOption value="openai-native">OpenAI</VSCodeOption>
 					<VSCodeOption value="openai">OpenAI Compatible</VSCodeOption>
 					<VSCodeOption value="xai">xAI</VSCodeOption>
+					<VSCodeOption value="moonshot">Moonshot AI</VSCodeOption>
 					<VSCodeOption value="groq">Groq</VSCodeOption>
-					<VSCodeOption value="fireworks">Fireworks</VSCodeOption>
+					<VSCodeOption value="huggingface">Hugging Face</VSCodeOption>
 					<VSCodeOption value="together">Together</VSCodeOption>
 					<VSCodeOption value="bedrock">Amazon Bedrock</VSCodeOption>
 					<VSCodeOption value="deepseek">DeepSeek</VSCodeOption>
+					<VSCodeOption value="cerebras">Cerebras</VSCodeOption>
+					<VSCodeOption value="fireworks">Fireworks</VSCodeOption>
 					<VSCodeOption value="qwen">Alibaba Qwen</VSCodeOption>
 					<VSCodeOption value="mistral">Mistral</VSCodeOption>
 					<VSCodeOption value="requesty">Requesty</VSCodeOption>
@@ -169,11 +173,10 @@ const ApiOptions = ({ showModelOptions, modelIdErrorMessage, isPopup, showSubmit
 					<VSCodeOption value="lmstudio">LM Studio</VSCodeOption>
 					<VSCodeOption value="ollama">Ollama</VSCodeOption>
 					<VSCodeOption value="litellm">LiteLLM</VSCodeOption>
-					<VSCodeOption value="moonshot">Moonshot AI</VSCodeOption>
+
 					<VSCodeOption value="nebius">Nebius AI Studio</VSCodeOption>
 					<VSCodeOption value="asksage">AskSage</VSCodeOption>
 					<VSCodeOption value="sambanova">SambaNova</VSCodeOption>
-					<VSCodeOption value="cerebras">Cerebras</VSCodeOption>
 					<VSCodeOption value="sapaicore">SAP AI Core</VSCodeOption>
 				</VSCodeDropdown>
 			</DropdownContainer>
@@ -273,6 +276,10 @@ const ApiOptions = ({ showModelOptions, modelIdErrorMessage, isPopup, showSubmit
 
 			{apiConfiguration && selectedProvider === "moonshot" && (
 				<MoonshotProvider showModelOptions={showModelOptions} isPopup={isPopup} />
+			)}
+
+			{apiConfiguration && selectedProvider === "huggingface" && (
+				<HuggingFaceProvider showModelOptions={showModelOptions} isPopup={isPopup} />
 			)}
 
 			{apiConfiguration && selectedProvider === "nebius" && (

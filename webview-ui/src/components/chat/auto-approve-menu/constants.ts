@@ -65,14 +65,14 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		id: "useBrowser",
 		label: "Use the browser",
 		shortName: "Browse",
-		description: `Allows ${agentName} to launch and interact with any website in a browser.`,
+		description: `Allows ${agentName} to fetch web content, or launch and interact with any website in a browser.`,
 		icon: "codicon-globe",
 	},
 	{
 		id: "useMcp",
 		label: "Use MCP servers",
 		shortName: "MCP",
-		description: `Allows ${agentName} to use configured MCP servers which may modify filesystem or interact with APIs.`,
+		description: `Allows ${agentName} to use configured MCP servers.`,
 		icon: "codicon-server",
 	},
 ]

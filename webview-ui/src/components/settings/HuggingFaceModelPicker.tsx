@@ -1,19 +1,16 @@
 import { EmptyRequest } from "@shared/proto/common"
-import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse, { FuseResult } from "fuse.js"
-import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
-import { useRemark } from "react-remark"
+import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
-import { groqDefaultModelId, groqModels } from "@shared/api"
+import { huggingFaceDefaultModelId, huggingFaceModels } from "@shared/api"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
-import { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
 import { ModelInfoView } from "./common/ModelInfoView"
 import { normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
-import { agentName } from "@shared/Configuration"
 
-export interface GroqModelPickerProps {
+export interface HuggingFaceModelPickerProps {
 	isPopup?: boolean
 }
 
@@ -101,11 +98,10 @@ const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: stri
 		})
 }
 
-const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
-	const { apiConfiguration, groqModels: dynamicGroqModels, setGroqModels } = useExtensionState()
+const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup }) => {
+	const { apiConfiguration, huggingFaceModels: dynamicModels, setHuggingFaceModels } = useExtensionState()
 	const { handleFieldsChange } = useApiConfigurationHandlers()
-	const [searchTerm, setSearchTerm] = useState(apiConfiguration?.groqModelId || groqDefaultModelId)
-	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+	const [searchTerm, setSearchTerm] = useState(apiConfiguration?.huggingFaceModelId || huggingFaceDefaultModelId)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -113,12 +109,10 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
-		// Use dynamic models if available, otherwise fall back to static models
-		const modelInfo = dynamicGroqModels?.[newModelId] || groqModels[newModelId as keyof typeof groqModels]
-
+		const allModels = { ...huggingFaceModels, ...dynamicModels }
 		handleFieldsChange({
-			groqModelId: newModelId,
-			groqModelInfo: modelInfo,
+			huggingFaceModelId: newModelId,
+			huggingFaceModelInfo: allModels[newModelId as keyof typeof allModels],
 		})
 		setSearchTerm(newModelId)
 	}
@@ -128,26 +122,17 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 	}, [apiConfiguration])
 
 	useMount(() => {
-		ModelsServiceClient.refreshGroqModels(EmptyRequest.create({}))
+		ModelsServiceClient.refreshHuggingFaceModels(EmptyRequest.create({}))
 			.then((response) => {
-				setGroqModels({
-					[groqDefaultModelId]: groqModels[groqDefaultModelId],
+				setHuggingFaceModels({
+					[huggingFaceDefaultModelId]: huggingFaceModels[huggingFaceDefaultModelId],
 					...response.models,
 				})
 			})
 			.catch((err) => {
-				console.error("Failed to refresh Groq models:", err)
+				console.error("Failed to refresh Hugging Face models:", err)
 			})
 	})
-
-	// Debounce search term to reduce re-renders
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedSearchTerm(searchTerm)
-		}, 300)
-
-		return () => clearTimeout(timer)
-	}, [searchTerm])
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -162,14 +147,13 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 		}
 	}, [])
 
-	const allGroqModels = useMemo(() => {
-		// Merge static models with dynamic models, with dynamic taking precedence
-		return { ...groqModels, ...(dynamicGroqModels || {}) }
-	}, [dynamicGroqModels])
+	const allModels = useMemo(() => {
+		return { ...huggingFaceModels, ...dynamicModels }
+	}, [dynamicModels])
 
 	const modelIds = useMemo(() => {
-		return Object.keys(allGroqModels).sort((a, b) => a.localeCompare(b))
-	}, [allGroqModels])
+		return Object.keys(allModels).sort((a, b) => a.localeCompare(b))
+	}, [allModels])
 
 	const searchableItems = useMemo(() => {
 		return modelIds.map((id) => ({
@@ -180,7 +164,7 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 
 	const fuse = useMemo(() => {
 		return new Fuse(searchableItems, {
-			keys: ["html"], // highlight function will update this
+			keys: ["html"],
 			threshold: 0.6,
 			shouldSort: true,
 			isCaseSensitive: false,
@@ -191,154 +175,109 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		let results: { id: string; html: string }[] = debouncedSearchTerm
-			? highlight(fuse.search(debouncedSearchTerm), "model-item-highlight")
+		let results: { id: string; html: string }[] = searchTerm
+			? highlight(fuse.search(searchTerm), "model-item-highlight")
 			: searchableItems
 		return results
-	}, [searchableItems, debouncedSearchTerm, fuse])
+	}, [searchTerm, fuse, searchableItems])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
 		if (!isDropdownVisible) return
 
-		switch (event.key) {
+		switch (e.key) {
 			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
+				e.preventDefault()
+				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : 0))
 				break
 			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
+				e.preventDefault()
+				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : modelSearchResults.length - 1))
 				break
 			case "Enter":
-				event.preventDefault()
+				e.preventDefault()
 				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
+					const selectedModelId = modelSearchResults[selectedIndex].id
+					handleModelChange(selectedModelId)
 					setIsDropdownVisible(false)
 				}
 				break
 			case "Escape":
+				e.preventDefault()
 				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
 				break
 		}
 	}
 
-	const hasInfo = useMemo(() => {
-		try {
-			return modelIds.some((id) => id.toLowerCase() === searchTerm.toLowerCase())
-		} catch {
-			return false
-		}
-	}, [modelIds, searchTerm])
-
 	useEffect(() => {
-		setSelectedIndex(-1)
-		if (dropdownListRef.current) {
-			dropdownListRef.current.scrollTop = 0
-		}
-	}, [searchTerm])
+		if (selectedIndex >= 0 && itemRefs.current[selectedIndex] && dropdownListRef.current) {
+			const selectedItem = itemRefs.current[selectedIndex]
+			const dropdown = dropdownListRef.current
+			const itemOffsetTop = selectedItem.offsetTop
+			const itemHeight = selectedItem.offsetHeight
+			const dropdownScrollTop = dropdown.scrollTop
+			const dropdownHeight = dropdown.offsetHeight
 
-	useEffect(() => {
-		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
-			itemRefs.current[selectedIndex]?.scrollIntoView({
-				block: "nearest",
-				behavior: "smooth",
-			})
+			if (itemOffsetTop < dropdownScrollTop) {
+				dropdown.scrollTop = itemOffsetTop
+			} else if (itemOffsetTop + itemHeight > dropdownScrollTop + dropdownHeight) {
+				dropdown.scrollTop = itemOffsetTop + itemHeight - dropdownHeight
+			}
 		}
 	}, [selectedIndex])
 
 	return (
 		<div className="w-full">
-			<style>
-				{`
-				.model-item-highlight {
-					background-color: var(--vscode-editor-findMatchHighlightBackground);
-					color: inherit;
-				}
-				`}
-			</style>
 			<div className="flex flex-col">
-				<label htmlFor="model-search">
+				<label htmlFor="hf-model-search">
 					<span className="font-medium">Model</span>
 				</label>
+
 				<div ref={dropdownRef} className="relative w-full">
 					<VSCodeTextField
-						id="model-search"
-						placeholder="Search and select a model..."
+						id="hf-model-search"
+						placeholder="Search models..."
 						value={searchTerm}
-						onInput={(e) => {
-							setSearchTerm((e.target as HTMLInputElement)?.value || "")
+						onInput={(e: any) => {
+							setSearchTerm(e.target.value)
 							setIsDropdownVisible(true)
+							setSelectedIndex(-1)
 						}}
 						onFocus={() => setIsDropdownVisible(true)}
 						onKeyDown={handleKeyDown}
-						style={{
-							width: "100%",
-							zIndex: GROQ_MODEL_PICKER_Z_INDEX,
-							position: "relative",
-						}}>
-						{searchTerm && (
-							<div
-								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
-								aria-label="Clear search"
-								onClick={() => {
-									setSearchTerm("")
-									setIsDropdownVisible(true)
-								}}
-								slot="end"
-							/>
-						)}
-					</VSCodeTextField>
+						className="w-full relative z-[1000]"
+					/>
 					{isDropdownVisible && (
 						<div
 							ref={dropdownListRef}
-							className="absolute top-[calc(100%-3px)] left-0 w-[calc(100%-2px)] max-h-[200px] overflow-y-auto border border-[var(--vscode-list-activeSelectionBackground)] rounded-b-[3px]"
-							style={{
-								backgroundColor: "var(--vscode-dropdown-background)",
-								zIndex: GROQ_MODEL_PICKER_Z_INDEX - 1,
-							}}>
-							{modelSearchResults.map((item, index) => (
+							className={`absolute top-[calc(100%-3px)] left-0 w-[calc(100%-2px)] ${
+								isPopup ? "max-h-[90px]" : "max-h-[200px]"
+							} overflow-y-auto bg-[var(--vscode-dropdown-background)] border border-[var(--vscode-list-activeSelectionBackground)] z-[999] rounded-b-[3px]`}>
+							{modelSearchResults.map((result, index) => (
 								<div
-									key={item.id}
+									key={result.id}
 									ref={(el: HTMLDivElement | null) => (itemRefs.current[index] = el)}
-									className={`px-2.5 py-1.5 cursor-pointer break-all whitespace-normal hover:bg-[var(--vscode-list-activeSelectionBackground)] ${
+									className={`p-[5px_10px] cursor-pointer break-all whitespace-normal ${
 										index === selectedIndex ? "bg-[var(--vscode-list-activeSelectionBackground)]" : ""
-									}`}
+									} hover:bg-[var(--vscode-list-activeSelectionBackground)]`}
 									onMouseEnter={() => setSelectedIndex(index)}
 									onClick={() => {
-										handleModelChange(item.id)
+										handleModelChange(result.id)
 										setIsDropdownVisible(false)
-									}}
-									dangerouslySetInnerHTML={{
-										__html: item.html,
-									}}
-								/>
+									}}>
+									<div
+										dangerouslySetInnerHTML={{ __html: result.html }}
+										className="[&_.model-item-highlight]:bg-[var(--vscode-editor-findMatchHighlightBackground)] [&_.model-item-highlight]:text-inherit"
+									/>
+								</div>
 							))}
 						</div>
 					)}
 				</div>
 			</div>
 
-			{hasInfo ? (
-				<ModelInfoView selectedModelId={selectedModelId} modelInfo={selectedModelInfo} isPopup={isPopup} />
-			) : (
-				<p className="text-xs mt-0 text-[var(--vscode-descriptionForeground)]">
-					<>
-						The extension automatically fetches the latest list of models available on{" "}
-						<VSCodeLink className="inline text-inherit" href="https://console.groq.com/docs/models">
-							Groq.
-						</VSCodeLink>
-						If you're unsure which model to choose, {agentName} works best with{" "}
-						<VSCodeLink className="inline text-inherit" onClick={() => handleModelChange("llama-3.3-70b-versatile")}>
-							llama-3.3-70b-versatile.
-						</VSCodeLink>
-					</>
-				</p>
-			)}
+			<ModelInfoView selectedModelId={selectedModelId} modelInfo={selectedModelInfo} isPopup={isPopup} />
 		</div>
 	)
 }
 
-export const GROQ_MODEL_PICKER_Z_INDEX = 1_000
-
-export default GroqModelPicker
+export { HuggingFaceModelPicker }

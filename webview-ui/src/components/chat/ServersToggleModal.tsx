@@ -5,16 +5,17 @@ import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import ServersToggleList from "@/components/mcp/configuration/tabs/installed/ServersToggleList"
 
 import { McpServiceClient } from "@/services/grpc-client"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import Tooltip from "@/components/common/Tooltip"
 import { McpServers } from "@shared/proto/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { EmptyRequest } from "@shared/proto/common"
 import { itemIconColor, menuBackground } from "../theme"
 import HeroTooltip from "../common/HeroTooltip"
+import { mcpLibraryEnabled } from "@shared/Configuration"
 
 const ServersToggleModal: React.FC = () => {
-	const { mcpServers, navigateToMcp, setMcpServers } = useExtensionState()
+	const { mcpServers, mcpMarketplaceEnabled, navigateToMcp, setMcpServers } = useExtensionState()
 	const [isVisible, setIsVisible] = useState(false)
 	const buttonRef = useRef<HTMLDivElement>(null)
 	const modalRef = useRef<HTMLDivElement>(null)
@@ -57,10 +58,10 @@ const ServersToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="Enable / Disable MCP Servers">
+				<HeroTooltip delay={1000} content="Enable / Disable, or see MCP Server information">
 					<VSCodeButton
 						appearance="icon"
-						aria-label="Enable / Disable MCP Servers"
+						aria-label="Enable / Disable, or see MCP Server information"
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
@@ -120,9 +121,58 @@ const ServersToggleModal: React.FC = () => {
 							Enable or disable servers.
 						</p>
 					</div> */}
-					<div style={{ marginBottom: 0, fontSize: "12px" }}>
+					<div style={{ marginBottom: 10, fontSize: "12px" }}>
 						<ServersToggleList servers={mcpServers} isExpandable={true} hasTrashIcon={false} listGap="small" />
 					</div>
+					{mcpServers.length == 0 && (
+						<div
+							style={{
+								fontSize: "12px",
+								marginBottom: "10px",
+								textAlign: "center",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							You can edit the{" "}
+							<VSCodeLink
+								style={{ fontSize: "12px" }}
+								onClick={() => {
+									setIsVisible(false)
+									navigateToMcp("installed")
+								}}>
+								MCP configuration
+							</VSCodeLink>
+							{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
+								<span>
+									<span>, or install servers from the </span>
+									{mcpLibraryEnabled && (
+										<span>
+											<VSCodeLink
+												style={{ fontSize: "12px" }}
+												onClick={() => {
+													setIsVisible(false)
+													navigateToMcp("library")
+												}}>
+												Library
+											</VSCodeLink>
+										</span>
+									)}
+									{mcpMarketplaceEnabled && (
+										<span>
+											{mcpLibraryEnabled && <span> or the </span>}
+											<VSCodeLink
+												style={{ fontSize: "12px" }}
+												onClick={() => {
+													setIsVisible(false)
+													navigateToMcp("marketplace")
+												}}>
+												Marketplace
+											</VSCodeLink>
+										</span>
+									)}
+								</span>
+							)}
+						</div>
+					)}
 				</div>
 			)}
 		</div>

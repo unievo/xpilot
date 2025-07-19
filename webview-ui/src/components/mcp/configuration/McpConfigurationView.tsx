@@ -20,12 +20,20 @@ type McpViewProps = {
 }
 
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
-	const { mcpMarketplaceEnabled, setMcpServers } = useExtensionState()
+	const { mcpMarketplaceEnabled, setMcpServers, setMcpTab } = useExtensionState()
 	const [activeTab, setActiveTab] = useState<McpViewTab>(initialTab || "installed") // (mcpMarketplaceEnabled ? "marketplace" : "installed"))
 
 	const handleTabChange = (tab: McpViewTab) => {
 		setActiveTab(tab)
+		setMcpTab(tab) // Update the context state so navigation links work correctly
 	}
+
+	// Update activeTab when initialTab changes
+	useEffect(() => {
+		if (initialTab) {
+			setActiveTab(initialTab)
+		}
+	}, [initialTab])
 
 	useEffect(() => {
 		if (!mcpMarketplaceEnabled && activeTab === "marketplace") {

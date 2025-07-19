@@ -137,7 +137,7 @@ const HomeHeader = () => {
 					<div
 						style={{
 							//fontSize: "12px",
-							marginLeft: "2px",
+							marginLeft: "3px",
 							paddingTop: "5px",
 							//lineHeight: "18px",
 							//borderLeft: "1px dotted var(--vscode-widget-border)"
@@ -251,9 +251,8 @@ const HomeHeader = () => {
 												marginBlockEnd: 0,
 											}}>
 											<li style={{ marginBottom: "8px" }}>
-												To be able to see your file explorer and other views while working with{" "}
-												{agentName}, move it to the secondary side bar. Right-click the {agentName} icon
-												in the activity bar, and use <b>Move To - Secondary Side Bar</b>.
+												Move {agentName} to the secondary side bar. (Right-click the {agentName} icon in
+												the activity bar, and <b>Move To</b> {">"} <b>Secondary Side Bar</b>).
 											</li>
 											<li style={{ marginBottom: "3px" }}>Open a workspace folder in VS Code.</li>
 										</ul>
@@ -266,13 +265,17 @@ const HomeHeader = () => {
 									<div style={{ marginTop: "-8px", marginBottom: "16px", paddingLeft: "5px" }}>
 										{agentName} manages your requests using <b>tasks</b>.
 										<br />A task is composed of {agentName}'s system prompt, your chat messages, tool
-										responses, and any additional information provided, such as instruction files. This forms
-										the task context, which is sent to the model for processing and generating responses, that
-										become also part of the context.
+										responses, and any additional information provided, such as instruction files.
 										<br />
 										<br />
-										The current task context is stored in a context window, and it is sent to the model with
-										each new task request. The task context window grows with each new request.
+										This forms the task context, which is sent to the selected AI model, for processing and
+										generating responses that become also part of the context.
+										<br />
+										<br />
+										The entire task context is stored in a context window, that grows with each new task
+										request. Different AI models/providers support different context window sizes, which
+										limits the amount of information that can be sent over time. All the information in the
+										context window is transformed into AI model tokens.
 										<br />
 										<br />
 										Token usage information is displayed in the task header, including the current context
@@ -304,7 +307,7 @@ const HomeHeader = () => {
 										}}>
 										<li style={{ marginBottom: "5px" }}>
 											When starting a new task, activate relevant context information and tools, by enabling
-											instruction files applicable to the task and any relevant MCP servers the model can
+											instruction files applicable to the task and, any relevant MCP servers the model can
 											use.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
@@ -312,12 +315,12 @@ const HomeHeader = () => {
 											and the files that are visible.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Add any references to relevant files, folders, or code problems, by typing <b>@</b>{" "}
-											when writing a chat message. You can also drag and drop files by holding Shift.
+											Include any relevant files, folders, or code problems, by typing <b>@</b> when writing
+											a chat message. You can also drag and drop files in the chat message by holding Shift.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
 											Select any text in the file editor and use the <b>Add to {agentName}</b> context menu
-											command to add the text to the current chat message.
+											command to add the selected text to the current chat message.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
 											Use
@@ -340,7 +343,7 @@ const HomeHeader = () => {
 												}}>
 												<b>Act</b>
 											</VSCodeLink>
-											mode to execute a plan or to directly execute simpler tasks, commands, or workflows.
+											mode to execute a plan, or to directly execute simpler tasks, commands, or workflows.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
 											You can configure different AI models for each mode in{" "}
@@ -375,8 +378,8 @@ const HomeHeader = () => {
 											specific to the same scope, so you can reuse it later if necessary.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Use the <b>/New Task</b> command in a previous task, to create a new task with the
-											summarized context from the previous task. This is useful to continue work on a new
+											Use the <b>/New Task</b> command in a current task, to create a new task with the
+											summarized context from the current task. This is useful to continue work on a new
 											scope with existing context information.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
@@ -388,12 +391,12 @@ const HomeHeader = () => {
 											workspace to a previous state.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Edit a previous chat message in a task's log to restart from that point. This is
+											Edit a previous chat message in a task's log, to restart from that point. This is
 											useful to correct AI mistakes or change the course of the task.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Do not try to correct AI mistakes using chat messages. Instead, restore a checkpoint
-											or edit a previous message and restart from that point.
+											Do not try to correct AI mistakes using chat messages. Instead, restore a checkpoint,
+											or edit a previous chat message and restart from that point.
 										</li>
 
 										<li style={{ marginBottom: "5px" }}>
@@ -420,22 +423,30 @@ const HomeHeader = () => {
 											that is relevant for the AI model to achieve optimal task completion.
 										</p>
 										<p>
-											Use <b>/Generate Instructions</b> "follow with the scope...", to create a new
-											instructions file based on the current task context. This is useful to create reusable
-											instructions for similar tasks in the future.
+											Use workflow files to define a sequence of executable steps that can be triggered as a
+											command, by starting a chat message with <b>/Workflow name</b>. Workflows can be used
+											to automate complex or repetitive tasks.
 										</p>
 										<p>
-											Use workflow files to define a sequence of executable steps that can be triggered as a
-											command by typing <b>/Workflow name</b> in the chat. Workflows can be used to automate
-											complex or repetitive tasks.
+											Use <b>/Generate Instructions</b> <i>with a short description of purpose</i>, to
+											create a new instruction file based on the current task context. This is useful to
+											create reusable instructions for similar tasks in the future.
 										</p>
 										<p>
 											Use the <b>/Git Instructions</b> and <b>/Git Workflows</b> commands to get instruction
 											and workflow files from a dedicated git repository. You can specify any repository
-											source as an argument.
+											source as an argument and also the location (global/workspace).
+										</p>
+										<p>
+											The global location is used to store instructions and workflows that are available
+											across all tasks and workspaces.
 											<br />
-											The execution will clone the repository into the specified location
-											(global/workspace). If the repository already exists, it will pull any updates.
+											The workspace location is used to store instructions and workflows in the current
+											workspace.
+										</p>
+										<p>
+											The repository will be cloned into the specified location. If the repository already
+											exists, it will pull any updates.
 										</p>
 									</div>
 								</CollapsibleSection>
@@ -524,7 +535,7 @@ const HomeHeader = () => {
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													style={{ verticalAlign: "middle", color: itemIconColor, fontWeight: "bold" }}
+													style={{ verticalAlign: "middle", fontWeight: "bold" }}
 													className="codicon codicon-file-add"
 												/>{" "}
 												- attach supported files and images

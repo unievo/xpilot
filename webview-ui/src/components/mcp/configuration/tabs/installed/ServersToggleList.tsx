@@ -1,8 +1,5 @@
 import { McpServer } from "@shared/mcp"
 import ServerRow from "./server-row/ServerRow"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { mcpLibraryEnabled } from "@shared/Configuration"
 
 const ServersToggleList = ({
 	servers,
@@ -22,8 +19,6 @@ const ServersToggleList = ({
 	}
 
 	const gapClass = gapClasses[listGap]
-
-	const { navigateToMcp, mcpMarketplaceEnabled } = useExtensionState()
 
 	return servers.length > 0 ? (
 		<div className={`flex flex-col ${gapClass}`}>
