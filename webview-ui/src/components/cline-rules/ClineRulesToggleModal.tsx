@@ -211,10 +211,10 @@ const ClineRulesToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="Instructions and workflows">
+				<HeroTooltip delay={1000} content="Manage Instructions and workflows">
 					<VSCodeButton
 						appearance="icon"
-						aria-label={`Instructions and workflows`}
+						aria-label={`Manage Instructions and workflows`}
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">

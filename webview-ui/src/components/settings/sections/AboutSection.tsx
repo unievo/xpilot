@@ -12,7 +12,7 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 		<div>
 			{renderSectionHeader("about")}
 			<Section>
-				<div className="text-xs leading-[1.4]">
+				<div className="leading-[1.4]">
 					<div style={{ textAlign: "center", fontSize: "18px", fontWeight: "bold" }}>
 						<p>{agentName}</p>
 					</div>
@@ -20,9 +20,9 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 						<p className="text-center -mt-3 mb-7 p-0">v{version}</p>
 					</div>
 					<p>
-						{agentName} is an AI agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source agent
-						for VS Code, designed to support many AI providers and models, and to handle a wide range of development
-						tasks. Shoutout to the amazing Cline team, contributors and community!
+						{agentName} is an AI coding agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source
+						agent for VS Code, designed to support many AI providers and models, and to handle a wide range of
+						development tasks. Shoutout to the amazing Cline team, contributors and community!
 					</p>
 					<p>
 						Astro started as an experimental project, to adapt Cline as a foundation for custom and domain specific

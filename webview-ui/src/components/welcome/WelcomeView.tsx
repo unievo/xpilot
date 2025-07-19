@@ -30,7 +30,7 @@ const WelcomeView = memo(() => {
 					. It supports many AI providers and models, and handles a wide range of development tasks.
 				</p>
 				<p>
-					It can use VS Code as an AI provider, by{" "}
+					{agentName} can use VS Code as an AI provider, by{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						setting up
 					</VSCodeLink>

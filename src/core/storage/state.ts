@@ -171,6 +171,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		groqApiKey,
 		moonshotApiKey,
 		nebiusApiKey,
+		huggingFaceApiKey,
 		planActSeparateModelsSettingRaw,
 		favoritedModelIds,
 		globalClineRulesToggles,
@@ -251,6 +252,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getSecret(context, "groqApiKey") as Promise<string | undefined>,
 		getSecret(context, "moonshotApiKey") as Promise<string | undefined>,
 		getSecret(context, "nebiusApiKey") as Promise<string | undefined>,
+		getSecret(context, "huggingFaceApiKey") as Promise<string | undefined>,
 		getGlobalState(context, "planActSeparateModelsSetting") as Promise<boolean | undefined>,
 		getGlobalState(context, "favoritedModelIds") as Promise<string[] | undefined>,
 		getGlobalState(context, "globalClineRulesToggles") as Promise<ClineRulesToggles | undefined>,
@@ -309,6 +311,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		previousModeAwsBedrockCustomModelBaseId,
 		previousModeSapAiCoreModelId,
 		sapAiCoreModelId,
+		huggingFaceModelId,
+		huggingFaceModelInfo,
 	] = await Promise.all([
 		getGlobalState(context, "chatSettings") as Promise<StoredChatSettings | undefined>,
 		getGlobalState(context, "mode") as Promise<"plan" | "act" | undefined>,
@@ -341,6 +345,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "previousModeAwsBedrockCustomModelBaseId") as Promise<BedrockModelId | undefined>,
 		getGlobalState(context, "previousModeSapAiCoreModelId") as Promise<string | undefined>,
 		getGlobalState(context, "sapAiCoreModelId") as Promise<string | undefined>,
+		getGlobalState(context, "huggingFaceModelId") as Promise<string | undefined>,
+		getGlobalState(context, "huggingFaceModelInfo") as Promise<ModelInfo | undefined>,
 	])
 
 	const processingStart = performance.now()
@@ -463,6 +469,9 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 			sapAiCoreTokenUrl,
 			sapAiResourceGroup,
 			sapAiCoreModelId,
+			huggingFaceApiKey,
+			huggingFaceModelId,
+			huggingFaceModelInfo,
 		},
 		isNewUser: isNewUser ?? true,
 		welcomeViewCompleted,
@@ -582,6 +591,9 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		sapAiResourceGroup,
 		sapAiCoreModelId,
 		claudeCodePath,
+		huggingFaceApiKey,
+		huggingFaceModelId,
+		huggingFaceModelInfo,
 	} = apiConfiguration
 
 	// OPTIMIZED: Batch all global state updates into 2 operations instead of 47
@@ -609,6 +621,8 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		groqModelId,
 		groqModelInfo,
 		sapAiCoreModelId,
+		huggingFaceModelId,
+		huggingFaceModelInfo,
 
 		// Global state updates (27 keys)
 		awsRegion,
@@ -673,6 +687,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		nebiusApiKey,
 		sapAiCoreClientId,
 		sapAiCoreClientSecret,
+		huggingFaceApiKey,
 	}
 
 	// Execute batched operations in parallel for maximum performance
@@ -719,6 +734,7 @@ export async function resetGlobalState(context: vscode.ExtensionContext) {
 		"groqApiKey",
 		"moonshotApiKey",
 		"nebiusApiKey",
+		"huggingFaceApiKey",
 	]
 	for (const key of secretKeys) {
 		await storeSecret(context, key, undefined)
