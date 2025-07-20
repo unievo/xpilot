@@ -31,7 +31,11 @@ const sortByFilename = (entries: [string, boolean][]): [string, boolean][] => {
 	})
 }
 
-const ClineRulesToggleModal: React.FC = () => {
+interface ClineRulesToggleModalProps {
+	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+}
+
+const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaRef }) => {
 	const {
 		globalClineRulesToggles = {},
 		localClineRulesToggles = {},
@@ -196,6 +200,29 @@ const ClineRulesToggleModal: React.FC = () => {
 		setIsVisible(false)
 	})
 
+	// Global Esc key handler for rules modal
+	useEffect(() => {
+		const handleGlobalKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape" && isVisible) {
+				event.preventDefault()
+				event.stopPropagation()
+				setIsVisible(false)
+				// Focus the textarea after closing the modal
+				setTimeout(() => {
+					textAreaRef?.current?.focus()
+				}, 0)
+			}
+		}
+
+		if (isVisible) {
+			document.addEventListener("keydown", handleGlobalKeyDown)
+		}
+
+		return () => {
+			document.removeEventListener("keydown", handleGlobalKeyDown)
+		}
+	}, [isVisible, textAreaRef])
+
 	// Calculate positions for modal and arrow
 	useEffect(() => {
 		if (isVisible && buttonRef.current) {
@@ -211,10 +238,10 @@ const ClineRulesToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="Manage Instructions and workflows">
+				<HeroTooltip delay={1000} content="Manage Instructions and Workflows">
 					<VSCodeButton
 						appearance="icon"
-						aria-label={`Manage Instructions and workflows`}
+						aria-label={`Manage Instructions and Workflows`}
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
@@ -285,7 +312,13 @@ const ClineRulesToggleModal: React.FC = () => {
 							</TabButton>
 						</div>
 						<div
-							onMouseDown={() => setIsVisible(false)}
+							onMouseDown={() => {
+								setIsVisible(false)
+								// Focus the textarea after closing the modal
+								setTimeout(() => {
+									textAreaRef?.current?.focus()
+								}, 0)
+							}}
 							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
 							<span className="codicon codicon-close" />
 						</div>
