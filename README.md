@@ -8,38 +8,38 @@ As a foundation agent, Astro includes Cline's functionality, with additional cus
 
 ---
 
-<table width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr>
-        <td valign="top">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:0;">
+    <tr style="border:0;">
+        <td valign="top" style="border:0;">
             Create a new task with instructions
         </td>
-        <td width="260" valign="top">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/start.png" alt="Astro Start" width="250" style="margin-left: 10px; margin-bottom: 10px;">
+        <td width="260" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/start.png" alt="Astro Start" width="250" style="margin-left: 10px; margin-bottom: 10px; border:0;">
         </td>
-        <td width="260" valign="top">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/instructions.png" alt="Astro Instructions" width="250" style="margin-left: 10px; margin-bottom: 10px;">
+        <td width="260" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/instructions.png" alt="Astro Instructions" width="250" style="margin-left: 10px; margin-bottom: 10px; border:0;">
         </td>
     </tr>
-    <tr>
-        <td valign="top">
+    <tr style="border:0;">
+        <td valign="top" style="border:0;">
             Execute a workflow
         </td>
-        <td width="260" valign="top">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/workflows.png" alt="Astro Workflows" width="250" style="margin-left: 10px; margin-bottom: 10px;">
+        <td width="260" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/workflows.png" alt="Astro Workflows" width="250" style="margin-left: 10px; margin-bottom: 10px; border:0;">
         </td>
-        <td width="260" valign="top">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/task-run.png" alt="Astro Task Run" width="250" style="margin-left: 10px; margin-bottom: 10px;">
+        <td width="260" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/task-run.png" alt="Astro Task Run" width="250" style="margin-left: 10px; margin-bottom: 10px; border:0;">
         </td>
     </tr>
-    <tr>
-        <td valign="top">
+    <tr style="border:0;">
+        <td valign="top" style="border:0;">
             Task completed
         </td>
-        <td width="260" valign="top">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/task-end.png" alt="Astro Task End" width="250" style="margin-left: 10px; margin-bottom: 10px;">
+        <td width="260" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/task-end.png" alt="Astro Task End" width="250" style="margin-left: 10px; margin-bottom: 10px; border:0;">
         </td>
-        <td width="260" valign="top">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/home.png" alt="Astro Home" width="250" style="margin-left: 10px; margin-bottom: 10px;">
+        <td width="260" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/home.png" alt="Astro Home" width="250" style="margin-left: 10px; margin-bottom: 10px; border:0;">
         </td>
     </tr>
 </table>
@@ -49,5 +49,5 @@ As a foundation agent, Astro includes Cline's functionality, with additional cus
 
 For any issues, questions, or feedback, feel free to contact us on [GitHub](https://github.com/unievo/astro) or [X.com](https://x.com/unievo_ai). 
 
-We'd be happy to know what you think and what features could make it back to Cline!
+We'd be happy to know what you think, and what features could make it back to Cline!
 
