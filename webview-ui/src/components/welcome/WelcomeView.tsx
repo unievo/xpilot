@@ -19,14 +19,9 @@ const WelcomeView = memo(() => {
 		<div className="fixed inset-0 p-0 flex flex-col" style={{ scrollbarGutter: "stable" }}>
 			<div className="h-full px-5 pr-1 overflow-auto" style={{ scrollbarGutter: "stable" }}>
 				<div className="flex justify-center mt-15">
-					<AgentLogo size={50} />
+					<AgentLogo size={60} />
 				</div>
 				<h2 className="flex mb-10 justify-center">Welcome to {agentName}!</h2>
-				<p>
-					{agentName} is an AI coding agent based on <a href="https://cline.bot">Cline</a>, a powerful open-source agent
-					for VS Code, designed to support many AI providers and models, and to handle a wide range of development
-					tasks.
-				</p>
 				<p>
 					{agentName} can use VS Code as an AI provider, by{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
@@ -39,13 +34,9 @@ const WelcomeView = memo(() => {
 					the GitHub Copilot models.
 				</p>
 				<p>
-					You can also bring your own API key, or sign up below with providers like Cline or OpenRouter, for a variety
-					of model options.
+					You can also bring your own API key, or you can sign in below with Cline or OpenRouter, for a variety of model
+					options.
 				</p>
-				{/* <p>
-					For general tasks, you can use cost effective models such as OpenAI GPT-4.1. <br />
-					For complex coding tasks use Claude Sonnet 4 or Google Gemini 2.5.
-				</p> */}
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4
 					Sonnet.
