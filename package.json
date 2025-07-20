@@ -3,7 +3,7 @@
 	"displayName": "Astro",
 	"description": "Autonomous coding agent.",
 	"version": "0.1.0",
-	"icon": "assets/icons/icon_color.png",
+	"icon": "assets/icons/icon_neutral.png",
 	"engines": {
 		"vscode": "^1.84.0"
 	},
