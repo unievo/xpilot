@@ -1,8 +1,8 @@
 {
 	"name": "xpilot",
 	"displayName": "xPilot",
-	"description": "xPilot is an AI software engineering agent for MultiversX",
-	"version": "1.1.0",
+	"description": "AI coding agent for MultiversX",
+	"version": "2.0.0",
 	"icon": "assets/icons/icon_color.png",
 	"engines": {
 		"vscode": "^1.84.0"
@@ -27,15 +27,16 @@
 	],
 	"keywords": [
 		"xpilot",
+		"cline",
+		"claude",
 		"multiversx",
 		"ai",
-		"autonomous",
 		"coding",
+		"software",
 		"agent",
-		"claude",
-		"chatgpt",
-		"copilot",
-		"mcp"
+		"mcp",
+		"instructions",
+		"workflows"
 	],
 	"activationEvents": [
 		"onLanguage",
