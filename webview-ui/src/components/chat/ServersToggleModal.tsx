@@ -14,7 +14,11 @@ import { itemIconColor, menuBackground } from "../theme"
 import HeroTooltip from "../common/HeroTooltip"
 import { mcpLibraryEnabled } from "@shared/Configuration"
 
-const ServersToggleModal: React.FC = () => {
+interface ServersToggleModalProps {
+	textAreaRef?: React.RefObject<HTMLTextAreaElement>
+}
+
+const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) => {
 	const { mcpServers, mcpMarketplaceEnabled, navigateToMcp, setMcpServers } = useExtensionState()
 	const [isVisible, setIsVisible] = useState(false)
 	const buttonRef = useRef<HTMLDivElement>(null)
@@ -27,6 +31,29 @@ const ServersToggleModal: React.FC = () => {
 	useClickAway(modalRef, () => {
 		setIsVisible(false)
 	})
+
+	// Global Esc key handler for servers modal
+	useEffect(() => {
+		const handleGlobalKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape" && isVisible) {
+				event.preventDefault()
+				event.stopPropagation()
+				setIsVisible(false)
+				// Focus the textarea after closing the modal
+				setTimeout(() => {
+					textAreaRef?.current?.focus()
+				}, 0)
+			}
+		}
+
+		if (isVisible) {
+			document.addEventListener("keydown", handleGlobalKeyDown)
+		}
+
+		return () => {
+			document.removeEventListener("keydown", handleGlobalKeyDown)
+		}
+	}, [isVisible, textAreaRef])
 
 	// Calculate positions for modal and arrow
 	useEffect(() => {
@@ -58,10 +85,10 @@ const ServersToggleModal: React.FC = () => {
 	return (
 		<div ref={modalRef}>
 			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="Enable / Disable, or see MCP Server information">
+				<HeroTooltip delay={1000} content="MCP Servers">
 					<VSCodeButton
 						appearance="icon"
-						aria-label="Enable / Disable, or see MCP Server information"
+						aria-label="MCP Servers"
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
@@ -105,7 +132,13 @@ const ServersToggleModal: React.FC = () => {
 							</VSCodeButton>
 						</div>
 						<div
-							onMouseDown={() => setIsVisible(false)}
+							onMouseDown={() => {
+								setIsVisible(false)
+								// Focus the textarea after closing the modal
+								setTimeout(() => {
+									textAreaRef?.current?.focus()
+								}, 0)
+							}}
 							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
 							<span className="codicon codicon-close" />
 						</div>

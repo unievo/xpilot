@@ -444,6 +444,29 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			}
 		}, [showSlashCommandsMenu])
 
+		// Global Esc key handler for model selector
+		useEffect(() => {
+			const handleGlobalKeyDown = (event: KeyboardEvent) => {
+				if (event.key === "Escape" && showModelSelector) {
+					event.preventDefault()
+					event.stopPropagation()
+					setShowModelSelector(false)
+					// Focus the textarea after closing the modal
+					setTimeout(() => {
+						textAreaRef.current?.focus()
+					}, 0)
+				}
+			}
+
+			if (showModelSelector) {
+				document.addEventListener("keydown", handleGlobalKeyDown)
+			}
+
+			return () => {
+				document.removeEventListener("keydown", handleGlobalKeyDown)
+			}
+		}, [showModelSelector])
+
 		const handleMentionSelect = useCallback(
 			(type: ContextMenuOptionType, value?: string) => {
 				if (type === ContextMenuOptionType.NoResults) {
@@ -1855,7 +1878,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</VSCodeButton>
 						</HeroTooltip>
 
-						<HeroTooltip delay={1000} content="Execute commands and workflows">
+						<HeroTooltip delay={1000} content="Execute Commands and Workflows">
 							<VSCodeButton
 								data-testid="command-button"
 								appearance="icon"
@@ -1871,89 +1894,91 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</VSCodeButton>
 						</HeroTooltip>
 
-						<ClineRulesToggleModal />
+						<ClineRulesToggleModal textAreaRef={textAreaRef} />
 
-						<ServersToggleModal />
+						<ServersToggleModal textAreaRef={textAreaRef} />
 
-						<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
-							<div
-								className="codicon codicon-sparkle-filled"
-								style={{
-									fontSize: "14px",
-									color: itemIconColor,
-									marginLeft: "0px",
-									marginTop: "6px",
-									opacity: 0.7,
-									//overflow: "hidden",
-									textOverflow: "ellipsis",
-									whiteSpace: "nowrap",
-								}}
-							/>
-							<ModelButtonWrapper ref={buttonRef}>
-								<ModelDisplayButton
-									style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
-									role="button"
-									isActive={showModelSelector}
-									disabled={false}
-									onClick={handleModelButtonClick}
-									tabIndex={0}>
-									<ModelButtonContent>{modelDisplayName}</ModelButtonContent>
-								</ModelDisplayButton>
-							</ModelButtonWrapper>
-							{showModelSelector && (
-								<ModelSelectorTooltip
-									arrowPosition={arrowPosition}
-									menuPosition={menuPosition}
+						<HeroTooltip delay={1000} content="Select AI Provider / Model">
+							<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
+								<div
+									className="codicon codicon-sparkle-filled"
 									style={{
-										bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-										minHeight: "300px",
-									}}>
-									<div className="relative">
-										<div
-											onMouseDown={() => setShowModelSelector(false)}
-											className="absolute top-0 right-0 cursor-pointer -m-0.5 z-[9999] pointer-events-auto">
-											<span className="codicon codicon-close" />
-										</div>
-										<ApiOptions
-											showModelOptions={true}
-											apiErrorMessage={undefined}
-											modelIdErrorMessage={undefined}
-											isPopup={true}
-										/>
-									</div>
-								</ModelSelectorTooltip>
-							)}
-							<HeroTooltip
-								delay={1000}
-								content="Attach files & images. File types are limited to specific formats that are compatible with the selected AI provider/model.">
-								<VSCodeButton
-									data-testid="files-button"
-									appearance="icon"
-									aria-label="Add Files & Images"
-									disabled={shouldDisableFilesAndImages}
-									onClick={() => {
-										if (!shouldDisableFilesAndImages) {
-											onSelectFilesAndImages()
-										}
+										fontSize: "14px",
+										color: itemIconColor,
+										marginLeft: "0px",
+										marginTop: "6px",
+										opacity: 0.7,
+										//overflow: "hidden",
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
 									}}
-									style={{ padding: "0px 0px", height: "20px" }}>
-									<ButtonContainer>
-										<span
-											className="codicon codicon-file-add flex items-center"
-											style={{
-												opacity: 0.6,
-												//color: itemIconColor,
-												fontWeight: "bold",
-												fontSize: "15.5px",
-												marginTop: 6,
-												marginRight: 1.5,
-												marginLeft: -2,
-											}}
-										/>
-									</ButtonContainer>
-								</VSCodeButton>
-							</HeroTooltip>
-						</ModelContainer>
+								/>
+								<ModelButtonWrapper ref={buttonRef}>
+									<ModelDisplayButton
+										style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
+										role="button"
+										isActive={showModelSelector}
+										disabled={false}
+										onClick={handleModelButtonClick}
+										tabIndex={0}>
+										<ModelButtonContent>{modelDisplayName}</ModelButtonContent>
+									</ModelDisplayButton>
+								</ModelButtonWrapper>
+								{showModelSelector && (
+									<ModelSelectorTooltip
+										arrowPosition={arrowPosition}
+										menuPosition={menuPosition}
+										style={{
+											bottom: `calc(100vh - ${menuPosition}px + 6px)`,
+											minHeight: "300px",
+										}}>
+										<div className="relative">
+											<div
+												onMouseDown={() => setShowModelSelector(false)}
+												className="absolute top-0 right-0 cursor-pointer -m-0.5 z-[9999] pointer-events-auto">
+												<span className="codicon codicon-close" />
+											</div>
+											<ApiOptions
+												showModelOptions={true}
+												apiErrorMessage={undefined}
+												modelIdErrorMessage={undefined}
+												isPopup={true}
+											/>
+										</div>
+									</ModelSelectorTooltip>
+								)}
+								<HeroTooltip
+									delay={1000}
+									content="Attach files & images. File types are limited to specific formats that are compatible with the selected AI Provider / Model.">
+									<VSCodeButton
+										data-testid="files-button"
+										appearance="icon"
+										aria-label="Add Files & Images"
+										disabled={shouldDisableFilesAndImages}
+										onClick={() => {
+											if (!shouldDisableFilesAndImages) {
+												onSelectFilesAndImages()
+											}
+										}}
+										style={{ padding: "0px 0px", height: "20px" }}>
+										<ButtonContainer>
+											<span
+												className="codicon codicon-file-add flex items-center"
+												style={{
+													opacity: 0.6,
+													//color: itemIconColor,
+													fontWeight: "bold",
+													fontSize: "15.5px",
+													marginTop: 6,
+													marginRight: 1.5,
+													marginLeft: -2,
+												}}
+											/>
+										</ButtonContainer>
+									</VSCodeButton>
+								</HeroTooltip>
+							</ModelContainer>
+						</HeroTooltip>
 					</ButtonGroup>
 				</ControlsContainer>
 			</div>

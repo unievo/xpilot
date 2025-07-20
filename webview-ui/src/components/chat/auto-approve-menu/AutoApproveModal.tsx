@@ -43,7 +43,40 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 			return
 		}
 		setIsVisible(false)
+		// Focus the textarea after closing the modal by finding it directly
+		setTimeout(() => {
+			const textarea = document.querySelector('[data-testid="chat-input"]') as HTMLTextAreaElement
+			if (textarea) {
+				textarea.focus()
+			}
+		}, 0)
 	})
+
+	// Global Esc key handler for auto-approve modal
+	useEffect(() => {
+		const handleGlobalKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape" && isVisible) {
+				event.preventDefault()
+				event.stopPropagation()
+				setIsVisible(false)
+				// Focus the textarea after closing the modal by finding it directly
+				setTimeout(() => {
+					const textarea = document.querySelector('[data-testid="chat-input"]') as HTMLTextAreaElement
+					if (textarea) {
+						textarea.focus()
+					}
+				}, 0)
+			}
+		}
+
+		if (isVisible) {
+			document.addEventListener("keydown", handleGlobalKeyDown)
+		}
+
+		return () => {
+			document.removeEventListener("keydown", handleGlobalKeyDown)
+		}
+	}, [isVisible, setIsVisible])
 
 	// Calculate positions for modal and arrow
 	useEffect(() => {
@@ -116,7 +149,18 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 							</div>
 						</div>
 					</HeroTooltip>
-					<VSCodeButton appearance="icon" onClick={() => setIsVisible(false)}>
+					<VSCodeButton
+						appearance="icon"
+						onClick={() => {
+							setIsVisible(false)
+							// Focus the textarea after closing the modal by finding it directly
+							setTimeout(() => {
+								const textarea = document.querySelector('[data-testid="chat-input"]') as HTMLTextAreaElement
+								if (textarea) {
+									textarea.focus()
+								}
+							}, 0)
+						}}>
 						<span className="codicon codicon-close text-[10px]"></span>
 					</VSCodeButton>
 				</div>

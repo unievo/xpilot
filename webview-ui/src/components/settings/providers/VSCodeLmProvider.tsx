@@ -72,8 +72,8 @@ export const VSCodeLmProvider = () => {
 								color: "var(--vscode-descriptionForeground)",
 								paddingLeft: "18px",
 							}}>
-							<li>For general tasks, you can use cost effective models such as OpenAI GPT-4.1.</li>
-							<li>For complex coding tasks use Claude Sonnet 4 or Gemini 2.5 Pro.</li>
+							<li>For simpler tasks, you can use cost effective models such as OpenAI GPT-4.1.</li>
+							<li>For more complex coding tasks, use Claude Sonnet 4 / Gemini 2.5 Pro.</li>
 						</ul>
 					</div>
 				) : (
