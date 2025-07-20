@@ -1,8 +1,8 @@
 {
 	"name": "astro",
 	"displayName": "Astro",
-	"description": "Autonomous coding agent.",
-	"version": "0.1.0",
+	"description": "Advanced AI coding agent",
+	"version": "1.0.0",
 	"icon": "assets/icons/icon_neutral.png",
 	"engines": {
 		"vscode": "^1.84.0"
@@ -16,7 +16,7 @@
 		"type": "git",
 		"url": "https://github.com/unievo/astro"
 	},
-	"homepage": "https://github.com/unievo/astro",
+	"homepage": "https://x.com/unievo_ai",
 	"categories": [
 		"AI",
 		"Chat",
@@ -27,17 +27,15 @@
 	],
 	"keywords": [
 		"astro",
+		"cline",
 		"claude",
-		"dev",
-		"mcp",
-		"openrouter",
-		"coding",
-		"agent",
-		"autonomous",
-		"chatgpt",
-		"sonnet",
 		"ai",
-		"llama"
+		"coding",
+		"software",
+		"agent",
+		"mcp",
+		"instructions",
+		"workflows"
 	],
 	"activationEvents": [
 		"onLanguage",
