@@ -2,7 +2,7 @@
 
 ## [2.0.0]
 
-- Major update with significant improvements and new features.
+- Major update.
 - User interface enhancements.
 - Overview section for quick access to main features and usage recommendations.
 - Instructions and Workflows enhancements, allowing for an expandable and collaborative knowledge bases using Git.
@@ -19,5 +19,5 @@
 
 - New MCP Server Library in server configuration.
 - MCP tool call arguments and responses are now collapsible, keeping the chat view more compact when receiving large data quantities. Collapse or expand them to see full details.
-- MCP configuration is now stored in a global configuration file, allowing for using xPilot in multiple IDEs (VS Code, Cursor, Windsurf, etc.) at the same time with the same configuration.
+- MCP configuration is now stored in a global configuration file, allowing for the use in multiple IDEs (VS Code, Cursor, Windsurf, etc.) with the same configuration.
 - User interface improvements for better usability.

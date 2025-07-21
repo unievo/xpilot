@@ -1,7 +1,7 @@
 // Base
 export const baseName = "Astro"
-export const baseVersion = "v1.0.0"
-export const baseVersionUrl = `https://github.com/unievo/astro/releases/tag/${baseVersion}`
+export const baseVersion = ""
+export const baseVersionUrl = `https://github.com/unievo/astro/`
 
 // Product
 export const agentName = "xPilot"
@@ -14,7 +14,7 @@ export const homePageUrl = "https://github.com/unievo/xpilot"
 export const apiBaseUrl = ""
 export const gitInstructionsRepo = "https://github.com/unievo/xpilot-instructions.git"
 export const gitWorkflowsRepo = "https://github.com/unievo/xpilot-workflows.git"
-export const latestAnnouncementId = "1.1.0"
+export const latestAnnouncementId = "2.0.0"
 
 // Settings
 export const defaultChatMode = "act"

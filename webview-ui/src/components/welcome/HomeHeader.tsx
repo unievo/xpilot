@@ -321,6 +321,20 @@ const HomeHeader = () => {
 												</span>
 											</li>
 											<li style={{ marginBottom: "3px" }}>Open a workspace folder in VS Code.</li>
+											<li style={{ marginBottom: "3px" }}>
+												Type <b>/Git Instructions</b> to get the latest{" "}
+												<a href="https://github.com/unievo/xpilot-instructions.git">
+													instructions library
+												</a>{" "}
+												from Git into the workspace.
+											</li>
+											<li style={{ marginBottom: "3px" }}>
+												Use the Instructions chat menu to activate relevant task instructions:{" "}
+												<span
+													className="codicon codicon-folder-active"
+													style={{ verticalAlign: "middle" }}
+												/>
+											</li>
 										</ul>
 									</div>
 								</CollapsibleSection>

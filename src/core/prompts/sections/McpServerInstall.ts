@@ -27,14 +27,14 @@ IMPORTANT: Regardless of any other MCP settings in the file, you must default an
 }
 \`\`\`
 
-env settings are optional and can be used to set environment variables for the MCP server. If the MCP server requires an API key or other information, you can set it here as well.
-If no env settings are required, you can omit the "env" object.
+env settings are used to set environment variables for the MCP server. If the MCP server requires an API key or other configuration options, you can set it here. 
+Include any optional environment variables specified. If no env settings are specified, you can omit the "env" object.
 `
 }
 
 // Generates the installation task prompt for MCP servers
 export async function getMcpServerInstallTask(libraryItem: McpLibraryItem, mcpHub: McpHub): Promise<string> {
-	return `Install this MCP server while following these installation rules:
+	return `Install this new MCP server while following these installation rules:
 - Use "${libraryItem.mcpId}" as the server name in ${mcpSettingsFile}.
 - Make sure you read the user's existing ${mcpSettingsFile} file before editing, to not overwrite any existing configuration.
 - Use commands aligned with the user's shell and operating system.
