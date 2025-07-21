@@ -1,4 +1,9 @@
 # Changelog
+
+## [1.0.1]
+
+- Marketplace name configuration update.
+
 ## [1.0.0]
 
 - User interface enhancements.

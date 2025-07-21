@@ -6,6 +6,7 @@ export const baseVersionUrl = `https://github.com/cline/cline/releases/tag/${bas
 // Product
 export const agentName = "Astro"
 export const productName = "astro"
+export const marketplaceName = "astro-code"
 export const publisherName = "unievo"
 export const xUrl = "https://x.com/unievo_ai"
 export const discordUrl = ""
@@ -27,7 +28,7 @@ export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
 export const mcpServerIncludeToolInputSchema_MaxLength = 100
 
 // Extension
-export const extensionId = `${publisherName}.${productName}`
+export const extensionId = `${publisherName}.${marketplaceName}`
 export const sideBarId = `${productName}.SidebarProvider`
 export const tabPanelId = `${productName}.TabPanelProvider`
 export const plusButtonCommand = `${productName}.plusButtonClicked`
