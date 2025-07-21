@@ -1,6 +1,6 @@
 {
-	"name": "astro",
-	"displayName": "Astro",
+	"name": "astro-code",
+	"displayName": "Astro Code",
 	"description": "Advanced AI coding agent",
 	"version": "1.0.0",
 	"icon": "assets/icons/icon_neutral.png",
