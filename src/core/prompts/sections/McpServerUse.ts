@@ -4,10 +4,10 @@ import { BrowserSettings } from "../../../shared/BrowserSettings"
 import { mcpResourcesUse } from "../custom/mcp/mcpResourcesUse"
 
 export const McpServerUsePrompt = async (
-	cwd: string,
-	supportsBrowserUse: boolean,
+	_cwd: string,
+	_supportsBrowserUse: boolean,
 	mcpHub: McpHub,
-	browserSettings: BrowserSettings,
+	_browserSettings: BrowserSettings,
 ) => {
 	const servers = mcpHub.getServers()
 	const connectedServers = servers.filter((server) => server.status === "connected")

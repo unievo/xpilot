@@ -1,39 +1,39 @@
-import * as path from "path"
-import * as vscode from "vscode"
-import fs from "fs/promises"
 import { Anthropic } from "@anthropic-ai/sdk"
-import { fileExistsAtPath } from "@utils/fs"
-import { ClineMessage } from "@shared/ExtensionMessage"
 import { TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
-import os from "os"
 import { execa } from "@packages/execa"
-
 import {
 	apiConversationHistoryFile,
 	contextHistoryFile,
-	mcpSettingsFile,
-	openRouterModelsFile,
-	workspaceInstructionsDirectoryPath,
-	taskMetadataFile,
-	uiMessagesFile,
-	publisherName,
-	productName,
-	settingsDirectory,
+	groqModelsFile,
+	instructionsDirectory,
 	mcpDirectory,
 	mcpServersDirectory,
-	agentName,
-	workspaceWorkflowsDirectoryPath,
-	instructionsDirectory,
+	mcpSettingsFile,
+	openRouterModelsFile,
+	productName,
+	publisherName,
+	settingsDirectory,
+	taskMetadataFile,
+	uiMessagesFile,
 	workflowsDirectory,
-	groqModelsFile,
+	workspaceInstructionsDirectoryPath,
+	workspaceWorkflowsDirectoryPath,
 } from "@shared/Configuration"
+import { ClineMessage } from "@shared/ExtensionMessage"
+import { fileExistsAtPath } from "@utils/fs"
+import fs from "fs/promises"
+import os from "os"
+import * as path from "path"
+import * as vscode from "vscode"
 
 export const GlobalFileNames = {
 	apiConversationHistory: apiConversationHistoryFile,
 	contextHistory: contextHistoryFile,
 	uiMessages: uiMessagesFile,
 	openRouterModels: openRouterModelsFile,
+	vercelAiGatewayModels: "vercel_ai_gateway_models.json",
 	groqModels: groqModelsFile,
+	basetenModels: "baseten_models.json",
 	mcpSettings: mcpSettingsFile,
 	clineRules: workspaceInstructionsDirectoryPath,
 	workflows: workspaceWorkflowsDirectoryPath,
@@ -56,7 +56,7 @@ export async function getDocumentsPath(): Promise<string> {
 			if (trimmedPath) {
 				return trimmedPath
 			}
-		} catch (err) {
+		} catch (_err) {
 			console.error("Failed to retrieve Windows Documents path. Falling back to homedir/Documents.")
 		}
 	} else if (process.platform === "linux") {
@@ -110,7 +110,7 @@ export async function ensureGlobalInstructionsDirectoryExists(): Promise<string>
 	const clineRulesDir = await getGlobalInstructionsDirectoryPath()
 	try {
 		await fs.mkdir(clineRulesDir, { recursive: true })
-	} catch (error) {
+	} catch (_error) {
 		return path.join(os.homedir(), `.${publisherName}`, productName, instructionsDirectory)
 	}
 	return clineRulesDir
@@ -124,7 +124,7 @@ export async function ensureGlobalWorkflowsDirectoryExists(): Promise<string> {
 	const clineWorkflowsDir = await getGlobalWorkflowsDirectoryPath()
 	try {
 		await fs.mkdir(clineWorkflowsDir, { recursive: true })
-	} catch (error) {
+	} catch (_error) {
 		return path.join(os.homedir(), `.${publisherName}`, productName, workflowsDirectory)
 	}
 	return clineWorkflowsDir
@@ -134,7 +134,7 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 	const mcpServersDir = await getUserMcpServersPath()
 	try {
 		await fs.mkdir(mcpServersDir, { recursive: true })
-	} catch (error) {
+	} catch (_error) {
 		return path.join(os.homedir(), `.${publisherName}`, productName, mcpDirectory, mcpServersDirectory)
 	}
 	return mcpServersDir

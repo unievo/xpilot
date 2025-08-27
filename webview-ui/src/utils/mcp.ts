@@ -1,5 +1,5 @@
-import { mcpLibraryItems } from "@/components/mcp/configuration/tabs/library/McpLibraryItems"
 import { McpMarketplaceCatalog, McpResource, McpResourceTemplate } from "@shared/mcp"
+import { mcpLibraryItems } from "@/components/mcp/configuration/tabs/library/McpLibraryItems"
 
 /**
  * Matches a URI against an array of URI templates and returns the matching template

@@ -1,12 +1,11 @@
-import { agentWorkspaceDirectory, workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
 import { McpHub } from "../../../services/mcp/McpHub"
 import { BrowserSettings } from "../../../shared/BrowserSettings"
 
 export const GuidelinesPrompt = async (
-	cwd: string,
-	supportsBrowserUse: boolean,
-	mcpHub: McpHub,
-	browserSettings: BrowserSettings,
+	_cwd: string,
+	_supportsBrowserUse: boolean,
+	_mcpHub: McpHub,
+	_browserSettings: BrowserSettings,
 ) => `
 ==== 
 

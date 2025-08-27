@@ -1,11 +1,11 @@
+import { fileExistsAtPath } from "@utils/fs"
 import fs from "fs/promises"
 import { globby } from "globby"
 import * as path from "path"
-import simpleGit, { SimpleGit } from "simple-git"
-import { fileExistsAtPath } from "@utils/fs"
-import { getLfsPatterns, writeExcludesFile } from "./CheckpointExclusions"
-import { telemetryService } from "@/services/posthog/telemetry/TelemetryService"
+import simpleGit, { type SimpleGit } from "simple-git"
+import { telemetryService } from "@/services/posthog/PostHogClientProvider"
 import { agentName } from "../../shared/Configuration"
+import { getLfsPatterns, writeExcludesFile } from "./CheckpointExclusions"
 
 interface CheckpointAddResult {
 	success: boolean
@@ -203,10 +203,10 @@ export class GitOperations {
 				const durationMs = Math.round(performance.now() - startTime)
 				console.debug(`Checkpoint add operation completed in ${durationMs}ms`)
 				return { success: true }
-			} catch (error) {
+			} catch (_error) {
 				return { success: false }
 			}
-		} catch (error) {
+		} catch (_error) {
 			return { success: false }
 		} finally {
 			await this.renameNestedGitRepos(false)

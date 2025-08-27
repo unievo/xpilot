@@ -4,8 +4,8 @@ import { BrowserSettings } from "../../../shared/BrowserSettings"
 export const CapabilitiesPrompt = async (
 	cwd: string,
 	supportsBrowserUse: boolean,
-	mcpHub: McpHub,
-	browserSettings: BrowserSettings,
+	_mcpHub: McpHub,
+	_browserSettings: BrowserSettings,
 ) => `
 ====
  

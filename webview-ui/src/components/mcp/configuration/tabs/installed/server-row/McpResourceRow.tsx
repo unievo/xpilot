@@ -1,5 +1,5 @@
-import { itemIconColor } from "@/components/theme"
 import { McpResource, McpResourceTemplate } from "@shared/mcp"
+import { itemIconColor } from "@/components/theme"
 
 type McpResourceRowProps = {
 	item: McpResource | McpResourceTemplate

@@ -1,12 +1,11 @@
-import { memo } from "react"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { agentName, ignoreFile } from "@shared/Configuration"
 import { ClineMessage } from "@shared/ExtensionMessage"
-import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
+import { memo } from "react"
 import CreditLimitError from "@/components/chat/CreditLimitError"
 import { useClineAuth } from "@/context/ClineAuthContext"
-import { agentName, ignoreFile } from "@shared/Configuration"
+import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 
-const errorColor = "var(--vscode-editorWarning-foreground)" //"var(--vscode-errorForeground)"
+const _errorColor = "var(--vscode-editorWarning-foreground)" //"var(--vscode-errorForeground)"
 
 interface ErrorRowProps {
 	message: ClineMessage
@@ -16,7 +15,7 @@ interface ErrorRowProps {
 }
 
 const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStreamingFailedMessage }: ErrorRowProps) => {
-	const { handleSignIn, clineUser } = useClineAuth()
+	const { clineUser } = useClineAuth()
 
 	const renderErrorContent = () => {
 		switch (errorType) {
@@ -25,10 +24,11 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 			case "auto_approval_max_req_reached":
 				// Handle API request errors with special error parsing
 				if (apiRequestFailedMessage || apiReqStreamingFailedMessage) {
+					// FIXME: ClineError parsing should not be applied to non-Cline providers, but it seems we're using clineErrorMessage below in the default error display
 					const clineError = ClineError.parse(apiRequestFailedMessage || apiReqStreamingFailedMessage)
 					const clineErrorMessage = clineError?.message
 					const requestId = clineError?._error?.request_id
-					const isClineProvider = clineError?.providerId === "cline"
+					const _isClineProvider = clineError?.providerId === "cline" // FIXME: since we are modifying backend to return generic error, we need to make sure we're not expecting providerId here
 
 					if (clineError) {
 						if (clineError.isErrorType(ClineErrorType.Balance)) {
@@ -36,10 +36,10 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 							return (
 								<CreditLimitError
 									currentBalance={errorDetails?.current_balance}
-									totalSpent={errorDetails?.total_spent}
-									totalPromotions={errorDetails?.total_promotions}
 									message={errorDetails?.message}
-									buyCreditsUrl={errorDetails?.buy_credits_url}
+									totalPromotions={errorDetails?.total_promotions}
+									totalSpent={errorDetails?.total_spent}
+									// buyCreditsUrl={errorDetails?.buy_credits_url}
 								/>
 							)
 						}
@@ -47,7 +47,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					if (clineError?.isErrorType(ClineErrorType.RateLimit)) {
 						return (
-							<p className={`m-0 text-xs opacity-80 whitespace-pre-wrap text-[${errorColor}] wrap-anywhere`}>
+							<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">
 								{clineErrorMessage}
 								{requestId && <div>Request ID: {requestId}</div>}
 							</p>
@@ -56,7 +56,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					// Default error display
 					return (
-						<p className={`m-0 text-xs opacity-80 whitespace-pre-wrap text-[${errorColor}] wrap-anywhere`}>
+						<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">
 							{clineErrorMessage}
 							{requestId && <div>Request ID: {requestId}</div>}
 							{clineErrorMessage?.toLowerCase()?.includes("powershell") && (
@@ -65,8 +65,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 									<br />
 									It seems like you're having Windows PowerShell issues, please see this{" "}
 									<a
-										href="https://github.com/cline/cline/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22"
-										className="underline text-inherit">
+										className="underline text-inherit"
+										href="https://github.com/cline/cline/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22">
 										troubleshooting guide
 									</a>
 									.
@@ -82,7 +82,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 											(Click "Retry" below)
 										</span>
 									) : (
-										<VSCodeButton onClick={handleSignIn} className="w-full mb-4">
+										<VSCodeButton className="w-full mb-4" onClick={handleSignIn}>
 											Sign in to Cline
 										</VSCodeButton>
 									)} */}
@@ -94,9 +94,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 				// Regular error message
 				return (
-					<p className={`m-0 text-xs opacity-80 whitespace-pre-wrap text-[${errorColor}] wrap-anywhere`}>
-						{message.text}
-					</p>
+					<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">{message.text}</p>
 				)
 
 			case "diff_error":

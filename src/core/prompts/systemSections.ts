@@ -1,22 +1,22 @@
 import { McpHub } from "../../services/mcp/McpHub"
 import { BrowserSettings } from "../../shared/BrowserSettings"
-import { InitialisationPrompt } from "./sections/Initialisation"
-import { ToolUsePrompt } from "./sections/ToolUse"
-import { McpServerUsePrompt } from "./sections/McpServerUse"
-import { EditingFilesPrompt } from "./sections/EditingFiles"
 import { ActModePlanModePrompt } from "./sections/ActModePlanMode"
 import { CapabilitiesPrompt } from "./sections/Capabilities"
+import { EditingFilesPrompt } from "./sections/EditingFiles"
+import { GuidelinesPrompt } from "./sections/Guidelines"
+import { InitialisationPrompt } from "./sections/Initialisation"
+import { McpServerUsePrompt } from "./sections/McpServerUse"
+import { ObjectivesPrompt } from "./sections/Objectives"
 import { RulesPrompt } from "./sections/Rules"
 import { SystemInformationPrompt } from "./sections/SystemInformation"
-import { ObjectivesPrompt } from "./sections/Objectives"
-import { GuidelinesPrompt } from "./sections/Guidelines"
+import { ToolUsePrompt } from "./sections/ToolUse"
 
 export const SYSTEM_PROMPT = async (
 	cwd: string,
 	supportsBrowserUse: boolean,
 	mcpHub: McpHub,
 	browserSettings: BrowserSettings,
-	isNextGenModel: boolean = false,
+	_isNextGenModel: boolean = false,
 ) => {
 	return `
 ${InitialisationPrompt()}

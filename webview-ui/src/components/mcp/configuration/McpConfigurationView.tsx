@@ -1,18 +1,16 @@
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { McpServiceClient } from "@/services/grpc-client"
-import { vscode } from "@/utils/vscode"
+import { mcpLibraryEnabled } from "@shared/Configuration"
 import { McpViewTab } from "@shared/mcp"
-import { EmptyRequest } from "@shared/proto/common"
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { McpServers } from "@shared/proto/cline/mcp"
+import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState } from "react"
 import styled from "styled-components"
-import AddRemoteServerForm from "./tabs/add-server/AddRemoteServerForm"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { McpServiceClient } from "@/services/grpc-client"
 import InstalledServersView from "./tabs/installed/InstalledServersView"
-import McpMarketplaceView from "./tabs/marketplace/McpMarketplaceView"
-import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
-import { McpServers } from "@shared/proto/mcp"
 import McpLibraryView from "./tabs/library/McpLibraryView"
-import { mcpLibraryEnabled } from "@shared/Configuration"
+import McpMarketplaceView from "./tabs/marketplace/McpMarketplaceView"
 
 type McpViewProps = {
 	onDone: () => void
@@ -87,7 +85,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					padding: "10px 17px 5px 20px",
 				}}>
 				<h3 style={{ color: "var(--vscode-foreground)", margin: 0 }}>MCP Servers</h3>
-				<VSCodeButton style={{ height: "20px" }} onClick={onDone}>
+				<VSCodeButton onClick={onDone} style={{ height: "20px" }}>
 					Done
 				</VSCodeButton>
 			</div>
@@ -131,7 +129,9 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	)
 }
 
-const StyledTabButton = styled.button<{ isActive: boolean; disabled?: boolean }>`
+const StyledTabButton = styled.button.withConfig({
+	shouldForwardProp: (prop) => !["isActive"].includes(prop),
+})<{ isActive: boolean; disabled?: boolean }>`
 	background: none;
 	border: none;
 	border-bottom: 2px solid ${(props) => (props.isActive ? "var(--vscode-foreground)" : "transparent")};
@@ -162,7 +162,7 @@ export const TabButton = ({
 	disabled?: boolean
 	style?: React.CSSProperties
 }) => (
-	<StyledTabButton isActive={isActive} onClick={onClick} disabled={disabled} style={style}>
+	<StyledTabButton disabled={disabled} isActive={isActive} onClick={onClick} style={style}>
 		{children}
 	</StyledTabButton>
 )

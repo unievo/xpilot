@@ -1,55 +1,54 @@
-import path from "path"
-import fs from "fs/promises"
-import { GlobalFileNames } from "@core/storage/disk"
-import { fileExistsAtPath, isDirectory } from "@utils/fs"
-import { formatResponse } from "@core/prompts/responses"
-import { getWorkspaceState, updateWorkspaceState } from "@core/storage/state"
 import {
-	synchronizeRuleToggles,
 	combineRuleToggles,
 	getRuleFilesTotalContent,
 	readDirectoryRecursive,
+	synchronizeRuleToggles,
 } from "@core/context/instructions/user-instructions/rule-helpers"
+import { formatResponse } from "@core/prompts/responses"
+import { GlobalFileNames } from "@core/storage/disk"
 import { ClineRulesToggles } from "@shared/cline-rules"
-import * as vscode from "vscode"
+import { fileExistsAtPath, isDirectory } from "@utils/fs"
+import fs from "fs/promises"
+import path from "path"
+import { Controller } from "@/core/controller"
 
 /**
  * Refreshes the toggles for windsurf and cursor rules
  */
 export async function refreshExternalRulesToggles(
-	context: vscode.ExtensionContext,
+	controller: Controller,
 	workingDirectory: string,
 ): Promise<{
 	windsurfLocalToggles: ClineRulesToggles
 	cursorLocalToggles: ClineRulesToggles
 }> {
 	// local windsurf toggles
-	const localWindsurfRulesToggles = ((await getWorkspaceState(context, "localWindsurfRulesToggles")) as ClineRulesToggles) || {}
+	const localWindsurfRulesToggles = controller.cacheService.getWorkspaceStateKey("localWindsurfRulesToggles")
 
 	// windsurf has two valid locations for rules files, so we need to check both and combine
 	// synchronizeRuleToggles will drop whichever rules files are not in each given path, but combining the results will result in no data loss
-	let localWindsurfRulesDirPath = path.resolve(workingDirectory, GlobalFileNames.windsurfRulesDir)
+	const localWindsurfRulesDirPath = path.resolve(workingDirectory, GlobalFileNames.windsurfRulesDir)
 	const updatedLocalWindsurfToggles1 = await synchronizeRuleToggles(localWindsurfRulesDirPath, localWindsurfRulesToggles)
 
 	const localWindsurfRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.windsurfRulesFile)
 	const updatedLocalWindsurfToggles2 = await synchronizeRuleToggles(localWindsurfRulesFilePath, localWindsurfRulesToggles)
 
 	const updatedLocalWindsurfToggles = combineRuleToggles(updatedLocalWindsurfToggles1, updatedLocalWindsurfToggles2)
-	await updateWorkspaceState(context, "localWindsurfRulesToggles", updatedLocalWindsurfToggles)
+	controller.cacheService.setWorkspaceState("localWindsurfRulesToggles", updatedLocalWindsurfToggles)
 
 	// local cursor toggles
-	const localCursorRulesToggles = ((await getWorkspaceState(context, "localCursorRulesToggles")) as ClineRulesToggles) || {}
+	const localCursorRulesToggles = controller.cacheService.getWorkspaceStateKey("localCursorRulesToggles")
 
 	// cursor has two valid locations for rules files, so we need to check both and combine
 	// synchronizeRuleToggles will drop whichever rules files are not in each given path, but combining the results will result in no data loss
-	let localCursorRulesDirPath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesDir)
+	const localCursorRulesDirPath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesDir)
 	const updatedLocalCursorToggles1 = await synchronizeRuleToggles(localCursorRulesDirPath, localCursorRulesToggles, ".mdc")
 
 	const localCursorRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.cursorRulesFile)
 	const updatedLocalCursorToggles2 = await synchronizeRuleToggles(localCursorRulesFilePath, localCursorRulesToggles)
 
 	const updatedLocalCursorToggles = combineRuleToggles(updatedLocalCursorToggles1, updatedLocalCursorToggles2)
-	await updateWorkspaceState(context, "localCursorRulesToggles", updatedLocalCursorToggles)
+	controller.cacheService.setWorkspaceState("localCursorRulesToggles", updatedLocalCursorToggles)
 
 	return {
 		windsurfLocalToggles: updatedLocalWindsurfToggles,

@@ -1,16 +1,13 @@
+import { BooleanRequest, EmptyRequest, StringArrayRequest, StringRequest } from "@shared/proto/cline/common"
+import { GetTaskHistoryRequest, TaskFavoriteRequest } from "@shared/proto/cline/task"
+import { VSCodeButton, VSCodeCheckbox, VSCodeRadio, VSCodeRadioGroup, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import Fuse, { FuseResult } from "fuse.js"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { Virtuoso } from "react-virtuoso"
 import DangerButton from "@/components/common/DangerButton"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber, formatSize } from "@/utils/format"
-import { vscode } from "@/utils/vscode"
-import { ExtensionMessage } from "@shared/ExtensionMessage"
-import { BooleanRequest, EmptyRequest, StringArrayRequest, StringRequest } from "@shared/proto/common"
-import { GetTaskHistoryRequest, TaskFavoriteRequest } from "@shared/proto/task"
-import { VSCodeButton, VSCodeCheckbox, VSCodeRadio, VSCodeRadioGroup, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
-import Fuse, { FuseResult } from "fuse.js"
-import { memo, useCallback, useEffect, useMemo, useState } from "react"
-import { useEvent } from "react-use"
-import { Virtuoso } from "react-virtuoso"
 
 type HistoryViewProps = {
 	onDone: () => void
@@ -31,8 +28,8 @@ interface CustomFilterRadioProps {
 const CustomFilterRadio = ({ checked, onChange, icon, label }: CustomFilterRadioProps) => {
 	return (
 		<div
-			onClick={onChange}
-			className="scale-90 flex items-center cursor-pointer py-[0em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none">
+			className="scale-90 flex items-center cursor-pointer py-[0em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none"
+			onClick={onChange}>
 			<div
 				className={`w-[14px] h-[14px] border border-[var(--vscode-checkbox-border)] relative flex justify-center items-center mr-[6px] ${
 					checked ? "bg-[var(--vscode-checkbox-background)]" : "bg-transparent"
@@ -49,7 +46,7 @@ const CustomFilterRadio = ({ checked, onChange, icon, label }: CustomFilterRadio
 
 const HistoryView = ({ onDone }: HistoryViewProps) => {
 	const extensionStateContext = useExtensionState()
-	const { taskHistory, filePaths, onRelinquishControl } = extensionStateContext
+	const { taskHistory, onRelinquishControl } = extensionStateContext
 	const [searchQuery, setSearchQuery] = useState("")
 	const [sortOption, setSortOption] = useState<SortOption>("newest")
 	const [lastNonRelevantSort, setLastNonRelevantSort] = useState<SortOption | null>("newest")
@@ -277,7 +274,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 
 	// Calculate total size of selected items
 	const selectedItemsSize = useMemo(() => {
-		if (selectedItems.length === 0) return 0
+		if (selectedItems.length === 0) {
+			return 0
+		}
 
 		return taskHistory.filter((item) => selectedItems.includes(item.id)).reduce((total, item) => total + (item.size || 0), 0)
 	}, [selectedItems, taskHistory])
@@ -354,7 +353,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						}}>
 						Task History
 					</h3>
-					<VSCodeButton style={{ height: "20px" }} onClick={onDone}>
+					<VSCodeButton onClick={onDone} style={{ height: "20px" }}>
 						Done
 					</VSCodeButton>
 				</div>
@@ -366,9 +365,6 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							gap: "6px",
 						}}>
 						<VSCodeTextField
-							style={{ width: "100%" }}
-							placeholder="Search history..."
-							value={searchQuery}
 							onInput={(e) => {
 								const newValue = (e.target as HTMLInputElement)?.value
 								setSearchQuery(newValue)
@@ -376,10 +372,13 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									setLastNonRelevantSort(sortOption)
 									setSortOption("mostRelevant")
 								}
-							}}>
+							}}
+							placeholder="Search history..."
+							style={{ width: "100%" }}
+							value={searchQuery}>
 							<div
-								slot="start"
 								className="codicon codicon-search"
+								slot="start"
 								style={{
 									fontSize: 13,
 									marginTop: 2.5,
@@ -387,8 +386,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								}}></div>
 							{searchQuery && (
 								<div
-									className="input-icon-button codicon codicon-close"
 									aria-label="Clear search"
+									className="input-icon-button codicon codicon-close"
 									onClick={() => setSearchQuery("")}
 									slot="end"
 									style={{
@@ -401,9 +400,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							)}
 						</VSCodeTextField>
 						<VSCodeRadioGroup
+							onChange={(e) => setSortOption((e.target as HTMLInputElement).value as SortOption)}
 							style={{ display: "flex", flexWrap: "wrap" }}
-							value={sortOption}
-							onChange={(e) => setSortOption((e.target as HTMLInputElement).value as SortOption)}>
+							value={sortOption}>
 							<VSCodeRadio style={{ scale: "0.9" }} value="newest">
 								Newest
 							</VSCodeRadio>
@@ -417,9 +416,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								Most Tokens
 							</VSCodeRadio>
 							<VSCodeRadio
+								disabled={!searchQuery}
 								style={{ scale: "0.9", opacity: searchQuery ? 1 : 0.5 }}
-								value="mostRelevant"
-								disabled={!searchQuery}>
+								value="mostRelevant">
 								Most Relevant
 							</VSCodeRadio>
 						</VSCodeRadioGroup>
@@ -430,15 +429,15 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							}}>
 							<CustomFilterRadio
 								checked={showCurrentWorkspaceOnly}
-								onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
 								icon=""
 								label="Workspace"
+								onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
 							/>
 							<CustomFilterRadio
 								checked={showFavoritesOnly}
-								onChange={() => setShowFavoritesOnly(!showFavoritesOnly)}
 								icon=""
 								label="Favorites"
+								onChange={() => setShowFavoritesOnly(!showFavoritesOnly)}
 							/>
 						</div>
 						<div
@@ -447,21 +446,29 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								gap: "5px",
 								display: "flex",
 								height: "20px",
-								justifyContent: "flex-end",
+								justifyContent: "flex-start",
 							}}>
 							<VSCodeButton
-								appearance="secondary"
-								onClick={() => {
-									handleBatchHistorySelect(false)
-								}}>
-								Select None
-							</VSCodeButton>
-							<VSCodeButton
-								appearance="secondary"
+								appearance="icon"
+								className={`
+									bg-[var(--vscode-input-background)]
+									text-[var(--vscode-input-foreground)]
+								`}
 								onClick={() => {
 									handleBatchHistorySelect(true)
 								}}>
 								Select All
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="icon"
+								className={`
+									bg-[var(--vscode-input-background)]
+									text-[var(--vscode-input-foreground)]
+								`}
+								onClick={() => {
+									handleBatchHistorySelect(false)
+								}}>
+								Select None
 							</VSCodeButton>
 						</div>
 					</div>
@@ -484,15 +491,11 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						</div>
 					)} */}
 					<Virtuoso
-						style={{
-							flexGrow: 1,
-							overflowY: "scroll",
-						}}
 						data={taskHistorySearchResults}
-						itemContent={(index, item) => (
+						itemContent={(_index, item) => (
 							<div
-								key={item.id}
 								className="history-item"
+								key={item.id}
 								style={{
 									borderColor: selectedItems.includes(item.id) ? "var(--vscode-focusBorder)" : undefined,
 									border: selectedItems.includes(item.id) ? "0.5px dotted" : undefined,
@@ -500,6 +503,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									display: "flex",
 								}}>
 								<div
+									onClick={() => handleShowTaskWithId(item.id)}
 									style={{
 										overflow: "auto",
 										display: "flex",
@@ -508,8 +512,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 										padding: "3px 5px 3px 8px",
 										position: "relative",
 										flexGrow: 1,
-									}}
-									onClick={() => handleShowTaskWithId(item.id)}>
+									}}>
 									<div
 										style={{
 											display: "flex",
@@ -517,14 +520,14 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 											gap: "8px",
 										}}>
 										<VSCodeCheckbox
-											style={{ scale: "0.9" }}
-											className="pl-0 pr-0 py-auto"
 											checked={selectedItems.includes(item.id)}
+											className="pl-0 pr-0 py-auto"
 											onClick={(e) => {
 												const checked = (e.target as HTMLInputElement).checked
 												handleHistorySelect(item.id, checked)
 												e.stopPropagation()
 											}}
+											style={{ scale: "0.9" }}
 										/>
 										<div
 											style={{
@@ -546,11 +549,11 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 											{!(pendingFavoriteToggles[item.id] ?? item.isFavorited) && (
 												<VSCodeButton
 													appearance="icon"
+													className="delete-button"
 													onClick={(e) => {
 														e.stopPropagation()
 														handleDeleteHistoryItem(item.id)
 													}}
-													className="delete-button"
 													style={{ padding: "0px 0px" }}>
 													<div
 														style={{
@@ -782,6 +785,10 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								</div>
 							</div>
 						)}
+						style={{
+							flexGrow: 1,
+							overflowY: "scroll",
+						}}
 					/>
 				</div>
 				<div
@@ -791,23 +798,23 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 					}}>
 					{selectedItems.length > 0 ? (
 						<DangerButton
-							style={{ width: "100%" }}
 							onClick={() => {
 								handleDeleteSelectedHistoryItems(selectedItems)
-							}}>
+							}}
+							style={{ width: "100%" }}>
 							Delete {selectedItems.length > 1 ? selectedItems.length : ""} Selected
 							{selectedItemsSize > 0 ? ` (${formatSize(selectedItemsSize)})` : ""}
 						</DangerButton>
 					) : (
 						<DangerButton
-							style={{ width: "100%" }}
 							disabled={deleteAllDisabled || taskHistory.length === 0}
 							onClick={() => {
 								setDeleteAllDisabled(true)
 								TaskServiceClient.deleteAllTaskHistory(BooleanRequest.create({}))
 									.catch((error) => console.error("Error deleting task history:", error))
 									.finally(() => setDeleteAllDisabled(false))
-							}}>
+							}}
+							style={{ marginLeft: "5px", width: "100%" }}>
 							Delete All History{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
 						</DangerButton>
 					)}
@@ -819,8 +826,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 
 const ExportButton = ({ itemId }: { itemId: string }) => (
 	<VSCodeButton
-		className="export-button"
 		appearance="icon"
+		className="export-button"
 		onClick={(e) => {
 			e.stopPropagation()
 			TaskServiceClient.exportTaskWithId(StringRequest.create({ value: itemId })).catch((err) =>
@@ -832,7 +839,7 @@ const ExportButton = ({ itemId }: { itemId: string }) => (
 )
 
 // https://gist.github.com/evenfrost/1ba123656ded32fb7a0cd4651efd4db0
-const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
+export const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
 	const set = (obj: Record<string, any>, path: string, value: any) => {
 		const pathValue = path.split(".")
 		let i: number
@@ -846,7 +853,9 @@ const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: stri
 
 	// Function to merge overlapping regions
 	const mergeRegions = (regions: [number, number][]): [number, number][] => {
-		if (regions.length === 0) return regions
+		if (regions.length === 0) {
+			return regions
+		}
 
 		// Sort regions by start index
 		regions.sort((a, b) => a[0] - b[0])

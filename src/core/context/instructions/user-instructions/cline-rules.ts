@@ -1,12 +1,11 @@
-import path from "path"
-import { ensureGlobalInstructionsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
-import { fileExistsAtPath, isDirectory, readDirectory } from "@utils/fs"
+import { getRuleFilesTotalContent, synchronizeRuleToggles } from "@core/context/instructions/user-instructions/rule-helpers"
 import { formatResponse } from "@core/prompts/responses"
-import fs from "fs/promises"
+import { ensureGlobalInstructionsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
 import { ClineRulesToggles } from "@shared/cline-rules"
-import { getGlobalState, getWorkspaceState, updateGlobalState, updateWorkspaceState } from "@core/storage/state"
-import * as vscode from "vscode"
-import { synchronizeRuleToggles, getRuleFilesTotalContent } from "@core/context/instructions/user-instructions/rule-helpers"
+import { fileExistsAtPath, isDirectory, readDirectory } from "@utils/fs"
+import fs from "fs/promises"
+import path from "path"
+import { Controller } from "@/core/controller"
 import { instructionsExcludedDirectories, instructionsExcludedFiles, instructionsFilesExtension } from "@/shared/Configuration"
 
 export const getGlobalClineRules = async (globalClineRulesFilePath: string, toggles: ClineRulesToggles) => {
@@ -99,14 +98,14 @@ export const getLocalClineRules = async (cwd: string, toggles: ClineRulesToggles
 }
 
 export async function refreshClineRulesToggles(
-	context: vscode.ExtensionContext,
+	controller: Controller,
 	workingDirectory: string,
 ): Promise<{
 	globalToggles: ClineRulesToggles
 	localToggles: ClineRulesToggles
 }> {
 	// Global toggles
-	const globalClineRulesToggles = ((await getGlobalState(context, "globalClineRulesToggles")) as ClineRulesToggles) || {}
+	const globalClineRulesToggles = controller.cacheService.getGlobalStateKey("globalClineRulesToggles")
 	const globalClineRulesFilePath = await ensureGlobalInstructionsDirectoryExists()
 	const updatedGlobalToggles = await synchronizeRuleToggles(
 		globalClineRulesFilePath,
@@ -116,10 +115,10 @@ export async function refreshClineRulesToggles(
 		instructionsExcludedDirectories,
 		instructionsExcludedFiles,
 	)
-	await updateGlobalState(context, "globalClineRulesToggles", updatedGlobalToggles)
+	controller.cacheService.setGlobalState("globalClineRulesToggles", updatedGlobalToggles)
 
 	// Local toggles
-	const localClineRulesToggles = ((await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles) || {}
+	const localClineRulesToggles = controller.cacheService.getWorkspaceStateKey("localClineRulesToggles")
 	const localClineRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.clineRules)
 	const updatedLocalToggles = await synchronizeRuleToggles(
 		localClineRulesFilePath,
@@ -129,7 +128,7 @@ export async function refreshClineRulesToggles(
 		instructionsExcludedDirectories,
 		instructionsExcludedFiles,
 	)
-	await updateWorkspaceState(context, "localClineRulesToggles", updatedLocalToggles)
+	controller.cacheService.setWorkspaceState("localClineRulesToggles", updatedLocalToggles)
 
 	return {
 		globalToggles: updatedGlobalToggles,

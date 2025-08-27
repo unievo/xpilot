@@ -1,12 +1,11 @@
-import React from "react"
-import TelemetryBanner from "@/components/common/TelemetryBanner"
-import Announcement from "@/components/chat/Announcement"
-import HomeHeader from "@/components/welcome/HomeHeader"
-import HistoryPreview from "@/components/history/HistoryPreview"
-import { SuggestedTasks } from "@/components/welcome/SuggestedTasks"
-import AutoApproveBar from "@/components/chat/auto-approve-menu/AutoApproveBar"
-import { WelcomeSectionProps } from "../../types/chatTypes"
 import { enableTelemetrySettings } from "@shared/Configuration"
+import React from "react"
+import Announcement from "@/components/chat/Announcement"
+import AutoApproveBar from "@/components/chat/auto-approve-menu/AutoApproveBar"
+import TelemetryBanner from "@/components/common/TelemetryBanner"
+import HistoryPreview from "@/components/history/HistoryPreview"
+import HomeHeader from "@/components/welcome/HomeHeader"
+import { WelcomeSectionProps } from "../../types/chatTypes"
 
 /**
  * Welcome section shown when there's no active task
@@ -35,10 +34,9 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 					scrollbarGutter: "stable",
 				}}>
 				{enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />}
-				{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
-				<HomeHeader />
-				{/* {!shouldShowQuickWins && taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />} */}
-				<HistoryPreview showHistoryView={showHistoryView} />
+				{showAnnouncement && <Announcement hideAnnouncement={hideAnnouncement} version={version} />}
+				<HomeHeader /> {/* shouldShowQuickWins={shouldShowQuickWins} /> */}
+				{/* {!shouldShowQuickWins && taskHistory.length > 0 && */} <HistoryPreview showHistoryView={showHistoryView} />
 			</div>
 			{/* <SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} /> */}
 			<AutoApproveBar />

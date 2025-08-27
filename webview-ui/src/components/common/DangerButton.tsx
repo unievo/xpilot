@@ -8,7 +8,8 @@ const DangerButton: React.FC<DangerButtonProps> = (props) => {
 			{...props}
 			appearance="icon"
 			className={`
-				bg-[var(--vscode-button-background)]
+				bg-[var(--vscode-input-background)]
+				text-[var(--vscode-input-foreground)]
 				hover:!bg-[#a82424] 
 				hover:!border-[#a82424]
 				${props.className || ""}

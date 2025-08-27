@@ -48,16 +48,16 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 	return (
 		<svg
 			{...props}
-			version="1.0"
-			xmlns="http://www.w3.org/2000/svg"
-			style={{ ...animationStyle, ...props.style }}
-			viewBox="0 0 512.000000 512.000000"
+			onMouseDown={handleClick}
 			preserveAspectRatio="xMidYMid meet"
-			onMouseDown={handleClick}>
+			style={{ ...animationStyle, ...props.style }}
+			version="1.0"
+			viewBox="0 0 512.000000 512.000000"
+			xmlns="http://www.w3.org/2000/svg">
 			<g
-				transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)"
 				fill="var(--vscode-editorGhostText-foreground"
-				stroke="none">
+				stroke="none"
+				transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)">
 				<path
 					d="M2355 4740 c-190 -19 -428 -74 -575 -132 -181 -71 -408 -200 -560
 				-317 -111 -85 -320 -294 -399 -399 -112 -149 -249 -389 -306 -538 l-27 -72
@@ -73,7 +73,6 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 				-365 776 -139 1710 541 2241 276 216 598 344 975 389 78 9 389 -3 480 -19z"
 				/>
 				<path
-					fill="var(--vscode-symbolIcon-textForeground)"
 					d="M2168 4245 c-4 -11 -9 -63 -13 -115 -25 -366 -70 -537 -193 -718 -90
 				-132 -252 -279 -388 -349 -165 -86 -303 -117 -629 -139 -55 -3 -106 -10 -113
 				-14 -8 -3 53 -12 135 -19 347 -29 458 -55 618 -148 148 -86 304 -228 377 -343
@@ -81,15 +80,16 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 				36 322 76 421 117 295 345 518 645 631 97 36 178 51 408 71 109 10 192 21 185
 				25 -7 3 -56 10 -108 13 -378 27 -533 68 -721 191 -135 89 -289 265 -368 421
 				-74 148 -92 228 -120 534 -9 107 -20 186 -23 175z"
+					fill="var(--vscode-symbolIcon-textForeground)"
 				/>
 				<path
-					fill="var(--vscode-symbolIcon-textForeground)"
 					d="M3261 2634 c0 -7 -6 -58 -12 -115 -21 -216 -56 -316 -152 -444 -125
 				-167 -282 -246 -529 -267 -76 -7 -138 -15 -138 -19 0 -3 46 -10 103 -13 240
 				-17 370 -68 502 -199 70 -70 90 -98 134 -187 54 -109 55 -117 89 -390 8 -65 8
 				-65 21 80 16 174 42 266 106 370 125 203 294 298 578 324 78 7 135 15 127 18
 				-8 3 -73 11 -143 17 -210 18 -318 64 -450 190 -82 79 -131 151 -168 246 -26
 				66 -33 104 -58 325 -5 41 -9 70 -10 64z"
+					fill="var(--vscode-symbolIcon-textForeground)"
 				/>
 			</g>
 		</svg>

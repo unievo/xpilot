@@ -36,6 +36,11 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	// 	description: "Create a Github issue",
 	// 	section: "default",
 	// },
+	{
+		name: "Deep Planning",
+		description: "Create a comprehensive implementation plan before coding",
+		section: "task",
+	},
 ]
 
 export function getWorkflowCommands(

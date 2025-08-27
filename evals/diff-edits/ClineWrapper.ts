@@ -1,25 +1,17 @@
-import { OpenRouterHandler } from "../../src/api/providers/openrouter"
-import { ApiHandlerOptions } from "../../src/shared/api"
 import { Anthropic } from "@anthropic-ai/sdk"
-
-import {
-	parseAssistantMessageV1,
-	parseAssistantMessageV2,
-	parseAssistantMessageV3,
-	AssistantMessageContent,
-} from "./parsing/parse-assistant-message-06-06-25" // "../../src/core/assistant-message"
+import { OpenAiNativeHandler } from "../../src/api/providers/openai-native"
+import { OpenRouterHandler } from "../../src/api/providers/openrouter"
 import { constructNewFileContent as constructNewFileContent_06_06_25 } from "./diff-apply/diff-06-06-25"
 import { constructNewFileContent as constructNewFileContent_06_23_25 } from "./diff-apply/diff-06-23-25"
 import { constructNewFileContent as constructNewFileContent_06_25_25 } from "./diff-apply/diff-06-25-25"
 import { constructNewFileContent as constructNewFileContent_06_26_25 } from "./diff-apply/diff-06-26-25"
+import { AssistantMessageContent, parseAssistantMessageV2 } from "./parsing/parse-assistant-message-06-06-25" // "../../src/core/assistant-message"
 
 type ParseAssistantMessageFn = (message: string) => AssistantMessageContent[]
 type ConstructNewFileContentFn = (diff: string, original: string, strict: boolean) => Promise<string | any>
 
 const parsingFunctions: Record<string, ParseAssistantMessageFn> = {
-	parseAssistantMessageV1: parseAssistantMessageV1,
 	parseAssistantMessageV2: parseAssistantMessageV2,
-	parseAssistantMessageV3: parseAssistantMessageV3,
 }
 
 const diffEditingFunctions: Record<string, ConstructNewFileContentFn> = {
@@ -29,8 +21,8 @@ const diffEditingFunctions: Record<string, ConstructNewFileContentFn> = {
 	"diff-06-26-25": constructNewFileContent_06_26_25,
 }
 
-import { TestInput, TestResult, ExtractedToolCall } from "./types"
 import { log } from "./helpers"
+import { ExtractedToolCall, TestInput, TestResult } from "./types"
 export { TestInput, TestResult, ExtractedToolCall }
 
 interface StreamResult {
@@ -54,7 +46,7 @@ interface StreamResult {
  * Process the stream and return full response with timing data
  */
 async function processStream(
-	handler: OpenRouterHandler,
+	handler: OpenRouterHandler | OpenAiNativeHandler,
 	systemPrompt: string,
 	messages: Anthropic.Messages.MessageParam[],
 ): Promise<StreamResult> {
@@ -68,7 +60,7 @@ async function processStream(
 	let cacheWriteTokens = 0
 	let cacheReadTokens = 0
 	let totalCost = 0
-	
+
 	// Timing tracking
 	let timeToFirstTokenMs: number | null = null
 	let timeToFirstEditMs: number | null = null
@@ -98,12 +90,12 @@ async function processStream(
 				break
 			case "text":
 				assistantMessage += chunk.text
-				
+
 				// Try to detect first tool call by parsing accumulated message
 				if (timeToFirstEditMs === null) {
 					try {
 						const parsed = parseAssistantMessageV2(assistantMessage)
-						const hasToolCall = parsed.some(block => block.type === "tool_use")
+						const hasToolCall = parsed.some((block) => block.type === "tool_use")
 						if (hasToolCall) {
 							timeToFirstEditMs = Date.now() - startTime
 						}
@@ -190,19 +182,7 @@ export async function runSingleEvaluation(input: TestInput): Promise<TestResult>
 			}
 		}
 
-		const options: ApiHandlerOptions = {
-			openRouterApiKey: apiKey,
-			openRouterModelId: modelId,
-			thinkingBudgetTokens: thinkingBudgetTokens,
-			openRouterModelInfo: {
-				maxTokens: 10_000,
-				contextWindow: 1_000_000,
-				supportsImages: true,
-				supportsPromptCache: true, // may need to turn this on
-				inputPrice: 0,
-				outputPrice: 0,
-			},
-		}
+		const provider = input.provider || "openrouter"
 
 		// Get the output of streaming output of this llm call
 		let streamResult: StreamResult
@@ -214,10 +194,34 @@ export async function runSingleEvaluation(input: TestInput): Promise<TestResult>
 				usage: { inputTokens: 0, outputTokens: 0, cacheWriteTokens: 0, cacheReadTokens: 0, totalCost: 0 },
 			}
 		} else {
-			// Live mode: existing API call logic
+			// Live mode: provider-specific API call logic
 			try {
-				const openRouterHandler = new OpenRouterHandler(options)
-				streamResult = await processStream(openRouterHandler, systemPrompt, messages)
+				let handler: OpenRouterHandler | OpenAiNativeHandler
+
+				if (provider === "openai") {
+					const openAiOptions = {
+						openAiNativeApiKey: apiKey,
+						apiModelId: modelId,
+					}
+					handler = new OpenAiNativeHandler(openAiOptions)
+				} else {
+					const openRouterOptions = {
+						openRouterApiKey: apiKey,
+						openRouterModelId: modelId,
+						thinkingBudgetTokens: thinkingBudgetTokens,
+						openRouterModelInfo: {
+							maxTokens: 10_000,
+							contextWindow: 1_000_000,
+							supportsImages: true,
+							supportsPromptCache: true,
+							inputPrice: 0,
+							outputPrice: 0,
+						},
+					}
+					handler = new OpenRouterHandler(openRouterOptions)
+				}
+
+				streamResult = await processStream(handler, systemPrompt, messages)
 			} catch (error: any) {
 				return {
 					success: false,
@@ -311,12 +315,12 @@ export async function runSingleEvaluation(input: TestInput): Promise<TestResult>
 
 		// checking if the diff edit succeeds, if it failed it will throw an error
 		let diffSuccess = true
-		let replacementData: any = undefined
+		let replacementData: any
 		try {
 			const result = await constructNewFileContent(diffToolContent, originalFile, true)
-			
+
 			// Check if result is an object with replacements (new format)
-			if (typeof result === 'object' && result !== null && 'replacements' in result) {
+			if (typeof result === "object" && result !== null && "replacements" in result) {
 				replacementData = result.replacements
 			}
 			// If it's just a string, diffSuccess stays true and replacementData stays undefined

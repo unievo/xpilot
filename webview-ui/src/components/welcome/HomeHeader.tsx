@@ -1,16 +1,24 @@
-import AgentLogo from "@/assets/AgentLogo"
-import ClineLogoVariable from "@/assets/ClineLogoVariable"
-import HeroTooltip from "@/components/common/HeroTooltip"
-import { useExtensionState } from "@/context/ExtensionStateContext"
 import { agentName } from "@shared/Configuration"
-import { ChatSettings } from "@shared/ChatSettings"
+import { EmptyRequest } from "@shared/proto/cline/common"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import AgentLogo from "@/assets/AgentLogo"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { UiServiceClient } from "@/services/grpc-client"
 import { itemIconColor } from "../theme"
-import { a } from "node_modules/framer-motion/dist/types.d-B50aGbjN"
-import { error } from "console"
 
-const HomeHeader = () => {
+interface HomeHeaderProps {
+	shouldShowQuickWins?: boolean
+}
+
+const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
+	const _handleTakeATour = async () => {
+		try {
+			await UiServiceClient.openWalkthrough(EmptyRequest.create())
+		} catch (error) {
+			console.error("Error opening walkthrough:", error)
+		}
+	}
 	const [isLogoExpanded, setIsLogoExpanded] = useState(() => {
 		try {
 			const saved = localStorage.getItem("logo-isExpanded")
@@ -101,7 +109,7 @@ const HomeHeader = () => {
 		})
 	}
 
-	const { navigateToSettings, navigateToHistory, setChatSettings, navigateToMcp } = useExtensionState()
+	const { navigateToSettings, navigateToHistory } = useExtensionState()
 
 	interface CollapsibleSectionProps {
 		title: string
@@ -114,6 +122,8 @@ const HomeHeader = () => {
 		return (
 			<div style={{ marginBottom: "-5px", marginLeft: "-12px" }}>
 				<div
+					aria-expanded={isExpanded}
+					aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title} section`}
 					onClick={onToggle}
 					onKeyDown={(e) => {
 						if (e.key === "Enter" || e.key === " ") {
@@ -122,9 +132,6 @@ const HomeHeader = () => {
 						}
 					}}
 					role="button"
-					tabIndex={0}
-					aria-expanded={isExpanded}
-					aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title} section`}
 					style={{
 						// Section header styles
 						cursor: "pointer",
@@ -133,7 +140,8 @@ const HomeHeader = () => {
 						alignItems: "center",
 						marginBottom: "8px",
 						paddingBottom: "5px",
-					}}>
+					}}
+					tabIndex={0}>
 					<span
 						className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
 						style={{
@@ -183,6 +191,8 @@ const HomeHeader = () => {
 			</style>
 			{!isLogoExpanded && (
 				<div
+					aria-expanded={isLogoExpanded}
+					aria-label={`${isLogoExpanded ? "Collapse" : "Expand"} logo section`}
 					className="logo-header"
 					onClick={toggleLogoExpanded}
 					onKeyDown={(e) => {
@@ -192,9 +202,6 @@ const HomeHeader = () => {
 						}
 					}}
 					role="button"
-					tabIndex={0}
-					aria-expanded={isLogoExpanded}
-					aria-label={`${isLogoExpanded ? "Collapse" : "Expand"} logo section`}
 					style={{
 						cursor: "pointer",
 						marginLeft: "20px",
@@ -202,7 +209,8 @@ const HomeHeader = () => {
 						marginBottom: isLogoExpanded ? "-10px" : "10px",
 						display: "flex",
 						alignItems: "center",
-					}}>
+					}}
+					tabIndex={0}>
 					<span
 						className={`codicon codicon-chevron-${isLogoExpanded ? "down" : "right"}`}
 						style={{
@@ -232,6 +240,8 @@ const HomeHeader = () => {
 			)}
 
 			<div
+				aria-expanded={isOverviewExpanded}
+				aria-label={`${isOverviewExpanded ? "Collapse" : "Expand"} overview section`}
 				className="info-header"
 				onClick={toggleOverviewExpanded}
 				onKeyDown={(e) => {
@@ -241,15 +251,13 @@ const HomeHeader = () => {
 					}
 				}}
 				role="button"
-				tabIndex={0}
-				aria-expanded={isOverviewExpanded}
-				aria-label={`${isOverviewExpanded ? "Collapse" : "Expand"} overview section`}
 				style={{
 					//color: "var(--vscode-descriptionForeground)",
 					margin: "20px 20px 10px 20px",
 					display: "flex",
 					alignItems: "center",
-				}}>
+				}}
+				tabIndex={0}>
 				<span
 					className={`codicon codicon-chevron-${isOverviewExpanded ? "down" : "right"}`}
 					style={{
@@ -300,9 +308,9 @@ const HomeHeader = () => {
 								</div>
 
 								<CollapsibleSection
-									title="Workspace Setup"
 									isExpanded={sectionStates.setup}
-									onToggle={() => toggleSection("setup")}>
+									onToggle={() => toggleSection("setup")}
+									title="Workspace Setup">
 									<div style={{ marginTop: "-8px", marginBottom: "16px", paddingLeft: "5px" }}>
 										<ul
 											style={{
@@ -325,9 +333,9 @@ const HomeHeader = () => {
 									</div>
 								</CollapsibleSection>
 								<CollapsibleSection
-									title="Task Overview"
 									isExpanded={sectionStates.introduction}
-									onToggle={() => toggleSection("introduction")}>
+									onToggle={() => toggleSection("introduction")}
+									title="Task Overview">
 									<div style={{ marginTop: "-8px", marginBottom: "16px", paddingLeft: "5px" }}>
 										{agentName} manages your requests using <b>tasks</b>.
 										<br />A task is composed of {agentName}'s system prompt, your chat messages, added files
@@ -356,9 +364,9 @@ const HomeHeader = () => {
 								</CollapsibleSection>
 
 								<CollapsibleSection
-									title="Task Context"
 									isExpanded={sectionStates.taskContext}
-									onToggle={() => toggleSection("taskContext")}>
+									onToggle={() => toggleSection("taskContext")}
+									title="Task Context">
 									<div style={{ marginTop: "-4px", paddingLeft: "5px" }}>
 										A key for having a task completed efficiently, is providing the right context information
 										and tools to the right model -{" "}
@@ -392,10 +400,10 @@ const HomeHeader = () => {
 										<li style={{ marginBottom: "5px" }}>
 											Use
 											<VSCodeLink
-												style={{ display: "inline" }}
 												onClick={() => {
-													setChatSettings({ mode: "plan" })
-												}}>
+													// setChatSettings({ mode: "plan" })
+												}}
+												style={{ display: "inline" }}>
 												<b>Plan</b>
 											</VSCodeLink>
 											mode to make a plan before executing a complex task. Iterate on the plan as needed.
@@ -404,10 +412,10 @@ const HomeHeader = () => {
 										<li style={{ marginBottom: "5px" }}>
 											Use
 											<VSCodeLink
-												style={{ display: "inline" }}
 												onClick={() => {
-													setChatSettings({ mode: "act" })
-												}}>
+													// setChatSettings({ mode: "act" })
+												}}
+												style={{ display: "inline" }}>
 												<b>Act</b>
 											</VSCodeLink>
 											mode to execute a plan, or to directly execute simpler tasks, commands, or workflows.
@@ -426,9 +434,9 @@ const HomeHeader = () => {
 								</CollapsibleSection>
 
 								<CollapsibleSection
-									title="Task Management"
 									isExpanded={sectionStates.taskManagement}
-									onToggle={() => toggleSection("taskManagement")}>
+									onToggle={() => toggleSection("taskManagement")}
+									title="Task Management">
 									<div style={{ marginTop: "-6px", paddingLeft: "5px" }}>
 										Using tasks efficiently optimizes performance, costs, and results.
 									</div>
@@ -469,10 +477,10 @@ const HomeHeader = () => {
 										<li style={{ marginBottom: "5px" }}>
 											Use the
 											<VSCodeLink
-												style={{ display: "inline" }}
 												onClick={() => {
 													navigateToHistory()
-												}}>
+												}}
+												style={{ display: "inline" }}>
 												task history
 											</VSCodeLink>
 											to filter, search, manage, and switch between previous tasks at any time.
@@ -481,9 +489,9 @@ const HomeHeader = () => {
 								</CollapsibleSection>
 
 								<CollapsibleSection
-									title="Instructions and Workflows"
 									isExpanded={sectionStates.instructions}
-									onToggle={() => toggleSection("instructions")}>
+									onToggle={() => toggleSection("instructions")}
+									title="Instructions and Workflows">
 									<div style={{ marginTop: "-18px", marginBottom: "-2px", paddingLeft: "5px" }}>
 										<p>
 											Use instruction files for rules, specifications, documentation, or any information
@@ -520,9 +528,9 @@ const HomeHeader = () => {
 								</CollapsibleSection>
 
 								<CollapsibleSection
-									title="Interface Controls"
 									isExpanded={sectionStates.controls}
-									onToggle={() => toggleSection("controls")}>
+									onToggle={() => toggleSection("controls")}
+									title="Interface Controls">
 									<div style={{ marginTop: "-18px", paddingLeft: "5px" }}>
 										<p>
 											There are two main locations to control the interface: the top bar and the bottom chat
@@ -538,25 +546,25 @@ const HomeHeader = () => {
 												marginBlockEnd: 0,
 											}}>
 											<li style={{ marginBottom: "5px" }}>
-												<span style={{ verticalAlign: "middle" }} className="codicon codicon-plus" /> -
+												<span className="codicon codicon-plus" style={{ verticalAlign: "middle" }} /> -
 												start a new, empty task
 											</li>
 											<li style={{ marginBottom: "5px" }}>
-												<span style={{ verticalAlign: "middle" }} className="codicon codicon-history" /> -
+												<span className="codicon codicon-history" style={{ verticalAlign: "middle" }} /> -
 												manage task history
 											</li>
 											<li style={{ marginBottom: "5px" }}>
-												<span style={{ verticalAlign: "middle" }} className="codicon codicon-server" /> -
+												<span className="codicon codicon-server" style={{ verticalAlign: "middle" }} /> -
 												configure MCP servers
 											</li>
 											<li style={{ marginBottom: "5px" }}>
-												<span style={{ verticalAlign: "middle" }} className="codicon codicon-gear" /> -
+												<span className="codicon codicon-gear" style={{ verticalAlign: "middle" }} /> -
 												access settings
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													style={{ verticalAlign: "middle" }}
 													className="codicon codicon-link-external"
+													style={{ verticalAlign: "middle" }}
 												/>{" "}
 												- open new {agentName} instances
 											</li>
@@ -578,33 +586,33 @@ const HomeHeader = () => {
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													style={{ verticalAlign: "middle" }}
 													className="codicon codicon-diff-ignored"
+													style={{ verticalAlign: "middle" }}
 												/>{" "}
 												- execute commands and workflows
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													style={{ verticalAlign: "middle" }}
 													className="codicon codicon-folder-active"
+													style={{ verticalAlign: "middle" }}
 												/>{" "}
 												- manage instructions and workflows
 											</li>
 											<li style={{ marginBottom: "5px" }}>
-												<span style={{ verticalAlign: "middle" }} className="codicon codicon-server" /> -
+												<span className="codicon codicon-server" style={{ verticalAlign: "middle" }} /> -
 												manage MCP servers
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													style={{ verticalAlign: "middle", color: itemIconColor, fontSize: "14px" }}
 													className="codicon codicon-sparkle-filled"
+													style={{ verticalAlign: "middle", color: itemIconColor, fontSize: "14px" }}
 												/>{" "}
 												- change the current provider/model
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													style={{ verticalAlign: "middle", fontWeight: "bold" }}
 													className="codicon codicon-file-add"
+													style={{ verticalAlign: "middle", fontWeight: "bold" }}
 												/>{" "}
 												- attach supported files and images
 											</li>

@@ -4,7 +4,7 @@ import { BrowserSettings } from "../../../shared/BrowserSettings"
 export const ToolUsePrompt = async (
 	cwd: string,
 	supportsBrowserUse: boolean,
-	mcpHub: McpHub,
+	_mcpHub: McpHub,
 	browserSettings: BrowserSettings,
 ) => `
 ====

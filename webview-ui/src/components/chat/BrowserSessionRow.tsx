@@ -1,17 +1,17 @@
+import { BROWSER_VIEWPORT_PRESETS } from "@shared/BrowserSettings"
+import { BrowserAction, BrowserActionResult, ClineMessage, ClineSayBrowserAction } from "@shared/ExtensionMessage"
+import { StringRequest } from "@shared/proto/cline/common"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import deepEqual from "fast-deep-equal"
+import React, { CSSProperties, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useSize } from "react-use"
+import styled from "styled-components"
 import { BrowserSettingsMenu } from "@/components/browser/BrowserSettingsMenu"
 import { ChatRowContent, ProgressIndicator } from "@/components/chat/ChatRow"
 import { CheckpointControls } from "@/components/common/CheckpointControls"
 import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient } from "@/services/grpc-client"
-import { BROWSER_VIEWPORT_PRESETS } from "@shared/BrowserSettings"
-import { BrowserAction, BrowserActionResult, ClineMessage, ClineSayBrowserAction } from "@shared/ExtensionMessage"
-import { StringRequest } from "@shared/proto/common"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import deepEqual from "fast-deep-equal"
-import React, { CSSProperties, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useSize } from "react-use"
-import styled from "styled-components"
 import { agentName } from "../../../../src/shared/Configuration"
 
 interface BrowserSessionRowProps {
@@ -294,13 +294,13 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 		<div>
 			{currentPage?.nextAction?.messages.map((message) => (
 				<BrowserSessionRowContent
-					key={message.ts}
-					message={message}
 					expandedRows={props.expandedRows}
-					onToggleExpand={props.onToggleExpand}
-					lastModifiedMessage={props.lastModifiedMessage}
 					isLast={props.isLast}
+					key={message.ts}
+					lastModifiedMessage={props.lastModifiedMessage}
+					message={message}
 					onSetQuote={props.onSetQuote}
+					onToggleExpand={props.onToggleExpand}
 					setMaxActionHeight={setMaxActionHeight}
 				/>
 			))}
@@ -321,7 +321,9 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 
 	// Track latest click coordinate
 	const latestClickPosition = useMemo(() => {
-		if (!isBrowsing) return undefined
+		if (!isBrowsing) {
+			return undefined
+		}
 
 		// Look through current page's next actions for the latest browser_action
 		const actions = currentPage?.nextAction?.messages || []
@@ -345,7 +347,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	// 	shouldShowCheckpoints = lastModifiedMessage?.ask === "resume_completed_task" || lastModifiedMessage?.ask === "resume_task"
 	// }
 
-	const shouldShowSettings = useMemo(() => {
+	const _shouldShowSettings = useMemo(() => {
 		const lastMessage = messages[messages.length - 1]
 		return lastMessage?.ask === "browser_action_launch" || lastMessage?.say === "browser_action_launch"
 	}, [messages])
@@ -364,7 +366,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 					<span className="codicon codicon-inspect" style={browserIconStyle}></span>
 				)}
 				<span style={approveTextStyle}>
-					<>{isAutoApproved ? `${agentName} is using the browser:` : `${agentName} wants to use the browser:`}</>
+					{isAutoApproved ? `${agentName} is using the browser:` : `${agentName} wants to use the browser:`}
 				</span>
 			</div>
 			<div
@@ -405,14 +407,14 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 					}}>
 					{displayState.screenshot ? (
 						<img
-							src={displayState.screenshot}
 							alt="Browser screenshot"
-							style={imgScreenshotStyle}
 							onClick={() =>
 								FileServiceClient.openImage(StringRequest.create({ value: displayState.screenshot })).catch(
 									(err) => console.error("Failed to open image:", err),
 								)
 							}
+							src={displayState.screenshot}
+							style={imgScreenshotStyle}
 						/>
 					) : (
 						<div style={noScreenshotContainerStyle}>
@@ -423,8 +425,8 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 						<BrowserCursor
 							style={{
 								position: "absolute",
-								top: `${(parseInt(mousePosition.split(",")[1]) / browserSettings.viewport.height) * 100}%`,
-								left: `${(parseInt(mousePosition.split(",")[0]) / browserSettings.viewport.width) * 100}%`,
+								top: `${(parseInt(mousePosition.split(",")[1], 10) / browserSettings.viewport.height) * 100}%`,
+								left: `${(parseInt(mousePosition.split(",")[0], 10) / browserSettings.viewport.width) * 100}%`,
 								transition: "top 0.3s ease-out, left 0.3s ease-out",
 							}}
 						/>
@@ -526,7 +528,7 @@ const BrowserSessionRowContent = memo(
 						<span style={browserSessionStartedTextStyle}>Browser Session Started</span>
 					</div>
 					<div style={codeBlockContainerStyle}>
-						<CodeBlock source={`${"```"}shell\n${message.text}\n${"```"}`} forceWrap={true} />
+						<CodeBlock forceWrap={true} source={`${"```"}shell\n${message.text}\n${"```"}`} />
 					</div>
 				</>
 			)
@@ -541,12 +543,12 @@ const BrowserSessionRowContent = memo(
 						return (
 							<div style={chatRowContentContainerStyle}>
 								<ChatRowContent
-									message={message}
 									isExpanded={expandedRows[message.ts] ?? false}
-									onToggleExpand={handleToggle}
-									lastModifiedMessage={lastModifiedMessage}
 									isLast={isLast}
+									lastModifiedMessage={lastModifiedMessage}
+									message={message}
 									onSetQuote={onSetQuote}
+									onToggleExpand={handleToggle}
 								/>
 							</div>
 						)
@@ -615,13 +617,13 @@ const BrowserCursor: React.FC<{ style?: CSSProperties }> = ({ style }) => {
 
 	return (
 		<img
+			alt="cursor"
 			src={cursorBase64}
 			style={{
 				width: "17px",
 				height: "22px",
 				...style,
 			}}
-			alt="cursor"
 		/>
 	)
 }

@@ -1,13 +1,13 @@
-import { useExtensionState } from "@/context/ExtensionStateContext"
+import { mcpLibraryEnabled } from "@shared/Configuration"
+import { EmptyRequest } from "@shared/proto/cline/common"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { McpServiceClient } from "@/services/grpc-client"
 
-import { McpServiceClient, UiServiceClient } from "@/services/grpc-client"
-
-import { EmptyRequest, StringRequest } from "@shared/proto/common"
-import ServersToggleList from "./ServersToggleList"
 import AddRemoteServerForm from "../add-server/AddRemoteServerForm"
-import { mcpLibraryEnabled } from "@shared/Configuration"
+import ServersToggleList from "./ServersToggleList"
+
 const InstalledServersView = () => {
 	const { mcpServers: servers, navigateToSettings, mcpMarketplaceEnabled, navigateToMcp } = useExtensionState()
 	const [showAddServer, setShowAddServer] = useState(false)
@@ -50,12 +50,12 @@ const InstalledServersView = () => {
 			<div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
 				<VSCodeButton
 					appearance="icon"
-					style={{ flex: 1, background: "var(--vscode-button-Background)" }}
 					onClick={() => {
 						McpServiceClient.openMcpSettings(EmptyRequest.create({})).catch((error) => {
 							console.error("Error opening MCP settings:", error)
 						})
-					}}>
+					}}
+					style={{ flex: 1, width: "100%", marginBottom: "5px", background: "var(--vscode-button-Background)" }}>
 					<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
 					Configure
 				</VSCodeButton>
@@ -63,14 +63,14 @@ const InstalledServersView = () => {
 				{/* Collapsible Add Server Section styled as a button */}
 				<VSCodeButton
 					appearance="icon"
+					onClick={() => setShowAddServer((v) => !v)}
 					style={{
 						flex: 1,
 						background: "var(--vscode-button-Background)",
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "flex-start",
-					}}
-					onClick={() => setShowAddServer((v) => !v)}>
+					}}>
 					<span
 						className={`codicon ${showAddServer ? "codicon-chevron-down" : "codicon-chevron-right"}`}
 						style={{ marginRight: "2px", fontSize: "16px" }}></span>
@@ -108,7 +108,7 @@ const InstalledServersView = () => {
 
 			<hr style={{ opacity: 0.1 }}></hr>
 			<br />
-			<ServersToggleList servers={servers} isExpandable={true} hasTrashIcon={true} listGap="small" />
+			<ServersToggleList hasTrashIcon={true} isExpandable={true} listGap="small" servers={servers} />
 		</div>
 	)
 }

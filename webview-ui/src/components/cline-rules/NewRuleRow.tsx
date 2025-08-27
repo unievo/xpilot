@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from "react"
-import { vscode } from "@/utils/vscode"
+import { CreateRuleFileRequest } from "@shared/proto-conversions/file/rule-files-conversion"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { useEffect, useRef, useState } from "react"
 import { useClickAway } from "react-use"
 import { FileServiceClient } from "@/services/grpc-client"
-import { CreateRuleFileRequest } from "@shared/proto-conversions/file/rule-files-conversion"
 import { rowBackground } from "../theme"
 
 interface NewRuleRowProps {
@@ -35,7 +34,9 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 	})
 
 	const getExtension = (filename: string): string => {
-		if (filename.startsWith(".") && !filename.includes(".", 1)) return ""
+		if (filename.startsWith(".") && !filename.includes(".", 1)) {
+			return ""
+		}
 		const match = filename.match(/\.[^.]+$/)
 		return match ? match[0].toLowerCase() : ""
 	}
@@ -88,45 +89,45 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 
 	return (
 		<div
-			ref={componentRef}
 			className={`mb-0 overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
-			onClick={() => !isExpanded && setIsExpanded(true)}>
+			onClick={() => !isExpanded && setIsExpanded(true)}
+			ref={componentRef}>
 			<div
+				className={`flex items-center p-0 rounded transition-all duration-300 ease-in-out min-h-[12px] ${
+					isExpanded ? "shadow-sm" : ""
+				}`}
 				style={{
 					border: `0.5px solid overflow-ellipsis ${rowBackground}`,
 					marginTop: "3px",
 					paddingLeft: "2px",
 					overflow: "hidden",
-				}}
-				className={`flex items-center p-0 rounded transition-all duration-300 ease-in-out min-h-[12px] ${
-					isExpanded ? "shadow-sm" : ""
-				}`}>
+				}}>
 				<span
 					className="codicon codicon-markdown"
 					style={{ fontSize: "14px", marginRight: "0px", opacity: 0.5, verticalAlign: "middle" }}></span>
 				{isExpanded ? (
-					<form onSubmit={handleSubmit} className="flex flex-1 items-center">
+					<form className="flex flex-1 items-center" onSubmit={handleSubmit}>
 						<input
-							ref={inputRef}
-							type="text"
-							placeholder={"filename(.md)"}
-							value={filename}
+							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent"
 							onChange={(e) => setFilename(e.target.value)}
 							onKeyDown={handleKeyDown}
-							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent min-h-[12px] py-0"
+							placeholder={"filename(.md)"}
+							ref={inputRef}
 							style={{
 								outline: "none",
 								fontSize: "12px",
 							}}
+							type="text"
+							value={filename}
 						/>
 
 						<div className="flex items-center ml-2 space-x-2">
 							<VSCodeButton
 								appearance="icon"
-								type="submit"
 								aria-label="Add file"
+								//style={{ padding: "0px" }}
 								title="Add file"
-								style={{ padding: "0px" }}>
+								type="submit">
 								<span className="codicon codicon-add" />
 							</VSCodeButton>
 						</div>
@@ -140,12 +141,12 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 							<VSCodeButton
 								appearance="icon"
 								aria-label="Add file"
-								title="Add file"
 								onClick={(e) => {
 									e.stopPropagation()
 									setIsExpanded(true)
 								}}
-								style={{ opacity: 0.7, padding: "0px" }}>
+								style={{ opacity: 0.7, padding: "0px" }}
+								title="Add file">
 								<span className="codicon codicon-add" />
 							</VSCodeButton>
 						</div>

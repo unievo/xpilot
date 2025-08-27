@@ -1,6 +1,6 @@
-import { agentName, discordUrl, baseVersion, repoUrl, xUrl, baseVersionUrl, baseName } from "@shared/Configuration"
-import Section from "../Section"
+import { agentName, baseName, baseVersion, baseVersionUrl, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import Section from "../Section"
 
 interface AboutSectionProps {
 	version: string

@@ -1,10 +1,10 @@
+import { CheckpointRestoreRequest } from "@shared/proto/cline/checkpoints"
+import { ClineCheckpointRestore } from "@shared/WebviewMessage"
+import React, { forwardRef, useRef, useState } from "react"
+import DynamicTextArea from "react-textarea-autosize"
 import Thumbnails from "@/components/common/Thumbnails"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { CheckpointsServiceClient } from "@/services/grpc-client"
-import { ClineCheckpointRestore } from "@shared/WebviewMessage"
-import { CheckpointRestoreRequest } from "@shared/proto/checkpoints"
-import React, { forwardRef, useRef, useState } from "react"
-import DynamicTextArea from "react-textarea-autosize"
 import { highlightText } from "./task-header/TaskHeader"
 
 interface UserMessageProps {
@@ -87,6 +87,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 
 	return (
 		<div
+			onClick={handleClick}
 			style={{
 				backgroundColor: isEditing ? "unset" : "var(--vscode-input-background)",
 				color: "var(--vscode-badge-foreground)",
@@ -96,17 +97,15 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 				whiteSpace: "pre-line",
 				wordWrap: "break-word",
 				cursor: isEditing ? "default" : "pointer",
-			}}
-			onClick={handleClick}>
+			}}>
 			{isEditing ? (
 				<>
 					<DynamicTextArea
-						ref={textAreaRef}
-						value={editedText}
-						onChange={(e) => setEditedText(e.target.value)}
-						onBlur={(e) => handleBlur(e)}
-						onKeyDown={handleKeyDown}
 						autoFocus
+						onBlur={(e) => handleBlur(e)}
+						onChange={(e) => setEditedText(e.target.value)}
+						onKeyDown={handleKeyDown}
+						ref={textAreaRef}
 						style={{
 							width: "99%",
 							marginLeft: "-15px",
@@ -126,6 +125,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 							overflowY: "scroll",
 							scrollbarWidth: "none",
 						}}
+						value={editedText}
 					/>
 					<div
 						style={{
@@ -137,21 +137,21 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 						}}>
 						{!checkpointTrackerErrorMessage && (
 							<RestoreButton
-								ref={restoreAllButtonRef}
-								type="taskAndWorkspace"
-								label="Restore Task & Workspace"
 								isPrimary={false}
+								label="Restore Task & Workspace"
 								onClick={handleRestoreWorkspace}
+								ref={restoreAllButtonRef}
 								title="Restore both the chat and workspace files to this checkpoint and send your edited message"
+								type="taskAndWorkspace"
 							/>
 						)}
 						<RestoreButton
-							ref={restoreChatButtonRef}
-							type="task"
-							label="Restore Task"
 							isPrimary={true}
+							label="Restore Task"
 							onClick={handleRestoreWorkspace}
+							ref={restoreChatButtonRef}
 							title="Restore just the chat to this checkpoint and send your edited message"
+							type="task"
 						/>
 					</div>
 				</>
@@ -161,7 +161,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 				</span>
 			)}
 			{((images && images.length > 0) || (files && files.length > 0)) && (
-				<Thumbnails images={images ?? []} files={files ?? []} style={{ marginTop: "8px" }} />
+				<Thumbnails files={files ?? []} images={images ?? []} style={{ marginTop: "8px" }} />
 			)}
 		</div>
 	)
@@ -184,9 +184,8 @@ const RestoreButton = forwardRef<HTMLButtonElement, RestoreButtonProps>(({ type,
 
 	return (
 		<button
-			ref={ref}
 			onClick={handleClick}
-			title={title}
+			ref={ref}
 			style={{
 				backgroundColor: isPrimary
 					? "var(--vscode-button-background)"
@@ -199,7 +198,8 @@ const RestoreButton = forwardRef<HTMLButtonElement, RestoreButtonProps>(({ type,
 				borderRadius: "2px",
 				fontSize: "10px",
 				cursor: "pointer",
-			}}>
+			}}
+			title={title}>
 			{label}
 		</button>
 	)

@@ -1,9 +1,10 @@
-import { ApiConfiguration } from "@shared/api"
-import { DebouncedTextField } from "../common/DebouncedTextField"
-import { ApiKeyField } from "../common/ApiKeyField"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 import { agentName } from "@shared/Configuration"
+import { Mode } from "@shared/storage/types"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { ApiKeyField } from "../common/ApiKeyField"
+import { DebouncedTextField } from "../common/DebouncedTextField"
+import { getModeSpecificFields } from "../utils/providerUtils"
+import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 
 /**
  * Props for the TogetherProvider component
@@ -11,14 +12,17 @@ import { agentName } from "@shared/Configuration"
 interface TogetherProviderProps {
 	showModelOptions: boolean
 	isPopup?: boolean
+	currentMode: Mode
 }
 
 /**
  * The Together provider configuration component
  */
-export const TogetherProvider = ({ showModelOptions, isPopup }: TogetherProviderProps) => {
+export const TogetherProvider = ({ showModelOptions, isPopup, currentMode }: TogetherProviderProps) => {
 	const { apiConfiguration } = useExtensionState()
-	const { handleFieldChange } = useApiConfigurationHandlers()
+	const { handleFieldChange, handleModeFieldChange } = useApiConfigurationHandlers()
+
+	const { togetherModelId } = getModeSpecificFields(apiConfiguration, currentMode)
 
 	return (
 		<div>
@@ -28,10 +32,12 @@ export const TogetherProvider = ({ showModelOptions, isPopup }: TogetherProvider
 				providerName="Together"
 			/>
 			<DebouncedTextField
-				initialValue={apiConfiguration?.togetherModelId || ""}
-				onChange={(value) => handleFieldChange("togetherModelId", value)}
-				style={{ width: "100%" }}
-				placeholder={"Enter Model ID..."}>
+				initialValue={togetherModelId || ""}
+				onChange={(value) =>
+					handleModeFieldChange({ plan: "planModeTogetherModelId", act: "actModeTogetherModelId" }, value, currentMode)
+				}
+				placeholder={"Enter Model ID..."}
+				style={{ width: "100%" }}>
 				<span style={{ fontWeight: 500 }}>Model ID</span>
 			</DebouncedTextField>
 			<p

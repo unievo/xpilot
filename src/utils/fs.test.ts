@@ -3,8 +3,8 @@ import { after, describe, it } from "mocha"
 import * as os from "os"
 import * as path from "path"
 import "should"
-import { createDirectoriesForFile, fileExistsAtPath, isDirectory, readDirectory } from "./fs"
 import { productName } from "../shared/Configuration"
+import { createDirectoriesForFile, fileExistsAtPath, isDirectory, readDirectory } from "./fs"
 
 describe("Filesystem Utilities", () => {
 	const tmpDir = path.join(os.tmpdir(), `${productName}-test-` + Math.random().toString(36).slice(2))

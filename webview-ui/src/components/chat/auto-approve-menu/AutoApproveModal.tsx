@@ -1,14 +1,13 @@
-import React, { useRef, useState, useEffect } from "react"
+import { agentName } from "@shared/Configuration"
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import React, { useEffect, useRef, useState } from "react"
 import { useClickAway, useWindowSize } from "react-use"
+import HeroTooltip from "@/components/common/HeroTooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import { VSCodeTextField, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
-import HeroTooltip from "@/components/common/HeroTooltip"
 import AutoApproveMenuItem from "./AutoApproveMenuItem"
 import { ActionMetadata } from "./types"
-import { agentName } from "@shared/Configuration"
 
 const breakpoint = 500
 
@@ -33,7 +32,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 	const modalRef = useRef<HTMLDivElement>(null)
 	const itemsContainerRef = useRef<HTMLDivElement>(null)
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
-	const [arrowPosition, setArrowPosition] = useState(0)
+	const [_arrowPosition, setArrowPosition] = useState(0)
 	const [menuPosition, setMenuPosition] = useState(0)
 	const [containerWidth, setContainerWidth] = useState(0)
 
@@ -92,7 +91,9 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 
 	// Track container width for responsive layout
 	useEffect(() => {
-		if (!isVisible) return
+		if (!isVisible) {
+			return
+		}
 
 		const updateWidth = () => {
 			if (itemsContainerRef.current) {
@@ -115,7 +116,9 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 		}
 	}, [isVisible])
 
-	if (!isVisible) return null
+	if (!isVisible) {
+		return null
+	}
 
 	return (
 		<div ref={modalRef}>
@@ -166,8 +169,8 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				</div>
 
 				<div
-					ref={itemsContainerRef}
 					className="relative mb-3"
+					ref={itemsContainerRef}
 					style={{
 						columnCount: containerWidth > breakpoint ? 2 : 1,
 						columnGap: "4px",
@@ -186,10 +189,10 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 					{/* All items in a single list - CSS Grid will handle the column distribution */}
 					{ACTION_METADATA.map((action) => (
 						<AutoApproveMenuItem
-							key={action.id}
 							action={action}
 							isChecked={isChecked}
 							isFavorited={isFavorited}
+							key={action.id}
 							onToggle={updateAction}
 							onToggleFavorite={toggleFavorite}
 						/>
@@ -201,10 +204,10 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				</div> */}
 
 				<AutoApproveMenuItem
-					key={NOTIFICATIONS_SETTING.id}
 					action={NOTIFICATIONS_SETTING}
 					isChecked={isChecked}
 					isFavorited={isFavorited}
+					key={NOTIFICATIONS_SETTING.id}
 					onToggle={updateAction}
 					onToggleFavorite={toggleFavorite}
 				/>
@@ -217,13 +220,12 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 						<span className="text-[#CCCCCC] text-xs font-medium ml-2">Max Requests:</span>
 						<span className="max-w-10 ml-1">
 							<VSCodeTextField
-								value={autoApprovalSettings.maxRequests.toString()}
 								onInput={async (e) => {
 									const input = e.target as HTMLInputElement
 									// Remove any non-numeric characters
 									input.value = input.value.replace(/[^0-9]/g, "")
-									const value = parseInt(input.value)
-									if (!isNaN(value) && value > 0) {
+									const value = parseInt(input.value, 10)
+									if (!Number.isNaN(value) && value > 0) {
 										await updateMaxRequests(value)
 									}
 								}}
@@ -236,6 +238,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 										e.preventDefault()
 									}
 								}}
+								value={autoApprovalSettings.maxRequests.toString()}
 							/>
 						</span>
 					</div>

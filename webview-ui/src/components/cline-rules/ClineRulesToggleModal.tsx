@@ -1,9 +1,4 @@
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import Tooltip from "@/components/common/Tooltip"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { FileServiceClient } from "@/services/grpc-client"
-import { vscode } from "@/utils/vscode"
-import { EmptyRequest } from "@shared/proto/common"
+import { EmptyRequest } from "@shared/proto/cline/common"
 import {
 	ClineRulesToggles,
 	RefreshedRules,
@@ -11,16 +6,16 @@ import {
 	ToggleCursorRuleRequest,
 	ToggleWindsurfRuleRequest,
 	ToggleWorkflowRequest,
-} from "@shared/proto/file"
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+} from "@shared/proto/cline/file"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useRef, useState } from "react"
 import { useClickAway, useWindowSize } from "react-use"
 import styled from "styled-components"
-import RulesToggleList from "./RulesToggleList"
-import { agentName } from "@shared/Configuration"
-import { dropdown } from "@heroui/react"
-import { dropdownBackground, itemIconColor, menuBackground } from "../theme"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { FileServiceClient } from "@/services/grpc-client"
 import HeroTooltip from "../common/HeroTooltip"
+import { itemIconColor, menuBackground } from "../theme"
+import RulesToggleList from "./RulesToggleList"
 
 // Helper function to sort rule entries by filename
 const sortByFilename = (entries: [string, boolean][]): [string, boolean][] => {
@@ -237,8 +232,8 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 
 	return (
 		<div ref={modalRef}>
-			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="Manage Instructions and Workflows">
+			<div className="opacity-70 inline-flex min-w-0 max-w-full" ref={buttonRef}>
+				<HeroTooltip content="Manage Instructions and Workflows" delay={1000}>
 					<VSCodeButton
 						appearance="icon"
 						aria-label={`Manage Instructions and Workflows`}
@@ -312,14 +307,14 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							</TabButton>
 						</div>
 						<div
+							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto"
 							onMouseDown={() => {
 								setIsVisible(false)
 								// Focus the textarea after closing the modal
 								setTimeout(() => {
 									textAreaRef?.current?.focus()
 								}, 0)
-							}}
-							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+							}}>
 							<span className="codicon codicon-close" />
 						</div>
 					</div>
@@ -331,11 +326,11 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							paddingBottom: 3,
 						}}>
 						<div
-							style={{ display: "flex", alignItems: "center", gap: 2, cursor: "pointer", userSelect: "none" }}
-							onClick={() => setDescCollapsed((v) => !v)}
 							aria-expanded={!descCollapsed}
-							tabIndex={0}
-							role="button">
+							onClick={() => setDescCollapsed((v) => !v)}
+							role="button"
+							style={{ display: "flex", alignItems: "center", gap: 2, cursor: "pointer", userSelect: "none" }}
+							tabIndex={0}>
 							<span
 								className={`codicon codicon-chevron-${descCollapsed ? "right" : "down"}`}
 								style={{ marginLeft: -3, fontSize: 10 }}
@@ -394,13 +389,13 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							<div style={{ marginBottom: 2 }}>
 								<div className="font-normal mt-3 mb-2">Global</div>
 								<RulesToggleList
-									rules={globalRules}
-									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
-									listGap="small"
 									isGlobal={true}
+									listGap="small"
+									rules={globalRules}
 									ruleType={"cline"}
 									showNewRule={true}
 									showNoRules={true}
+									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
 								/>
 							</div>
 
@@ -408,33 +403,31 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							<div style={{ marginBottom: 2 }}>
 								<div className="font-normal mt-3 mb-2">Workspace </div>
 								<RulesToggleList
-									rules={localRules}
-									toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
-									listGap="small"
 									isGlobal={false}
+									listGap="small"
+									rules={localRules}
 									ruleType={"cline"}
 									showNewRule={false}
 									showNoRules={false}
+									toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
 								/>
 								<RulesToggleList
-									rules={cursorRules}
-									toggleRule={toggleCursorRule}
-									listGap="small"
 									isGlobal={false}
+									listGap="small"
+									rules={cursorRules}
 									ruleType={"cursor"}
 									showNewRule={false}
 									showNoRules={false}
+									toggleRule={toggleCursorRule}
 								/>
 								<RulesToggleList
-									rules={windsurfRules}
-									toggleRule={toggleWindsurfRule}
-									listGap="small"
 									isGlobal={false}
+									listGap="small"
+									rules={windsurfRules}
 									ruleType={"windsurf"}
 									showNewRule={true}
-									showNoRules={
-										localRules.length === 0 && cursorRules.length === 0 && windsurfRules.length === 0
-									}
+									showNoRules={false}
+									toggleRule={toggleWindsurfRule}
 								/>
 							</div>
 						</>
@@ -444,26 +437,26 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							<div style={{ marginBottom: 2 }}>
 								<div className="font-normal mt-3 mb-2">Global</div>
 								<RulesToggleList
-									rules={globalWorkflows}
-									toggleRule={(rulePath, enabled) => toggleWorkflow(true, rulePath, enabled)}
-									listGap="small"
 									isGlobal={true}
+									listGap="small"
+									rules={globalWorkflows}
 									ruleType={"workflow"}
 									showNewRule={true}
 									showNoRules={false}
+									toggleRule={(rulePath, enabled) => toggleWorkflow(true, rulePath, enabled)}
 								/>
 							</div>
 							{/* Local Workflows Section */}
 							<div style={{ marginBottom: 2 }}>
 								<div className="font-normal mt-3 mb-2">Workspace</div>
 								<RulesToggleList
-									rules={localWorkflows}
-									toggleRule={(rulePath, enabled) => toggleWorkflow(false, rulePath, enabled)}
-									listGap="small"
 									isGlobal={false}
+									listGap="small"
+									rules={localWorkflows}
 									ruleType={"workflow"}
 									showNewRule={true}
 									showNoRules={false}
+									toggleRule={(rulePath, enabled) => toggleWorkflow(false, rulePath, enabled)}
 								/>
 							</div>
 						</>

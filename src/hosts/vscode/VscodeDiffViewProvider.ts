@@ -1,10 +1,15 @@
-import { arePathsEqual } from "@/utils/path"
+import { DiffViewProvider } from "@integrations/editor/DiffViewProvider"
 import * as path from "path"
 import * as vscode from "vscode"
-import { DecorationController } from "@integrations/editor/DecorationController"
-import { DIFF_VIEW_URI_SCHEME, DiffViewProvider } from "@integrations/editor/DiffViewProvider"
+import { DecorationController } from "@/hosts/vscode/DecorationController"
+import { agentName } from "@/shared/Configuration"
+import { arePathsEqual } from "@/utils/path"
+
+export const DIFF_VIEW_URI_SCHEME = `${agentName}-diff`
 
 export class VscodeDiffViewProvider extends DiffViewProvider {
+	private activeDiffEditor?: vscode.TextEditor
+
 	private fadedOverlayController?: DecorationController
 	private activeLineController?: DecorationController
 
@@ -12,19 +17,20 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 		if (!this.absolutePath) {
 			throw new Error("No file path set")
 		}
-		// get diagnostics before editing the file, we'll compare to diagnostics after editing to see if cline needs to fix anything
-		this.preDiagnostics = vscode.languages.getDiagnostics()
 
 		// if the file was already open, close it (must happen after showing the diff view since if it's the only tab the column will close)
 		this.documentWasOpen = false
 		// close the tab if it's open (it's already been saved)
 		const tabs = vscode.window.tabGroups.all
-			.map((tg) => tg.tabs)
-			.flat()
+			.flatMap((tg) => tg.tabs)
 			.filter((tab) => tab.input instanceof vscode.TabInputText && arePathsEqual(tab.input.uri.fsPath, this.absolutePath))
 		for (const tab of tabs) {
 			if (!tab.isDirty) {
-				await vscode.window.tabGroups.close(tab)
+				try {
+					await vscode.window.tabGroups.close(tab)
+				} catch (error) {
+					console.warn("Tab close retry failed:", error.message)
+				}
 			}
 			this.documentWasOpen = true
 		}
@@ -58,7 +64,9 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 				})
 				vscode.commands.executeCommand(
 					"vscode.diff",
-					vscode.Uri.parse(`${DIFF_VIEW_URI_SCHEME}:${fileName}`).with({
+					vscode.Uri.from({
+						scheme: DIFF_VIEW_URI_SCHEME,
+						path: fileName,
 						query: Buffer.from(this.originalContent ?? "").toString("base64"),
 					}),
 					uri,
@@ -84,7 +92,7 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 	override async replaceText(
 		content: string,
 		rangeToReplace: { startLine: number; endLine: number },
-		currentLine: number,
+		currentLine: number | undefined,
 	): Promise<void> {
 		if (!this.activeDiffEditor || !this.activeDiffEditor.document) {
 			throw new Error("User closed text editor, unable to edit file...")
@@ -100,9 +108,11 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 		edit.replace(document.uri, range, content)
 		await vscode.workspace.applyEdit(edit)
 
-		// Update decorations for the entire changed section
-		this.activeLineController?.setActiveLine(currentLine)
-		this.fadedOverlayController?.updateOverlayAfterLine(currentLine, document.lineCount)
+		if (currentLine !== undefined) {
+			// Update decorations for the entire changed section
+			this.activeLineController?.setActiveLine(currentLine)
+			this.fadedOverlayController?.updateOverlayAfterLine(currentLine, document.lineCount)
+		}
 	}
 
 	override async scrollEditorToLine(line: number): Promise<void> {
@@ -143,7 +153,25 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 		this.activeLineController?.clear()
 	}
 
-	protected async closeDiffView(): Promise<void> {
+	protected override async getDocumentText(): Promise<string | undefined> {
+		if (!this.activeDiffEditor || !this.activeDiffEditor.document) {
+			return undefined
+		}
+		return this.activeDiffEditor.document.getText()
+	}
+
+	protected override async saveDocument(): Promise<Boolean> {
+		if (!this.activeDiffEditor) {
+			return false
+		}
+		if (!this.activeDiffEditor.document.isDirty) {
+			return false
+		}
+		await this.activeDiffEditor.document.save()
+		return true
+	}
+
+	protected async closeAllDiffViews(): Promise<void> {
 		// Close all the cline diff views.
 		const tabs = vscode.window.tabGroups.all
 			.flatMap((tg) => tg.tabs)
@@ -151,7 +179,11 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 		for (const tab of tabs) {
 			// trying to close dirty views results in save popup
 			if (!tab.isDirty) {
-				await vscode.window.tabGroups.close(tab)
+				try {
+					await vscode.window.tabGroups.close(tab)
+				} catch (error) {
+					console.warn("Tab close retry failed:", error.message)
+				}
 			}
 		}
 	}
@@ -160,6 +192,5 @@ export class VscodeDiffViewProvider extends DiffViewProvider {
 		this.activeDiffEditor = undefined
 		this.fadedOverlayController = undefined
 		this.activeLineController = undefined
-		this.preDiagnostics = []
 	}
 }

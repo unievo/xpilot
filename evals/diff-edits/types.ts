@@ -1,5 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-import { ToolUseName, ToolParamName } from "../../src/core/assistant-message"
+import { ToolParamName, ToolUseName } from "../../src/core/assistant-message"
 
 export interface InputMessage {
 	role: "user" | "assistant"
@@ -104,5 +104,6 @@ export interface TestInput {
 	thinkingBudgetTokens: number
 	originalDiffEditToolCallMessage?: string
 	diffApplyFile?: string
+	provider?: string
 	isVerbose: boolean
 }

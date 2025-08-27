@@ -1,9 +1,8 @@
-import { mkdir, access, constants } from "fs/promises"
-import * as path from "path"
-import * as vscode from "vscode"
-import os from "os"
-import { getCwd, getDesktopDir } from "@/utils/path"
 import { agentName } from "@shared/Configuration"
+import { access, constants, mkdir } from "fs/promises"
+import os from "os"
+import * as path from "path"
+import { getCwd, getDesktopDir } from "@/utils/path"
 
 /**
  * Gets the path to the shadow Git repository in globalStorage.
@@ -20,7 +19,7 @@ import { agentName } from "@shared/Configuration"
  * @returns Promise<string> The absolute path to the shadow git directory
  * @throws Error if global storage path is invalid
  */
-export async function getShadowGitPath(globalStoragePath: string, taskId: string, cwdHash: string): Promise<string> {
+export async function getShadowGitPath(globalStoragePath: string, _taskId: string, cwdHash: string): Promise<string> {
 	if (!globalStoragePath) {
 		throw new Error("Global storage uri is invalid")
 	}

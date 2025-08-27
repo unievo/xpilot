@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import { Command } from "commander"
 import chalk from "chalk"
-import { setupHandler } from "./commands/setup"
-import { runHandler } from "./commands/run"
-import { reportHandler } from "./commands/report"
+import { Command } from "commander"
 import { evalsEnvHandler } from "./commands/evals-env"
+import { reportHandler } from "./commands/report"
+import { runHandler } from "./commands/run"
 import { runDiffEvalHandler } from "./commands/runDiffEval"
+import { setupHandler } from "./commands/setup"
 
 // Create the CLI program
 const program = new Command()
@@ -86,12 +86,17 @@ program
 	.option("--output-path <path>", "Path to the directory to save the test output JSON files")
 	.option("--model-ids <model_ids>", "Comma-separated list of model IDs to test")
 	.option("--system-prompt-name <name>", "The name of the system prompt to use", "basicSystemPrompt")
-	.option("-n, --valid-attempts-per-case <number>", "Number of valid attempts per test case per model (will retry until this many valid attempts are collected)", "1")
+	.option(
+		"-n, --valid-attempts-per-case <number>",
+		"Number of valid attempts per test case per model (will retry until this many valid attempts are collected)",
+		"1",
+	)
 	.option("--max-attempts-per-case <number>", "Maximum total attempts per test case (default: 10x valid attempts)")
 	.option("--max-cases <number>", "Maximum number of test cases to run (limits total cases loaded)")
 	.option("--parsing-function <name>", "The parsing function to use", "parseAssistantMessageV2")
 	.option("--diff-edit-function <name>", "The diff editing function to use", "constructNewFileContentV2")
 	.option("--thinking-budget <tokens>", "Set the thinking tokens budget", "0")
+	.option("--provider <provider>", "API provider to use (openrouter, openai)", "openrouter")
 	.option("--parallel", "Run tests in parallel", false)
 	.option("--replay", "Run evaluation from a pre-recorded LLM output, skipping the API call", false)
 	.option("--replay-run-id <run_id>", "The ID of the run to replay from the database")
