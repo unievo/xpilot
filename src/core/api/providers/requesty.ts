@@ -3,12 +3,12 @@ import { ModelInfo, requestyDefaultModelId, requestyDefaultModelInfo } from "@sh
 import { agentName, homePageUrl } from "@shared/Configuration"
 import { calculateApiCostOpenAI } from "@utils/cost"
 import OpenAI from "openai"
-import { ApiHandler } from "../index"
+import { ApiHandler, CommonApiHandlerOptions } from "../index"
 import { withRetry } from "../retry"
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
 
-interface RequestyHandlerOptions {
+interface RequestyHandlerOptions extends CommonApiHandlerOptions {
 	requestyBaseUrl?: string
 	requestyApiKey?: string
 	reasoningEffort?: string

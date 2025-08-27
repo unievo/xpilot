@@ -72,6 +72,7 @@ export interface ExtensionState {
 	useAutoCondense?: boolean
 	focusChainSettings: FocusChainSettings
 	focusChainFeatureFlagEnabled?: boolean
+	customPrompt?: string
 }
 
 export interface ClineMessage {
