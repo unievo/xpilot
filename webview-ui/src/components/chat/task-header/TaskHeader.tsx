@@ -579,22 +579,22 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											onClick={() => setIsTodoExpanded(!isTodoExpanded)}
 											onMouseEnter={(e) => {
 												e.currentTarget.style.backgroundColor =
-													"color-mix(in srgb, var(--vscode-charts-green) 25%, transparent)"
+													"color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)"
 											}}
 											onMouseLeave={(e) => {
 												e.currentTarget.style.backgroundColor =
-													"color-mix(in srgb, var(--vscode-charts-green) 15%, transparent)"
+													"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)"
 											}}
 											style={{
-												marginTop: "6px",
-												padding: "8px 12px",
+												marginTop: "4px",
+												padding: "4px 7px",
 												backgroundColor:
-													"color-mix(in srgb, var(--vscode-charts-green) 15%, transparent)",
-												borderRadius: "3px",
+													"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)",
+												borderRadius: "5px",
 												fontSize: "12px",
 												cursor: "pointer",
 												transition: "background-color 0.2s ease",
-												border: "1px solid color-mix(in srgb, var(--vscode-charts-green) 30%, transparent)",
+												// border: "1px solid color-mix(in srgb, var(--vscode-charts-green) 30%, transparent)",
 											}}>
 											<div
 												style={{
@@ -604,13 +604,28 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 													gap: "8px",
 												}}>
 												<div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-													<span style={{ fontWeight: "bold", color: "var(--vscode-charts-green)" }}>
-														All {todoInfo.totalCount} steps completed!
+													<span
+														style={{
+															backgroundColor:
+																"color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)",
+															color: "var(--vscode-badge-foreground)",
+															padding: "1px 6px",
+															borderRadius: "10px",
+															fontSize: "11px",
+															fontWeight: "500",
+															flexShrink: 0,
+														}}>
+														{todoInfo.currentIndex}/{todoInfo.totalCount}
+													</span>
+													<span
+														style={{
+															color: "color-mix(in srgb, var(--vscode-charts-green) 0%, white",
+														}}>
+														All steps completed!
 													</span>
 												</div>
 												<span
-													className={`codicon codicon-chevron-${isTodoExpanded ? "down" : "right"}`}
-													style={{ color: "var(--vscode-charts-green)" }}></span>
+													className={`codicon codicon-chevron-${isTodoExpanded ? "down" : "right"}`}></span>
 											</div>
 											{isTodoExpanded && (
 												<div
@@ -620,7 +635,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 														color: "var(--vscode-descriptionForeground)",
 														lineHeight: "1.4",
 													}}>
-													<div style={{ marginBottom: "2px" }}>
+													<div style={{ marginBottom: "0px" }}>
 														New steps will be generated if you continue the task
 													</div>
 												</div>
@@ -641,11 +656,11 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 												"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)"
 										}}
 										style={{
-											marginTop: "6px",
-											padding: "6px 8px",
+											marginTop: "4px",
+											padding: "4px 7px",
 											backgroundColor:
 												"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)",
-											borderRadius: "3px",
+											borderRadius: "5px",
 											fontSize: "12px",
 											cursor: "pointer",
 											transition: "background-color 0.2s ease",
@@ -661,7 +676,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 													left: 0,
 													height: "100%",
 													width: `${(todoInfo.completedCount / todoInfo.totalCount) * 100}%`,
-													backgroundColor: "var(--vscode-textLink-foreground)",
+													backgroundColor: "var(--vscode-input-foreground)",
 													opacity: 0.15,
 													borderRadius: "3px",
 													transition: "width 0.3s ease",
@@ -726,8 +741,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							{isTodoExpanded && lastProgressMessageText && (
 								<div
 									style={{
-										marginTop: "6px",
-										padding: "8px",
+										marginTop: "-1px",
+										padding: "5px",
 										backgroundColor: "color-mix(in srgb, var(--vscode-badge-foreground) 5%, transparent)",
 										borderRadius: "3px",
 										position: "relative",
@@ -772,6 +787,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 													<span
 														className="codicon codicon-edit"
 														style={{
+															marginLeft: "-1px",
 															fontSize: "14px",
 															color: "var(--vscode-badge-foreground)",
 															display: "flex",

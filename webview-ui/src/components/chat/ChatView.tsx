@@ -9,6 +9,7 @@ import { useMount } from "react-use"
 import { normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient, UiServiceClient } from "@/services/grpc-client"
+import { Navbar } from "../menu/Navbar"
 import AutoApproveBar from "./auto-approve-menu/AutoApproveBar"
 // Import utilities and hooks from the new structure
 import {
@@ -38,7 +39,7 @@ interface ChatViewProps {
 const MAX_IMAGES_AND_FILES_PER_MESSAGE = CHAT_CONSTANTS.MAX_IMAGES_AND_FILES_PER_MESSAGE
 const QUICK_WINS_HISTORY_THRESHOLD = 3
 
-const _IS_STANDALONE = window?.__is_standalone__ ?? false
+const IS_STANDALONE = window?.__is_standalone__ ?? false
 
 const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryView }: ChatViewProps) => {
 	const {
@@ -335,32 +336,34 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 	return (
 		<ChatLayout isHidden={isHidden}>
-			{task ? (
-				<TaskSection
-					apiMetrics={apiMetrics}
-					lastApiReqTotalTokens={lastApiReqTotalTokens}
-					messageHandlers={messageHandlers}
-					scrollBehavior={scrollBehavior}
-					selectedModelInfo={{
-						supportsPromptCache: selectedModelInfo.supportsPromptCache,
-						supportsImages: selectedModelInfo.supportsImages || false,
-					}}
-					task={task}
-				/>
-			) : (
-				<WelcomeSection
-					hideAnnouncement={hideAnnouncement}
-					shouldShowQuickWins={shouldShowQuickWins}
-					showAnnouncement={showAnnouncement}
-					showHistoryView={showHistoryView}
-					taskHistory={taskHistory}
-					telemetrySetting={telemetrySetting}
-					version={version}
-				/>
-			)}
+			<div className="flex flex-col flex-1 overflow-hidden">
+				{IS_STANDALONE && <Navbar />}
+				{task ? (
+					<TaskSection
+						apiMetrics={apiMetrics}
+						lastApiReqTotalTokens={lastApiReqTotalTokens}
+						lastProgressMessageText={_lastProgressMessageText}
+						messageHandlers={messageHandlers}
+						scrollBehavior={scrollBehavior}
+						selectedModelInfo={{
+							supportsPromptCache: selectedModelInfo.supportsPromptCache,
+							supportsImages: selectedModelInfo.supportsImages || false,
+						}}
+						task={task}
+					/>
+				) : (
+					<WelcomeSection
+						hideAnnouncement={hideAnnouncement}
+						shouldShowQuickWins={shouldShowQuickWins}
+						showAnnouncement={showAnnouncement}
+						showHistoryView={showHistoryView}
+						taskHistory={taskHistory}
+						telemetrySetting={telemetrySetting}
+						version={version}
+					/>
+				)}
 
-			{task && (
-				<>
+				{task && (
 					<MessagesArea
 						chatState={chatState}
 						groupedMessages={groupedMessages}
@@ -369,21 +372,21 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						scrollBehavior={scrollBehavior}
 						task={task}
 					/>
-					<ActionButtons
-						chatState={chatState}
-						messageHandlers={messageHandlers}
-						messages={messages}
-						mode={mode}
-						scrollBehavior={{
-							scrollToBottomSmooth: scrollBehavior.scrollToBottomSmooth,
-							disableAutoScrollRef: scrollBehavior.disableAutoScrollRef,
-							showScrollToBottom: scrollBehavior.showScrollToBottom,
-						}}
-						task={task}
-					/>
-					<AutoApproveBar />
-				</>
-			)}
+				)}
+			</div>
+			<ActionButtons
+				chatState={chatState}
+				messageHandlers={messageHandlers}
+				messages={messages}
+				mode={mode}
+				scrollBehavior={{
+					scrollToBottomSmooth: scrollBehavior.scrollToBottomSmooth,
+					disableAutoScrollRef: scrollBehavior.disableAutoScrollRef,
+					showScrollToBottom: scrollBehavior.showScrollToBottom,
+				}}
+				task={task}
+			/>
+			<AutoApproveBar />
 
 			<InputSection
 				chatState={chatState}

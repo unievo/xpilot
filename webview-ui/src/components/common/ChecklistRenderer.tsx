@@ -122,8 +122,8 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 					<span
 						style={{
 							color: item.checked ? "var(--vscode-descriptionForeground)" : "inherit",
-							textDecoration: item.checked ? "line-through" : "none",
-							opacity: item.checked ? 0.7 : 1,
+							// textDecoration: item.checked ? "line-through" : "none",
+							// opacity: item.checked ? 0.7 : 1,
 							fontSize: "12px",
 							wordBreak: "break-word",
 							overflowWrap: "anywhere",
