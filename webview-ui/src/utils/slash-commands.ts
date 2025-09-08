@@ -16,6 +16,11 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 		section: "task",
 	},
 	{
+		name: "Deep Planning",
+		description: "Create a comprehensive implementation plan before coding",
+		section: "task",
+	},
+	{
 		name: "Generate Instructions",
 		description: "Create task based instructions",
 		section: "instructions",
@@ -36,11 +41,6 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	// 	description: "Create a Github issue",
 	// 	section: "default",
 	// },
-	{
-		name: "Deep Planning",
-		description: "Create a comprehensive implementation plan before coding",
-		section: "task",
-	},
 ]
 
 export function getWorkflowCommands(

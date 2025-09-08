@@ -39,7 +39,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 				{/* {!shouldShowQuickWins && taskHistory.length > 0 && */} <HistoryPreview showHistoryView={showHistoryView} />
 			</div>
 			{/* <SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} /> */}
-			<AutoApproveBar />
+			{/* <AutoApproveBar /> */}
 		</>
 	)
 }
