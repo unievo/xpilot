@@ -34,8 +34,8 @@ import ReconnectingEventSource from "reconnecting-eventsource"
 import * as vscode from "vscode"
 import { z } from "zod"
 import { HostProvider } from "@/hosts/host-provider"
-import { TelemetryService } from "@/services/posthog/telemetry/TelemetryService"
 import { ShowMessageType } from "@/shared/proto/host/window"
+import { TelemetryService } from "../telemetry/TelemetryService"
 import { DEFAULT_REQUEST_TIMEOUT_MS } from "./constants"
 import { BaseConfigSchema, McpSettingsSchema, ServerConfigSchema } from "./schemas"
 import { McpConnection, McpServerConfig, Transport } from "./types"
@@ -637,7 +637,9 @@ export class McpHub {
 	}
 
 	private removeAllFileWatchers() {
-		this.fileWatchers.forEach((watcher) => watcher.close())
+		this.fileWatchers.forEach((watcher) => {
+			watcher.close()
+		})
 		this.fileWatchers.clear()
 	}
 
@@ -1154,6 +1156,8 @@ export class McpHub {
 		if (this.settingsWatcher) {
 			await this.settingsWatcher.close()
 		}
-		this.disposables.forEach((d) => d.dispose())
+		this.disposables.forEach((d) => {
+			d.dispose()
+		})
 	}
 }

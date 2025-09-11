@@ -74,7 +74,7 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 
 	return (
 		<div
-			className="px-[10px] mt-[10px] mx-[8px] -mb-2 select-none rounded-[10px_10px_0_0]"
+			className="px-[10px] mt-[1px] mx-[8px] -mb-2 select-none rounded-[10px_10px_0_0]"
 			style={{
 				borderTop: `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`,
 				backgroundColor: chatTextAreaBackground,

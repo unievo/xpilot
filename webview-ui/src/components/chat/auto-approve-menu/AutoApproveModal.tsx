@@ -120,26 +120,46 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 		return null
 	}
 
+	// Calculate safe positioning to prevent overflow while preserving original position
+	const calculateModalStyle = () => {
+		// Original positioning: bottom: calc(100vh - ${menuPosition}px + 6px)
+		const originalBottom = viewportHeight - menuPosition + 1
+
+		// Calculate the available space from the button to the top of the viewport
+		const availableSpace = viewportHeight - originalBottom
+
+		// Set a minimum top margin to prevent the modal from touching the top edge
+		const minTopMargin = 15
+
+		// Calculate the maximum height the modal can have
+		// Use the full available space minus the top margin, but also respect the original constraint
+		const maxAvailableHeight = availableSpace - minTopMargin
+		const originalMaxHeight = viewportHeight - 100
+
+		// Use the smaller of the two to ensure we don't overflow but still use full height when possible
+		let finalMaxHeight: number
+
+		if (menuPosition <= minTopMargin) {
+			// Button is very close to the top, use all available space
+			finalMaxHeight = maxAvailableHeight
+		} else {
+			// Normal case: use the original max height unless it would cause overflow
+			finalMaxHeight = Math.min(originalMaxHeight, maxAvailableHeight)
+		}
+
+		return {
+			bottom: `${originalBottom}px`,
+			maxHeight: `${Math.max(finalMaxHeight, 200)}px`, // Ensure minimum usable height
+			background: "var(--vscode-input-background)",
+			overscrollBehavior: "contain" as const,
+		}
+	}
+
 	return (
-		<div ref={modalRef}>
+		<div className="overflow-hidden" ref={modalRef}>
 			<div
 				className="fixed left-[16px] right-[16px] border border-[var(--vscode-editorGroup-border)] p-2.5 rounded z-[1000] overflow-hidden"
-				style={{
-					bottom: `calc(100vh - ${menuPosition}px + 1px)`,
-					background: "var(--vscode-input-background)",
-					maxHeight: "calc(100vh - 100px)",
-					overscrollBehavior: "contain",
-					borderRadius: "4px 4px 0 0",
-				}}>
-				{/* <div
-					className="fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[var(--vscode-editorGroup-border)]"
-					style={{
-						bottom: `calc(100vh - ${menuPosition}px)`,
-						right: arrowPosition,
-						background: "var(--vscode-input-background)",
-					}}
-				/> */}
-
+				style={calculateModalStyle()}>
 				<div className="flex justify-between items-center mb-3">
 					{/* <div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div> */}
 					<HeroTooltip

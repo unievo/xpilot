@@ -44,7 +44,6 @@ import {
 	pathSeparator,
 	plusButtonCommand,
 	popupButtonCommand,
-	productName,
 	settingsButtonCommand,
 } from "@shared/Configuration"
 import type { ExtensionContext } from "vscode"
@@ -63,7 +62,7 @@ import { VscodeDiffViewProvider } from "./hosts/vscode/VscodeDiffViewProvider"
 import { VscodeWebviewProvider } from "./hosts/vscode/VscodeWebviewProvider"
 import { GitCommitGenerator } from "./integrations/git/commit-message-generator"
 import { AuthService } from "./services/auth/AuthService"
-import { telemetryService } from "./services/posthog/PostHogClientProvider"
+import { telemetryService } from "./services/telemetry"
 import { SharedUriHandler } from "./services/uri/SharedUriHandler"
 import { ShowMessageType } from "./shared/proto/host/window"
 
@@ -479,8 +478,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (tabInstances.length > 0) {
 					activeWebview = tabInstances[tabInstances.length - 1]
 				} else {
-					// Try to focus sidebar
-					await vscode.commands.executeCommand(`${productName}.SidebarProvider.focus`)
+					// Try to focus sidebar via hostbridge
+					await HostProvider.workspace.openClineSidebarPanel({})
 
 					// Small delay for focus to complete
 					await new Promise((resolve) => setTimeout(resolve, 200))

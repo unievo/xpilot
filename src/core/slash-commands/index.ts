@@ -1,5 +1,6 @@
 import { ClineRulesToggles } from "@shared/cline-rules"
 import fs from "fs/promises"
+import { telemetryService } from "@/services/telemetry"
 import {
 	condenseToolResponse,
 	deepPlanningToolResponse,
@@ -17,7 +18,8 @@ export async function parseSlashCommands(
 	text: string,
 	localWorkflowToggles: ClineRulesToggles,
 	globalWorkflowToggles: ClineRulesToggles,
-	_ulid: string,
+	ulid: string,
+	focusChainSettings?: { enabled: boolean },
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
 	const SUPPORTED_DEFAULT_COMMANDS = [
 		"New Task",
@@ -30,12 +32,12 @@ export async function parseSlashCommands(
 
 	const commandReplacements: Record<string, string> = {
 		"New Task": newTaskToolResponse(),
-		"Compact Task": condenseToolResponse(),
+		"Compact Task": condenseToolResponse(focusChainSettings),
 		"Generate Instructions": newRuleToolResponse(),
 		"Git Instructions": gitInstructionsToolResponse(),
 		"Git Workflows": gitWorkflowsToolResponse(),
 		//"Report Bug": reportBugToolResponse(),
-		"Deep Planning": deepPlanningToolResponse(),
+		"Deep Planning": deepPlanningToolResponse(focusChainSettings),
 	}
 
 	// Get all available workflow commands (without file extensions)
@@ -163,7 +165,7 @@ export async function parseSlashCommands(
 						textWithoutSlashCommand
 
 					// Track telemetry for workflow command usage
-					// telemetryService.captureSlashCommandUsed(ulid, matchedCommand, "workflow")
+					telemetryService.captureSlashCommandUsed(ulid, matchedCommand, "workflow")
 
 					return { processedText, needsClinerulesFileCheck: false }
 				} catch (error) {

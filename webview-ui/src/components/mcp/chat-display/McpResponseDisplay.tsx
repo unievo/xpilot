@@ -50,6 +50,7 @@ const ResponseContainer = styled.div`
 	color: var(--vscode-editor-foreground, #d4d4d4);
 	border-radius: 0 0 6px 6px;
 	overflow: hidden;
+	z-index: 0;
 	margin-top: -18px;
 
 	.response-content {

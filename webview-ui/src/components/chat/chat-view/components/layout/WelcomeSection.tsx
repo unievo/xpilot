@@ -1,7 +1,6 @@
 import { enableTelemetrySettings } from "@shared/Configuration"
 import React from "react"
 import Announcement from "@/components/chat/Announcement"
-import AutoApproveBar from "@/components/chat/auto-approve-menu/AutoApproveBar"
 import TelemetryBanner from "@/components/common/TelemetryBanner"
 import HistoryPreview from "@/components/history/HistoryPreview"
 import HomeHeader from "@/components/welcome/HomeHeader"

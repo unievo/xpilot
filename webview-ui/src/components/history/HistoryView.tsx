@@ -353,7 +353,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						}}>
 						Task History
 					</h3>
-					<VSCodeButton onClick={onDone} style={{ height: "20px" }}>
+					<VSCodeButton onClick={() => onDone()} style={{ height: "20px" }}>
 						Done
 					</VSCodeButton>
 				</div>
@@ -811,6 +811,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							onClick={() => {
 								setDeleteAllDisabled(true)
 								TaskServiceClient.deleteAllTaskHistory(BooleanRequest.create({}))
+									.then(() => fetchTotalTasksSize())
 									.catch((error) => console.error("Error deleting task history:", error))
 									.finally(() => setDeleteAllDisabled(false))
 							}}

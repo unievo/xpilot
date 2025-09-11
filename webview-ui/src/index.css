@@ -4,6 +4,7 @@
 /* @import "tailwindcss/preflight.css" layer(base); */
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* biome-ignore lint/suspicious/noUnknownAtRules: <> */
 @config "../tailwind.config.mjs";
 
 /* Import Azeret Mono font from local package */
