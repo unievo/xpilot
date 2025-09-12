@@ -20,20 +20,15 @@ import "./utils/path" // necessary to have access to String.prototype.toPosix
 
 import path from "node:path"
 import {
-	addToAgentCodeActionName,
-	addToChatCommand,
+	addToChatCodeActionName,
 	agentName,
 	explainWithAgentCodeActionName,
-	explainWithAgentCommand,
 	extensionIconDarkPath,
 	extensionIconLightPath,
 	fixWithAgentCodeActionName,
-	fixWithAgentCommand,
 	improveWithAgentCodeActionName,
-	improveWithAgentCommand,
 	isDevMode,
 	pathSeparator,
-	productName,
 } from "@shared/Configuration"
 import type { ExtensionContext } from "vscode"
 import { HostProvider } from "@/hosts/host-provider"
@@ -51,7 +46,7 @@ import { focusChatInput, getContextForCommand } from "./hosts/vscode/commandUtil
 import { VscodeDiffViewProvider } from "./hosts/vscode/VscodeDiffViewProvider"
 import { VscodeWebviewProvider } from "./hosts/vscode/VscodeWebviewProvider"
 import { GitCommitGenerator } from "./integrations/git/commit-message-generator"
-import { getClineCommands } from "./registry"
+import { ExtensionRegistryInfo } from "./registry"
 import { AuthService } from "./services/auth/AuthService"
 import { telemetryService } from "./services/telemetry"
 import { SharedUriHandler } from "./services/uri/SharedUriHandler"
@@ -87,7 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	const commands = getClineCommands(productName) // context.extension.packageJSON.name)
+	const { commands } = ExtensionRegistryInfo
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(commands.PlusButton, async (webview: any) => {
@@ -353,10 +348,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					// Add to Cline (Always available)
-					const addAction = new vscode.CodeAction(addToAgentCodeActionName, vscode.CodeActionKind.QuickFix)
+					const addAction = new vscode.CodeAction(addToChatCodeActionName, vscode.CodeActionKind.QuickFix)
 					addAction.command = {
-						command: addToChatCommand,
-						title: addToAgentCodeActionName,
+						command: commands.AddToChat,
+						title: addToChatCodeActionName,
 						arguments: [expandedRange, context.diagnostics],
 					}
 					actions.push(addAction)
@@ -367,7 +362,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						vscode.CodeActionKind.RefactorExtract,
 					) // Using a refactor kind
 					explainAction.command = {
-						command: explainWithAgentCommand,
+						command: commands.ExplainCode,
 						title: explainWithAgentCodeActionName,
 						arguments: [expandedRange],
 					}
@@ -379,7 +374,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						vscode.CodeActionKind.RefactorRewrite,
 					) // Using a refactor kind
 					improveAction.command = {
-						command: improveWithAgentCommand,
+						command: commands.ImproveCode,
 						title: improveWithAgentCodeActionName,
 						arguments: [expandedRange],
 					}
@@ -390,7 +385,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						const fixAction = new vscode.CodeAction(fixWithAgentCodeActionName, vscode.CodeActionKind.QuickFix)
 						fixAction.isPreferred = true
 						fixAction.command = {
-							command: fixWithAgentCommand,
+							command: commands.FixWithCline,
 							title: fixWithAgentCodeActionName,
 							arguments: [expandedRange, context.diagnostics],
 						}

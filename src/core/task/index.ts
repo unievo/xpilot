@@ -73,6 +73,7 @@ import type { SystemPromptContext } from "@/core/prompts/system-prompt"
 import { getSystemPrompt } from "@/core/prompts/system-prompt"
 import { HostProvider } from "@/hosts/host-provider"
 import { ErrorService } from "@/services/error"
+import { featureFlagsService } from "@/services/feature-flags"
 import { TerminalHangStage, TerminalUserInterventionAction, telemetryService } from "@/services/telemetry"
 import { ShowMessageType } from "@/shared/proto/index.host"
 import { isInTestMode } from "../../services/test/TestMode"
@@ -284,7 +285,6 @@ export class Task {
 				context: controller.context,
 				workspaceManager: this.workspaceManager,
 				globalStoragePath: controller.context.globalStorageUri.fsPath,
-				isMultiRootEnabled: stateManager.getGlobalStateKey("multiRootEnabled"),
 				updateTaskHistory: this.updateTaskHistory,
 				say: this.say.bind(this),
 				cancelTask: this.cancelTask,
@@ -296,9 +296,9 @@ export class Task {
 			// If multi-root, kick off non-blocking initialization
 			if (
 				shouldUseMultiRoot({
-					isMultiRootEnabled: stateManager.getGlobalStateKey("multiRootEnabled"),
 					workspaceManager: this.workspaceManager,
 					enableCheckpoints: enableCheckpointsSetting,
+					isMultiRootEnabled: featureFlagsService.getMultiRootEnabled(),
 				})
 			) {
 				this.checkpointManager.initialize?.().catch((error: Error) => {
@@ -1324,6 +1324,7 @@ export class Task {
 		})
 
 		const providerInfo = this.getCurrentProviderInfo()
+		const ide = (await HostProvider.env.getHostVersion({})).platform || "Unknown"
 		await this.migrateDisableBrowserToolSetting()
 		const disableBrowserTool = this.browserSettings.disableToolUse ?? false
 		// cline browser tool uses image recognition for navigation (requires model image support).
@@ -1359,8 +1360,20 @@ export class Task {
 			clineIgnoreInstructions = formatResponse.clineIgnoreInstructions(clineIgnoreContent)
 		}
 
+		// Prepare multi-root workspace information if enabled
+		let workspaceRoots: Array<{ path: string; name: string; vcs?: string }> | undefined
+		const isMultiRootEnabled = featureFlagsService.getMultiRootEnabled()
+		if (isMultiRootEnabled && this.workspaceManager) {
+			workspaceRoots = this.workspaceManager.getRoots().map((root) => ({
+				path: root.path,
+				name: root.name || path.basename(root.path), // Fallback to basename if name is undefined
+				vcs: root.vcs as string | undefined, // Cast VcsType to string
+			}))
+		}
+
 		const promptContext: SystemPromptContext = {
 			cwd: this.cwd,
+			ide,
 			providerInfo,
 			supportsBrowserUse,
 			mcpHub: this.mcpHub,
@@ -1374,6 +1387,8 @@ export class Task {
 			clineIgnoreInstructions,
 			preferredLanguageInstructions,
 			browserSettings: this.browserSettings,
+			isMultiRootEnabled,
+			workspaceRoots,
 		}
 
 		const systemPrompt = await getSystemPrompt(promptContext)
@@ -2368,10 +2383,11 @@ export class Task {
 	}
 
 	async getEnvironmentDetails(includeFileDetails: boolean = false) {
+		const host = await HostProvider.env.getHostVersion({})
 		let details = ""
 
 		// It could be useful for cline to know if the user went from one or no file to another between messages, so we always include this context
-		details += "\n\n# VSCode Visible Files"
+		details += `\n\n# ${host.platform} Visible Files`
 		const visibleFilePaths = (await HostProvider.window.getVisibleTabs({})).paths.map((absolutePath) =>
 			path.relative(this.cwd, absolutePath),
 		)
@@ -2388,7 +2404,7 @@ export class Task {
 			details += "\n(No visible files)"
 		}
 
-		details += "\n\n# VSCode Open Tabs"
+		details += `\n\n# ${host.platform} Open Tabs`
 		const openTabPaths = (await HostProvider.window.getOpenTabs({})).paths.map((absolutePath) =>
 			path.relative(this.cwd, absolutePath),
 		)
@@ -2461,13 +2477,6 @@ export class Task {
 				}
 			}
 		}
-
-		// details += "\n\n# VSCode Workspace Errors"
-		// if (diagnosticsDetails) {
-		// 	details += diagnosticsDetails
-		// } else {
-		// 	details += "\n(No errors detected)"
-		// }
 
 		if (terminalDetails) {
 			details += terminalDetails

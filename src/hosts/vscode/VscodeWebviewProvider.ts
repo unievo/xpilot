@@ -4,7 +4,8 @@ import type { Uri } from "vscode"
 import * as vscode from "vscode"
 import { handleGrpcRequest, handleGrpcRequestCancel } from "@/core/controller/grpc-handler"
 import { HostProvider } from "@/hosts/host-provider"
-import { productName, sideBarId, tabPanelId } from "@/shared/Configuration"
+import { ExtensionRegistryInfo } from "@/registry"
+import { productName } from "@/shared/Configuration"
 import type { ExtensionMessage } from "@/shared/ExtensionMessage"
 import { WebviewMessage } from "@/shared/WebviewMessage"
 import type { WebviewProviderType } from "@/shared/webview/types"
@@ -17,8 +18,8 @@ https://github.com/KumarVariable/vscode-extension-sidebar-html/blob/master/src/c
 export class VscodeWebviewProvider extends WebviewProvider implements vscode.WebviewViewProvider {
 	// Used in package.json as the view's id. This value cannot be changed due to how vscode caches
 	// views based on their id, and updating the id would break existing instances of the extension.
-	public static readonly SIDEBAR_ID = sideBarId
-	public static readonly TAB_PANEL_ID = tabPanelId
+	public static readonly SIDEBAR_ID = ExtensionRegistryInfo.views.Sidebar
+	public static readonly TAB_PANEL_ID = ExtensionRegistryInfo.views.TabPanel
 
 	private webview?: vscode.WebviewView | vscode.WebviewPanel
 	private disposables: vscode.Disposable[] = []
