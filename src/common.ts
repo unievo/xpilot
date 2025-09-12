@@ -12,7 +12,7 @@ import "./utils/path" // necessary to have access to String.prototype.toPosix
 
 import { HostProvider } from "@/hosts/host-provider"
 import { FileContextTracker } from "./core/context/context-tracking/FileContextTracker"
-import { errorService } from "./services/error"
+import { ErrorService } from "./services/error"
 import { featureFlagsService } from "./services/feature-flags"
 import { initializeDistinctId } from "./services/logging/distinctId"
 import { PostHogClientProvider } from "./services/posthog/PostHogClientProvider"
@@ -32,6 +32,9 @@ export async function initialize(context: vscode.ExtensionContext): Promise<Webv
 
 	// Initialize PostHog client provider
 	PostHogClientProvider.getInstance()
+
+	// Setup the ErrorService
+	await ErrorService.initialize()
 
 	// Migrate custom instructions to global Cline rules (one-time cleanup)
 	await migrateCustomInstructionsToGlobalRules(context)
@@ -97,7 +100,7 @@ async function showVersionUpdateAnnouncement(context: vscode.ExtensionContext) {
 export async function tearDown(): Promise<void> {
 	PostHogClientProvider.getInstance().dispose()
 	telemetryService.dispose()
-	errorService.dispose()
+	ErrorService.get().dispose()
 	featureFlagsService.dispose()
 	// Dispose all webview instances
 	await WebviewProvider.disposeAllInstances()

@@ -1,12 +1,15 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import { buildApiHandler } from "@core/api"
+import { detectWorkspaceRoots } from "@core/workspace/detection"
+import { setupWorkspaceManager } from "@core/workspace/setup"
+import { WorkspaceRootManager } from "@core/workspace/WorkspaceRootManager"
 import { cleanupLegacyCheckpoints } from "@integrations/checkpoints/CheckpointMigration"
 import { downloadTask } from "@integrations/misc/export-markdown"
 import { ClineAccountService } from "@services/account/ClineAccountService"
 import { McpHub } from "@services/mcp/McpHub"
 import { ApiProvider, ModelInfo } from "@shared/api"
 import { ChatContent } from "@shared/ChatContent"
-import { agentName, latestAnnouncementId } from "@shared/Configuration"
+import { agentName } from "@shared/Configuration"
 import { ExtensionState, Platform } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
 import { McpMarketplaceCatalog } from "@shared/mcp"
@@ -27,6 +30,7 @@ import { telemetryService } from "@/services/telemetry"
 import { ShowMessageType } from "@/shared/proto/host/window"
 import { getLatestAnnouncementId } from "@/utils/announcements"
 import { getCwd, getDesktopDir } from "@/utils/path"
+import { PromptRegistry } from "../prompts/system-prompt"
 import { ensureMcpServersDirectoryExists, ensureSettingsDirectoryExists, GlobalFileNames } from "../storage/disk"
 import { PersistenceErrorEvent, StateManager } from "../storage/StateManager"
 import { Task } from "../task"
@@ -40,7 +44,6 @@ https://github.com/KumarVariable/vscode-extension-sidebar-html/blob/master/src/c
 
 export class Controller {
 	readonly id: string
-	private disposables: vscode.Disposable[] = []
 	task?: Task
 
 	mcpHub: McpHub
@@ -48,14 +51,15 @@ export class Controller {
 	authService: AuthService
 	readonly stateManager: StateManager
 
-	latestAnnouncementId = latestAnnouncementId // update to some unique identifier when we add a new announcement
+	// NEW: Add workspace manager (optional initially)
+	private workspaceManager?: WorkspaceRootManager
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
 		id: string,
 	) {
 		this.id = id
-
+		PromptRegistry.getInstance() // Ensure prompts and tools are registered
 		HostProvider.get().logToChannel("ClineProvider instantiated")
 		this.accountService = ClineAccountService.getInstance()
 		this.stateManager = new StateManager(context)
@@ -72,6 +76,10 @@ export class Controller {
 					"[Controller] CRITICAL: Failed to initialize StateManager - extension may not function properly:",
 					error,
 				)
+				HostProvider.window.showMessage({
+					type: ShowMessageType.ERROR,
+					message: "Failed to initialize Cline's application state. Please restart the extension.",
+				})
 			})
 
 		// Set up persistence error recovery
@@ -121,12 +129,6 @@ export class Controller {
 	*/
 	async dispose() {
 		await this.clearTask()
-		while (this.disposables.length) {
-			const x = this.disposables.pop()
-			if (x) {
-				x.dispose()
-			}
-		}
 		this.mcpHub.dispose()
 
 		console.error("Controller disposed")
@@ -216,6 +218,14 @@ export class Controller {
 			enabled: focusChainEnabled,
 		}
 
+		// Initialize and persist the workspace manager (multi-root or single-root) with telemetry + fallback
+		this.workspaceManager = await setupWorkspaceManager({
+			stateManager: this.stateManager,
+			detectRoots: detectWorkspaceRoots,
+		})
+
+		const cwd = this.workspaceManager?.getPrimaryRoot()?.path || (await getCwd(getDesktopDir()))
+
 		this.task = new Task(
 			this,
 			this.mcpHub,
@@ -237,8 +247,9 @@ export class Controller {
 			terminalOutputLineLimit ?? 500,
 			defaultTerminalProfile ?? "default",
 			enableCheckpointsSetting ?? true,
-			await getCwd(getDesktopDir()),
+			cwd,
 			this.stateManager,
+			this.workspaceManager,
 			task,
 			images,
 			files,
@@ -706,8 +717,8 @@ export class Controller {
 		const workflowToggles = this.stateManager.getWorkspaceStateKey("workflowToggles")
 
 		const currentTaskItem = this.task?.taskId ? (taskHistory || []).find((item) => item.id === this.task?.taskId) : undefined
-		const checkpointTrackerErrorMessage = this.task?.taskState.checkpointTrackerErrorMessage
 		const clineMessages = this.task?.messageStateHandler.getClineMessages() || []
+		const checkpointManagerErrorMessage = this.task?.taskState.checkpointManagerErrorMessage
 
 		const processedTaskHistory = (taskHistory || [])
 			.filter((item) => item.ts && item.task)
@@ -720,18 +731,19 @@ export class Controller {
 		const distinctId = getDistinctId()
 		const version = this.context.extension?.packageJSON?.version ?? ""
 		const uriScheme = vscode.env.uriScheme
+		const extensionInfo = {
+			name: this.context.extension?.packageJSON?.name,
+			publisher: this.context.extension?.packageJSON?.publisher,
+		}
 
 		return {
 			version,
 			apiConfiguration,
 			uriScheme,
 			currentTaskItem,
-			checkpointTrackerErrorMessage,
 			clineMessages,
 			currentFocusChainChecklist: this.task?.taskState.currentFocusChainChecklist || null,
-			taskHistory: processedTaskHistory,
-			shouldShowAnnouncement,
-			platform,
+			checkpointManagerErrorMessage,
 			autoApprovalSettings,
 			browserSettings,
 			focusChainSettings,
@@ -762,6 +774,14 @@ export class Controller {
 			mcpResponsesCollapsed,
 			terminalOutputLineLimit,
 			customPrompt,
+			taskHistory: processedTaskHistory,
+			platform,
+			shouldShowAnnouncement,
+			extensionInfo,
+			// NEW: Add workspace information
+			workspaceRoots: this.workspaceManager?.getRoots() ?? [],
+			primaryRootIndex: this.workspaceManager?.getPrimaryIndex() ?? 0,
+			isMultiRootWorkspace: (this.workspaceManager?.getRoots().length ?? 0) > 1,
 		}
 	}
 

@@ -22,7 +22,7 @@ const CreditLimitError: React.FC<CreditLimitErrorProps> = ({
 	message = "You have run out of credits.",
 	// buyCreditsUrl = "https://app.cline.bot/dashboard/account?tab=credits&redirect=true",
 }) => {
-	const { uriScheme } = useExtensionState()
+	const { uriScheme, extensionInfo } = useExtensionState()
 	const { activeOrganization } = useClineAuth()
 
 	const isPersonal = !activeOrganization?.organizationId

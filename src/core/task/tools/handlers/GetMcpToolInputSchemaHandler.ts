@@ -1,12 +1,13 @@
 import type { ToolUse } from "@core/assistant-message"
 import { formatResponse } from "@/core/prompts/responses"
+import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import type { IPartialBlockHandler, IToolHandler } from "../ToolExecutorCoordinator"
 import type { TaskConfig } from "../types/TaskConfig"
 import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 
 export class GetMcpToolInputSchemaHandler implements IToolHandler, IPartialBlockHandler {
-	readonly name = "get_mcp_tool_input_schema"
+	readonly name = ClineDefaultTool.MCP_INPUT_SCHEMA
 
 	constructor() {}
 
@@ -16,12 +17,12 @@ export class GetMcpToolInputSchemaHandler implements IToolHandler, IPartialBlock
 
 	async handlePartialBlock(_block: ToolUse, uiHelpers: StronglyTypedUIHelpers): Promise<void> {
 		// Show loading message for partial blocks (though this tool probably won't have partials)
-		await uiHelpers.say("get_mcp_tool_input_schema", "", undefined, undefined, true)
+		await uiHelpers.say(ClineDefaultTool.MCP_INPUT_SCHEMA, "", undefined, undefined, true)
 	}
 
 	async execute(config: TaskConfig, block: ToolUse): Promise<ToolResponse> {
 		// Show loading message at start of execution (self-managed now)
-		await config.callbacks.say("get_mcp_tool_input_schema", "", undefined, undefined, false)
+		await config.callbacks.say(ClineDefaultTool.MCP_INPUT_SCHEMA, "", undefined, undefined, false)
 
 		const server_name: string | undefined = block.params.server_name
 		const tool_name: string | undefined = block.params.tool_name

@@ -18,10 +18,8 @@ import { cleanupTestMode, initializeTestMode } from "./services/test/TestMode"
 import { WebviewProviderType } from "./shared/webview/types"
 import "./utils/path" // necessary to have access to String.prototype.toPosix
 
+import path from "node:path"
 import {
-	abortGitCommitMessageCommand,
-	accountButtonCommand,
-	addTerminalOutputToChatCommand,
 	addToAgentCodeActionName,
 	addToChatCommand,
 	agentName,
@@ -29,22 +27,13 @@ import {
 	explainWithAgentCommand,
 	extensionIconDarkPath,
 	extensionIconLightPath,
-	extensionId,
 	fixWithAgentCodeActionName,
 	fixWithAgentCommand,
-	focusChatInputCommand,
-	generateGitCommitMessageCommand,
-	historyButtonCommand,
 	improveWithAgentCodeActionName,
 	improveWithAgentCommand,
 	isDevMode,
-	mcpButtonCommand,
-	openNewTabCommand,
-	openWalkthroughCommand,
 	pathSeparator,
-	plusButtonCommand,
-	popupButtonCommand,
-	settingsButtonCommand,
+	productName,
 } from "@shared/Configuration"
 import type { ExtensionContext } from "vscode"
 import { HostProvider } from "@/hosts/host-provider"
@@ -57,15 +46,17 @@ import { fixWithCline } from "./core/controller/commands/fixWithCline"
 import { improveWithCline } from "./core/controller/commands/improveWithCline"
 import { sendAddToInputEvent } from "./core/controller/ui/subscribeToAddToInput"
 import { sendFocusChatInputEvent } from "./core/controller/ui/subscribeToFocusChatInput"
+import { workspaceResolver } from "./core/workspace"
 import { focusChatInput, getContextForCommand } from "./hosts/vscode/commandUtils"
 import { VscodeDiffViewProvider } from "./hosts/vscode/VscodeDiffViewProvider"
 import { VscodeWebviewProvider } from "./hosts/vscode/VscodeWebviewProvider"
 import { GitCommitGenerator } from "./integrations/git/commit-message-generator"
+import { getClineCommands } from "./registry"
 import { AuthService } from "./services/auth/AuthService"
 import { telemetryService } from "./services/telemetry"
 import { SharedUriHandler } from "./services/uri/SharedUriHandler"
 import { ShowMessageType } from "./shared/proto/host/window"
-
+import { fileExistsAtPath } from "./utils/fs"
 /*
 Built using https://github.com/microsoft/vscode-webview-ui-toolkit
 
@@ -96,8 +87,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
+	const commands = getClineCommands(productName) // context.extension.packageJSON.name)
+
 	context.subscriptions.push(
-		vscode.commands.registerCommand(plusButtonCommand, async (webview: any) => {
+		vscode.commands.registerCommand(commands.PlusButton, async (webview: any) => {
 			console.log("[DEBUG] plusButtonClicked", webview)
 			// Pass the webview type to the event sender
 			const isSidebar = !webview
@@ -124,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(mcpButtonCommand, (webview: any) => {
+		vscode.commands.registerCommand(commands.McpButton, (webview: any) => {
 			console.log("[DEBUG] mcpButtonClicked", webview)
 
 			const activeInstance = WebviewProvider.getActiveInstance()
@@ -182,11 +175,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		return tabWebview
 	}
 
-	context.subscriptions.push(vscode.commands.registerCommand(popupButtonCommand, openClineInNewTab))
-	context.subscriptions.push(vscode.commands.registerCommand(openNewTabCommand, openClineInNewTab))
+	context.subscriptions.push(vscode.commands.registerCommand(commands.PopoutButton, openClineInNewTab))
+	context.subscriptions.push(vscode.commands.registerCommand(commands.OpenInNewTab, openClineInNewTab))
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(settingsButtonCommand, (webview: any) => {
+		vscode.commands.registerCommand(commands.SettingsButton, (webview: any) => {
 			const isSidebar = !webview
 			const webviewType = isSidebar ? WebviewProviderTypeEnum.SIDEBAR : WebviewProviderTypeEnum.TAB
 
@@ -195,7 +188,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(historyButtonCommand, async (webview: any) => {
+		vscode.commands.registerCommand(commands.HistoryButton, async (webview: any) => {
 			console.log("[DEBUG] historyButtonClicked", webview)
 			// Pass the webview type to the event sender
 			const isSidebar = !webview
@@ -207,7 +200,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(accountButtonCommand, (webview: any) => {
+		vscode.commands.registerCommand(commands.AccountButton, (webview: any) => {
 			console.log("[DEBUG] accountButtonClicked", webview)
 
 			const isSidebar = !webview
@@ -248,7 +241,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(DIFF_VIEW_URI_SCHEME, diffContentProvider))
 
 	const handleUri = async (uri: vscode.Uri) => {
-		const success = await SharedUriHandler.handleUri(uri)
+		const url = decodeURIComponent(uri.toString())
+		const success = await SharedUriHandler.handleUri(url)
 		if (!success) {
 			console.warn("Extension URI handler: Failed to process URI:", uri.toString())
 		}
@@ -270,7 +264,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(addTerminalOutputToChatCommand, async () => {
+		vscode.commands.registerCommand(commands.TerminalOutput, async () => {
 			const terminal = vscode.window.activeTerminal
 			if (!terminal) {
 				return
@@ -417,7 +411,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the command handlers
 	context.subscriptions.push(
-		vscode.commands.registerCommand(addToChatCommand, async (range?: vscode.Range, diagnostics?: vscode.Diagnostic[]) => {
+		vscode.commands.registerCommand(commands.AddToChat, async (range?: vscode.Range, diagnostics?: vscode.Diagnostic[]) => {
 			const context = await getContextForCommand(range, diagnostics)
 			if (!context) {
 				return
@@ -426,7 +420,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 	context.subscriptions.push(
-		vscode.commands.registerCommand(fixWithAgentCommand, async (range: vscode.Range, diagnostics: vscode.Diagnostic[]) => {
+		vscode.commands.registerCommand(commands.FixWithCline, async (range: vscode.Range, diagnostics: vscode.Diagnostic[]) => {
 			const context = await getContextForCommand(range, diagnostics)
 			if (!context) {
 				return
@@ -435,7 +429,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 	context.subscriptions.push(
-		vscode.commands.registerCommand(explainWithAgentCommand, async (range: vscode.Range) => {
+		vscode.commands.registerCommand(commands.ExplainCode, async (range: vscode.Range) => {
 			const context = await getContextForCommand(range)
 			if (!context) {
 				return
@@ -444,7 +438,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 	context.subscriptions.push(
-		vscode.commands.registerCommand(improveWithAgentCommand, async (range: vscode.Range) => {
+		vscode.commands.registerCommand(commands.ImproveCode, async (range: vscode.Range) => {
 			const context = await getContextForCommand(range)
 			if (!context) {
 				return
@@ -455,7 +449,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the focusChatInput command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand(focusChatInputCommand, async () => {
+		vscode.commands.registerCommand(commands.FocusChatInput, async () => {
 			// Fast path: check for existing active instance
 			let activeWebview = WebviewProvider.getLastActiveInstance() as VscodeWebviewProvider
 
@@ -509,18 +503,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the openWalkthrough command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand(openWalkthroughCommand, async () => {
-			await vscode.commands.executeCommand("workbench.action.openWalkthrough", `${extensionId}#Walkthrough`)
+		vscode.commands.registerCommand(commands.Walkthrough, async () => {
+			await vscode.commands.executeCommand("workbench.action.openWalkthrough", `${context.extension.id}#Walkthrough`)
 			telemetryService.captureButtonClick("command_openWalkthrough")
 		}),
 	)
 
 	// Register the generateGitCommitMessage command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand(generateGitCommitMessageCommand, async (scm) => {
+		vscode.commands.registerCommand(commands.GenerateCommit, async (scm) => {
 			await GitCommitGenerator?.generate?.(context, scm)
 		}),
-		vscode.commands.registerCommand(abortGitCommitMessageCommand, () => {
+		vscode.commands.registerCommand(commands.AbortCommit, () => {
 			GitCommitGenerator?.abort?.()
 		}),
 	)
@@ -556,8 +550,42 @@ function setupHostProvider(context: ExtensionContext) {
 	const outputChannel = vscode.window.createOutputChannel(agentName)
 	context.subscriptions.push(outputChannel)
 
-	const getCallbackUri = async () => `${vscode.env.uriScheme || "vscode"}://${extensionId}`
-	HostProvider.initialize(createWebview, createDiffView, vscodeHostBridgeClient, outputChannel.appendLine, getCallbackUri)
+	const getCallbackUri = async () => `${vscode.env.uriScheme || "vscode"}://${context.extension.id}`
+	HostProvider.initialize(
+		createWebview,
+		createDiffView,
+		vscodeHostBridgeClient,
+		outputChannel.appendLine,
+		getCallbackUri,
+		getBinaryLocation,
+	)
+}
+
+async function getBinaryLocation(name: string): Promise<string> {
+	// The only binary currently supported is the rg binary from the VSCode installation.
+	if (!name.startsWith("rg")) {
+		throw new Error(`Binary '${name}' is not supported`)
+	}
+
+	const checkPath = async (pkgFolder: string) => {
+		const fullPathResult = workspaceResolver.resolveWorkspacePath(
+			vscode.env.appRoot,
+			path.join(pkgFolder, name),
+			"Services.ripgrep.getBinPath",
+		)
+		const fullPath = typeof fullPathResult === "string" ? fullPathResult : fullPathResult.absolutePath
+		return (await fileExistsAtPath(fullPath)) ? fullPath : undefined
+	}
+
+	const binPath =
+		(await checkPath("node_modules/@vscode/ripgrep/bin/")) ||
+		(await checkPath("node_modules/vscode-ripgrep/bin")) ||
+		(await checkPath("node_modules.asar.unpacked/vscode-ripgrep/bin/")) ||
+		(await checkPath("node_modules.asar.unpacked/@vscode/ripgrep/bin/"))
+	if (!binPath) {
+		throw new Error("Could not find ripgrep binary")
+	}
+	return binPath
 }
 
 // This method is called when your extension is deactivated

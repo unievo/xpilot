@@ -18,6 +18,7 @@ import Thumbnails from "@/components/common/Thumbnails"
 import ApiOptions from "@/components/settings/ApiOptions"
 import { getModeSpecificFields, normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { usePlatform } from "@/context/PlatformContext"
 import { FileServiceClient, ModelsServiceClient, StateServiceClient } from "@/services/grpc-client"
 import {
 	ContextMenuOptionType,
@@ -1214,7 +1215,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			}, changeModeDelay)
 		}, [mode, showModelSelector, submitApiConfig, inputValue, selectedImages, selectedFiles])
 
-		useShortcut("Meta+Shift+a", onModeToggle, { disableTextInputs: false }) // important that we don't disable the text input here
+		useShortcut(usePlatform().togglePlanActKeys, onModeToggle, { disableTextInputs: false }) // important that we don't disable the text input here
 
 		const handleContextButtonClick = useCallback(() => {
 			// Focus the textarea first
@@ -1585,6 +1586,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				),
 			)
 		}
+		// Replace Meta with the platform specific key and uppercase the command letter.
+		const togglePlanActKeys = usePlatform()
+			.togglePlanActKeys.replace("Meta", _metaKeyChar)
+			.replace(/.$/, (match) => match.toUpperCase())
 
 		return (
 			<div style={{ paddingBottom: "5px" }}>
