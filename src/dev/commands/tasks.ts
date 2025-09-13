@@ -6,7 +6,7 @@ import * as path from "path"
 import * as vscode from "vscode"
 import { HostProvider } from "@/hosts/host-provider"
 import { ShowMessageType } from "@/shared/proto/host/window"
-import { createTestTasksCommand } from "../../shared/Configuration"
+import { productName } from "../../shared/Configuration"
 
 /**
  * Registers development-only commands for task manipulation.
@@ -14,7 +14,7 @@ import { createTestTasksCommand } from "../../shared/Configuration"
  */
 export function registerTaskCommands(context: vscode.ExtensionContext, controller: Controller): vscode.Disposable[] {
 	return [
-		vscode.commands.registerCommand(createTestTasksCommand, async () => {
+		vscode.commands.registerCommand(`${productName}.dev.createTestTasks`, async () => {
 			const count = (
 				await HostProvider.window.showInputBox({
 					title: "Test Tasks",

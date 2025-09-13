@@ -19,17 +19,7 @@ import { WebviewProviderType } from "./shared/webview/types"
 import "./utils/path" // necessary to have access to String.prototype.toPosix
 
 import path from "node:path"
-import {
-	addToChatCodeActionName,
-	agentName,
-	explainWithAgentCodeActionName,
-	extensionIconDarkPath,
-	extensionIconLightPath,
-	fixWithAgentCodeActionName,
-	improveWithAgentCodeActionName,
-	isDevMode,
-	pathSeparator,
-} from "@shared/Configuration"
+import { agentName, extensionIconDarkPath, extensionIconLightPath, pathSeparator, productName } from "@shared/Configuration"
 import type { ExtensionContext } from "vscode"
 import { HostProvider } from "@/hosts/host-provider"
 import { vscodeHostBridgeClient } from "@/hosts/vscode/hostbridge/client/host-grpc-client"
@@ -74,7 +64,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Initialize test mode and add disposables to context
 	context.subscriptions.push(...testModeWatchers)
 
-	vscode.commands.executeCommand("setContext", `${isDevMode}`, IS_DEV && IS_DEV === "true")
+	vscode.commands.executeCommand("setContext", `${productName}.isDevMode`, IS_DEV && IS_DEV === "true")
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(VscodeWebviewProvider.SIDEBAR_ID, sidebarWebview, {
@@ -348,45 +338,45 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					// Add to Cline (Always available)
-					const addAction = new vscode.CodeAction(addToChatCodeActionName, vscode.CodeActionKind.QuickFix)
+					const addAction = new vscode.CodeAction(`Add to ${agentName}`, vscode.CodeActionKind.QuickFix)
 					addAction.command = {
 						command: commands.AddToChat,
-						title: addToChatCodeActionName,
+						title: `Add to ${agentName}`,
 						arguments: [expandedRange, context.diagnostics],
 					}
 					actions.push(addAction)
 
 					// Explain with Cline (Always available)
 					const explainAction = new vscode.CodeAction(
-						explainWithAgentCodeActionName,
+						`Explain with ${agentName}`,
 						vscode.CodeActionKind.RefactorExtract,
 					) // Using a refactor kind
 					explainAction.command = {
 						command: commands.ExplainCode,
-						title: explainWithAgentCodeActionName,
+						title: `Explain with ${agentName}`,
 						arguments: [expandedRange],
 					}
 					actions.push(explainAction)
 
 					// Improve with Cline (Always available)
 					const improveAction = new vscode.CodeAction(
-						improveWithAgentCodeActionName,
+						`Improve with ${agentName}`,
 						vscode.CodeActionKind.RefactorRewrite,
 					) // Using a refactor kind
 					improveAction.command = {
 						command: commands.ImproveCode,
-						title: improveWithAgentCodeActionName,
+						title: `Improve with ${agentName}`,
 						arguments: [expandedRange],
 					}
 					actions.push(improveAction)
 
 					// Fix with Cline (Only if diagnostics exist)
 					if (context.diagnostics.length > 0) {
-						const fixAction = new vscode.CodeAction(fixWithAgentCodeActionName, vscode.CodeActionKind.QuickFix)
+						const fixAction = new vscode.CodeAction(`Fix with ${agentName}`, vscode.CodeActionKind.QuickFix)
 						fixAction.isPreferred = true
 						fixAction.command = {
 							command: commands.FixWithCline,
-							title: fixWithAgentCodeActionName,
+							title: `Fix with ${agentName}`,
 							arguments: [expandedRange, context.diagnostics],
 						}
 						actions.push(fixAction)

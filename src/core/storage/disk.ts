@@ -2,19 +2,13 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import { TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
 import { execa } from "@packages/execa"
 import {
-	apiConversationHistoryFile,
-	contextHistoryFile,
-	groqModelsFile,
+	authorName,
 	instructionsDirectory,
 	mcpDirectory,
 	mcpServersDirectory,
 	mcpSettingsFile,
-	openRouterModelsFile,
 	productName,
-	publisherName,
 	settingsDirectory,
-	taskMetadataFile,
-	uiMessagesFile,
 	workflowsDirectory,
 	workspaceInstructionsDirectoryPath,
 	workspaceWorkflowsDirectoryPath,
@@ -28,12 +22,12 @@ import * as path from "path"
 import * as vscode from "vscode"
 
 export const GlobalFileNames = {
-	apiConversationHistory: apiConversationHistoryFile,
-	contextHistory: contextHistoryFile,
-	uiMessages: uiMessagesFile,
-	openRouterModels: openRouterModelsFile,
+	apiConversationHistory: "api_conversation_history.json",
+	contextHistory: "context_history.json",
+	uiMessages: "ui_messages.json",
+	openRouterModels: "open_router_models.json",
 	vercelAiGatewayModels: "vercel_ai_gateway_models.json",
-	groqModels: groqModelsFile,
+	groqModels: "groq_models.json",
 	basetenModels: "baseten_models.json",
 	mcpSettings: mcpSettingsFile,
 	clineRules: workspaceInstructionsDirectoryPath,
@@ -42,7 +36,7 @@ export const GlobalFileNames = {
 	cursorRulesFile: ".cursorrules",
 	windsurfRulesDir: ".windsurf/rules",
 	windsurfRulesFile: ".windsurfrules",
-	taskMetadata: taskMetadataFile,
+	taskMetadata: "task_metadata.json",
 }
 
 export async function getDocumentsPath(): Promise<string> {
@@ -82,7 +76,7 @@ export async function getDocumentsPath(): Promise<string> {
 }
 
 export async function getUserProductDirectoryPath(): Promise<string> {
-	const userProductPath = path.join(os.homedir(), `.${publisherName}`, productName)
+	const userProductPath = path.join(os.homedir(), `.${authorName}`, productName)
 	return userProductPath
 }
 
@@ -112,7 +106,7 @@ export async function ensureGlobalInstructionsDirectoryExists(): Promise<string>
 	try {
 		await fs.mkdir(clineRulesDir, { recursive: true })
 	} catch (_error) {
-		return path.join(os.homedir(), `.${publisherName}`, productName, instructionsDirectory)
+		return path.join(os.homedir(), `.${authorName}`, productName, instructionsDirectory)
 	}
 	return clineRulesDir
 }
@@ -126,7 +120,7 @@ export async function ensureGlobalWorkflowsDirectoryExists(): Promise<string> {
 	try {
 		await fs.mkdir(clineWorkflowsDir, { recursive: true })
 	} catch (_error) {
-		return path.join(os.homedir(), `.${publisherName}`, productName, workflowsDirectory)
+		return path.join(os.homedir(), `.${authorName}`, productName, workflowsDirectory)
 	}
 	return clineWorkflowsDir
 }
@@ -136,7 +130,7 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 	try {
 		await fs.mkdir(mcpServersDir, { recursive: true })
 	} catch (_error) {
-		return path.join(os.homedir(), `.${publisherName}`, productName, mcpDirectory, mcpServersDirectory)
+		return path.join(os.homedir(), `.${authorName}`, productName, mcpDirectory, mcpServersDirectory)
 	}
 	return mcpServersDir
 }

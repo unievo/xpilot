@@ -1411,7 +1411,7 @@ export class Task {
 
 		// If we are in dev mode, save the messages to markdown files for debugging purposes
 		// This is useful for testing and debugging the system prompt and conversation history
-		if (process.env.IS_DEV && process.env.IS_DEV !== "false") {
+		if (process.env.IS_DEV && process.env.IS_DEV === "true") {
 			await this.saveMessages(systemPrompt, contextManagementMetadata.truncatedConversationHistory)
 		}
 
