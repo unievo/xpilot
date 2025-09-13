@@ -1,5 +1,5 @@
 import { StringRequest } from "@shared/proto/cline/common"
-import { DeleteRuleFileRequest } from "@shared/proto-conversions/file/rule-files-conversion"
+import { RuleFileRequest } from "@shared/proto/index.cline"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
 import { FileServiceClient } from "@/services/grpc-client"
@@ -87,9 +87,9 @@ const RuleRow: React.FC<{
 
 	const handleConfirmDelete = () => {
 		FileServiceClient.deleteRuleFile(
-			DeleteRuleFileRequest.create({
-				rulePath: rulePath,
-				isGlobal: isGlobal,
+			RuleFileRequest.create({
+				rulePath,
+				isGlobal,
 				type: ruleType || "cline",
 			}),
 		).catch((err) => console.error("Failed to delete file:", err))
