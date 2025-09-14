@@ -12,7 +12,7 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--disable-workspace-trust",
-				"--disable-extensions", // Avoid conflicts with installed extensions
+				// "--disable-extensions", // Avoid conflicts with installed extensions
 				"${workspaceFolder}"
 			],
 			"outFiles": [
