@@ -629,7 +629,7 @@ export const ChatRowContent = memo(
 						<>
 							<div style={headerStyle}>
 								{toolIcon("book")}
-								<span style={{ fontWeight: "bold" }}>Cline is condensing the conversation:</span>
+								<span style={{ fontWeight: "bold" }}>{agentName} is condensing the conversation:</span>
 							</div>
 							<div
 								style={{

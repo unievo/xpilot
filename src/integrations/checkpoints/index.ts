@@ -14,6 +14,7 @@ import { ClineCheckpointRestore } from "@shared/WebviewMessage"
 import pTimeout from "p-timeout"
 import * as vscode from "vscode"
 import { HostProvider } from "@/hosts/host-provider"
+import { agentName } from "@/shared/Configuration"
 import { ShowMessageType } from "@/shared/proto/host/window"
 import { MessageStateHandler } from "../../core/task/message-state"
 import { TaskState } from "../../core/task/TaskState"
@@ -791,7 +792,7 @@ export class TaskCheckpointManager implements ICheckpointManager {
 				if (!checkpointsWarningShown) {
 					checkpointsWarningShown = true
 					await this.setcheckpointManagerErrorMessage(
-						"Checkpoints are taking longer than expected to initialize. Working in a large repository? Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+						`Checkpoints are taking longer than expected to initialize. Working in a large repository? Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
 					)
 				}
 			}, 7_000)
@@ -805,8 +806,7 @@ export class TaskCheckpointManager implements ICheckpointManager {
 				),
 				{
 					milliseconds: 15_000,
-					message:
-						"Checkpoints taking too long to initialize. Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+					message: `Checkpoints taking too long to initialize. Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
 				},
 			)
 
@@ -820,7 +820,7 @@ export class TaskCheckpointManager implements ICheckpointManager {
 			// If the error was a timeout, we disable all checkpoint operations for the rest of the task
 			if (errorMessage.includes("Checkpoints taking too long to initialize")) {
 				await this.setcheckpointManagerErrorMessage(
-					"Checkpoints initialization timed out. Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+					`Checkpoints initialization timed out. Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
 				)
 			} else {
 				await this.setcheckpointManagerErrorMessage(errorMessage)

@@ -4,6 +4,7 @@ import { parseSourceCodeForDefinitionsTopLevel } from "@services/tree-sitter"
 import { getReadablePath, isLocatedInWorkspace } from "@utils/path"
 import { formatResponse } from "@/core/prompts/responses"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import { showNotificationForApprovalIfAutoApprovalEnabled } from "../../utils"
@@ -82,7 +83,7 @@ export class ListCodeDefinitionNamesToolHandler implements IFullyManagedTool {
 			telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, true, true)
 		} else {
 			// Manual approval flow
-			const notificationMessage = `Cline wants to analyze code definitions in ${getWorkspaceBasename(absolutePath, "ListCodeDefinitionNamesToolHandler.notification")}`
+			const notificationMessage = `${agentName} wants to analyze code definitions in ${getWorkspaceBasename(absolutePath, "ListCodeDefinitionNamesToolHandler.notification")}`
 
 			// Show notification
 			showNotificationForApprovalIfAutoApprovalEnabled(

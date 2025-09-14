@@ -64,7 +64,7 @@ export async function initialize(context: vscode.ExtensionContext): Promise<Webv
 async function showVersionUpdateAnnouncement(context: vscode.ExtensionContext) {
 	// Version checking for autoupdate notification
 	const currentVersion = context.extension.packageJSON.version
-	const previousVersion = context.globalState.get<string>("clineVersion")
+	const previousVersion = context.globalState.get<string>("lastVersion")
 	// Perform post-update actions if necessary
 	try {
 		if (!previousVersion || currentVersion !== previousVersion) {
@@ -77,8 +77,8 @@ async function showVersionUpdateAnnouncement(context: vscode.ExtensionContext) {
 			if (lastShownAnnouncementId !== latestAnnouncementId) {
 				// Focus Cline when there's a new announcement to show (major/minor updates or fresh installs)
 				const message = previousVersion
-					? `Cline has been updated to v${currentVersion}`
-					: `Welcome to Cline v${currentVersion}`
+					? `${agentName} has been updated to v${currentVersion}`
+					: `Welcome to ${agentName} v${currentVersion}`
 				await HostProvider.workspace.openClineSidebarPanel({})
 				await new Promise((resolve) => setTimeout(resolve, 200))
 				HostProvider.window.showMessage({
@@ -87,7 +87,7 @@ async function showVersionUpdateAnnouncement(context: vscode.ExtensionContext) {
 				})
 			}
 			// Always update the main version tracker for the next launch.
-			await context.globalState.update("clineVersion", currentVersion)
+			await context.globalState.update("lastVersion", currentVersion)
 		}
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error)

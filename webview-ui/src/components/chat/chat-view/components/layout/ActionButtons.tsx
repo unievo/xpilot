@@ -140,13 +140,12 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 					className={secondaryText ? "flex-1 mr-[3px]" : "flex-[2]"}
 					disabled={!canInteract}
 					onClick={() => handleActionClick(primaryAction, inputValue, selectedImages, selectedFiles)}
-					// style={{
-					// 	backgroundColor: "var(--vscode-button-background)",
-					// 	color: "var(--vscode-button-foreground)",
-					// 	flex: secondaryText ? 1 : 2,
-					// 	marginRight: secondaryText ? "6px" : "0",
-					// }}
-				>
+					style={{
+						backgroundColor: "var(--vscode-button-background)",
+						color: "var(--vscode-button-foreground)",
+						flex: secondaryText ? 1 : 2,
+						marginRight: secondaryText ? "6px" : "0",
+					}}>
 					{primaryText}
 				</VSCodeButton>
 			)}
@@ -156,13 +155,12 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 					className={primaryText ? "flex-1 mr-[3px]" : "flex-[2]"}
 					disabled={!canInteract}
 					onClick={() => handleActionClick(secondaryAction, inputValue, selectedImages, selectedFiles)}
-					// style={{
-					// 	backgroundColor: "var(--vscode-button-secondaryBackground)",
-					// 	color: "var(--vscode-button-foreground)",
-					// 	flex: isStreaming ? 2 : 1,
-					// 	//marginLeft: isStreaming ? "0" : "6px",
-					// }}
-				>
+					style={{
+						backgroundColor: "var(--vscode-button-secondaryBackground)",
+						color: "var(--vscode-button-foreground)",
+						flex: isStreaming ? 2 : 1,
+						//marginLeft: isStreaming ? "0" : "6px",
+					}}>
 					{secondaryText}
 				</VSCodeButton>
 			)}

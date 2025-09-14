@@ -7,6 +7,7 @@ import { clineEnvConfig } from "@/config"
 import { ClineAccountService } from "@/services/account/ClineAccountService"
 import { AuthService } from "@/services/auth/AuthService"
 import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@/shared/ClineAccount"
+import { agentName, homePageUrl } from "@/shared/Configuration"
 import { version as extensionVersion } from "../../../../package.json"
 import { ApiHandler, CommonApiHandlerOptions } from "../"
 import { withRetry } from "../retry"
@@ -50,8 +51,8 @@ export class ClineHandler implements ApiHandler {
 					baseURL: `${this._baseUrl}/api/v1`,
 					apiKey: clineAccountAuthToken,
 					defaultHeaders: {
-						"HTTP-Referer": "https://cline.bot",
-						"X-Title": "Cline",
+						"HTTP-Referer": `${homePageUrl}`,
+						"X-Title": `${agentName}`,
 						"X-Task-ID": this.options.ulid || "",
 						"X-Cline-Version": extensionVersion,
 					},

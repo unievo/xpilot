@@ -1,5 +1,6 @@
 import type { ICheckpointManager } from "@integrations/checkpoints/types"
 import pTimeout from "p-timeout"
+import { agentName } from "@/shared/Configuration"
 
 /**
  * Ensures a checkpoint manager is initialized, handling both single-root and multi-root implementations.
@@ -9,7 +10,7 @@ import pTimeout from "p-timeout"
 export async function ensureCheckpointInitialized({
 	checkpointManager,
 	timeoutMs = 15_000,
-	timeoutMessage = "Checkpoints taking too long to initialize. Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+	timeoutMessage = `Checkpoints taking too long to initialize. Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
 }: {
 	checkpointManager: ICheckpointManager | undefined
 	timeoutMs?: number

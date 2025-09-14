@@ -1,6 +1,7 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import { ModelInfo, vercelAiGatewayDefaultModelId, vercelAiGatewayDefaultModelInfo } from "@shared/api"
 import OpenAI from "openai"
+import { agentName, homePageUrl } from "@/shared/Configuration"
 import { ApiHandler, CommonApiHandlerOptions } from "../index"
 import { withRetry } from "../retry"
 import { ApiStream } from "../transform/stream"
@@ -30,8 +31,8 @@ export class VercelAIGatewayHandler implements ApiHandler {
 					baseURL: "https://ai-gateway.vercel.sh/v1",
 					apiKey: this.options.vercelAiGatewayApiKey,
 					defaultHeaders: {
-						"http-referer": "https://cline.bot",
-						"x-title": "Cline",
+						"http-referer": `${homePageUrl}`,
+						"x-title": `${agentName}`,
 					},
 				})
 			} catch (error: any) {

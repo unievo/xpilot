@@ -1,4 +1,4 @@
-import { agentName } from "@shared/Configuration"
+import { agentName, enableTelemetrySettings } from "@shared/Configuration"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import PreferredLanguageSetting from "../PreferredLanguageSetting"
@@ -18,20 +18,22 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 			<Section>
 				<PreferredLanguageSetting />
 
-				<div className="mb-[5px]">
-					<VSCodeCheckbox
-						checked={telemetrySetting !== "disabled"}
-						className="mb-[5px]"
-						onChange={(e: any) => {
-							const checked = e.target.checked === true
-							updateSetting("telemetrySetting", checked ? "enabled" : "disabled")
-						}}>
-						Allow error and usage reporting
-					</VSCodeCheckbox>
-					<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-						Help improve {agentName} by sending usage data and error reports. No code, prompts, or personal
-						information are ever sent.
-						{/* See our{" "}
+				{enableTelemetrySettings && (
+					<div className="mb-[5px]">
+						<VSCodeCheckbox
+							checked={telemetrySetting === "enabled"}
+							className="mb-[5px]"
+							onChange={(e: any) => {
+								const checked = e.target.checked === true
+								updateSetting("telemetrySetting", checked ? "enabled" : "disabled")
+							}}>
+							Allow error and usage reporting
+						</VSCodeCheckbox>
+
+						<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
+							Help improve {agentName} by sending usage data and error reports. No code, prompts, or personal
+							information are ever sent.
+							{/* See our{" "}
 						<VSCodeLink className="text-inherit" href="https://docs.cline.bot/more-info/telemetry">
 							telemetry overview
 						</VSCodeLink>{" "}
@@ -40,8 +42,9 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 							privacy policy
 						</VSCodeLink>{" "}
 						for more details. */}
-					</p>
-				</div>
+						</p>
+					</div>
+				)}
 			</Section>
 		</div>
 	)

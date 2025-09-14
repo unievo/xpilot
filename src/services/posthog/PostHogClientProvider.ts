@@ -1,4 +1,5 @@
 import { EventMessage, PostHog } from "posthog-node"
+import { productName } from "@/shared/Configuration"
 import { posthogConfig } from "../../shared/services/config/posthog-config"
 
 export class PostHogClientProvider {
@@ -51,7 +52,7 @@ export class PostHogClientProvider {
 			const frames = stacktrace?.frames
 			if (frames?.length) {
 				for (let j = 0; j < frames.length; j++) {
-					if (frames[j]?.filename?.includes("saoudrizwan")) {
+					if (frames[j]?.filename?.includes(productName)) {
 						return event
 					}
 				}

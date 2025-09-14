@@ -14,6 +14,7 @@ import { type TerminalProfile } from "@shared/proto/cline/state"
 import { WebviewProviderType as WebviewProviderTypeEnum, WebviewProviderTypeRequest } from "@shared/proto/cline/ui"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
+import { name, publisher } from "../../../package.json"
 import {
 	basetenDefaultModelId,
 	basetenModels,
@@ -205,7 +206,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		strictPlanModeEnabled: false,
 		customPrompt: undefined,
 		useAutoCondense: false,
-		extensionInfo: { name: "claude-dev", publisher: "saoudrizwan" },
+		extensionInfo: { name: name, publisher: publisher },
 
 		// NEW: Add workspace information with defaults
 		workspaceRoots: [],

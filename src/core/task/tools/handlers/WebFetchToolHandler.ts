@@ -2,6 +2,7 @@ import { UrlContentFetcher } from "@services/browser/UrlContentFetcher"
 import { ClineAsk, ClineSayTool } from "@shared/ExtensionMessage"
 import { ClineDefaultTool } from "@shared/tools"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { ToolUse } from "../../../assistant-message"
 import { formatResponse } from "../../../prompts/responses"
 import { ToolResponse } from "../.."
@@ -64,7 +65,7 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 			} else {
 				// Manual approval flow
 				showNotificationForApprovalIfAutoApprovalEnabled(
-					`Cline wants to fetch content from ${url}`,
+					`${agentName} wants to fetch content from ${url}`,
 					config.autoApprovalSettings.enabled,
 					config.autoApprovalSettings.enableNotifications,
 				)

@@ -9,6 +9,7 @@ import {
 	mainlandZAiModels,
 } from "@shared/api"
 import OpenAI from "openai"
+import { agentName, homePageUrl } from "@/shared/Configuration"
 import { version as extensionVersion } from "../../../../package.json"
 import { ApiHandler, CommonApiHandlerOptions } from ".."
 import { withRetry } from "../retry"
@@ -42,8 +43,8 @@ export class ZAiHandler implements ApiHandler {
 					baseURL: this.useChinaApi() ? "https://open.bigmodel.cn/api/paas/v4" : "https://api.z.ai/api/paas/v4",
 					apiKey: this.options.zaiApiKey,
 					defaultHeaders: {
-						"HTTP-Referer": "https://cline.bot",
-						"X-Title": "Cline",
+						"HTTP-Referer": `${homePageUrl}`,
+						"X-Title": `${agentName}`,
 						"X-Cline-Version": extensionVersion,
 					},
 				})

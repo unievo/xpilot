@@ -5,6 +5,7 @@ import { COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
 import { ClineAsk } from "@shared/ExtensionMessage"
 import { fixModelHtmlEscaping } from "@utils/string"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import { showNotificationForApprovalIfAutoApprovalEnabled } from "../../utils"
@@ -90,7 +91,7 @@ export class ExecuteCommandToolHandler implements IFullyManagedTool {
 		} else {
 			// Manual approval flow
 			showNotificationForApprovalIfAutoApprovalEnabled(
-				`Cline wants to execute a command: ${command}`,
+				`${agentName} wants to execute a command: ${command}`,
 				config.autoApprovalSettings.enabled,
 				config.autoApprovalSettings.enableNotifications,
 			)

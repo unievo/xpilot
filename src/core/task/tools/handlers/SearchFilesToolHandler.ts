@@ -4,6 +4,7 @@ import { getReadablePath, isLocatedInWorkspace } from "@utils/path"
 import { formatResponse } from "@/core/prompts/responses"
 import { resolveWorkspacePath } from "@/core/workspace/WorkspaceResolver"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { ClineSayTool } from "@/shared/ExtensionMessage"
 import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
@@ -104,7 +105,7 @@ export class SearchFilesToolHandler implements IFullyManagedTool {
 			telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, true, true)
 		} else {
 			// Manual approval flow
-			const notificationMessage = `Cline wants to search files for ${regex}`
+			const notificationMessage = `${agentName} wants to search files for ${regex}`
 
 			// Show notification
 			showNotificationForApprovalIfAutoApprovalEnabled(

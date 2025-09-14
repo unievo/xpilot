@@ -1,4 +1,5 @@
 import { basetenDefaultModelId, basetenModels } from "@shared/api"
+import { agentName } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
@@ -291,7 +292,7 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 					<VSCodeLink className="inline text-inherit" href="https://www.baseten.co/products/model-apis/">
 						Baseten.
 					</VSCodeLink>
-					If you're unsure which model to choose, Cline works best with{" "}
+					If you're unsure which model to choose, {agentName} works best with{" "}
 					<VSCodeLink className="inline text-inherit" onClick={() => handleModelChange("moonshotai/Kimi-K2-Instruct")}>
 						moonshotai/Kimi-K2-Instruct.
 					</VSCodeLink>

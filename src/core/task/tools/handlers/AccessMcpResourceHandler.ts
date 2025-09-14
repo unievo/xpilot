@@ -2,6 +2,7 @@ import type { ToolUse } from "@core/assistant-message"
 import { formatResponse } from "@core/prompts/responses"
 import { ClineAsk, ClineAskUseMcpServer } from "@shared/ExtensionMessage"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import { showNotificationForApprovalIfAutoApprovalEnabled } from "../../utils"
@@ -79,7 +80,7 @@ export class AccessMcpResourceHandler implements IFullyManagedTool {
 			telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, true, true)
 		} else {
 			// Manual approval flow
-			const notificationMessage = `Cline wants to access ${uri || "unknown resource"} on ${server_name || "unknown server"}`
+			const notificationMessage = `${agentName} wants to access ${uri || "unknown resource"} on ${server_name || "unknown server"}`
 
 			// Show notification
 			showNotificationForApprovalIfAutoApprovalEnabled(

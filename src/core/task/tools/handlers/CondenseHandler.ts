@@ -4,6 +4,7 @@ import { ensureTaskDirectoryExists } from "@core/storage/disk"
 import { processFilesIntoText } from "@integrations/misc/extract-text"
 import { showSystemNotification } from "@integrations/notifications"
 import { ClineAsk } from "@shared/ExtensionMessage"
+import { agentName } from "@/shared/Configuration"
 import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import type { IPartialBlockHandler, IToolHandler } from "../ToolExecutorCoordinator"
@@ -33,8 +34,8 @@ export class CondenseHandler implements IToolHandler, IPartialBlockHandler {
 		// Show notification if auto-approval is enabled
 		if (config.autoApprovalSettings.enabled && config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
-				subtitle: "Cline wants to condense the conversation...",
-				message: `Cline is suggesting to condense your conversation with: ${context}`,
+				subtitle: `${agentName} wants to condense the conversation...`,
+				message: `${agentName} is suggesting to condense your conversation with: ${context}`,
 			})
 		}
 

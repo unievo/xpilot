@@ -2,6 +2,7 @@ import { buildApiHandler } from "@core/api"
 import * as vscode from "vscode"
 import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
+import { productName } from "@/shared/Configuration"
 import { ShowMessageType } from "@/shared/proto/host/window"
 import { getGitDiff } from "@/utils/git"
 import { getCwd } from "@/utils/path"
@@ -68,7 +69,7 @@ async function generate(context: vscode.ExtensionContext, scm?: vscode.SourceCon
 
 async function performCommitGeneration(context: vscode.ExtensionContext, gitDiff: string, inputBox: any) {
 	try {
-		vscode.commands.executeCommand("setContext", "cline.isGeneratingCommit", true)
+		vscode.commands.executeCommand("setContext", `${productName}.isGeneratingCommit`, true)
 
 		const prompts = [PROMPT.instruction]
 
@@ -121,13 +122,13 @@ async function performCommitGeneration(context: vscode.ExtensionContext, gitDiff
 			message: `Failed to generate commit message: ${errorMessage}`,
 		})
 	} finally {
-		vscode.commands.executeCommand("setContext", "cline.isGeneratingCommit", false)
+		vscode.commands.executeCommand("setContext", `${productName}.isGeneratingCommit`, false)
 	}
 }
 
 function abort() {
 	commitGenerationAbortController?.abort()
-	vscode.commands.executeCommand("setContext", "cline.isGeneratingCommit", false)
+	vscode.commands.executeCommand("setContext", `${productName}.isGeneratingCommit`, false)
 }
 
 /**

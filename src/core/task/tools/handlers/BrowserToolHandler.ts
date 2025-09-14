@@ -1,4 +1,5 @@
 import { BrowserAction, BrowserActionResult, browserActions, ClineSayBrowserAction } from "@shared/ExtensionMessage"
+import { agentName } from "@/shared/Configuration"
 import { ClineDefaultTool } from "@/shared/tools"
 import { ToolUse } from "../../../assistant-message"
 import { formatResponse } from "../../../prompts/responses"
@@ -96,7 +97,7 @@ export class BrowserToolHandler implements IFullyManagedTool {
 				} else {
 					// Show notification for approval if auto approval enabled
 					showNotificationForApprovalIfAutoApprovalEnabled(
-						`Cline wants to use a browser and launch ${url}`,
+						`${agentName} wants to use a browser and launch ${url}`,
 						config.autoApprovalSettings.enabled,
 						config.autoApprovalSettings.enableNotifications,
 					)

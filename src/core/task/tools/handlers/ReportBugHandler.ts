@@ -5,6 +5,7 @@ import { showSystemNotification } from "@integrations/notifications"
 import { createAndOpenGitHubIssue } from "@utils/github-url-utils"
 import * as os from "os"
 import { HostProvider } from "@/hosts/host-provider"
+import { agentName } from "@/shared/Configuration"
 import { ClineDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import type { IPartialBlockHandler, IToolHandler } from "../ToolExecutorCoordinator"
@@ -66,8 +67,8 @@ export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
 		// Show notification if auto-approval is enabled
 		if (config.autoApprovalSettings.enabled && config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
-				subtitle: "Cline wants to create a github issue...",
-				message: `Cline is suggesting to create a github issue with the title: ${title}`,
+				subtitle: `${agentName} wants to create a github issue...`,
+				message: `${agentName} is suggesting to create a github issue with the title: ${title}`,
 			})
 		}
 

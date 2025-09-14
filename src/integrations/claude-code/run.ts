@@ -5,6 +5,7 @@ import path from "node:path"
 import type Anthropic from "@anthropic-ai/sdk"
 import { execa } from "execa"
 import readline from "readline"
+import { agentName } from "@/shared/Configuration"
 import { getCwd } from "@/utils/path"
 import { ClaudeCodeMessage } from "./types"
 
@@ -126,7 +127,7 @@ Anthropic is aware of this issue and is considering a fix: https://github.com/an
 
 			if (err.message.includes("ENAMETOOLONG")) {
 				throw new Error(
-					`Executing Claude Code failed due to a long system prompt. Windows has a limit of 8191 characters, which makes the integration with Cline not work properly.
+					`Executing Claude Code failed due to a long system prompt. Windows has a limit of 8191 characters, which makes the integration with ${agentName} not work properly.
 Please check our docs on how to integrate Claude Code with Cline on Windows: https://docs.cline.bot/provider-config/claude-code#windows-setup.
 Anthropic is aware of this issue and is considering a fix: https://github.com/anthropics/claude-code/issues/3411.
 `,

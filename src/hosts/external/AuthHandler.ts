@@ -2,6 +2,7 @@ import type { IncomingMessage, Server, ServerResponse } from "node:http"
 import http from "node:http"
 import type { AddressInfo } from "node:net"
 import { SharedUriHandler } from "@/services/uri/SharedUriHandler"
+import { agentName } from "@/shared/Configuration"
 import { HostProvider } from "../host-provider"
 
 const SERVER_TIMEOUT = 10 * 60 * 1000 // 10 minutes
@@ -213,7 +214,7 @@ function createAuthSucceededHtml(uriScheme?: string): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cline - Authentication Success</title>
+    <title>${agentName} - Authentication Success</title>
 	${redirect}
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;700&display=swap');

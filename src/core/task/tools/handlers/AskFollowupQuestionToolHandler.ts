@@ -4,6 +4,7 @@ import { findLast, parsePartialArrayString } from "@shared/array"
 import { ClineAsk, ClineAskQuestion } from "@shared/ExtensionMessage"
 import { ClineDefaultTool } from "@shared/tools"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { ToolUse } from "../../../assistant-message"
 import { formatResponse } from "../../../prompts/responses"
 import { ToolResponse } from "../.."
@@ -43,7 +44,7 @@ export class AskFollowupQuestionToolHandler implements IToolHandler, IPartialBlo
 		// Show notification if auto-approval is enabled
 		if (config.autoApprovalSettings.enabled && config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
-				subtitle: "Cline has a question...",
+				subtitle: `${agentName} has a question...`,
 				message: question.replace(/\n/g, " "),
 			})
 		}

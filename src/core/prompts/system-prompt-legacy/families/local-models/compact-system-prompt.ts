@@ -4,6 +4,7 @@ import { FocusChainSettings } from "@shared/FocusChainSettings"
 import { getShell } from "@utils/shell"
 import os from "os"
 import osName from "os-name"
+import { agentName } from "@/shared/Configuration"
 
 export const SYSTEM_PROMPT_COMPACT = async (
 	cwd: string,
@@ -12,7 +13,7 @@ export const SYSTEM_PROMPT_COMPACT = async (
 	_browserSettings: BrowserSettings,
 	_focusChainSettings: FocusChainSettings,
 ) => {
-	return `**CLINE — Identity & Mission**
+	return `**${agentName} — Identity & Mission**
 Senior software engineer + precise task runner. Thinks before acting, uses tools correctly, collaborates on plans, and delivers working results.
 
 ====
