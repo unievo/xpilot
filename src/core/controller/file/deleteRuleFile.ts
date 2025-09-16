@@ -1,8 +1,6 @@
 import { deleteRuleFile as deleteRuleFileImpl } from "@core/context/instructions/user-instructions/rule-helpers"
 import { getWorkspaceBasename } from "@core/workspace"
 import { RuleFile, RuleFileRequest } from "@shared/proto/cline/file"
-import { HostProvider } from "@/hosts/host-provider"
-import { ShowMessageType } from "@/shared/proto/host/window"
 import { Controller } from ".."
 
 /**
@@ -42,13 +40,13 @@ export async function deleteRuleFile(controller: Controller, request: RuleFileRe
 
 	const fileName = getWorkspaceBasename(request.rulePath, "Controller.deleteRuleFile")
 
-	const fileTypeName = request.type === "workflow" ? "workflow" : "rule"
+	// const fileTypeName = request.type === "workflow" ? "workflow" : "instruction"
 
-	const message = `${fileTypeName} file "${fileName}" deleted successfully`
-	HostProvider.window.showMessage({
-		type: ShowMessageType.INFORMATION,
-		message,
-	})
+	// const message = `${fileTypeName} file "${fileName}" deleted successfully`
+	// HostProvider.window.showMessage({
+	// 	type: ShowMessageType.INFORMATION,
+	// 	message,
+	// })
 
 	return RuleFile.create({
 		filePath: request.rulePath,

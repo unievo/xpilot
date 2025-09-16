@@ -78,7 +78,7 @@ export class Controller {
 				)
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
-					message: "Failed to initialize Cline's application state. Please restart the extension.",
+					message: "Failed to initialize application state. Please restart the extension.",
 				})
 			})
 
@@ -151,10 +151,10 @@ export class Controller {
 			this.stateManager.setApiConfiguration(updatedConfig)
 
 			await this.postStateToWebview()
-			HostProvider.window.showMessage({
-				type: ShowMessageType.INFORMATION,
-				message: `Successfully logged out of ${agentName}`,
-			})
+			// HostProvider.window.showMessage({
+			// 	type: ShowMessageType.INFORMATION,
+			// 	message: `Successfully logged out of ${agentName}`,
+			// })
 		} catch (_error) {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
