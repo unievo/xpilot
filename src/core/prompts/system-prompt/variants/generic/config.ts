@@ -39,6 +39,7 @@ export const config = createVariant(ModelFamily.GENERIC)
 		ClineDefaultTool.BROWSER,
 		ClineDefaultTool.MCP_USE,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ASK,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,

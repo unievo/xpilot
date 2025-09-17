@@ -22,7 +22,7 @@ export class GetMcpToolInputSchemaHandler implements IToolHandler, IPartialBlock
 
 	async execute(config: TaskConfig, block: ToolUse): Promise<ToolResponse> {
 		// Show loading message at start of execution (self-managed now)
-		await config.callbacks.say(ClineDefaultTool.MCP_INPUT_SCHEMA, "", undefined, undefined, false)
+		// await config.callbacks.say(ClineDefaultTool.MCP_INPUT_SCHEMA, "", undefined, undefined, false)
 
 		const server_name: string | undefined = block.params.server_name
 		const tool_name: string | undefined = block.params.tool_name
@@ -42,7 +42,7 @@ export class GetMcpToolInputSchemaHandler implements IToolHandler, IPartialBlock
 
 			await config.callbacks.say(
 				"get_mcp_tool_input_schema",
-				`Getting input schema for ${tool_name} on ${server_name}`,
+				`Reading the input schema for "${tool_name}" on the "${server_name}" MCP server`,
 				undefined,
 				undefined,
 				false,

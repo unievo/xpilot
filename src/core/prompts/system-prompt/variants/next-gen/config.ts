@@ -43,6 +43,7 @@ export const config = createVariant(ModelFamily.NEXT_GEN)
 		ClineDefaultTool.WEB_FETCH,
 		ClineDefaultTool.MCP_USE,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ASK,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,

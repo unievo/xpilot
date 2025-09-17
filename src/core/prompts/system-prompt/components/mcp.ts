@@ -1,3 +1,4 @@
+import { mcpServerIncludeFullSchema_ToolsMaxCount, mcpServerIncludeToolInputSchema_MaxLength } from "@/shared/Configuration"
 import type { McpServer } from "@/shared/mcp"
 import { SystemPromptSection } from "../templates/placeholders"
 import { TemplateEngine } from "../templates/TemplateEngine"
@@ -30,20 +31,65 @@ async function getMcpServers(servers: McpServer[], variant: PromptVariant): Prom
 	})
 }
 
+// function formatMcpServersList(servers: McpServer[]): string {
+// 	return servers
+// 		.filter((server) => server.status === "connected")
+// 		.map((server) => {
+// 			const tools = server.tools
+// 				?.map((tool) => {
+// 					const schemaStr = tool.inputSchema
+// 						? `    Input Schema:
+//     ${JSON.stringify(tool.inputSchema, null, 2).split("\n").join("\n    ")}`
+// 						: ""
+
+// 					return `- ${tool.name}: ${tool.description}\n${schemaStr}`
+// 				})
+// 				.join("\n\n")
+
+// 			const templates = server.resourceTemplates
+// 				?.map((template) => `- ${template.uriTemplate} (${template.name}): ${template.description}`)
+// 				.join("\n")
+
+// 			const resources = server.resources
+// 				?.map((resource) => `- ${resource.uri} (${resource.name}): ${resource.description}`)
+// 				.join("\n")
+
+// 			const config = JSON.parse(server.config)
+
+// 			return (
+// 				`## ${server.name}` +
+// 				(config.command
+// 					? ` (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)`
+// 					: "") +
+// 				(tools ? `\n\n### Available Tools\n${tools}` : "") +
+// 				(templates ? `\n\n### Resource Templates\n${templates}` : "") +
+// 				(resources ? `\n\n### Direct Resources\n${resources}` : "")
+// 			)
+// 		})
+// 		.join("\n\n")
+// }
+
 function formatMcpServersList(servers: McpServer[]): string {
 	return servers
 		.filter((server) => server.status === "connected")
 		.map((server) => {
+			const includeToolsSchema = server.tools && server.tools.length <= mcpServerIncludeFullSchema_ToolsMaxCount
 			const tools = server.tools
 				?.map((tool) => {
-					const schemaStr = tool.inputSchema
-						? `    Input Schema:
-    ${JSON.stringify(tool.inputSchema, null, 2).split("\n").join("\n    ")}`
-						: ""
-
+					let schemaStr = ""
+					if (tool.inputSchema) {
+						const schemaJson = JSON.stringify(tool.inputSchema, null, 2)
+						//  include the full schema if the server has below max tools, or if the current tool schema length is below max length
+						if (includeToolsSchema || schemaJson.length < mcpServerIncludeToolInputSchema_MaxLength) {
+							schemaStr = `  Input Schema:
+			${schemaJson.split("\n").join("\n  ")}\n`
+						} else {
+							// skip the input schema as it can be read on demand using get_mcp_tool_input_schema
+						}
+					}
 					return `- ${tool.name}: ${tool.description}\n${schemaStr}`
 				})
-				.join("\n\n")
+				.join("")
 
 			const templates = server.resourceTemplates
 				?.map((template) => `- ${template.uriTemplate} (${template.name}): ${template.description}`)
@@ -56,13 +102,14 @@ function formatMcpServersList(servers: McpServer[]): string {
 			const config = JSON.parse(server.config)
 
 			return (
-				`## ${server.name}` +
-				(config.command
-					? ` (\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)`
+				`## ${server.name} ${config.command ? `(\`${config.command}${config.args && Array.isArray(config.args) ? ` ${config.args.join(" ")}` : ""}\`)` : "- remote server"}` +
+				(tools
+					? `\n\n### ATL - Available Tools List - Always use the built-in tool "get_mcp_tool_input_schema" before calling an MCP tool that does not have a defined input schema, to get the available parameters of the MCP tool (such as sorting, ordering, filtering, etc.)\n\n${tools}`
 					: "") +
-				(tools ? `\n\n### Available Tools\n${tools}` : "") +
-				(templates ? `\n\n### Resource Templates\n${templates}` : "") +
-				(resources ? `\n\n### Direct Resources\n${resources}` : "")
+				(templates ? `\n\n### RTL - Resource Templates List\n${templates}` : "") +
+				(resources
+					? `\n\n### DRL - Direct Resources List\n${resources}\n\nIMPORTANT: These resources can have descriptions applicable to the task. Always read relevant resources that can help accomplish the task.`
+					: "")
 			)
 		})
 		.join("\n\n")

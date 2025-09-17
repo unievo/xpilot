@@ -6,6 +6,7 @@ import { attempt_completion_variants } from "./attempt_completion"
 import { browser_action_variants } from "./browser_action"
 import { execute_command_variants } from "./execute_command"
 import { focus_chain_variants } from "./focus_chain"
+import { get_mcp_tool_input_schema_variants } from "./get_mcp_tool_input_schema"
 import { list_code_definition_names_variants } from "./list_code_definition_names"
 import { list_files_variants } from "./list_files"
 import { load_mcp_documentation_variants } from "./load_mcp_documentation"
@@ -35,6 +36,7 @@ export function registerClineToolSets(): void {
 		...list_code_definition_names_variants,
 		...list_files_variants,
 		...load_mcp_documentation_variants,
+		...get_mcp_tool_input_schema_variants,
 		...new_task_variants,
 		...plan_mode_respond_variants,
 		...read_file_variants,
