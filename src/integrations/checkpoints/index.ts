@@ -707,26 +707,26 @@ export class TaskCheckpointManager implements ICheckpointManager {
 				break
 		}
 
-		switch (restoreType) {
-			case "task":
-				HostProvider.window.showMessage({
-					type: ShowMessageType.INFORMATION,
-					message: "Task messages have been restored to the checkpoint",
-				})
-				break
-			case "workspace":
-				HostProvider.window.showMessage({
-					type: ShowMessageType.INFORMATION,
-					message: "Workspace files have been restored to the checkpoint",
-				})
-				break
-			case "taskAndWorkspace":
-				HostProvider.window.showMessage({
-					type: ShowMessageType.INFORMATION,
-					message: "Task and workspace have been restored to the checkpoint",
-				})
-				break
-		}
+		// switch (restoreType) {
+		// 	case "task":
+		// 		HostProvider.window.showMessage({
+		// 			type: ShowMessageType.INFORMATION,
+		// 			message: "Task messages have been restored to the checkpoint",
+		// 		})
+		// 		break
+		// 	case "workspace":
+		// 		HostProvider.window.showMessage({
+		// 			type: ShowMessageType.INFORMATION,
+		// 			message: "Workspace files have been restored to the checkpoint",
+		// 		})
+		// 		break
+		// 	case "taskAndWorkspace":
+		// 		HostProvider.window.showMessage({
+		// 			type: ShowMessageType.INFORMATION,
+		// 			message: "Task and workspace have been restored to the checkpoint",
+		// 		})
+		// 		break
+		// }
 
 		if (restoreType !== "task") {
 			// Set isCheckpointCheckedOut flag on the message
