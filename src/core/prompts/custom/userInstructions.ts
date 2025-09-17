@@ -1,5 +1,5 @@
 import { workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
-import { getGlobalInstructionsDirectoryPath } from "../storage/disk"
+import { getGlobalInstructionsDirectoryPath } from "../../storage/disk"
 
 export async function addUserInstructions(
 	settingsCustomInstructions?: string,

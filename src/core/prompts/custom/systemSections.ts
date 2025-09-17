@@ -1,5 +1,5 @@
-import { McpHub } from "../../services/mcp/McpHub"
-import { BrowserSettings } from "../../shared/BrowserSettings"
+import { McpHub } from "../../../services/mcp/McpHub"
+import { BrowserSettings } from "../../../shared/BrowserSettings"
 import { ActModePlanModePrompt } from "./sections/ActModePlanMode"
 import { CapabilitiesPrompt } from "./sections/Capabilities"
 import { EditingFilesPrompt } from "./sections/EditingFiles"

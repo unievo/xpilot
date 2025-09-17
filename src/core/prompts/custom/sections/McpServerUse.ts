@@ -1,7 +1,7 @@
 import { mcpServerIncludeFullSchema_ToolsMaxCount, mcpServerIncludeToolInputSchema_MaxLength } from "@/shared/Configuration"
-import { McpHub } from "../../../services/mcp/McpHub"
-import { BrowserSettings } from "../../../shared/BrowserSettings"
-import { mcpResourcesUse } from "../custom/mcp/mcpResourcesUse"
+import { McpHub } from "../../../../services/mcp/McpHub"
+import { BrowserSettings } from "../../../../shared/BrowserSettings"
+import { mcpResourcesUse } from "../mcp/mcpResourcesUse"
 
 export const McpServerUsePrompt = async (
 	_cwd: string,

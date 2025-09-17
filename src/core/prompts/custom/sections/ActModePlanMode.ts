@@ -1,5 +1,5 @@
-import { McpHub } from "../../../services/mcp/McpHub"
-import { BrowserSettings } from "../../../shared/BrowserSettings"
+import { McpHub } from "../../../../services/mcp/McpHub"
+import { BrowserSettings } from "../../../../shared/BrowserSettings"
 
 export const ActModePlanModePrompt = async (
 	_cwd: string,

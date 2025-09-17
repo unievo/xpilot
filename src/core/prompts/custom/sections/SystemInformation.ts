@@ -2,9 +2,9 @@ import os from "os"
 import osName from "os-name"
 import { getGlobalInstructionsDirectoryPath, getGlobalWorkflowsDirectoryPath } from "@/core/storage/disk"
 import { workspaceInstructionsDirectoryPath, workspaceWorkflowsDirectoryPath } from "@/shared/Configuration"
-import { McpHub } from "../../../services/mcp/McpHub"
-import { BrowserSettings } from "../../../shared/BrowserSettings"
-import { getShell } from "../../../utils/shell"
+import { McpHub } from "../../../../services/mcp/McpHub"
+import { BrowserSettings } from "../../../../shared/BrowserSettings"
+import { getShell } from "../../../../utils/shell"
 
 export const SystemInformationPrompt = async (
 	cwd: string,

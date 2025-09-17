@@ -1,6 +1,6 @@
 import { McpHub } from "@/services/mcp/McpHub"
-import { mcpSettingsFile } from "../../../shared/Configuration"
-import { McpLibraryItem } from "../../../shared/mcp"
+import { mcpSettingsFile } from "../../../../shared/Configuration"
+import { McpLibraryItem } from "../../../../shared/mcp"
 
 // Generates the instructions for installing an MCP server from an NPM package
 async function installFromNPMInstructions(mcpHub: McpHub): Promise<string> {
