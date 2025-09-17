@@ -21,7 +21,7 @@ const ResponseHeader = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 6px 6px;
+	padding: 4px 6px;
 	//color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	user-select: none;

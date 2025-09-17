@@ -41,7 +41,7 @@ const WelcomeView = memo(() => {
 				</div>
 				<h2 className="flex mb-10 justify-center">Welcome to {agentName}!</h2>
 				<p>
-					{agentName} can use VS Code as an AI provider, by{" "}
+					{agentName} can use VS Code as an AI provider by{" "}
 					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
 						setting up
 					</VSCodeLink>
