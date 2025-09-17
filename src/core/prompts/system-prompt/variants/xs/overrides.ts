@@ -1,3 +1,4 @@
+import { agentName } from "@/shared/Configuration"
 import { SystemPromptSection } from "../../templates/placeholders"
 import { PromptVariant } from "../../types"
 
@@ -42,8 +43,7 @@ const XS_OBJECTIVES = `EXECUTION FLOW
 
 export const xsComponentOverrides: PromptVariant["componentOverrides"] = {
 	[SystemPromptSection.AGENT_ROLE]: {
-		template:
-			"You are Cline, a senior software engineer + precise task runner. Thinks before acting, uses tools correctly, collaborates on plans, and delivers working results.",
+		template: `You are ${agentName}, a senior software engineer + precise task runner. Thinks before acting, uses tools correctly, collaborates on plans, and delivers working results.`,
 	},
 	[SystemPromptSection.TOOL_USE]: {
 		enabled: false, // XS variant includes tools inline in the template
