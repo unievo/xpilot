@@ -1341,7 +1341,7 @@ export class Task {
 		const { globalToggles, localToggles } = await refreshClineRulesToggles(this.controller, this.cwd)
 		const { windsurfLocalToggles, cursorLocalToggles } = await refreshExternalRulesToggles(this.controller, this.cwd)
 
-		const globalClineRulesFilePath = await getGlobalInstructionsDirectoryPath()
+		const globalClineRulesFilePath = getGlobalInstructionsDirectoryPath()
 		const globalClineRulesFileInstructions = await getGlobalClineRules(globalClineRulesFilePath, globalToggles)
 
 		const localClineRulesFileInstructions = await getLocalClineRules(this.cwd, localToggles)
@@ -1409,11 +1409,9 @@ export class Task {
 			// saves task history item which we use to keep track of conversation history deleted range
 		}
 
-		// If we are in dev mode, save the messages to markdown files for debugging purposes
-		// This is useful for testing and debugging the system prompt and conversation history
-		if (process.env.IS_DEV && process.env.IS_DEV === "true") {
-			await this.saveMessages(systemPrompt, contextManagementMetadata.truncatedConversationHistory)
-		}
+		// Debugging: Save the system prompt and current messages to disk as markdown
+		await this.debug_SavePrompt(systemPrompt)
+		await this.debug_SaveMessages(this.messageStateHandler.getClineMessages())
 
 		const stream = this.api.createMessage(systemPrompt, contextManagementMetadata.truncatedConversationHistory)
 
@@ -1512,58 +1510,6 @@ export class Task {
 		// (needs to be placed outside of try/catch since it we want caller to handle errors not with api_req_failed as that is reserved for first chunk failures only)
 		// this delegates to another generator or iterable object. In this case, it's saying "yield all remaining values from this iterator". This effectively passes along all subsequent chunks from the original stream.
 		yield* iterator
-	}
-
-	// Save messages to markdown files
-	// This is used for debugging and testing purposes, so we can see the system prompt and messages in markdown format
-	async saveMessages(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]) {
-		fs.writeFile(path.join(this.cwd, `.${agentName}Prompt.md`), systemPrompt, (err) => {
-			if (err) {
-				console.error(`Failed to write file: ${err.message}`)
-			}
-		})
-		if (messages.length > 0) {
-			fs.writeFile(
-				path.join(this.cwd, `.${agentName}History.md`),
-				messages
-					.map((m) => {
-						if (typeof m.content === "string") {
-							return m.content
-						} else if (Array.isArray(m.content)) {
-							return m.content
-								.map((item) => {
-									switch (item.type) {
-										case "text":
-											return item.text
-										case "tool_use":
-											return `Tool use: ${item.input}`
-										case "tool_result":
-											return `Tool result: ${item.content?.toString()}`
-										case "document":
-											return `Document: ${item.source}`
-										case "image":
-											return `Image: ${item.source}`
-										case "thinking":
-											return `Thinking: ${item.thinking}`
-										case "redacted_thinking":
-											return `Redacted thinking: ${item.data.toString()}`
-										default:
-											return ""
-									}
-								})
-								.join("\n")
-						} else {
-							return "" // Ensure all code paths return a value
-						}
-					})
-					.join("\n"),
-				(err) => {
-					if (err) {
-						console.error(`Failed to write file: ${err.message}`)
-					}
-				},
-			)
-		}
 	}
 
 	async presentAssistantMessage() {
@@ -2199,6 +2145,9 @@ export class Task {
 				totalCost,
 			})
 			await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+
+			await this.debug_SaveMessages(this.messageStateHandler.getClineMessages())
+
 			await this.postStateToWebview()
 
 			// now add to apiconversationhistory
@@ -2220,7 +2169,7 @@ export class Task {
 
 				// NOTE: this comment is here for future reference - this was a workaround for userMessageContent not getting set to true. It was due to it not recursively calling for partial blocks when didRejectTool, so it would get stuck waiting for a partial block to complete before it could continue.
 				// in case the content blocks finished
-				// it may be the api stream finished after the last parsed content block was executed, so  we are able to detect out of bounds and set userMessageContentReady to true (note you should not call presentAssistantMessage since if the last block is completed it will be presented again)
+				// it may be the api stream finished after the last parsed content block was executed, so we are able to detect out of bounds and set userMessageContentReady when its ready
 				// const completeBlocks = this.assistantMessageContent.filter((block) => !block.partial) // if there are any partial blocks after the stream ended we can consider them invalid
 				// if (this.currentStreamingContentIndex >= completeBlocks.length) {
 				// 	this.userMessageContentReady = true
@@ -2571,5 +2520,55 @@ export class Task {
 		}
 
 		return `<environment_details>\n${details.trim()}\n</environment_details>`
+	}
+
+	// Save prompt for debugging
+	async debug_SavePrompt(prompt: string) {
+		if (process.env.IS_DEV && process.env.IS_DEV === "true") {
+			fs.writeFile(path.join(this.cwd, `.${productName}_prompt.md`), prompt, (err) => {
+				if (err) {
+					console.error(`Failed to write file: ${err.message}`)
+				}
+			})
+		}
+	}
+
+	// Save messages for debugging
+	async debug_SaveMessages(messages: ClineMessage[]) {
+		if (process.env.IS_DEV && process.env.IS_DEV === "true") {
+			if (messages.length > 0) {
+				fs.writeFile(
+					path.join(this.cwd, `.${productName}_log.md`),
+					messages
+						.map((m) => {
+							let result = ""
+							if (!m.partial) {
+								const text = m.text?.replace(/\\([nt"])/g, (_, p1) =>
+									p1 === "n" ? "\n" : p1 === "t" ? "\t" : '"',
+								)
+
+								switch (m.type) {
+									case "ask":
+										result = `${m.ask} : ${text ?? ``}`
+										break
+									case "say":
+										result = `${m.say} : ${text ?? ``}`
+										break
+									default:
+										result = `${m.type} : ${text ?? ``}`
+								}
+								return result.concat("\n============================================")
+							}
+							return ""
+						})
+						.join("\n"),
+					(err) => {
+						if (err) {
+							console.error(`Failed to write file: ${err.message}`)
+						}
+					},
+				)
+			}
+		}
 	}
 }
