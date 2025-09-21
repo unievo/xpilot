@@ -47,7 +47,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					if (clineError?.isErrorType(ClineErrorType.RateLimit)) {
 						return (
-							<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">
+							<p
+								className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}>
 								{clineErrorMessage}
 								{requestId && <div>Request ID: {requestId}</div>}
 							</p>
@@ -56,7 +57,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					// Default error display
 					return (
-						<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">
+						<p
+							className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}>
 							{clineErrorMessage}
 							{requestId && <div>Request ID: {requestId}</div>}
 							{clineErrorMessage?.toLowerCase()?.includes("powershell") && (
@@ -78,7 +80,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 									<br />
 									{/* The user is signed in or not using cline provider */}
 									{/* {clineUser && !isClineProvider ? (
-										<span className="mb-4 text-[var(--vscode-descriptionForeground)]">
+										<span className="mb-4 text-[var(--vscode-editorWarning-foreground)]">
 											(Click "Retry" below)
 										</span>
 									) : (
@@ -94,7 +96,9 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 				// Regular error message
 				return (
-					<p className="m-0 whitespace-pre-wrap text-[var(--vscode-errorForeground)] wrap-anywhere">{message.text}</p>
+					<p className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}>
+						{message.text}
+					</p>
 				)
 
 			case "diff_error":
