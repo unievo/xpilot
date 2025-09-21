@@ -60,7 +60,7 @@ export class Controller {
 	) {
 		this.id = id
 		PromptRegistry.getInstance() // Ensure prompts and tools are registered
-		HostProvider.get().logToChannel("ClineProvider instantiated")
+		HostProvider.get().logToChannel("Provider instantiated")
 		this.accountService = ClineAccountService.getInstance()
 		this.stateManager = new StateManager(context)
 		this.authService = AuthService.getInstance(this)

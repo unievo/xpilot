@@ -1,3 +1,4 @@
+import { productName } from "@shared/Configuration"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { HistoryIcon, PlusIcon, SettingsIcon, UserCircleIcon } from "lucide-react"
 import { useMemo } from "react"
@@ -67,7 +68,7 @@ export const Navbar = () => {
 	return (
 		<nav
 			className="flex-none inline-flex justify-end bg-transparent gap-2 mb-1 z-10 border-none items-center mr-4!"
-			id="cline-navbar-container"
+			id={`${productName}-navbar-container`}
 			style={{ gap: "4px" }}>
 			{SETTINGS_TABS.map((tab) => (
 				<HeroTooltip content={tab.tooltip} key={`navbar-tooltip-${tab.id}`} placement="bottom">

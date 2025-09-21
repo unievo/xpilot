@@ -3,6 +3,7 @@ import * as vscode from "vscode"
 import { HostProvider } from "@/hosts/host-provider"
 import { getDistinctId } from "@/services/logging/distinctId"
 import { PostHogClientProvider } from "@/services/posthog/PostHogClientProvider"
+import { productName } from "@/shared/Configuration"
 import { Setting } from "@/shared/proto/index.host"
 import * as pkg from "../../../../package.json"
 import { PostHogClientValidConfig } from "../../../shared/services/config/posthog-config"
@@ -54,7 +55,7 @@ export class PostHogErrorProvider implements IErrorProvider {
 		}
 
 		// Check extension-specific telemetry setting
-		const config = vscode.workspace.getConfiguration("cline")
+		const config = vscode.workspace.getConfiguration(productName)
 		if (config.get("telemetrySetting") === "disabled") {
 			this.errorSettings.enabled = false
 		}
