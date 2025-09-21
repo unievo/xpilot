@@ -8,10 +8,11 @@ import {
 import { WebviewProvider } from "./core/webview"
 import { Logger } from "./services/logging/Logger"
 import { WebviewProviderType } from "./shared/webview/types"
-import "./utils/path" // necessary to have access to String.prototype.toPosix
+import "./utils/path"; // necessary to have access to String.prototype.toPosix
 
 import { HostProvider } from "@/hosts/host-provider"
 import { FileContextTracker } from "./core/context/context-tracking/FileContextTracker"
+import { ExtensionRegistryInfo } from "./registry"
 import { ErrorService } from "./services/error"
 import { featureFlagsService } from "./services/feature-flags"
 import { initializeDistinctId } from "./services/logging/distinctId"
@@ -63,7 +64,7 @@ export async function initialize(context: vscode.ExtensionContext): Promise<Webv
 
 async function showVersionUpdateAnnouncement(context: vscode.ExtensionContext) {
 	// Version checking for autoupdate notification
-	const currentVersion = context.extension.packageJSON.version
+	const currentVersion = ExtensionRegistryInfo.version
 	const previousVersion = context.globalState.get<string>("lastVersion")
 	// Perform post-update actions if necessary
 	try {
@@ -72,7 +73,7 @@ async function showVersionUpdateAnnouncement(context: vscode.ExtensionContext) {
 
 			// Use the same condition as announcements: focus when there's a new announcement to show
 			const lastShownAnnouncementId = context.globalState.get<string>("lastShownAnnouncementId")
-			const latestAnnouncementId = getLatestAnnouncementId(context)
+			const latestAnnouncementId = getLatestAnnouncementId()
 
 			if (lastShownAnnouncementId !== latestAnnouncementId) {
 				// Focus Cline when there's a new announcement to show (major/minor updates or fresh installs)

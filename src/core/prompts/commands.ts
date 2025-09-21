@@ -1,3 +1,5 @@
+import { getShell } from "@utils/shell"
+
 import { gitInstructionsRepo, gitWorkflowsRepo, workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
 import { getGlobalInstructionsDirectoryPath } from "../storage/disk"
 
@@ -201,8 +203,16 @@ Below is the user's input when they indicated that they wanted to submit a Githu
 `
 
 export const deepPlanningToolResponse = (focusChainSettings?: { enabled: boolean }) => {
-	const detectedShell = require("@utils/shell").getShell()
-	const isPowerShell = detectedShell.toLowerCase().includes("powershell") || detectedShell.toLowerCase().includes("pwsh")
+	const detectedShell = getShell()
+
+	// FIXME: detectedShell returns a non-string value on some Windows machines
+	let isPowerShell = false
+	try {
+		isPowerShell =
+			detectedShell != null &&
+			typeof detectedShell === "string" &&
+			(detectedShell.toLowerCase().includes("powershell") || detectedShell.toLowerCase().includes("pwsh"))
+	} catch {}
 
 	return `<explicit_instructions type="deep-planning">
 Your task is to create a comprehensive implementation plan before writing any code. This process has four distinct steps that must be completed in order.

@@ -105,7 +105,7 @@ export async function refreshClineRulesToggles(
 	localToggles: ClineRulesToggles
 }> {
 	// Global toggles
-	const globalClineRulesToggles = controller.stateManager.getGlobalStateKey("globalClineRulesToggles")
+	const globalClineRulesToggles = controller.stateManager.getGlobalSettingsKey("globalClineRulesToggles")
 	const globalClineRulesFilePath = await ensureGlobalInstructionsDirectoryExists()
 	const updatedGlobalToggles = await synchronizeRuleToggles(
 		globalClineRulesFilePath,

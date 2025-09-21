@@ -18,6 +18,7 @@ export const gitInstructionsRepo = ""
 export const gitWorkflowsRepo = ""
 
 // Settings
+export const enableYoloMode = false
 export const enableTelemetrySettings = false
 export const maxHistoryPreviewItems = 10
 export const mcpLibraryEnabled = false

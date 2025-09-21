@@ -14,7 +14,6 @@ import { type TerminalProfile } from "@shared/proto/cline/state"
 import { WebviewProviderType as WebviewProviderTypeEnum, WebviewProviderTypeRequest } from "@shared/proto/cline/ui"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
-import { name, publisher } from "../../../package.json"
 import {
 	basetenDefaultModelId,
 	basetenModels,
@@ -31,7 +30,7 @@ import {
 import type { McpMarketplaceCatalog, McpServer, McpViewTab } from "../../../src/shared/mcp"
 import { McpServiceClient, ModelsServiceClient, StateServiceClient, UiServiceClient } from "../services/grpc-client"
 
-interface ExtensionStateContextType extends ExtensionState {
+export interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
 	showWelcome: boolean
 	openRouterModels: Record<string, ModelInfo>
@@ -101,7 +100,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	onRelinquishControl: (callback: () => void) => () => void
 }
 
-const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
+export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
 
 export const ExtensionStateContextProvider: React.FC<{
 	children: React.ReactNode
@@ -204,9 +203,10 @@ export const ExtensionStateContextProvider: React.FC<{
 		welcomeViewCompleted: false,
 		mcpResponsesCollapsed: false, // Default value (expanded), will be overwritten by extension state
 		strictPlanModeEnabled: false,
+		yoloModeToggled: false,
 		customPrompt: undefined,
 		useAutoCondense: false,
-		extensionInfo: { name: name, publisher: publisher },
+		favoritedModelIds: [],
 
 		// NEW: Add workspace information with defaults
 		workspaceRoots: [],

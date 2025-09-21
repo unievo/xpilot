@@ -18,6 +18,7 @@ import { ToolUse } from "../assistant-message"
 import { ContextManager } from "../context/context-management/ContextManager"
 import { formatResponse } from "../prompts/responses"
 import { StateManager } from "../storage/StateManager"
+import { WorkspaceRootManager } from "../workspace"
 import { ToolResponse } from "."
 import { MessageStateHandler } from "./message-state"
 import { TaskState } from "./TaskState"
@@ -88,6 +89,11 @@ export class ToolExecutor {
 		private ulid: string,
 		private mode: Mode,
 		private strictPlanModeEnabled: boolean,
+		private yoloModeToggled: boolean,
+
+		// Workspace Management
+		private workspaceManager: WorkspaceRootManager | undefined,
+		private isMultiRootEnabled: boolean,
 
 		// Callbacks to the Task (Entity)
 		private say: (
@@ -110,11 +116,12 @@ export class ToolExecutor {
 		private saveCheckpoint: (isAttemptCompletionMessage?: boolean, completionMessageTs?: number) => Promise<void>,
 		private sayAndCreateMissingParamError: (toolName: ClineDefaultTool, paramName: string, relPath?: string) => Promise<any>,
 		private removeLastPartialMessageIfExistsWithType: (type: "ask" | "say", askOrSay: ClineAsk | ClineSay) => Promise<void>,
-		private executeCommandTool: (command: string) => Promise<[boolean, any]>,
+		private executeCommandTool: (command: string, timeoutSeconds: number | undefined) => Promise<[boolean, any]>,
 		private doesLatestTaskCompletionHaveNewChanges: () => Promise<boolean>,
 		private updateFCListFromToolResponse: (taskProgress: string | undefined) => Promise<void>,
+		private switchToActMode: () => Promise<boolean>,
 	) {
-		this.autoApprover = new AutoApprove(autoApprovalSettings)
+		this.autoApprover = new AutoApprove(autoApprovalSettings, yoloModeToggled)
 
 		// Initialize the coordinator and register all tool handlers
 		this.coordinator = new ToolExecutorCoordinator()
@@ -130,7 +137,10 @@ export class ToolExecutor {
 			context: this.context,
 			mode: this.mode,
 			strictPlanModeEnabled: this.strictPlanModeEnabled,
+			yoloModeToggled: this.yoloModeToggled,
 			cwd: this.cwd,
+			workspaceManager: this.workspaceManager,
+			isMultiRootEnabled: this.isMultiRootEnabled,
 			taskState: this.taskState,
 			messageState: this.messageStateHandler,
 			api: this.api,
@@ -164,6 +174,7 @@ export class ToolExecutor {
 				shouldAutoApproveTool: this.shouldAutoApproveTool.bind(this),
 				shouldAutoApproveToolWithPath: this.shouldAutoApproveToolWithPath.bind(this),
 				applyLatestBrowserSettings: this.applyLatestBrowserSettings.bind(this),
+				switchToActMode: this.switchToActMode,
 			},
 			coordinator: this.coordinator,
 		}
@@ -220,6 +231,11 @@ export class ToolExecutor {
 
 	public updateStrictPlanModeEnabled(strictPlanModeEnabled: boolean): void {
 		this.strictPlanModeEnabled = strictPlanModeEnabled
+	}
+
+	public updateYoloModeToggled(yoloModeToggled: boolean): void {
+		this.yoloModeToggled = yoloModeToggled
+		this.autoApprover.updateApproveAll(yoloModeToggled)
 	}
 
 	/**

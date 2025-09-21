@@ -503,6 +503,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							{shouldShowPromptCacheInfo() && (
 								<div
 									style={{
+										opacity: 0.7,
+										fontSize: "0.9em",
 										display: "flex",
 										justifyContent: "space-between",
 										alignItems: "center",

@@ -236,7 +236,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 				<HeroTooltip content="Manage Instructions and Workflows" delay={1000}>
 					<VSCodeButton
 						appearance="icon"
-						aria-label={`Manage Instructions and Workflows`}
+						aria-label={isVisible ? `Hide Instructions and Workflows` : `Manage Instructions and Workflows`}
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
@@ -493,7 +493,7 @@ export const TabButton = ({
 	isActive: boolean
 	onClick: () => void
 }) => (
-	<StyledTabButton isActive={isActive} onClick={onClick}>
+	<StyledTabButton aria-pressed={isActive} isActive={isActive} onClick={onClick}>
 		{children}
 	</StyledTabButton>
 )

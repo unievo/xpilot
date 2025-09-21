@@ -56,7 +56,7 @@ const WelcomeView = memo(() => {
 					options.
 				</p>
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">
-					Sign up for an account to get started for free, or use an API key that provides access to models like Claude 4
+					Sign up for an account to get started for free, or use an API key that provides access to models like Claude
 					Sonnet.
 				</p>
 

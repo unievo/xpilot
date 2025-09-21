@@ -140,7 +140,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 						<div className="flex overflow-hidden items-center ml-2 space-x-2">
 							<VSCodeButton
 								appearance="icon"
-								aria-label="Add file"
+								aria-label="Add file..."
 								onClick={(e) => {
 									e.stopPropagation()
 									setIsExpanded(true)

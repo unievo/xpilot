@@ -28,7 +28,7 @@ export function registerTaskCommands(context: vscode.ExtensionContext, controlle
 			}
 
 			const tasksCount = parseInt(count, 10)
-			const globalStoragePath = context.globalStorageUri.fsPath
+			const globalStoragePath = HostProvider.get().globalStorageFsPath
 			const tasksDir = path.join(globalStoragePath, "tasks")
 
 			vscode.window.withProgress(
