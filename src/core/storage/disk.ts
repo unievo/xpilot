@@ -75,13 +75,13 @@ export async function getDocumentsPath(): Promise<string> {
 	return path.join(os.homedir(), "Documents")
 }
 
-export async function getUserProductDirectoryPath(): Promise<string> {
+export function getUserProductDirectoryPath(): string {
 	const userProductPath = path.join(os.homedir(), `.${authorName}`, productName)
 	return userProductPath
 }
 
 export async function getUserMcpDirectoryPath(): Promise<string> {
-	const mcpDir = path.join(await getUserProductDirectoryPath(), mcpDirectory)
+	const mcpDir = path.join(getUserProductDirectoryPath(), mcpDirectory)
 	return mcpDir
 }
 
@@ -97,12 +97,12 @@ export async function ensureTaskDirectoryExists(context: vscode.ExtensionContext
 	return taskDir
 }
 
-export async function getGlobalInstructionsDirectoryPath(): Promise<string> {
-	return path.join(await getUserProductDirectoryPath(), instructionsDirectory)
+export function getGlobalInstructionsDirectoryPath(): string {
+	return path.join(getUserProductDirectoryPath(), instructionsDirectory)
 }
 
 export async function ensureGlobalInstructionsDirectoryExists(): Promise<string> {
-	const clineRulesDir = await getGlobalInstructionsDirectoryPath()
+	const clineRulesDir = getGlobalInstructionsDirectoryPath()
 	try {
 		await fs.mkdir(clineRulesDir, { recursive: true })
 	} catch (_error) {
@@ -112,7 +112,7 @@ export async function ensureGlobalInstructionsDirectoryExists(): Promise<string>
 }
 
 export async function getGlobalWorkflowsDirectoryPath(): Promise<string> {
-	return path.join(await getUserProductDirectoryPath(), workflowsDirectory)
+	return path.join(getUserProductDirectoryPath(), workflowsDirectory)
 }
 
 export async function ensureGlobalWorkflowsDirectoryExists(): Promise<string> {
@@ -136,7 +136,7 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 }
 
 export async function ensureSettingsDirectoryExists(): Promise<string> {
-	const settingsDir = path.join(await getUserProductDirectoryPath(), settingsDirectory)
+	const settingsDir = path.join(getUserProductDirectoryPath(), settingsDirectory)
 	await fs.mkdir(settingsDir, { recursive: true })
 	return settingsDir
 }

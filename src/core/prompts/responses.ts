@@ -244,10 +244,10 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`# Global instructions - (${globalClineRulesFilePath.toPosix()}/)\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions\n\nThe following content is from instruction files in the root-level (${workspaceInstructionsDirectoryPath}) directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions - (${workspaceInstructionsDirectoryPath})\n\nThe following content is from instruction files applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# (${workspaceInstructionsDirectoryPath})\n\nThe following is provided by a root-level (${workspaceInstructionsDirectoryPath}) file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# The following content is provided by an instruction file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
 		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,

@@ -1,4 +1,5 @@
 import { gitInstructionsRepo, gitWorkflowsRepo, workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
+import { getGlobalInstructionsDirectoryPath } from "../storage/disk"
 
 export const newTaskToolResponse = () =>
 	`<explicit_instructions type="new_task">
@@ -454,7 +455,10 @@ Arguments are the following, specify possible choices and use default values if 
 - Git repository source {repository}, default: {${gitInstructionsRepo}} (optional)
 - Location, in the Workspace Instructions Directory or the Global Instructions Directory {workspace, global}, default: {workspace}  (optional)
 
-Before executing any command, confirm with the user the current arguments values, urls and paths using options (not by pressing any keys).
+- Workspace Instructions Directory relative workspace path: {${workspaceInstructionsDirectoryPath}}
+- Global Instructions Directory absolute path: {${getGlobalInstructionsDirectoryPath()}}
+
+Before executing any command confirm with the user any default values, using options (not by pressing any keys).
 
 Steps:
 
@@ -482,9 +486,12 @@ This command is for getting workflow files from a git repository, by cloning or 
 Arguments are the following, specify possible choices and use default values if some or all are not specified:
 
 - Git repository source {repository}, default: {${gitWorkflowsRepo}} (optional)
-- Location, in the Workspace Workflows Directory or the Global Workflows Directory {workspace, global}, default: {workspace}  (optional)
+- Location, in the Workspace Instructions Directory or the Global Instructions Directory {workspace, global}, default: {workspace}  (optional)
 
-Before executing any command, confirm the current arguments values, urls and paths using options (not by pressing any keys).
+- Workspace Instructions Directory relative workspace path: {${workspaceInstructionsDirectoryPath}}
+- Global Instructions Directory absolute path: {${getGlobalInstructionsDirectoryPath()}}
+
+Before executing any command confirm with the user any default values, using options (not by pressing any keys).
 
 Steps:
 
