@@ -121,63 +121,100 @@ export const readDirectory = async (
 	excludedPaths: string[][] = [],
 	excludedDirectories: string[] = [],
 	excludedFiles: string[] = [],
-) => {
-	try {
-		const filePaths = await fs
-			.readdir(directoryPath, { withFileTypes: true, recursive: true })
-			.then((entries) => entries.filter((entry) => !OS_GENERATED_FILES.includes(entry.name)))
-			.then((entries) => entries.filter((entry) => entry.isFile()))
-			.then((files) =>
-				files.map((file) => {
-					const resolvedPath = workspaceResolver.resolveWorkspacePath(
-						file.parentPath,
-						file.name,
-						"Utils.fs.readDirectory",
-					)
-					return typeof resolvedPath === "string" ? resolvedPath : resolvedPath.absolutePath
-				}),
-			)
-			.then((filePaths) =>
-				filePaths.filter((filePath) => {
-					if (excludedPaths.length > 0) {
-						for (const excludedPathList of excludedPaths) {
-							const pathToSearchFor = path.sep + excludedPathList.join(path.sep) + path.sep
-							if (filePath.includes(pathToSearchFor)) {
-								return false
-							}
-						}
-					}
+): Promise<string[]> => {
+	const filePaths: string[] = []
 
-					// Filter based on excludedDirectories
-					if (excludedDirectories.length > 0) {
-						const relativePath = path.relative(directoryPath, filePath)
-						const pathSegments = relativePath.split(path.sep)
-						const directorySegmentsInRelativePath = pathSegments.slice(0, -1)
-
-						const isInExcludedDirectory = directorySegmentsInRelativePath.some((segment) =>
-							excludedDirectories.some((excludedDir) => segment.includes(excludedDir)),
-						)
-						if (isInExcludedDirectory) {
-							return false
-						}
-					}
-
-					// Filter based on excludedFiles
-					if (excludedFiles.length > 0) {
-						const fileName = path.basename(filePath)
-						const containsExcludedString = excludedFiles.some((excludedString) => fileName.includes(excludedString))
-						if (containsExcludedString) {
-							return false
-						}
-					}
-
+	/**
+	 * Helper function to check if a directory should be excluded
+	 */
+	const shouldExcludeDirectory = (dirPath: string, dirName: string): boolean => {
+		// Check excludedPaths
+		if (excludedPaths.length > 0) {
+			for (const excludedPathList of excludedPaths) {
+				const pathToSearchFor = path.sep + excludedPathList.join(path.sep) + path.sep
+				if (dirPath.includes(pathToSearchFor)) {
 					return true
-				}),
-			)
+				}
+			}
+		}
 
+		// Check excludedDirectories
+		if (excludedDirectories.length > 0) {
+			const isInExcludedDirectory = excludedDirectories.some((excludedDir) => {
+				// Handle wildcard patterns (e.g., ".git*" matches directories starting with ".git")
+				if (excludedDir.endsWith("*")) {
+					const prefix = excludedDir.slice(0, -1) // Remove the '*'
+					return dirName.startsWith(prefix)
+				}
+				// Original behavior for non-wildcard patterns
+				return dirName.includes(excludedDir)
+			})
+			if (isInExcludedDirectory) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	/**
+	 * Helper function to check if a file should be excluded
+	 */
+	const shouldExcludeFile = (fileName: string): boolean => {
+		// Filter OS-generated files
+		if (OS_GENERATED_FILES.includes(fileName)) {
+			return true
+		}
+
+		// Filter based on excludedFiles
+		if (excludedFiles.length > 0) {
+			const containsExcludedString = excludedFiles.some((excludedString) => fileName.includes(excludedString))
+			if (containsExcludedString) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	/**
+	 * Recursively processes a directory
+	 */
+	const processDirectory = async (currentPath: string): Promise<void> => {
+		try {
+			const entries = await fs.readdir(currentPath, { withFileTypes: true })
+
+			for (const entry of entries) {
+				const entryPath = path.join(currentPath, entry.name)
+
+				if (entry.isDirectory()) {
+					// Check if this directory should be excluded before processing it
+					if (!shouldExcludeDirectory(entryPath, entry.name)) {
+						await processDirectory(entryPath)
+					}
+				} else if (entry.isFile()) {
+					// Check if this file should be excluded
+					if (!shouldExcludeFile(entry.name)) {
+						const resolvedPath = workspaceResolver.resolveWorkspacePath(
+							currentPath,
+							entry.name,
+							"Utils.fs.readDirectory",
+						)
+						const absolutePath = typeof resolvedPath === "string" ? resolvedPath : resolvedPath.absolutePath
+						filePaths.push(absolutePath)
+					}
+				}
+			}
+		} catch (error) {
+			throw new Error(`Error reading directory at ${currentPath}: ${error}`)
+		}
+	}
+
+	try {
+		await processDirectory(directoryPath)
 		return filePaths
-	} catch {
-		throw new Error(`Error reading directory at ${directoryPath}`)
+	} catch (error) {
+		throw new Error(`Error reading directory at ${directoryPath}: ${error}`)
 	}
 }
 
