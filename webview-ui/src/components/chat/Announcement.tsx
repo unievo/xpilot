@@ -1,4 +1,4 @@
-import { agentName, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
+import { baseVersion, baseVersionUrl, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo, useState } from "react"
@@ -6,7 +6,7 @@ import { useMount } from "react-use"
 import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
-import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
+import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INPUT_BACKGROUND } from "@/utils/vscStyles"
 import { useApiConfigurationHandlers } from "../settings/utils/useApiConfigurationHandlers"
 
 interface AnnouncementProps {
@@ -15,10 +15,10 @@ interface AnnouncementProps {
 }
 
 const containerStyle: CSSProperties = {
-	backgroundColor: getAsVar(VSC_INACTIVE_SELECTION_BACKGROUND),
+	backgroundColor: getAsVar(VSC_INPUT_BACKGROUND),
 	borderRadius: "10px",
 	padding: "5px",
-	margin: "0px 2px 5px 17px",
+	margin: "5px 5px 5px 17px",
 	position: "relative",
 	flexShrink: 0,
 }
@@ -30,9 +30,10 @@ const hrStyle: CSSProperties = {
 	height: "1px",
 	background: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 	opacity: 0.1,
-	margin: "6px 0",
+	marginTop: "20px",
+	marginBottom: "5px",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "12px", textAlign: "left" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "12px", textAlign: "right" }
 const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
 
 /*
@@ -101,30 +102,25 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
 			{/* <span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "20px" }}></span> */}
-			<div style={h3TitleStyle}>Release v{version}</div>
+			<div style={h3TitleStyle}>
+				Release <a href="https://github.com/unievo/astro/blob/main/CHANGELOG.md">v{version}</a>
+			</div>
 			{
 				<ul style={ulStyle}>
-					Welcome to <b>{agentName}</b>!<br />
+					<b>Base Cline Features Update: </b>
 					<br />
-					{/* <li>
-						<b>Task Timeline:</b> See the history of your coding journey with a visual timeline of checkpoints,
-						letting you understand what Cline did at a glance.
+					<br />
+					<li>
+						<b>Focus Chain:</b> Automatically creates and maintains todo lists in tasks, breaking down tasks into
+						steps with real-time progress tracking
 					</li>
 					<li>
-						<b>New Settings Page:</b> Redesigned settings, now split into tabs for easier navigation and a cleaner
-						experience.
+						<b>Deep Planning:</b> New "/Deep Planning" slash command for codebase exploration and implementation
+						planning, that integrates with Focus Chain for automatic progress tracking
 					</li>
 					<li>
-						<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for Vertex AI
-						users.
+						<b>New API providers, models, enhancements and fixes: </b> <a href={`${baseVersionUrl}`}>{baseVersion}</a>
 					</li>
-					<li>
-						<b>New User Experience:</b> Special components and guidance for new users to help them get started with
-						Cline.
-					</li>
-					<li>
-						<b>Auto Caching for Gemini:</b> Native support for Gemini's recently released Implicit Caching.
-					</li> */}
 				</ul>
 			}
 
@@ -135,24 +131,20 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					style={{ padding: "0px 15px" }}
 					classNames={{
 						trigger: "bg-transparent border-0 pl-0 pb-0 w-fit",
-						title: "font-bold text-[var(--vscode-foreground)]",
+						title: "font-bold text-xs text-[var(--vscode-foreground)]",
 						indicator:
 							"text-[var(--vscode-foreground)] mb-0.5 -rotate-180 data-[open=true]:-rotate-90 rtl:rotate-0 rtl:data-[open=true]:-rotate-90",
 					}}
-					key="1"
-					title="Previous Updates:">
+					key="1">
 					<ul style={ulStyle}>
 						<li>
-							<b>1M Context for Claude Sonnet 4:</b> Cline/OpenRouter users get instant access, Anthropic users need
-							Tier 4, and Bedrock users must be on a supported region.
+							<b>Overview section:</b> for quick access to main features and usage recommendations.
 						</li>
 						<li>
-							<b>Optimized for Claude 4:</b> Cline is now optimized to work with the Claude 4 family of models,
-							resulting in improved performance, reliability, and new capabilities.
+							<b>Instructions and Workflows enhancements:</b> allowing for an expandable and collaborative knowledge bases using Git, with the "/Git Instructions" and "/Git Workflows" slash commands.
 						</li>
 						<li>
-							<b>Workflows:</b> Create and manage workflow files that can be injected into conversations via slash
-							commands, making it easy to automate repetitive tasks.
+							<b>On demand MCP tools schema loading:</b> performance and cost optimization when using MCP servers with a large number of tools, reducing the system prompt size and token usage.
 						</li>
 					</ul>
 				</AccordionItem>

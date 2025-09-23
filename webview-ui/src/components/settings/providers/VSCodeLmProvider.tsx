@@ -84,8 +84,8 @@ export const VSCodeLmProvider = ({ currentMode }: VSCodeLmProviderProps) => {
 								color: "var(--vscode-descriptionForeground)",
 								paddingLeft: "18px",
 							}}>
-							<li>For simpler tasks, you can use cost effective models such as OpenAI GPT-4.1.</li>
-							<li>For more complex coding tasks, use Claude Sonnet 4 / Gemini 2.5 Pro.</li>
+							<li>For simpler tasks you can use cost-effective models such as Grok Code, GPT-4.1.</li>
+							<li>For complex coding tasks use premium models such as Sonnet 4, Gemini 2.5 Pro, GPT-5.</li>
 						</ul>
 					</div>
 				) : (
@@ -106,7 +106,7 @@ export const VSCodeLmProvider = ({ currentMode }: VSCodeLmProviderProps) => {
 						<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
 							enabling
 						</VSCodeLink>{" "}
-						the GitHub Copilot models.
+						the GitHub Copilot models in the Copilot Chat extension.
 					</p>
 				)}
 			</DropdownContainer>

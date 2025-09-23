@@ -21,13 +21,9 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 					</div>
 					<div style={{ marginRight: "-10px" }}>
 						<p>
-							Astro started as an experimental project, to adapt <a href="https://cline.bot">Cline</a> as a
-							foundation for custom and domain specific agents, that can have specialized functionalities and
-							capabilities applicable to different industries.
-						</p>
-						<p>
-							As a foundation agent, {agentName} includes Cline's general functionality, with additional
-							customizations and features, and it is released as a community experiment.
+							{agentName} is a foundation for custom software agents, that can have specialized functionalities and
+							capabilities applicable to different domains and industries. It includes Cline's general
+							functionality, with additional customizations and features.
 						</p>
 						<p>If you have any issues, questions or feedback, feel free to contact us on:</p>
 						<p style={{ margin: "0 0 0 5px", fontSize: "13px", textAlign: "center" }}>
