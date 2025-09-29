@@ -1,5 +1,5 @@
 import { Tooltip } from "@heroui/react"
-import React from "react"
+import React, { useMemo } from "react"
 
 interface HeroTooltipProps {
 	content: React.ReactNode
@@ -8,6 +8,8 @@ interface HeroTooltipProps {
 	delay?: number
 	closeDelay?: number
 	placement?: "top" | "bottom" | "left" | "right"
+	showArrow?: boolean
+	disabled?: boolean
 }
 
 /**
@@ -21,10 +23,12 @@ const HeroTooltip: React.FC<HeroTooltipProps> = ({
 	delay = 500,
 	closeDelay = 500,
 	placement = "top",
+	disabled = false,
+	showArrow = false,
 }) => {
 	// If content is a simple string, wrap it in the tailwind styled divs
-	const formattedContent =
-		typeof content === "string" ? (
+	const formattedContent = useMemo(() => {
+		return typeof content === "string" ? (
 			<div
 				className={`bg-[var(--vscode-editor-background)] text-[var(--vscode-editor-foreground)] 
       border border-[var(--vscode-textBlockQuote-border)] rounded-2xl p-2 w-full shadow-md text-xs max-w-[250px] ${className}`}>
@@ -38,19 +42,20 @@ const HeroTooltip: React.FC<HeroTooltipProps> = ({
 			// If content is already a React node, assume it's pre-formatted
 			content
 		)
+	}, [content, className])
 
 	return (
 		<Tooltip
 			classNames={{
 				content: "hero-tooltip-content pointer-events-none", // Prevent hovering over tooltip
 			}}
-			closeDelay={0}
+			closeDelay={closeDelay}
 			content={formattedContent} // Immediate close when cursor moves away
 			delay={delay}
 			disableAnimation={true}
-			isDisabled={false}
+			isDisabled={disabled}
 			placement={placement} // Disable animation for immediate appearance/disappearance
-			showArrow={false}>
+			showArrow={showArrow}>
 			{children}
 		</Tooltip>
 	)

@@ -45,22 +45,18 @@ import { UrlContentFetcher } from "@services/browser/UrlContentFetcher"
 import { listFiles } from "@services/glob/list-files"
 import { Logger } from "@services/logging/Logger"
 import { McpHub } from "@services/mcp/McpHub"
-import { AutoApprovalSettings } from "@shared/AutoApprovalSettings"
 import { ApiConfiguration } from "@shared/api"
 import { findLast, findLastIndex } from "@shared/array"
-import { BrowserSettings } from "@shared/BrowserSettings"
 import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
 import { ClineApiReqCancelReason, ClineApiReqInfo, ClineAsk, ClineMessage, ClineSay } from "@shared/ExtensionMessage"
-import { FocusChainSettings } from "@shared/FocusChainSettings"
 import { HistoryItem } from "@shared/HistoryItem"
 import { DEFAULT_LANGUAGE_SETTINGS, getLanguageKey, LanguageDisplay } from "@shared/Languages"
 import { convertClineMessageToProto } from "@shared/proto-conversions/cline-message"
-import { Mode, OpenaiReasoningEffort } from "@shared/storage/types"
 import { ClineDefaultTool } from "@shared/tools"
 import { ClineAskResponse } from "@shared/WebviewMessage"
 import { getGitRemoteUrls, getLatestGitCommitHash } from "@utils/git"
-import { isNextGenModelFamily } from "@utils/model-utils"
+import { isLocalModel, isNextGenModelFamily } from "@utils/model-utils"
 import { arePathsEqual, getDesktopDir } from "@utils/path"
 import cloneDeep from "clone-deep"
 import { execa } from "execa"
@@ -86,7 +82,7 @@ import { FocusChainManager } from "./focus-chain"
 import { MessageStateHandler } from "./message-state"
 import { TaskState } from "./TaskState"
 import { ToolExecutor } from "./ToolExecutor"
-import { updateApiReqMsg } from "./utils"
+import { detectAvailableCliTools, updateApiReqMsg } from "./utils"
 
 export type ToolResponse = string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>
 type UserContent = Array<Anthropic.ContentBlockParam>
@@ -126,9 +122,6 @@ export class Task {
 	// Focus Chain
 	private FocusChainManager?: FocusChainManager
 
-	// Context Management
-	private useAutoCondense: boolean
-
 	// Callbacks
 	private updateTaskHistory: (historyItem: HistoryItem) => Promise<HistoryItem[]>
 	private postStateToWebview: () => Promise<void>
@@ -137,15 +130,6 @@ export class Task {
 
 	// Cache service
 	private stateManager: StateManager
-
-	// User chat state
-	autoApprovalSettings: AutoApprovalSettings
-	browserSettings: BrowserSettings
-	focusChainSettings: FocusChainSettings
-	preferredLanguage: string
-	openaiReasoningEffort: OpenaiReasoningEffort
-	yoloModeToggled: boolean
-	mode: Mode
 
 	// Message and conversation state
 	messageStateHandler: MessageStateHandler
@@ -160,16 +144,6 @@ export class Task {
 		postStateToWebview: () => Promise<void>,
 		reinitExistingTaskFromId: (taskId: string) => Promise<void>,
 		cancelTask: () => Promise<void>,
-		apiConfiguration: ApiConfiguration,
-		autoApprovalSettings: AutoApprovalSettings,
-		browserSettings: BrowserSettings,
-		focusChainSettings: FocusChainSettings,
-		preferredLanguage: string,
-		openaiReasoningEffort: OpenaiReasoningEffort,
-		mode: Mode,
-		strictPlanModeEnabled: boolean,
-		yoloModeToggled: boolean,
-		useAutoCondense: boolean,
 		shellIntegrationTimeout: number,
 		terminalReuseEnabled: boolean,
 		terminalOutputLineLimit: number,
@@ -211,20 +185,12 @@ export class Task {
 		this.terminalManager.setDefaultTerminalProfile(defaultTerminalProfile)
 
 		this.urlContentFetcher = new UrlContentFetcher(controller.context)
-		this.browserSession = new BrowserSession(controller.context, browserSettings)
+		this.browserSession = new BrowserSession(controller.context, stateManager)
 		this.contextManager = new ContextManager()
 		this.diffViewProvider = HostProvider.get().createDiffViewProvider()
-		this.autoApprovalSettings = autoApprovalSettings
-		this.browserSettings = browserSettings
-		this.focusChainSettings = focusChainSettings
-		this.preferredLanguage = preferredLanguage
-		this.openaiReasoningEffort = openaiReasoningEffort
-		this.yoloModeToggled = yoloModeToggled
-		this.mode = mode
 		this.enableCheckpoints = enableCheckpointsSetting
 		this.cwd = cwd
 		this.stateManager = stateManager
-		this.useAutoCondense = useAutoCondense
 		this.workspaceManager = workspaceManager
 
 		// Set up MCP notification callback for real-time notifications
@@ -263,16 +229,17 @@ export class Task {
 		this.modelContextTracker = new ModelContextTracker(controller.context, this.taskId)
 
 		// Initialize focus chain manager only if enabled
-		if (this.focusChainSettings.enabled) {
+		const focusChainSettings = this.stateManager.getGlobalSettingsKey("focusChainSettings")
+		if (focusChainSettings.enabled) {
 			this.FocusChainManager = new FocusChainManager({
 				taskId: this.taskId,
 				taskState: this.taskState,
-				mode: this.mode,
+				mode: this.stateManager.getGlobalSettingsKey("mode"),
 				context: this.getContext(),
 				stateManager: this.stateManager,
 				postStateToWebview: this.postStateToWebview,
 				say: this.say.bind(this),
-				focusChainSettings: this.focusChainSettings,
+				focusChainSettings: focusChainSettings,
 			})
 		}
 
@@ -320,6 +287,7 @@ export class Task {
 		}
 
 		// Prepare effective API configuration
+		const apiConfiguration = this.stateManager.getApiConfiguration()
 		const effectiveApiConfiguration: ApiConfiguration = {
 			...apiConfiguration,
 			ulid: this.ulid,
@@ -356,19 +324,20 @@ export class Task {
 				}
 			},
 		}
+		const mode = this.stateManager.getGlobalSettingsKey("mode")
+		const currentProvider = mode === "plan" ? apiConfiguration.planModeApiProvider : apiConfiguration.actModeApiProvider
 
-		const currentProvider = this.mode === "plan" ? apiConfiguration.planModeApiProvider : apiConfiguration.actModeApiProvider
-
+		const openaiReasoningEffort = this.stateManager.getGlobalSettingsKey("openaiReasoningEffort")
 		if (currentProvider === "openai" || currentProvider === "openai-native" || currentProvider === "sapaicore") {
-			if (this.mode === "plan") {
-				effectiveApiConfiguration.planModeReasoningEffort = this.openaiReasoningEffort
+			if (mode === "plan") {
+				effectiveApiConfiguration.planModeReasoningEffort = openaiReasoningEffort
 			} else {
-				effectiveApiConfiguration.actModeReasoningEffort = this.openaiReasoningEffort
+				effectiveApiConfiguration.actModeReasoningEffort = openaiReasoningEffort
 			}
 		}
 
 		// Now that ulid is initialized, we can build the API handler
-		this.api = buildApiHandler(effectiveApiConfiguration, this.mode)
+		this.api = buildApiHandler(effectiveApiConfiguration, mode)
 
 		// Set ulid on browserSession for telemetry tracking
 		this.browserSession.setUlid(this.ulid)
@@ -409,15 +378,9 @@ export class Task {
 			this.clineIgnoreController,
 			this.contextManager,
 			this.stateManager,
-			this.autoApprovalSettings,
-			this.browserSettings,
-			this.focusChainSettings,
 			cwd,
 			this.taskId,
 			this.ulid,
-			this.mode,
-			strictPlanModeEnabled,
-			yoloModeToggled,
 			this.workspaceManager,
 			featureFlagsService.getMultiRootEnabled(),
 			this.say.bind(this),
@@ -432,28 +395,8 @@ export class Task {
 		)
 	}
 
-	public updateMode(mode: Mode): void {
-		this.mode = mode
-		this.toolExecutor.updateMode(mode)
-		if (this.FocusChainManager) {
-			this.FocusChainManager.updateMode(mode)
-		}
-	}
-
-	public updateYoloModeToggled(yoloModeToggled: boolean): void {
-		this.yoloModeToggled = yoloModeToggled
-		this.toolExecutor.updateYoloModeToggled(yoloModeToggled)
-	}
-
-	public updateStrictPlanMode(strictPlanModeEnabled: boolean): void {
-		this.toolExecutor.updateStrictPlanModeEnabled(strictPlanModeEnabled)
-	}
-
-	public updateUseAutoCondense(useAutoCondense: boolean): void {
-		// Track the setting change with current task and model context
-		telemetryService.captureAutoCondenseToggle(this.ulid, useAutoCondense, this.api.getModel().id)
-
-		this.useAutoCondense = useAutoCondense
+	public resetConsecutiveAutoApprovedRequestsCount(): void {
+		this.taskState.consecutiveAutoApprovedRequestsCount = 0
 	}
 
 	// While a task is ref'd by a controller, it will always have access to the extension context
@@ -464,23 +407,6 @@ export class Task {
 			throw new Error("Unable to access extension context")
 		}
 		return context
-	}
-
-	/**
-	 * Updates the auto approval settings for this task
-	 */
-	public updateAutoApprovalSettings(settings: AutoApprovalSettings): void {
-		// Check if maxRequests changed
-		const maxRequestsChanged = this.autoApprovalSettings.maxRequests !== settings.maxRequests
-
-		// Update the settings
-		this.autoApprovalSettings = settings
-		this.toolExecutor.updateAutoApprovalSettings(settings)
-
-		// Reset counter if max requests limit changed
-		if (maxRequestsChanged) {
-			this.taskState.consecutiveAutoApprovedRequestsCount = 0
-		}
 	}
 
 	// Communicate with webview
@@ -912,8 +838,9 @@ export class Task {
 		const pendingContextWarning = await this.fileContextTracker.retrieveAndClearPendingFileContextWarning()
 		const hasPendingFileContextWarnings = pendingContextWarning && pendingContextWarning.length > 0
 
+		const mode = this.stateManager.getGlobalSettingsKey("mode")
 		const [taskResumptionMessage, userResponseMessage] = formatResponse.taskResumption(
-			this.mode === "plan" ? "plan" : "act",
+			mode === "plan" ? "plan" : "act",
 			agoText,
 			this.cwd,
 			wasRecent,
@@ -1332,7 +1259,8 @@ export class Task {
 		const disableBrowserTool = config.get<boolean>("disableBrowserTool")
 
 		if (disableBrowserTool !== undefined) {
-			this.browserSettings.disableToolUse = disableBrowserTool
+			const browserSettings = this.stateManager.getGlobalSettingsKey("browserSettings")
+			browserSettings.disableToolUse = disableBrowserTool
 			// Remove from VSCode configuration
 			await config.update("disableBrowserTool", undefined, true)
 		}
@@ -1341,7 +1269,8 @@ export class Task {
 	private getCurrentProviderInfo(): ApiProviderInfo {
 		const model = this.api.getModel()
 		const apiConfig = this.stateManager.getApiConfiguration()
-		const providerId = (this.mode === "plan" ? apiConfig.planModeApiProvider : apiConfig.actModeApiProvider) as string
+		const mode = this.stateManager.getGlobalSettingsKey("mode")
+		const providerId = (mode === "plan" ? apiConfig.planModeApiProvider : apiConfig.actModeApiProvider) as string
 		const customPrompt = this.stateManager.getGlobalSettingsKey("customPrompt")
 		return { model, providerId, customPrompt }
 	}
@@ -1383,13 +1312,14 @@ export class Task {
 		const providerInfo = this.getCurrentProviderInfo()
 		const ide = (await HostProvider.env.getHostVersion({})).platform || "Unknown"
 		await this.migrateDisableBrowserToolSetting()
-		const disableBrowserTool = this.browserSettings.disableToolUse ?? false
+		const browserSettings = this.stateManager.getGlobalSettingsKey("browserSettings")
+		const disableBrowserTool = browserSettings.disableToolUse ?? false
 		// cline browser tool uses image recognition for navigation (requires model image support).
 		const modelSupportsBrowserUse = providerInfo.model.info.supportsImages ?? false
 
 		const supportsBrowserUse = modelSupportsBrowserUse && !disableBrowserTool // only enable browser use if the model supports it and the user hasn't disabled it
-
-		const preferredLanguage = getLanguageKey(this.preferredLanguage as LanguageDisplay)
+		const preferredLanguageRaw = this.stateManager.getGlobalSettingsKey("preferredLanguage")
+		const preferredLanguage = getLanguageKey(preferredLanguageRaw as LanguageDisplay)
 		const preferredLanguageInstructions =
 			preferredLanguage && preferredLanguage !== DEFAULT_LANGUAGE_SETTINGS
 				? `# Preferred Language\n\nSpeak in ${preferredLanguage}.`
@@ -1434,7 +1364,7 @@ export class Task {
 			providerInfo,
 			supportsBrowserUse,
 			mcpHub: this.mcpHub,
-			focusChainSettings: this.focusChainSettings,
+			focusChainSettings: this.stateManager.getGlobalSettingsKey("focusChainSettings"),
 			globalClineRulesFileInstructions,
 			localClineRulesFileInstructions,
 			localCursorRulesFileInstructions,
@@ -1443,8 +1373,8 @@ export class Task {
 			localWindsurfRulesDirInstructions,
 			clineIgnoreInstructions,
 			preferredLanguageInstructions,
-			browserSettings: this.browserSettings,
-			yoloModeToggled: this.yoloModeToggled,
+			browserSettings: this.stateManager.getGlobalSettingsKey("browserSettings"),
+			yoloModeToggled: this.stateManager.getGlobalSettingsKey("yoloModeToggled"),
 			isMultiRootEnabled,
 			workspaceRoots,
 		}
@@ -1458,7 +1388,7 @@ export class Task {
 			this.taskState.conversationHistoryDeletedRange,
 			previousApiReqIndex,
 			await ensureTaskDirectoryExists(this.getContext(), this.taskId),
-			this.useAutoCondense,
+			this.stateManager.getGlobalSettingsKey("useAutoCondense"),
 		)
 
 		if (contextManagementMetadata.updatedConversationHistoryDeletedRange) {
@@ -1699,12 +1629,17 @@ export class Task {
 		const { model, providerId, customPrompt } = this.getCurrentProviderInfo()
 		if (providerId && model.id) {
 			try {
-				await this.modelContextTracker.recordModelUsage(providerId, model.id, this.mode)
+				await this.modelContextTracker.recordModelUsage(
+					providerId,
+					model.id,
+					this.stateManager.getGlobalSettingsKey("mode"),
+				)
 			} catch {}
 		}
 
 		if (this.taskState.consecutiveMistakeCount >= 3) {
-			if (this.autoApprovalSettings.enabled && this.autoApprovalSettings.enableNotifications) {
+			const autoApprovalSettings = this.stateManager.getGlobalSettingsKey("autoApprovalSettings")
+			if (autoApprovalSettings.enabled && autoApprovalSettings.enableNotifications) {
 				showSystemNotification({
 					subtitle: "Error",
 					message: `${agentName} is having trouble. Would you like to continue the task?`,
@@ -1747,19 +1682,21 @@ export class Task {
 			this.taskState.consecutiveMistakeCount = 0
 		}
 
+		const autoApprovalSettings = this.stateManager.getGlobalSettingsKey("autoApprovalSettings")
+
 		if (
-			this.autoApprovalSettings.enabled &&
-			this.taskState.consecutiveAutoApprovedRequestsCount >= this.autoApprovalSettings.maxRequests
+			autoApprovalSettings.enabled &&
+			this.taskState.consecutiveAutoApprovedRequestsCount >= autoApprovalSettings.maxRequests
 		) {
-			if (this.autoApprovalSettings.enableNotifications) {
+			if (autoApprovalSettings.enableNotifications) {
 				showSystemNotification({
 					subtitle: "Max Requests Reached",
-					message: `${agentName} has auto-approved ${this.autoApprovalSettings.maxRequests.toString()} API requests.`,
+					message: `${agentName} has auto-approved ${autoApprovalSettings.maxRequests.toString()} API requests.`,
 				})
 			}
 			const { response, text, images, files } = await this.ask(
 				"auto_approval_max_req_reached",
-				`${agentName} has auto-approved ${this.autoApprovalSettings.maxRequests.toString()} API requests. Would you like to reset the count and proceed with the task?`,
+				`${agentName} has auto-approved ${autoApprovalSettings.maxRequests.toString()} API requests. Would you like to reset the count and proceed with the task?`,
 			)
 			// if we get past the promise it means the user approved and did not start a new task
 			this.taskState.consecutiveAutoApprovedRequestsCount = 0
@@ -1859,7 +1796,8 @@ export class Task {
 		}
 
 		// Separate logic when using the auto-condense context management vs the original context management methods
-		if (this.useAutoCondense && isNextGenModelFamily(this.api.getModel().id)) {
+		const useAutoCondense = this.stateManager.getGlobalSettingsKey("useAutoCondense")
+		if (useAutoCondense && isNextGenModelFamily(this.api.getModel().id)) {
 			// when we initially trigger the context cleanup, we will be increasing the context window size, so we need some state `currentlySummarizing`
 			// to store whether we have already started the context summarization flow, so we don't attempt to summarize again. additionally, immediately
 			// post summarizing we need to increment the conversationHistoryDeletedRange to mask out the summarization-trigger user & assistant response messaages
@@ -1879,10 +1817,14 @@ export class Task {
 					}
 				}
 			} else {
+				const autoCondenseThreshold = this.stateManager.getGlobalSettingsKey("autoCondenseThreshold") as
+					| number
+					| undefined
 				shouldCompact = this.contextManager.shouldCompactContextWindow(
 					this.messageStateHandler.getClineMessages(),
 					this.api,
 					previousApiReqIndex,
+					autoCondenseThreshold,
 				)
 
 				// There is an edge case where the summarize_task tool call completes but the user cancels the next request before it finishes
@@ -1929,25 +1871,26 @@ export class Task {
 					"Issue with processing the /newrule command. Double check that, if instructions directory already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory.",
 				)
 			}
-			// Compact prompt is tailored for models with small context window where environment details would often
-			// overflow the context window
-			const useCompactPrompt = customPrompt === "compact"
 
 			userContent = parsedUserContent
 			// add environment details as its own text block, separate from tool results
 			// do not add environment details to the message which we are compacting the context window
-			if (!shouldCompact && !useCompactPrompt) {
+			if (!shouldCompact) {
 				userContent.push({ type: "text", text: environmentDetails })
 			}
 
 			if (shouldCompact) {
-				userContent.push({ type: "text", text: summarizeTask(this.focusChainSettings) })
+				userContent.push({
+					type: "text",
+					text: summarizeTask(this.stateManager.getGlobalSettingsKey("focusChainSettings")),
+				})
 			}
 		} else {
+			const useCompactPrompt = customPrompt === "compact" && isLocalModel(this.getCurrentProviderInfo())
 			const [parsedUserContent, environmentDetails, clinerulesError] = await this.loadContext(
 				userContent,
 				includeFileDetails,
-				customPrompt === "compact",
+				useCompactPrompt,
 			)
 
 			if (clinerulesError === true) {
@@ -2270,8 +2213,8 @@ export class Task {
 				})
 
 				const baseErrorMessage =
-					"Unexpected API Response: The language model did not provide any assistant messages. This may indicate an issue with the API or the model's output."
-				const errorText = reqId ? `${baseErrorMessage} (reqId: ${reqId})` : baseErrorMessage
+					"Invalid API Response: The provider returned an empty or unparsable response. This is a provider-side issue where the model failed to generate valid output or returned tool calls that Cline cannot process. Retrying the request may help resolve this issue."
+				const errorText = reqId ? `${baseErrorMessage} (Request ID: ${reqId})` : baseErrorMessage
 
 				await this.say("error", errorText)
 				await this.messageStateHandler.addToApiConversationHistory({
@@ -2343,7 +2286,7 @@ export class Task {
 								localWorkflowToggles,
 								globalWorkflowToggles,
 								this.ulid,
-								this.focusChainSettings,
+								this.stateManager.getGlobalSettingsKey("focusChainSettings"),
 							)
 
 							if (needsCheck) {
@@ -2599,6 +2542,12 @@ export class Task {
 			if (latestGitHash) {
 				details += `\n\n# Latest Git Commit Hash\n${latestGitHash}`
 			}
+
+			// Add detected CLI tools
+			const availableCliTools = await detectAvailableCliTools()
+			if (availableCliTools.length > 0) {
+				details += `\n\n# Detected CLI Tools\nThese are some of the tools on the user's machine, and may be useful if needed to accomplish the task: ${availableCliTools.join(", ")}. This list is not exhaustive, and other tools may be available.`
+			}
 		}
 
 		// Add context window usage information
@@ -2633,7 +2582,8 @@ export class Task {
 		details += `\n${lastApiReqTotalTokens.toLocaleString()} / ${(contextWindow / 1000).toLocaleString()}K tokens used (${usagePercentage}%)`
 
 		details += "\n\n# Current Mode"
-		if (this.mode === "plan") {
+		const mode = this.stateManager.getGlobalSettingsKey("mode")
+		if (mode === "plan") {
 			details += "\nPLAN MODE\n" + formatResponse.planModeInstructions()
 		} else {
 			details += "\nACT MODE"

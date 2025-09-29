@@ -1,14 +1,14 @@
-import { enableTelemetrySettings } from "@shared/Configuration"
 import React from "react"
 import Announcement from "@/components/chat/Announcement"
-import TelemetryBanner from "@/components/common/TelemetryBanner"
+import { CURRENT_INFO_BANNER_VERSION } from "@/components/common/InfoBanner"
 import HistoryPreview from "@/components/history/HistoryPreview"
 import HomeHeader from "@/components/welcome/HomeHeader"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 import { WelcomeSectionProps } from "../../types/chatTypes"
 
 /**
  * Welcome section shown when there's no active task
- * Includes telemetry banner, announcements, home header, and history preview
+ * Includes info banner, announcements, home header, and history preview
  */
 export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	showAnnouncement,
@@ -19,6 +19,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	taskHistory,
 	shouldShowQuickWins,
 }) => {
+	const { lastDismissedInfoBannerVersion } = useExtensionState()
+
+	const shouldShowInfoBanner = lastDismissedInfoBannerVersion < CURRENT_INFO_BANNER_VERSION
+
 	return (
 		<>
 			<div
@@ -32,13 +36,13 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 					marginLeft: "-6px",
 					scrollbarGutter: "stable",
 				}}>
-				{enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />}
+				{/* {enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />} */}
+				{/* {shouldShowInfoBanner && <InfoBanner />} */}
 				{showAnnouncement && <Announcement hideAnnouncement={hideAnnouncement} version={version} />}
 				<HomeHeader /> {/* shouldShowQuickWins={shouldShowQuickWins} /> */}
 				{/* {!shouldShowQuickWins && taskHistory.length > 0 && */} <HistoryPreview showHistoryView={showHistoryView} />
 			</div>
 			{/* <SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} /> */}
-			{/* <AutoApproveBar /> */}
 		</>
 	)
 }

@@ -1,12 +1,8 @@
-import { mentionRegexGlobal } from "@shared/context-mentions"
+import { cn } from "@heroui/react"
 import { ClineMessage } from "@shared/ExtensionMessage"
-import { FOCUS_CHAIN_ITEM_REGEX, isCompletedFocusChainItem, isFocusChainItem } from "@shared/focus-chain-utils"
 import { StringRequest } from "@shared/proto/cline/common"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import React, { memo, useEffect, useMemo, useRef, useState } from "react"
-import { useWindowSize } from "react-use"
-import ChecklistRenderer from "@/components/common/ChecklistRenderer"
-import HeroTooltip from "@/components/common/HeroTooltip"
+import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
+import React, { useCallback, useMemo } from "react"
 import Thumbnails from "@/components/common/Thumbnails"
 import { getModeSpecificFields, normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -16,47 +12,15 @@ import { DEFAULT_SLASH_COMMANDS, getWorkflowCommands } from "@/utils/slash-comma
 import { taskHeaderBackground } from "../../theme"
 import CopyTaskButton from "./buttons/CopyTaskButton"
 import DeleteTaskButton from "./buttons/DeleteTaskButton"
+import NewTaskButton from "./buttons/NewTaskButton"
 import OpenDiskTaskHistoryButton from "./buttons/OpenDiskTaskHistoryButton"
+import { CheckpointError } from "./CheckpointError"
+import ContextWindow from "./ContextWindow"
+import { FocusChain } from "./FocusChain"
+import { highlightText } from "./Highlights"
 import TaskTimeline from "./TaskTimeline"
 
-const IS_DEV = process.env.IS_DEV
-
-// Utility function to parse checklist and extract current todo info
-const parseCurrentTodoInfo = (text: string) => {
-	if (!text) {
-		return null
-	}
-
-	const lines = text.split("\n")
-	const todoItems: { text: string; completed: boolean; index: number }[] = []
-
-	lines.forEach((line, index) => {
-		const trimmedLine = line.trim()
-		if (isFocusChainItem(trimmedLine)) {
-			const completed = isCompletedFocusChainItem(trimmedLine)
-			const text = trimmedLine.substring(5).trim() // Remove "- [ ] " or "- [x] "
-			todoItems.push({ text, completed, index })
-		}
-	})
-
-	if (todoItems.length === 0) {
-		return null
-	}
-
-	const currentTodoIndex = todoItems.findIndex((item) => !item.completed)
-	const currentTodo = currentTodoIndex >= 0 ? todoItems[currentTodoIndex] : null
-	const completedCount = todoItems.filter((item) => item.completed).length
-	const totalCount = todoItems.length
-
-	return {
-		currentTodo,
-		currentIndex: currentTodoIndex >= 0 ? currentTodoIndex + 1 : totalCount, // 1-based index
-		completedCount,
-		totalCount,
-		hasItems: totalCount > 0,
-	}
-}
-
+const IS_DEV = process.env.IS_DEV === '"true"'
 interface TaskHeaderProps {
 	task: ClineMessage
 	tokensIn: number
@@ -69,7 +33,10 @@ interface TaskHeaderProps {
 	lastProgressMessageText?: string
 	onClose: () => void
 	onScrollToMessage?: (messageIndex: number) => void
+	onSendMessage?: (command: string, files: string[], images: string[]) => void
 }
+
+const BUTTON_CLASS = "max-h-3 border-0 font-bold bg-transparent hover:opacity-100 text-foreground"
 
 const TaskHeader: React.FC<TaskHeaderProps> = ({
 	task,
@@ -82,6 +49,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	lastProgressMessageText,
 	onClose,
 	onScrollToMessage,
+	onSendMessage,
 }) => {
 	const {
 		apiConfiguration,
@@ -89,27 +57,20 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		checkpointManagerErrorMessage,
 		clineMessages,
 		navigateToSettings,
+		useAutoCondense,
 		mode,
 		localWorkflowToggles,
 		globalWorkflowToggles,
+		expandTaskHeader: isTaskExpanded,
+		setExpandTaskHeader: setIsTaskExpanded,
 	} = useExtensionState()
-	const [isTaskExpanded, setIsTaskExpanded] = useState(() => {
-		try {
-			const saved = window.localStorage.getItem("taskHeader.isTaskExpanded")
-			return saved === null ? true : saved === "true"
-		} catch (error) {
-			console.warn("Failed to read from localStorage:", error)
-			return true
-		}
-	})
 
-	useEffect(() => {
-		try {
-			window.localStorage.setItem("taskHeader.isTaskExpanded", String(isTaskExpanded))
-		} catch (error) {
-			console.warn("Failed to write to localStorage:", error)
-		}
-	}, [isTaskExpanded])
+	// Simplified computed values
+	const { selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, mode)
+
+	const { apiConfiguration, currentTaskItem, checkpointManagerErrorMessage, clineMessages, navigateToSettings, mode } =
+		useExtensionState()
+	const [isTaskExpanded, setIsTaskExpanded] = useState(true)
 	const [isTextExpanded, setIsTextExpanded] = useState(false)
 	const [showSeeMore, setShowSeeMore] = useState(false)
 	const [isTodoExpanded, setIsTodoExpanded] = useState(false)
@@ -134,38 +95,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			setIsTextExpanded(false)
 		}
 	}, [isTaskExpanded])
-
-	/*
-	When dealing with event listeners in React components that depend on state variables, we face a challenge. We want our listener to always use the most up-to-date version of a callback function that relies on current state, but we don't want to constantly add and remove event listeners as that function updates. This scenario often arises with resize listeners or other window events. Simply adding the listener in a useEffect with an empty dependency array risks using stale state, while including the callback in the dependencies can lead to unnecessary re-registrations of the listener. There are react hook libraries that provide a elegant solution to this problem by utilizing the useRef hook to maintain a reference to the latest callback function without triggering re-renders or effect re-runs. This approach ensures that our event listener always has access to the most current state while minimizing performance overhead and potential memory leaks from multiple listener registrations. 
-	Sources
-	- https://usehooks-ts.com/react-hook/use-event-listener
-	- https://streamich.github.io/react-use/?path=/story/sensors-useevent--docs
-	- https://github.com/streamich/react-use/blob/master/src/useEvent.ts
-	- https://stackoverflow.com/questions/55565444/how-to-register-event-with-useeffect-hooks
-
-	Before:
-	
-	const updateMaxHeight = useCallback(() => {
-		if (isExpanded && textContainerRef.current) {
-			const maxHeight = window.innerHeight * (3 / 5)
-			textContainerRef.current.style.maxHeight = `${maxHeight}px`
-		}
-	}, [isExpanded])
-
-	useEffect(() => {
-		updateMaxHeight()
-	}, [isExpanded, updateMaxHeight])
-
-	useEffect(() => {
-		window.removeEventListener("resize", updateMaxHeight)
-		window.addEventListener("resize", updateMaxHeight)
-		return () => {
-			window.removeEventListener("resize", updateMaxHeight)
-		}
-	}, [updateMaxHeight])
-
-	After:
-	*/
 
 	const { height: windowHeight, width: windowWidth } = useWindowSize()
 
@@ -194,19 +123,31 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		}
 	}, [task.text, windowWidth, isTaskExpanded])
 
-	const isCostAvailable = useMemo(() => {
-		const modeFields = getModeSpecificFields(apiConfiguration, mode)
-		const openAiCompatHasPricing =
+	const modeFields = getModeSpecificFields(apiConfiguration, mode)
+
+	const isCostAvailable =
+		(totalCost &&
 			modeFields.apiProvider === "openai" &&
 			modeFields.openAiModelInfo?.inputPrice &&
 			modeFields.openAiModelInfo?.outputPrice
-		if (openAiCompatHasPricing) {
-			return true
-		}
-		return (
-			modeFields.apiProvider !== "vscode-lm" && modeFields.apiProvider !== "ollama" && modeFields.apiProvider !== "lmstudio"
-		)
-	}, [apiConfiguration, mode])
+		
+			(modeFields.apiProvider !== "vscode-lm" && modeFields.apiProvider !== "ollama" && modeFields.apiProvider !== "lmstudio")
+
+	// Event handlers
+	const toggleTaskExpanded = useCallback(() => setIsTaskExpanded(!isTaskExpanded), [setIsTaskExpanded, isTaskExpanded])
+
+	const handleCheckpointSettingsClick = useCallback(() => {
+		navigateToSettings()
+		setTimeout(async () => {
+			try {
+				await UiServiceClient.scrollToSettings(StringRequest.create({ value: "features" }))
+			} catch (error) {
+				console.error("Error scrolling to checkpoint settings:", error)
+			}
+		}, 300)
+	}, [navigateToSettings])
+
+	const highlightedText = useMemo(() => highlightText(task.text, false), [task.text])
 
 	const shouldShowPromptCacheInfo = () => {
 		// Hybrid logic: Show cache info if we have actual cache data,
@@ -276,6 +217,11 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 	return (
 		<div style={{ padding: "0px 10px 3px 10px" }}>
+			{/* Display Checkpoint Error */}
+			<CheckpointError
+				checkpointManagerErrorMessage={checkpointManagerErrorMessage}
+				handleCheckpointSettingsClick={handleCheckpointSettingsClick}
+			/>
 			<div
 				style={{
 					backgroundColor: taskHeaderBackground,
@@ -362,6 +308,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						<span className="codicon codicon-close"></span>
 					</VSCodeButton>
 				</div>
+
+				{/* Expand/Collapse Task Details */}
 				{isTaskExpanded && (
 					<>
 						<div
@@ -419,22 +367,21 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 								</div>
 							)}
 						</div>
-						{isTextExpanded && showSeeMore && (
-							<div
-								onClick={() => setIsTextExpanded(!isTextExpanded)}
-								style={{
-									cursor: "pointer",
-									color: "var(--vscode-textLink-foreground)",
-									marginLeft: "auto",
-									textAlign: "right",
-									paddingRight: 2,
-								}}>
-								See less
-							</div>
-						)}
+
 						{((task.images && task.images.length > 0) || (task.files && task.files.length > 0)) && (
 							<Thumbnails files={task.files ?? []} images={task.images ?? []} style={{ marginTop: "5px" }} />
 						)}
+
+						<ContextWindow
+							cacheReads={cacheReads}
+							cacheWrites={cacheWrites}
+							contextWindow={selectedModelInfo?.contextWindow}
+							lastApiReqTotalTokens={lastApiReqTotalTokens}
+							onSendMessage={onSendMessage}
+							tokensIn={tokensIn}
+							tokensOut={tokensOut}
+							useAutoCondense={false} // Disable auto-condense configuration in UI for now
+						/>
 
 						<div
 							style={{
@@ -855,6 +802,9 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 					</>
 				)}
 			</div>
+
+			{/* Display Focus Chain To-Do List */}
+			<FocusChain currentTaskItemId={currentTaskItem?.id} lastProgressMessageText={lastProgressMessageText} />
 		</div>
 	)
 }
@@ -977,4 +927,6 @@ export const highlightText = (
 	return [text]
 }
 
-export default memo(TaskHeader)
+// export default memo(TaskHeader)
+
+export default TaskHeader

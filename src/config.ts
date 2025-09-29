@@ -6,7 +6,7 @@ export enum Environment {
 	local = "local",
 }
 
-interface EnvironmentConfig {
+export interface EnvironmentConfig {
 	appBaseUrl: string
 	apiBaseUrl: string
 	mcpBaseUrl: string

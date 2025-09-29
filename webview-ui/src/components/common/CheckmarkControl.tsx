@@ -299,12 +299,33 @@ const Container = styled.div<{ isMenuOpen?: boolean; $isCheckedOut?: boolean }>`
 	gap: 4px;
 	position: relative;
 	min-width: 0;
+	min-height: 17px;
 	margin-top: -10px;
 	margin-bottom: -10px;
 	opacity: ${(props) => (props.$isCheckedOut ? 1 : props.isMenuOpen ? 1 : 0.5)};
 
 	&:hover {
 		opacity: 1;
+	}
+
+	.hover-content {
+		display: ${(props) => (props.isMenuOpen ? "flex" : "none")};
+		align-items: center;
+		gap: 4px;
+		flex: 1;
+	}
+
+	&:hover .hover-content {
+		display: flex;
+	}
+
+	.hover-show-inverse {
+		display: ${(props) => (props.isMenuOpen ? "none" : "flex")};
+		flex: 1;
+	}
+
+	&:hover .hover-show-inverse {
+		display: none;
 	}
 `
 

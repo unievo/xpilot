@@ -124,7 +124,7 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 								aria-label="Go to MCP server settings"
 								onClick={() => {
 									setIsVisible(false)
-									navigateToMcp("installed")
+									navigateToMcp("configure")
 								}}>
 								<span className="codicon codicon-gear text-[10px]" style={{ color: itemIconColor }}></span>
 							</VSCodeButton>
@@ -156,7 +156,7 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 							<VSCodeLink
 								onClick={() => {
 									setIsVisible(false)
-									navigateToMcp("installed")
+									navigateToMcp("configure")
 								}}
 								style={{ fontSize: "12px" }}>
 								MCP configuration

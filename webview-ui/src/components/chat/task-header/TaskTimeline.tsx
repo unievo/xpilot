@@ -21,6 +21,7 @@ interface TaskTimelineProps {
 const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const scrollableRef = useRef<HTMLDivElement>(null)
+	const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
 
 	const { taskTimelinePropsMessages, messageIndexMap } = useMemo(() => {
 		if (messages.length <= 1) {
@@ -84,11 +85,12 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 					<div
 						style={{
 							width: BLOCK_WIDTH,
-							height: "100%",
+							height: BLOCK_WIDTH,
 							backgroundColor: "#e5e5e5", // Light gray placeholder
 							flexShrink: 0,
 							marginRight: BLOCK_GAP,
 							opacity: 0.5,
+							borderRadius: "90%",
 						}}
 					/>
 				)
@@ -103,24 +105,38 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 				}
 			}
 
+			const handleMouseEnter = () => {
+				setHoveredIndex(index)
+			}
+
+			const handleMouseLeave = () => {
+				setHoveredIndex(null)
+			}
+
+			const isHovered = hoveredIndex === index
+
 			return (
 				<TaskTimelineTooltip message={message}>
 					<div
 						onClick={handleClick}
+						onMouseEnter={handleMouseEnter}
+						onMouseLeave={handleMouseLeave}
 						style={{
 							width: BLOCK_WIDTH,
-							height: "100%",
+							height: BLOCK_WIDTH,
 							backgroundColor: getColor(message),
 							flexShrink: 0,
 							cursor: "pointer",
 							marginRight: BLOCK_GAP,
-							opacity: 0.7,
+							opacity: isHovered ? 1 : 0.7,
+							transition: "opacity 0.2s ease",
+							borderRadius: "90%",
 						}}
 					/>
 				</TaskTimelineTooltip>
 			)
 		},
-		[taskTimelinePropsMessages, messageIndexMap, onBlockClick],
+		[taskTimelinePropsMessages, messageIndexMap, onBlockClick, hoveredIndex],
 	)
 
 	// Scroll to the end when messages change

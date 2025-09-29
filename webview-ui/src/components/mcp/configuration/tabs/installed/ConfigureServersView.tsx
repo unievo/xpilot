@@ -8,7 +8,7 @@ import { McpServiceClient } from "@/services/grpc-client"
 import AddRemoteServerForm from "../add-server/AddRemoteServerForm"
 import ServersToggleList from "./ServersToggleList"
 
-const InstalledServersView = () => {
+const ConfigureServersView = () => {
 	const { mcpServers: servers, navigateToSettings, mcpMarketplaceEnabled, navigateToMcp } = useExtensionState()
 	const [showAddServer, setShowAddServer] = useState(false)
 
@@ -113,4 +113,4 @@ const InstalledServersView = () => {
 	)
 }
 
-export default InstalledServersView
+export default ConfigureServersView

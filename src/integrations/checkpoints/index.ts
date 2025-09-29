@@ -2,6 +2,7 @@ import { ContextManager } from "@core/context/context-management/ContextManager"
 import { FileContextTracker } from "@core/context/context-tracking/FileContextTracker"
 import { sendRelinquishControlEvent } from "@core/controller/ui/subscribeToRelinquishControl"
 import { ensureTaskDirectoryExists } from "@core/storage/disk"
+import { WorkspaceRootManager } from "@core/workspace/WorkspaceRootManager"
 import CheckpointTracker from "@integrations/checkpoints/CheckpointTracker"
 import { DiffViewProvider } from "@integrations/editor/DiffViewProvider"
 import { findLast, findLastIndex } from "@shared/array"
@@ -42,6 +43,7 @@ interface CheckpointManagerServices {
 	readonly messageStateHandler: MessageStateHandler
 	readonly context: vscode.ExtensionContext
 	readonly taskState: TaskState
+	readonly workspaceManager?: WorkspaceRootManager
 }
 interface CheckpointManagerCallbacks {
 	readonly updateTaskHistory: UpdateTaskHistoryFunction
@@ -273,9 +275,11 @@ export class TaskCheckpointManager implements ICheckpointManager {
 
 					if (!this.state.checkpointTracker && !this.state.checkpointManagerErrorMessage) {
 						try {
+							const workspacePath = await this.getWorkspacePath()
 							this.state.checkpointTracker = await CheckpointTracker.create(
 								this.task.taskId,
 								this.config.enableCheckpoints,
+								workspacePath,
 							)
 							this.services.messageStateHandler.setCheckpointTracker(this.state.checkpointTracker)
 						} catch (error) {
@@ -424,7 +428,12 @@ export class TaskCheckpointManager implements ICheckpointManager {
 			// Initialize checkpoint tracker if needed
 			if (!this.state.checkpointTracker && this.config.enableCheckpoints && !this.state.checkpointManagerErrorMessage) {
 				try {
-					this.state.checkpointTracker = await CheckpointTracker.create(this.task.taskId, this.config.enableCheckpoints)
+					const workspacePath = await this.getWorkspacePath()
+					this.state.checkpointTracker = await CheckpointTracker.create(
+						this.task.taskId,
+						this.config.enableCheckpoints,
+						workspacePath,
+					)
 					this.services.messageStateHandler.setCheckpointTracker(this.state.checkpointTracker)
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : "Unknown error"
@@ -587,7 +596,12 @@ export class TaskCheckpointManager implements ICheckpointManager {
 
 			if (this.config.enableCheckpoints && !this.state.checkpointTracker && !this.state.checkpointManagerErrorMessage) {
 				try {
-					this.state.checkpointTracker = await CheckpointTracker.create(this.task.taskId, this.config.enableCheckpoints)
+					const workspacePath = await this.getWorkspacePath()
+					this.state.checkpointTracker = await CheckpointTracker.create(
+						this.task.taskId,
+						this.config.enableCheckpoints,
+						workspacePath,
+					)
 					this.services.messageStateHandler.setCheckpointTracker(this.state.checkpointTracker)
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : "Unknown error"
@@ -789,11 +803,15 @@ export class TaskCheckpointManager implements ICheckpointManager {
 			}, 7_000)
 
 			// Timeout - If checkpoints take too long to initialize, warn user and disable checkpoints for the task
-			const tracker = await pTimeout(CheckpointTracker.create(this.task.taskId, this.config.enableCheckpoints), {
-				milliseconds: 15_000,
-				message:
-					`Checkpoints taking too long to initialize. Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
-			})
+			const workspacePath = await this.getWorkspacePath()
+			const tracker = await pTimeout(
+				CheckpointTracker.create(this.task.taskId, this.config.enableCheckpoints, workspacePath),
+				{
+					milliseconds: 15_000,
+					message:
+						`Checkpoints taking too long to initialize. Consider re-opening ${agentName} in a project that uses git, or disabling checkpoints.`,
+				},
+			)
 
 			// Update the state with the created tracker
 			this.state.checkpointTracker = tracker
@@ -853,6 +871,32 @@ export class TaskCheckpointManager implements ICheckpointManager {
 	// ============================================================================
 	// Internal utilities - Private helpers for checkpoint operations
 	// ============================================================================
+
+	/**
+	 * Gets the workspace path from WorkspaceRootManager when available, otherwise falls back to CheckpointUtils
+	 * @returns Promise<string> The workspace path to use for checkpoint operations
+	 */
+	private async getWorkspacePath(): Promise<string> {
+		// Try to use the centralized WorkspaceRootManager first
+		if (this.services.workspaceManager) {
+			try {
+				const primaryRoot = this.services.workspaceManager.getPrimaryRoot()
+				if (primaryRoot) {
+					return primaryRoot.path
+				}
+				console.warn(`[TaskCheckpointManager] WorkspaceRootManager returned no primary root for task ${this.task.taskId}`)
+			} catch (error) {
+				console.warn(
+					`[TaskCheckpointManager] Failed to get workspace path from WorkspaceRootManager for task ${this.task.taskId}:`,
+					error,
+				)
+			}
+		}
+
+		// Fallback to the legacy CheckpointUtils implementation
+		const { getWorkingDirectory: getWorkingDirectoryImpl } = await import("./CheckpointUtils")
+		return getWorkingDirectoryImpl()
+	}
 
 	/**
 	 * Gets the extension context with proper error handling

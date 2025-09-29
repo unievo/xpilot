@@ -4,7 +4,7 @@ import axios from "axios"
 import { HostProvider } from "@/hosts/host-provider"
 import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
 import { DEFAULT_OCA_BASE_URL } from "@/services/auth/oca/utils/constants"
-import { createOcaHeaders, getProxyAgents } from "@/services/auth/oca/utils/utils"
+import { createOcaHeaders, getAxiosSettings } from "@/services/auth/oca/utils/utils"
 import { Logger } from "@/services/logging/Logger"
 import { ShowMessageType } from "@/shared/proto/index.host"
 import { Controller } from ".."
@@ -25,12 +25,19 @@ export async function refreshOcaModels(controller: Controller, request: StringRe
 	const models: Record<string, OcaModelInfo> = {}
 	let defaultModelId: string | undefined
 	const ocaAccessToken = await OcaAuthService.getInstance().getAuthToken()
+	if (!ocaAccessToken) {
+		HostProvider.window.showMessage({
+			type: ShowMessageType.ERROR,
+			message: "Not authenticated with OCA. Please sign in first.",
+		})
+		return OcaCompatibleModelInfo.create({ error: "Not authenticated with OCA" })
+	}
 	const baseUrl = request.value || DEFAULT_OCA_BASE_URL
 	const modelsUrl = `${baseUrl}/v1/model/info`
 	const headers = await createOcaHeaders(ocaAccessToken!, "models-refresh")
 	try {
 		Logger.log(`Making refresh oca model request with customer opc-request-id: ${headers["opc-request-id"]}`)
-		const response = await axios.get(modelsUrl, { headers, ...getProxyAgents() })
+		const response = await axios.get(modelsUrl, { headers, ...getAxiosSettings() })
 		if (response.data?.data) {
 			if (response.data.data.length === 0) {
 				HostProvider.window.showMessage({
@@ -114,7 +121,7 @@ export async function refreshOcaModels(controller: Controller, request: StringRe
 			})
 		}
 	} catch (err) {
-		let userMsg : string
+		let userMsg: string
 		if (err.response) {
 			// The request was made and the server responded with a status code that falls out of the range of 2xx
 			userMsg = `Did you set up your OCA access (possibly through entitlements)? OCA service returned ${err.response.status} ${err.response.statusText}.`
