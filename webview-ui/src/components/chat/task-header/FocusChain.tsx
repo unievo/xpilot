@@ -21,7 +21,7 @@ interface FocusChainProps {
 }
 
 // Static strings to avoid recreating them
-const COMPLETED_MESSAGE = "All tasks have been completed!"
+const COMPLETED_MESSAGE = "All steps have been completed!"
 const TODO_LIST_LABEL = "To-Do list"
 const NEW_STEPS_MESSAGE = "New steps will be generated if you continue the task"
 const CLICK_TO_EDIT_TITLE = "Click to edit to-do list in file"
@@ -64,7 +64,9 @@ const ToDoListHeader = memo<{
 						)}>
 						{currentIndex}/{totalCount}
 					</span>
-					<span className="header-text text-xs font-medium break-words overflow-hidden text-ellipsis whitespace-nowrap max-w-[calc(100%-60px)]">
+					<span
+						className="header-text font-medium break-words overflow-hidden text-ellipsis whitespace-nowrap max-w-[calc(100%-60px)]"
+						style={{ fontSize: 12 }}>
 						{displayText}
 					</span>
 				</div>
@@ -188,16 +190,17 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 
 		return (
 			<div
-				className="relative rounded-sm bg-toolbar-hover/65 flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
+				className="relative rounded-md bg-input-background flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
 				onClick={handleToggle}
+				style={{ marginTop: 3 }}
 				title={CLICK_TO_EDIT_TITLE}>
 				<ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />
 				{isExpanded && (
 					<div className="mx-1 pb-2 px-1 relative" onClick={handleEditClick}>
 						<ChecklistRenderer text={lastProgressMessageText!} />
-						{isCompleted && (
-							<div className="mt-2 text-xs font-semibold text-muted-foreground">{NEW_STEPS_MESSAGE}</div>
-						)}
+						{/* {isCompleted && (
+							<div className="mt-2 text-xxs font-semibold text-muted-foreground">{NEW_STEPS_MESSAGE}</div>
+						)} */}
 					</div>
 				)}
 			</div>

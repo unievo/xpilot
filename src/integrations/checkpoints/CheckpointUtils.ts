@@ -47,25 +47,24 @@ export async function validateWorkspacePath(workspacePath: string): Promise<void
 	try {
 		await access(workspacePath, constants.R_OK)
 	} catch (error) {
+		const homedir = os.homedir()
+		const desktopPath = getDesktopDir()
+		const documentsPath = path.join(homedir, "Documents")
+		const downloadsPath = path.join(homedir, "Downloads")
+
+		switch (workspacePath) {
+			case homedir:
+				throw new Error("Cannot use checkpoints in home directory, please open a valid workspace directory.")
+			case desktopPath:
+				throw new Error("Cannot use checkpoints in Desktop directory, please open a valid workspace directory.")
+			case documentsPath:
+				throw new Error("Cannot use checkpoints in Documents directory, please open a valid workspace directory.")
+			case downloadsPath:
+				throw new Error("Cannot use checkpoints in Downloads directory, please open a valid workspace directory.")
+		}
 		throw new Error(
-			`Cannot access workspace directory. Please ensure VS Code has permission to access your workspace. Error: ${error instanceof Error ? error.message : String(error)}`,
+			`Cannot access workspace directory. Please ensure you have a valid workspace open. Error: ${error instanceof Error ? error.message : String(error)}`,
 		)
-	}
-
-	const homedir = os.homedir()
-	const desktopPath = getDesktopDir()
-	const documentsPath = path.join(homedir, "Documents")
-	const downloadsPath = path.join(homedir, "Downloads")
-
-	switch (workspacePath) {
-		case homedir:
-			throw new Error("Cannot use checkpoints in home directory")
-		case desktopPath:
-			throw new Error("Cannot use checkpoints in Desktop directory")
-		case documentsPath:
-			throw new Error("Cannot use checkpoints in Documents directory")
-		case downloadsPath:
-			throw new Error("Cannot use checkpoints in Downloads directory")
 	}
 }
 

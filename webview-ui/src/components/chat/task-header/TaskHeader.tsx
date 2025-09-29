@@ -1,18 +1,17 @@
-import { cn } from "@heroui/react"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { StringRequest } from "@shared/proto/cline/common"
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
-import React, { useCallback, useMemo } from "react"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useWindowSize } from "react-use"
+import HeroTooltip from "@/components/common/HeroTooltip"
 import Thumbnails from "@/components/common/Thumbnails"
 import { getModeSpecificFields, normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { FileServiceClient, UiServiceClient } from "@/services/grpc-client"
-import { formatLargeNumber, formatSize } from "@/utils/format"
-import { DEFAULT_SLASH_COMMANDS, getWorkflowCommands } from "@/utils/slash-commands"
+import { UiServiceClient } from "@/services/grpc-client"
+import { formatLargeNumber } from "@/utils/format"
 import { taskHeaderBackground } from "../../theme"
 import CopyTaskButton from "./buttons/CopyTaskButton"
 import DeleteTaskButton from "./buttons/DeleteTaskButton"
-import NewTaskButton from "./buttons/NewTaskButton"
 import OpenDiskTaskHistoryButton from "./buttons/OpenDiskTaskHistoryButton"
 import { CheckpointError } from "./CheckpointError"
 import ContextWindow from "./ContextWindow"
@@ -67,40 +66,19 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 	// Simplified computed values
 	const { selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, mode)
+	const modeFields = getModeSpecificFields(apiConfiguration, mode)
 
-	const { apiConfiguration, currentTaskItem, checkpointManagerErrorMessage, clineMessages, navigateToSettings, mode } =
-		useExtensionState()
-	const [isTaskExpanded, setIsTaskExpanded] = useState(true)
 	const [isTextExpanded, setIsTextExpanded] = useState(false)
 	const [showSeeMore, setShowSeeMore] = useState(false)
-	const [isTodoExpanded, setIsTodoExpanded] = useState(false)
 	const textContainerRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLDivElement>(null)
-
-	const { selectedModelInfo } = useMemo(() => normalizeApiConfiguration(apiConfiguration, mode), [apiConfiguration, mode])
 	const contextWindow = selectedModelInfo?.contextWindow
-
-	// Open task header when checkpoint tracker error message is set
-	const prevErrorMessageRef = useRef(checkpointManagerErrorMessage)
-	useEffect(() => {
-		if (checkpointManagerErrorMessage !== prevErrorMessageRef.current) {
-			setIsTaskExpanded(true)
-			prevErrorMessageRef.current = checkpointManagerErrorMessage
-		}
-	}, [checkpointManagerErrorMessage])
-
-	// Reset isTextExpanded when task is collapsed
-	useEffect(() => {
-		if (!isTaskExpanded) {
-			setIsTextExpanded(false)
-		}
-	}, [isTaskExpanded])
 
 	const { height: windowHeight, width: windowWidth } = useWindowSize()
 
 	useEffect(() => {
 		if (isTextExpanded && textContainerRef.current) {
-			const maxHeight = windowHeight * (1 / 2)
+			const maxHeight = windowHeight * (1 / 3)
 			textContainerRef.current.style.maxHeight = `${maxHeight}px`
 		}
 	}, [isTextExpanded, windowHeight])
@@ -123,15 +101,12 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		}
 	}, [task.text, windowWidth, isTaskExpanded])
 
-	const modeFields = getModeSpecificFields(apiConfiguration, mode)
-
 	const isCostAvailable =
 		(totalCost &&
 			modeFields.apiProvider === "openai" &&
 			modeFields.openAiModelInfo?.inputPrice &&
-			modeFields.openAiModelInfo?.outputPrice
-		
-			(modeFields.apiProvider !== "vscode-lm" && modeFields.apiProvider !== "ollama" && modeFields.apiProvider !== "lmstudio")
+			modeFields.openAiModelInfo?.outputPrice) ||
+		(modeFields.apiProvider !== "vscode-lm" && modeFields.apiProvider !== "ollama" && modeFields.apiProvider !== "lmstudio")
 
 	// Event handlers
 	const toggleTaskExpanded = useCallback(() => setIsTaskExpanded(!isTaskExpanded), [setIsTaskExpanded, isTaskExpanded])
@@ -156,67 +131,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		return (cacheReads !== undefined && cacheReads > 0) || (cacheWrites !== undefined && cacheWrites > 0)
 	}
 
-	const ContextWindowComponent = (
-		<>
-			{isTaskExpanded && contextWindow && (
-				<div
-					style={{
-						opacity: 0.6,
-						fontSize: "0.9em",
-						display: "flex",
-						flexDirection: windowWidth < 270 ? "column" : "row",
-						gap: "4px",
-					}}>
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: "3px",
-							flex: 1,
-							whiteSpace: "nowrap",
-						}}>
-						<HeroTooltip content="Current tokens used in this request">
-							<span className="cursor-pointer">{formatLargeNumber(lastApiReqTotalTokens || 0)}</span>
-						</HeroTooltip>
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "3px",
-								flex: 1,
-							}}>
-							<HeroTooltip content="Context window usage">
-								<div
-									className="cursor-pointer"
-									style={{
-										flex: 1,
-										height: "4px",
-										backgroundColor: "color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)",
-										borderRadius: "2px",
-										overflow: "hidden",
-									}}>
-									<div
-										style={{
-											width: `${((lastApiReqTotalTokens || 0) / contextWindow) * 100}%`,
-											height: "100%",
-											backgroundColor: "var(--vscode-badge-foreground)",
-											borderRadius: "2px",
-										}}
-									/>
-								</div>
-							</HeroTooltip>
-							<HeroTooltip content="Maximum context window size for this model">
-								<span className="cursor-pointer">{formatLargeNumber(contextWindow)}</span>
-							</HeroTooltip>
-						</div>
-					</div>
-				</div>
-			)}
-		</>
-	)
-
 	return (
-		<div style={{ padding: "0px 10px 3px 10px" }}>
+		<div style={{ padding: "2px 8px 3px 8px" }}>
 			{/* Display Checkpoint Error */}
 			<CheckpointError
 				checkpointManagerErrorMessage={checkpointManagerErrorMessage}
@@ -225,18 +141,19 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			<div
 				style={{
 					backgroundColor: taskHeaderBackground,
-					color: "var(--vscode-badge-foreground)",
+					color: "var(--vscode-editor-foreground)",
 					borderRadius: "8px",
-					padding: "9px 10px 9px 10px",
+					padding: "5px 5px 2px 8px",
 					display: "flex",
 					flexDirection: "column",
 					gap: 0,
 					position: "relative",
 					zIndex: 1,
-					opacity: 0.8,
+					// opacity: isTaskExpanded ? 0.8 : 1,
 				}}>
 				<div
 					style={{
+						height: isTaskExpanded ? "auto" : "50px",
 						display: "flex",
 						justifyContent: "space-between",
 						alignItems: "center",
@@ -247,6 +164,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							display: "flex",
 							alignItems: "center",
 							cursor: "pointer",
+							marginTop: -3,
 							marginLeft: -2,
 							userSelect: "none",
 							WebkitUserSelect: "none",
@@ -265,7 +183,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						</div>
 						<div
 							style={{
-								fontSize: isTaskExpanded ? "1em" : "1.1em",
 								marginLeft: 2,
 								whiteSpace: "nowrap",
 								overflow: "hidden",
@@ -273,12 +190,17 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 								flexGrow: 1,
 								minWidth: 0, // This allows the div to shrink below its content size
 							}}>
-							<span style={{ fontWeight: "bold" }}>
-								Task
-								{!isTaskExpanded && ":"}
-							</span>
 							{!isTaskExpanded && (
-								<span className="ph-no-capture" style={{ marginLeft: 4 }}>
+								<span
+									className="ph-no-capture"
+									style={{
+										overflow: "hidden",
+										display: "-webkit-box",
+										WebkitLineClamp: 2,
+										WebkitBoxOrient: "vertical",
+										whiteSpace: "normal",
+										height: "auto",
+									}}>
 									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
 								</span>
 							)}
@@ -304,7 +226,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						appearance="icon"
 						aria-label="Close task"
 						onClick={onClose}
-						style={{ marginLeft: 6, flexShrink: 0 }}>
+						style={{ marginLeft: 6, marginTop: -1, marginRight: -3, opacity: 0.7, flexShrink: 0 }}>
 						<span className="codicon codicon-close"></span>
 					</VSCodeButton>
 				</div>
@@ -315,7 +237,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						<div
 							ref={textContainerRef}
 							style={{
-								marginTop: 0,
+								marginTop: -4,
 								fontSize: "var(--vscode-font-size)",
 								overflowY: isTextExpanded ? "auto" : "hidden",
 								wordBreak: "break-word",
@@ -332,6 +254,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									whiteSpace: "pre-wrap",
 									wordBreak: "break-word",
 									overflowWrap: "anywhere",
+									marginRight: 6,
 								}}>
 								<span className="ph-no-capture">
 									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
@@ -357,35 +280,37 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 										onClick={() => setIsTextExpanded(!isTextExpanded)}
 										style={{
 											cursor: "pointer",
-											color: "var(--vscode-textLink-foreground)",
-											paddingRight: 0,
-											paddingLeft: 3,
 											backgroundColor: "var(--vscode-input-background)",
+											color: "var(--vscode-textLink-foreground)",
+											paddingRight: 8,
+											paddingLeft: 3,
+											fontSize: 12,
 										}}>
 										See more
 									</div>
 								</div>
 							)}
 						</div>
-
+						{isTextExpanded && showSeeMore && (
+							<div
+								onClick={() => setIsTextExpanded(!isTextExpanded)}
+								style={{
+									cursor: "pointer",
+									color: "var(--vscode-textLink-foreground)",
+									marginLeft: "auto",
+									textAlign: "right",
+									fontSize: 12,
+									paddingRight: 8,
+								}}>
+								See less
+							</div>
+						)}
 						{((task.images && task.images.length > 0) || (task.files && task.files.length > 0)) && (
 							<Thumbnails files={task.files ?? []} images={task.images ?? []} style={{ marginTop: "5px" }} />
 						)}
 
-						<ContextWindow
-							cacheReads={cacheReads}
-							cacheWrites={cacheWrites}
-							contextWindow={selectedModelInfo?.contextWindow}
-							lastApiReqTotalTokens={lastApiReqTotalTokens}
-							onSendMessage={onSendMessage}
-							tokensIn={tokensIn}
-							tokensOut={tokensOut}
-							useAutoCondense={false} // Disable auto-condense configuration in UI for now
-						/>
-
 						<div
 							style={{
-								marginTop: "5px",
 								display: "flex",
 								flexDirection: "column",
 								gap: "2px",
@@ -398,406 +323,121 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									justifyContent: "space-between",
 									alignItems: "center",
 									flexWrap: "wrap",
+									overflow: "hidden",
+									textOverflow: "ellipsis",
 								}}>
 								<div
 									style={{
 										display: "flex",
 										alignItems: "center",
 										gap: "4px",
-										flexWrap: "wrap",
+										marginTop: 3,
+										// flexWrap: "wrap",
 									}}>
 									<div style={{ display: "flex", alignItems: "center" }}>
 										<span style={{ fontWeight: "bold" }}>Tokens:</span>
 									</div>
 									<HeroTooltip content="Input Tokens">
-										<span className="flex items-center gap-[3px] cursor-pointer">
-											<i
+										<span className=" flex items-center gap-[0px] cursor-pointer">
+											<span
 												className="codicon codicon-arrow-up"
 												style={{
 													fontSize: "12px",
 													fontWeight: "bold",
-													marginBottom: "-2px",
+													color: "var(--vscode-list-deemphasizedForeground)",
 												}}
 											/>
 											{formatLargeNumber(tokensIn || 0)}
 										</span>
 									</HeroTooltip>
+
 									<HeroTooltip content="Output Tokens">
-										<span className="flex items-center gap-[3px] cursor-pointer">
+										<span className="flex items-center gap-[0px] cursor-pointer">
 											<i
 												className="codicon codicon-arrow-down"
 												style={{
 													fontSize: "12px",
 													fontWeight: "bold",
-													marginBottom: "-2px",
+													color: "var(--vscode-list-deemphasizedForeground)",
 												}}
 											/>
 											{formatLargeNumber(tokensOut || 0)}
 										</span>
 									</HeroTooltip>
-								</div>
-								{!shouldShowPromptCacheInfo() && (
-									<div className="flex items-center flex-wrap">
-										{IS_DEV === '"true"' && <OpenDiskTaskHistoryButton taskId={currentTaskItem?.id} />}
-										<CopyTaskButton taskText={task.text} />
-										<DeleteTaskButton
-											taskId={currentTaskItem?.id}
-											taskSize={formatSize(currentTaskItem?.size)}
-										/>
-									</div>
-								)}
-							</div>
-							{shouldShowPromptCacheInfo() && (
-								<div
-									style={{
-										opacity: 0.7,
-										fontSize: "0.9em",
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										flexWrap: "wrap",
-									}}>
-									<div
-										style={{
-											display: "flex",
-											alignItems: "center",
-											gap: "4px",
-											flexWrap: "wrap",
-										}}>
-										<div style={{ display: "flex", alignItems: "center" }}>
-											<span style={{ fontWeight: "bold" }}>Cache:</span>
-										</div>
-										{cacheWrites !== undefined && cacheWrites > 0 && (
-											<HeroTooltip content="Tokens written to cache">
-												<span className="flex items-center gap-[3px] cursor-pointer">
-													<i
-														className="codicon codicon-database"
-														style={{
-															fontSize: "12px",
-															fontWeight: "bold",
-															marginBottom: "-1px",
-														}}
-													/>
-													+{formatLargeNumber(cacheWrites || 0)}
-												</span>
-											</HeroTooltip>
-										)}
-										{cacheReads !== undefined && cacheReads > 0 && (
-											<HeroTooltip content="Tokens read from cache">
-												<span className="flex items-center gap-[3px] cursor-pointer">
-													<i
-														className={"codicon codicon-arrow-right"}
-														style={{
-															fontSize: "12px",
-															fontWeight: "bold",
-															marginBottom: 0,
-														}}
-													/>
-													{formatLargeNumber(cacheReads || 0)}
-												</span>
-											</HeroTooltip>
-										)}
-									</div>
-									<div className="flex items-center flex-wrap">
-										{IS_DEV === '"true"' && <OpenDiskTaskHistoryButton taskId={currentTaskItem?.id} />}
-										<CopyTaskButton taskText={task.text} />
-										<DeleteTaskButton
-											taskId={currentTaskItem?.id}
-											taskSize={formatSize(currentTaskItem?.size)}
-										/>
-									</div>
-								</div>
-							)}
-							<div className="flex flex-col">
-								<TaskTimeline messages={clineMessages} onBlockClick={onScrollToMessage} />
-								{ContextWindowComponent}
-							</div>
 
-							{/* Current Todo Item Display */}
-							{(() => {
-								const todoInfo = parseCurrentTodoInfo(lastProgressMessageText || "")
-
-								if (!todoInfo?.hasItems) {
-									return null
-								}
-
-								if (todoInfo.completedCount === todoInfo.totalCount) {
-									return (
-										<div
-											onClick={() => setIsTodoExpanded(!isTodoExpanded)}
-											onMouseEnter={(e) => {
-												e.currentTarget.style.backgroundColor =
-													"color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)"
-											}}
-											onMouseLeave={(e) => {
-												e.currentTarget.style.backgroundColor =
-													"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)"
-											}}
-											style={{
-												marginTop: "4px",
-												padding: "4px 7px",
-												backgroundColor:
-													"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)",
-												borderRadius: "5px",
-												fontSize: "12px",
-												cursor: "pointer",
-												transition: "background-color 0.2s ease",
-												// border: "1px solid color-mix(in srgb, var(--vscode-charts-green) 30%, transparent)",
-											}}>
-											<div
-												style={{
-													display: "flex",
-													alignItems: "center",
-													justifyContent: "space-between",
-													gap: "8px",
-												}}>
-												<div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-													<span
-														style={{
-															backgroundColor:
-																"color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)",
-															color: "var(--vscode-badge-foreground)",
-															padding: "1px 6px",
-															borderRadius: "10px",
-															fontSize: "11px",
-															fontWeight: "500",
-															flexShrink: 0,
-														}}>
-														{todoInfo.currentIndex}/{todoInfo.totalCount}
-													</span>
-													<span
-														style={{
-															color: "color-mix(in srgb, var(--vscode-charts-green) 0%, white",
-														}}>
-														All steps completed!
-													</span>
-												</div>
-												<span
-													className={`codicon codicon-chevron-${isTodoExpanded ? "down" : "right"}`}></span>
-											</div>
-											{isTodoExpanded && (
-												<div
-													style={{
-														marginTop: "2px",
-														fontSize: "11px",
-														color: "var(--vscode-descriptionForeground)",
-														lineHeight: "1.4",
-													}}>
-													<div style={{ marginBottom: "0px" }}>
-														New steps will be generated if you continue the task
-													</div>
-												</div>
-											)}
-										</div>
-									)
-								}
-
-								return (
-									<div
-										onClick={() => setIsTodoExpanded(!isTodoExpanded)}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.backgroundColor =
-												"color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)"
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor =
-												"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)"
-										}}
-										style={{
-											marginTop: "4px",
-											padding: "4px 7px",
-											backgroundColor:
-												"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)",
-											borderRadius: "5px",
-											fontSize: "12px",
-											cursor: "pointer",
-											transition: "background-color 0.2s ease",
-											position: "relative",
-											overflow: "hidden",
-										}}>
-										{/* Progress Bar - Behind content when collapsed */}
-										{!isTodoExpanded && (
-											<div
-												style={{
-													position: "absolute",
-													top: 0,
-													left: 0,
-													height: "100%",
-													width: `${(todoInfo.completedCount / todoInfo.totalCount) * 100}%`,
-													backgroundColor: "var(--vscode-input-foreground)",
-													opacity: 0.15,
-													borderRadius: "3px",
-													transition: "width 0.3s ease",
-													pointerEvents: "none",
-												}}
-											/>
-										)}
+									{shouldShowPromptCacheInfo() && (
 										<div
 											style={{
 												display: "flex",
-												alignItems: "center",
 												justifyContent: "space-between",
-												gap: "8px",
-												position: "relative",
-												zIndex: 1,
+												alignItems: "center",
+												flexWrap: "wrap",
 											}}>
 											<div
 												style={{
 													display: "flex",
 													alignItems: "center",
-													gap: "8px",
-													flex: 1,
-													minWidth: 0,
+													gap: "4px",
 												}}>
-												<span
-													style={{
-														backgroundColor:
-															"color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)",
-														color: "var(--vscode-badge-foreground)",
-														padding: "1px 6px",
-														borderRadius: "10px",
-														fontSize: "11px",
-														fontWeight: "500",
-														flexShrink: 0,
-													}}>
-													{todoInfo.currentIndex}/{todoInfo.totalCount}
-												</span>
-												{!isTodoExpanded && todoInfo.currentTodo && (
-													<span
-														style={{
-															wordBreak: "break-word",
-															overflowWrap: "anywhere",
-															color: "var(--vscode-foreground)",
-															lineHeight: "1.3",
-															overflow: "hidden",
-															textOverflow: "ellipsis",
-															whiteSpace: "nowrap",
-														}}>
-														{todoInfo.currentTodo.text}
-													</span>
+												{/* <div style={{ display: "flex", alignItems: "center" }}>
+													<span style={{ fontWeight: "bold" }}>Cache:</span>
+													</div> */}
+												{cacheWrites !== undefined && cacheWrites > 0 && (
+													<HeroTooltip content="Tokens written to cache">
+														<span className="flex items-center gap-[0px] cursor-pointer">
+															<i
+																className="codicon codicon-database"
+																style={{
+																	fontSize: "12px",
+																	fontWeight: "bold",
+																	color: "var(--vscode-list-deemphasizedForeground)",
+																}}
+															/>
+															+{formatLargeNumber(cacheWrites || 0)}
+														</span>
+													</HeroTooltip>
+												)}
+												{cacheReads !== undefined && cacheReads > 0 && (
+													<HeroTooltip content="Tokens read from cache">
+														<span className="flex items-center gap-[1px] cursor-pointer">
+															<i
+																className={"codicon codicon-arrow-right"}
+																style={{
+																	fontSize: "12px",
+																	fontWeight: "bold",
+																	marginBottom: "1px",
+																	color: "var(--vscode-list-deemphasizedForeground)",
+																}}
+															/>
+															{formatLargeNumber(cacheReads || 0)}
+														</span>
+													</HeroTooltip>
 												)}
 											</div>
-											<span
-												className={`codicon codicon-chevron-${isTodoExpanded ? "down" : "right"}`}
-												style={{ flexShrink: 0 }}></span>
 										</div>
-									</div>
-								)
-							})()}
-
-							{/* Expanded focus chain list */}
-							{isTodoExpanded && lastProgressMessageText && (
-								<div
-									style={{
-										marginTop: "-1px",
-										padding: "5px",
-										backgroundColor: "color-mix(in srgb, var(--vscode-badge-foreground) 5%, transparent)",
-										borderRadius: "3px",
-										position: "relative",
-									}}>
-									<ChecklistRenderer text={lastProgressMessageText} />
-									{/* Edit button for focus chain list */}
-									{parseCurrentTodoInfo(lastProgressMessageText)?.hasItems &&
-										(() => {
-											// Used to adjust the position of the focus chain edit button as needed
-											const lines = lastProgressMessageText.split("\n").filter((line) => line.trim())
-											const items = lines.filter((line) => {
-												const trimmedLine = line.trim()
-												return trimmedLine.match(FOCUS_CHAIN_ITEM_REGEX)
-											})
-											const hasScrollbar = items.length >= 10
-
-											return (
-												<VSCodeButton
-													appearance="icon"
-													onClick={async () => {
-														try {
-															await FileServiceClient.openFocusChainFile(
-																StringRequest.create({ value: currentTaskItem?.id || "" }),
-															)
-														} catch (error) {
-															console.error("Error opening todo file:", error)
-														}
-													}}
-													style={{
-														position: "absolute",
-														top: "3px",
-														right: hasScrollbar ? "22px" : "4px",
-														width: "20px",
-														height: "20px",
-														minWidth: "20px",
-														padding: "0",
-														backgroundColor:
-															"color-mix(in srgb, var(--vscode-badge-foreground) 10%, transparent)",
-														border: "1px solid color-mix(in srgb, var(--vscode-badge-foreground) 20%, transparent)",
-													}}
-													title="Edit focus chain list in markdown file">
-													<span
-														className="codicon codicon-edit"
-														style={{
-															marginLeft: "-1px",
-															fontSize: "14px",
-															color: "var(--vscode-badge-foreground)",
-															display: "flex",
-															alignItems: "center",
-															justifyContent: "center",
-														}}></span>
-												</VSCodeButton>
-											)
-										})()}
+									)}
 								</div>
-							)}
-
-							{checkpointManagerErrorMessage && (
-								<div
-									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: "8px",
-										color: "var(--vscode-editorWarning-foreground)",
-										fontSize: "11px",
-									}}>
-									<i className="codicon codicon-warning" />
-									<span>
-										{checkpointManagerErrorMessage.replace(/disabling checkpoints\.$/, "")}
-										{checkpointManagerErrorMessage.endsWith("disabling checkpoints.") && (
-											<button
-												className="underline cursor-pointer bg-transparent border-0 p-0 text-inherit"
-												onClick={() => {
-													// First open the settings panel using direct navigation
-													navigateToSettings()
-
-													// After a short delay, send a message to scroll to settings
-													setTimeout(async () => {
-														try {
-															await UiServiceClient.scrollToSettings(
-																StringRequest.create({ value: "features" }),
-															)
-														} catch (error) {
-															console.error("Error scrolling to checkpoint settings:", error)
-														}
-													}, 300)
-												}}
-												style={{ fontSize: "inherit" }}>
-												disabling checkpoints.
-											</button>
-										)}
-										{checkpointManagerErrorMessage.includes("Git must be installed to use checkpoints.") && (
-											<>
-												{" "}
-												<a
-													href="https://github.com/cline/cline/wiki/Installing-Git-for-Checkpoints"
-													style={{
-														color: "inherit",
-														textDecoration: "underline",
-													}}>
-													See here for instructions.
-												</a>
-											</>
-										)}
-									</span>
+								<div className="flex items-center flex-wrap" style={{ justifyContent: "flex-end" }}>
+									{IS_DEV === true && <OpenDiskTaskHistoryButton taskId={currentTaskItem?.id} />}
+									<CopyTaskButton taskText={task.text} />
+									<DeleteTaskButton taskId={currentTaskItem?.id} taskSize={currentTaskItem?.size} />
 								</div>
-							)}
+							</div>
+
+							<ContextWindow
+								cacheReads={cacheReads}
+								cacheWrites={cacheWrites}
+								contextWindow={selectedModelInfo?.contextWindow}
+								lastApiReqTotalTokens={lastApiReqTotalTokens}
+								onSendMessage={onSendMessage}
+								tokensIn={tokensIn}
+								tokensOut={tokensOut}
+								useAutoCondense={false} // Disable auto-condense configuration in UI for now
+							/>
+
+							<div className="flex flex-col mb-0.5 mt-0.5">
+								<TaskTimeline messages={clineMessages} onBlockClick={onScrollToMessage} />
+							</div>
 						</div>
 					</>
 				)}
@@ -807,124 +447,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			<FocusChain currentTaskItemId={currentTaskItem?.id} lastProgressMessageText={lastProgressMessageText} />
 		</div>
 	)
-}
-
-/**
- * Highlights slash-command in this text if it exists
- */
-const highlightSlashCommands = (
-	text: string,
-	withShadow = true,
-	localWorkflowToggles: Record<string, boolean> = {},
-	globalWorkflowToggles: Record<string, boolean> = {},
-) => {
-	if (!text.trim().startsWith("/")) {
-		return text
-	}
-
-	// Get all available commands including workflows
-	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
-	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
-
-	// Sort by length (longest first) to ensure we match the longest command first
-	const sortedCommands = allCommands.sort((a, b) => b.name.length - a.name.length)
-
-	// Extract the text after the slash
-	const textAfterSlash = text.substring(1)
-
-	// Find the longest matching valid command that is complete
-	let longestMatch = ""
-	let longestMatchLength = 0
-
-	for (const command of sortedCommands) {
-		const commandName = command.name.toLowerCase()
-		const textToMatch = textAfterSlash.toLowerCase()
-
-		// Check if the command matches exactly at the start of the text
-		if (textToMatch.startsWith(commandName)) {
-			// Ensure the match is followed by a space or end of text (complete command)
-			const nextChar = textAfterSlash[commandName.length]
-			if (!nextChar || nextChar === " ") {
-				if (commandName.length > longestMatchLength) {
-					longestMatch = command.name
-					longestMatchLength = commandName.length
-				}
-			}
-		}
-	}
-
-	// If we found a complete valid command match, highlight only that command
-	if (longestMatch) {
-		const commandEndIndex = 1 + longestMatchLength // +1 for the slash
-		const beforeCommand = text.substring(0, 0) // empty since command starts at beginning
-		const afterCommand = text.substring(commandEndIndex)
-
-		return [
-			beforeCommand,
-			<span
-				className={withShadow ? "mention-context-highlight-with-shadow" : "mention-context-highlight"}
-				key="slashCommand">
-				/{longestMatch}
-			</span>,
-			afterCommand,
-		]
-	}
-
-	// return text
-}
-
-/**
- * Highlights & formats all mentions inside this text
- */
-export const highlightMentions = (text: string, withShadow = true) => {
-	const parts = text.split(mentionRegexGlobal)
-
-	return parts.map((part, index) => {
-		if (index % 2 === 0) {
-			// This is regular text
-			return part
-		} else {
-			// This is a mention
-			return (
-				<span
-					className={withShadow ? "mention-context-highlight-with-shadow" : "mention-context-highlight"}
-					key={`mention-${Math.floor(index / 2)}`}
-					onClick={() => FileServiceClient.openMention(StringRequest.create({ value: part }))}
-					style={{ cursor: "pointer" }}>
-					@{part}
-				</span>
-			)
-		}
-	})
-}
-
-/**
- * Handles parsing both mentions and slash-commands
- */
-export const highlightText = (
-	text?: string,
-	withShadow = true,
-	localWorkflowToggles: Record<string, boolean> = {},
-	globalWorkflowToggles: Record<string, boolean> = {},
-) => {
-	if (!text) {
-		return text
-	}
-
-	const resultWithSlashHighlighting = highlightSlashCommands(text, withShadow, localWorkflowToggles, globalWorkflowToggles)
-
-	if (resultWithSlashHighlighting === text) {
-		// no highlighting done
-		return highlightMentions(resultWithSlashHighlighting, withShadow)
-	}
-
-	if (Array.isArray(resultWithSlashHighlighting) && resultWithSlashHighlighting.length === 3) {
-		const [beforeCommand, commandElement, afterCommand] = resultWithSlashHighlighting as [string, JSX.Element, string]
-
-		return [beforeCommand, commandElement, ...highlightMentions(afterCommand, withShadow)]
-	}
-
-	return [text]
 }
 
 // export default memo(TaskHeader)

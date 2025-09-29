@@ -100,12 +100,12 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 				gap: "2px",
 				fontSize: "12px",
 				lineHeight: "1.3",
-				maxHeight: items.length >= 10 ? "200px" : "auto",
-				overflowY: items.length >= 10 ? "auto" : "visible",
+				maxHeight: items.length >= 5 ? "150px" : "auto",
+				overflowY: items.length >= 5 ? "auto" : "visible",
 			}}>
 			{items.map((item, index) => (
 				// biome-ignore lint/suspicious/noArrayIndexKey: Using index as key for checklist items
-				<div className="flex items-start gap-1.5 p-0.5" key={`checklist-item-${index}`}>
+				<div className="flex items-start gap-1.5 p-0" key={`checklist-item-${index}`}>
 					<span className={cn("text-xs shrink-0 mt-0.5", item.checked ? "text-success" : "text-foreground")}>
 						{item.checked ? <CheckIcon size={10} /> : <CircleIcon size={10} />}
 					</span>
@@ -119,6 +119,7 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 							wordBreak: "break-word",
 							overflowWrap: "anywhere",
 							lineHeight: "1.3",
+							marginRight: "5px",
 						}}>
 						{item.text}
 					</span>

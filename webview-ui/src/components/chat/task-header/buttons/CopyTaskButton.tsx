@@ -25,7 +25,10 @@ const CopyTaskButton: React.FC<{
 		<HeroTooltip content="Copy Text" placement="right">
 			<Button
 				aria-label="Copy"
-				className={cn("bg-transparent hover:opacity-100", className)}
+				className={cn(
+					"flex -m-0.5 items-center border-0 text-sm font-bold bg-transparent hover:opacity-100 p-0 text-[var(--vscode-icon-foreground)]",
+					className,
+				)}
 				isIconOnly={true}
 				onPress={() => handleCopy()}
 				radius="sm"

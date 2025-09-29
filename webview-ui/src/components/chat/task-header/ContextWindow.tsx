@@ -6,7 +6,6 @@ import { updateSetting } from "@/components/settings/utils/settingsHandlers"
 import { formatLargeNumber as formatTokenNumber } from "@/utils/format"
 import { AutoCondenseMarker } from "./AutoCondenseMarker"
 import CompactTaskButton from "./buttons/CompactTaskButton"
-import { ContextWindowSummary } from "./ContextWindowSummary"
 
 // Type definitions
 interface ContextWindowInfoProps {
@@ -29,17 +28,9 @@ const ConfirmationDialog = memo<{
 	onConfirm: (e: React.MouseEvent) => void
 	onCancel: (e: React.MouseEvent) => void
 }>(({ onConfirm, onCancel }) => (
-	<div className="text-xs my-2 flex items-center gap-0 justify-between">
-		<span className="font-semibold text-sm">Compact the current task?</span>
-		<span className="flex gap-1">
-			<VSCodeButton
-				appearance="secondary"
-				className="text-xs"
-				onClick={onCancel}
-				title="No, keep the task as is"
-				type="button">
-				Cancel
-			</VSCodeButton>
+	<div className="text-xs my-2 flex items-center gap-0 justify-between text-[var(--vscode-editor-foreground)] bg-[var(--vscode-editor-background)] border border-[var(--vscode-editor-border)] rounded-md px-2 py-1">
+		<span className="text-s pr-2">Compact current task? This action cannot be undone.</span>
+		<span className="flex gap-1 h-5 scale-90">
 			<VSCodeButton
 				appearance="primary"
 				autoFocus={true}
@@ -48,6 +39,14 @@ const ConfirmationDialog = memo<{
 				title="Yes, compact the task"
 				type="button">
 				Yes
+			</VSCodeButton>
+			<VSCodeButton
+				appearance="secondary"
+				className="text-xs"
+				onClick={onCancel}
+				title="No, keep the task as is"
+				type="button">
+				Cancel
 			</VSCodeButton>
 		</span>
 	</div>
@@ -106,7 +105,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 		(e: React.MouseEvent) => {
 			e.preventDefault()
 			e.stopPropagation()
-			onSendMessage?.("/compact", [], [])
+			onSendMessage?.("/Compact Task", [], [])
 			setConfirmationNeeded(false)
 		},
 		[onSendMessage],
@@ -203,7 +202,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 	}
 
 	return (
-		<div className="flex flex-col my-1.5" onMouseLeave={debounceCloseHover}>
+		<div className="flex flex-col -mt-1 mb-0 opacity-90" onMouseLeave={debounceCloseHover}>
 			<div className="flex gap-1 flex-row @max-xs:flex-col @max-xs:items-start items-center text-sm">
 				<div className="flex items-center gap-1.5 flex-1 whitespace-nowrap text-xs">
 					<span className="cursor-pointer" title="Current tokens used in this request">
@@ -212,18 +211,18 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 					<div className="flex relative items-center gap-1 flex-1 w-full h-full" onMouseEnter={() => setIsOpened(true)}>
 						<Tooltip
 							closeDelay={0}
-							content={
-								<ContextWindowSummary
-									autoCompactThreshold={useAutoCondense ? threshold : undefined}
-									cacheReads={cacheReads}
-									cacheWrites={cacheWrites}
-									contextWindow={tokenData.max}
-									percentage={tokenData.percentage}
-									tokensIn={tokensIn}
-									tokensOut={tokensOut}
-									tokenUsed={tokenData.used}
-								/>
-							}
+							// content={
+							// 	<ContextWindowSummary
+							// 		autoCompactThreshold={useAutoCondense ? threshold : undefined}
+							// 		cacheReads={cacheReads}
+							// 		cacheWrites={cacheWrites}
+							// 		contextWindow={tokenData.max}
+							// 		percentage={tokenData.percentage}
+							// 		tokensIn={tokensIn}
+							// 		tokensOut={tokensOut}
+							// 		tokenUsed={tokenData.used}
+							// 	/>
+							// }
 							disableAnimation={true}
 							isOpen={isOpened}
 							offset={-2}
@@ -246,7 +245,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 								<Progress
 									aria-label="Context window usage progress"
 									classNames={{
-										base: "drop-shadow-md w-full cursor-pointer",
+										base: "drop-shadow-md w-full", // cursor-pointer",
 										track: cn("rounded max-h-2 h-3 bg-foreground/10"),
 										indicator: "bg-foreground rounded-r",
 										label: "tracking-wider font-medium text-foreground/80",

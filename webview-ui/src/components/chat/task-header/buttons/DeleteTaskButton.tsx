@@ -13,7 +13,10 @@ const DeleteTaskButton: React.FC<{
 	<HeroTooltip content={`Delete Task (size: ${taskSize ? formatSize(taskSize) : "--"})`} placement="right">
 		<Button
 			aria-label="Delete Task"
-			className={cn("flex items-center border-0 text-sm font-bold bg-transparent hover:opacity-100 p-0", className)}
+			className={cn(
+				"flex -m-0.5 items-center border-0 text-sm font-bold bg-transparent hover:opacity-100 p-0 text-[var(--vscode-icon-foreground)]",
+				className,
+			)}
 			isIconOnly={true}
 			onPress={() => {
 				taskId && TaskServiceClient.deleteTasksWithIds(StringArrayRequest.create({ value: [taskId] }))

@@ -3,13 +3,12 @@ import { combineCommandSequences } from "@shared/combineCommandSequences"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { Virtuoso } from "react-virtuoso"
-import { COLOR_GRAY } from "../colors"
 import TaskTimelineTooltip from "./TaskTimelineTooltip"
 import { getColor } from "./util"
 
 // Timeline dimensions and spacing
-const TIMELINE_HEIGHT = "12px"
-const BLOCK_WIDTH = "12px"
+const TIMELINE_HEIGHT = "13px"
+const BLOCK_WIDTH = "10px"
 const BLOCK_GAP = "1px"
 const _TOOLTIP_MARGIN = 32 // 32px margin on each side
 
@@ -90,7 +89,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 							flexShrink: 0,
 							marginRight: BLOCK_GAP,
 							opacity: 0.5,
-							borderRadius: "90%",
+							borderRadius: "20%",
 						}}
 					/>
 				)
@@ -130,7 +129,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 							marginRight: BLOCK_GAP,
 							opacity: isHovered ? 1 : 0.7,
 							transition: "opacity 0.2s ease",
-							borderRadius: "90%",
+							borderRadius: "20%",
 						}}
 					/>
 				</TaskTimelineTooltip>
@@ -156,7 +155,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 				style={{
 					position: "relative",
 					width: "100%",
-					marginBottom: "4px",
+					// marginBottom: "6px",
 					overflow: "hidden",
 				}}>
 				<div
@@ -166,17 +165,17 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 						display: "flex",
 						alignItems: "center",
 					}}>
-					<div
+					{/* <div
 						style={{
 							width: BLOCK_WIDTH,
 							height: BLOCK_WIDTH,
 							backgroundColor: COLOR_GRAY,
-							borderRadius: "50%",
+							borderRadius: "20%",
 							opacity: 0.5,
 							flexShrink: 0,
 							marginRight: BLOCK_GAP,
 						}}
-					/>
+					/> */}
 				</div>
 			</div>
 		)
@@ -189,8 +188,6 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 				position: "relative",
 				width: "100%",
 				height: TIMELINE_HEIGHT,
-				marginBottom: "5px",
-				marginTop: "1px",
 				overflow: "hidden",
 			}}>
 			<style>
