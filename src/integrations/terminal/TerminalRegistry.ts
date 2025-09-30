@@ -1,5 +1,6 @@
-import { agentName, extensionIconDarkPath, extensionIconLightPath, extensionId, pathSeparator } from "@shared/Configuration"
+import { agentName, extensionIconDarkPath, extensionIconLightPath, pathSeparator } from "@shared/Configuration"
 import * as vscode from "vscode"
+import { ExtensionRegistryInfo } from "@/registry"
 
 export interface TerminalInfo {
 	terminal: vscode.Terminal
@@ -22,7 +23,7 @@ export class TerminalRegistry {
 	private static nextTerminalId = 1
 
 	static createTerminal(cwd?: string | vscode.Uri | undefined, shellPath?: string): TerminalInfo {
-		const extensionUri = vscode.extensions.getExtension(extensionId)?.extensionUri
+		const extensionUri = vscode.extensions.getExtension(ExtensionRegistryInfo.id)?.extensionUri
 		const terminalOptions: vscode.TerminalOptions = <vscode.TerminalOptions>{
 			cwd,
 			name: agentName,

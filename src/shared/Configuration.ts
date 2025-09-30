@@ -1,5 +1,5 @@
 // Configuration constants from package.json
-import { name as publishedName, publisher } from "../../package.json"
+import { name, publisher } from "../../package.json"
 
 // Base
 export const baseName = "Cline"
@@ -10,6 +10,8 @@ export const baseVersionUrl = `https://github.com/cline/cline/blob/main/CHANGELO
 export const agentName = "Astro"
 export const productName = "astro"
 export const authorName = "unievo"
+export const publishedName = name
+export const publisherName = publisher
 export const xUrl = "https://x.com/unievo_ai"
 export const discordUrl = ""
 export const repoUrl = "https://github.com/unievo/astro"
@@ -26,9 +28,6 @@ export const mcpMarketplaceEnabledDefaultSetting = true
 export const enableNewInstructionsDefaultSetting = false
 export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
 export const mcpServerIncludeToolInputSchema_MaxLength = 100
-
-// Extension
-export const extensionId = `${publisher}.${publishedName}`
 
 // Files & Folders
 export const agentWorkspaceDirectory = `.${productName}`
