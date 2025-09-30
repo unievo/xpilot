@@ -1181,7 +1181,7 @@ export const ChatRowContent = memo(
 									}}>
 									{icon}
 									{title}
-									<TaskFeedbackButtons
+									{/* <TaskFeedbackButtons
 										isFromHistory={
 											!isLast ||
 											lastModifiedMessage?.ask === "resume_completed_task" ||
@@ -1191,7 +1191,7 @@ export const ChatRowContent = memo(
 										style={{
 											marginLeft: "auto",
 										}}
-									/>
+									/> */}
 								</div>
 								<WithCopyButton
 									onMouseUp={handleMouseUp}

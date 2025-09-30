@@ -21,7 +21,7 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 				{enableTelemetrySettings && (
 					<div className="mb-[5px]">
 						<VSCodeCheckbox
-							checked={telemetrySetting === "enabled"}
+							checked={telemetrySetting !== "disabled"}
 							className="mb-[5px]"
 							onChange={(e: any) => {
 								const checked = e.target.checked === true
@@ -34,11 +34,17 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 							Help improve {agentName} by sending usage data and error reports. No code, prompts, or personal
 							information are ever sent.
 							{/* See our{" "}
-						<VSCodeLink className="text-inherit" href="https://docs.cline.bot/more-info/telemetry">
+						<VSCodeLink
+							className="text-inherit"
+							href="https://docs.cline.bot/more-info/telemetry"
+							style={{ fontSize: "inherit", textDecoration: "underline" }}>
 							telemetry overview
 						</VSCodeLink>{" "}
 						and{" "}
-						<VSCodeLink className="text-inherit" href="https://cline.bot/privacy">
+						<VSCodeLink
+							className="text-inherit"
+							href="https://cline.bot/privacy"
+							style={{ fontSize: "inherit", textDecoration: "underline" }}>
 							privacy policy
 						</VSCodeLink>{" "}
 						for more details. */}

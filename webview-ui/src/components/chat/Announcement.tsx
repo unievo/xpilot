@@ -73,8 +73,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	}
 
 	const setCodeSupernova = () => {
-		const modelId = "cline/code-supernova"
-		// set both plan and act modes to use code-supernova
+		const modelId = "cline/code-supernova-1-million"
+		// set both plan and act modes to use code-supernova-1-million
 		handleFieldsChange({
 			planModeOpenRouterModelId: modelId,
 			actModeOpenRouterModelId: modelId,

@@ -382,6 +382,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					scrollToBottomSmooth: scrollBehavior.scrollToBottomSmooth,
 					disableAutoScrollRef: scrollBehavior.disableAutoScrollRef,
 					showScrollToBottom: scrollBehavior.showScrollToBottom,
+					virtuosoRef: scrollBehavior.virtuosoRef,
 				}}
 				task={task}
 			/>

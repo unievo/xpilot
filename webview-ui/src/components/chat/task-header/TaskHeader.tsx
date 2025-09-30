@@ -1,18 +1,18 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { StringRequest } from "@shared/proto/cline/common"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
 import HeroTooltip from "@/components/common/HeroTooltip"
 import Thumbnails from "@/components/common/Thumbnails"
 import { getModeSpecificFields, normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
+import { taskHeaderBackground } from "@/components/theme"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { UiServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber } from "@/utils/format"
-import { taskHeaderBackground } from "../../theme"
 import CopyTaskButton from "./buttons/CopyTaskButton"
 import DeleteTaskButton from "./buttons/DeleteTaskButton"
-import OpenDiskTaskHistoryButton from "./buttons/OpenDiskTaskHistoryButton"
+import NewTaskButton from "./buttons/NewTaskButton"
+import OpenDiskConversationHistoryButton from "./buttons/OpenDiskConversationHistoryButton"
 import { CheckpointError } from "./CheckpointError"
 import ContextWindow from "./ContextWindow"
 import { FocusChain } from "./FocusChain"
@@ -72,7 +72,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	const [showSeeMore, setShowSeeMore] = useState(false)
 	const textContainerRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLDivElement>(null)
-	const contextWindow = selectedModelInfo?.contextWindow
 
 	const { height: windowHeight, width: windowWidth } = useWindowSize()
 
@@ -122,7 +121,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		}, 300)
 	}, [navigateToSettings])
 
-	const highlightedText = useMemo(() => highlightText(task.text, false), [task.text])
+	// const highlightedText = useMemo(() => highlightText(task.text, false), [task.text])
 
 	const shouldShowPromptCacheInfo = () => {
 		// Hybrid logic: Show cache info if we have actual cache data,
@@ -132,12 +131,13 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	}
 
 	return (
-		<div style={{ padding: "2px 8px 3px 8px" }}>
+		<div className={"p-1.5 pb-1 flex flex-col gap-1"}>
 			{/* Display Checkpoint Error */}
 			<CheckpointError
 				checkpointManagerErrorMessage={checkpointManagerErrorMessage}
 				handleCheckpointSettingsClick={handleCheckpointSettingsClick}
 			/>
+			{/* Task Header */}
 			<div
 				style={{
 					backgroundColor: taskHeaderBackground,
@@ -194,6 +194,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 								<span
 									className="ph-no-capture"
 									style={{
+										marginRight: 5,
 										overflow: "hidden",
 										display: "-webkit-box",
 										WebkitLineClamp: 2,
@@ -206,29 +207,16 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							)}
 						</div>
 					</div>
-					{isCostAvailable && (
-						<div
-							style={{
-								marginLeft: 10,
-								backgroundColor: "color-mix(in srgb, var(--vscode-badge-foreground) 70%, transparent)",
-								color: "var(--vscode-badge-background)",
-								padding: "2px 4px",
-								borderRadius: "500px",
-								fontSize: "11px",
-								fontWeight: 500,
-								display: "inline-block",
-								flexShrink: 0,
-							}}>
-							${totalCost?.toFixed(4)}
-						</div>
-					)}
-					<VSCodeButton
-						appearance="icon"
-						aria-label="Close task"
-						onClick={onClose}
-						style={{ marginLeft: 6, marginTop: -1, marginRight: -3, opacity: 0.7, flexShrink: 0 }}>
-						<span className="codicon codicon-close"></span>
-					</VSCodeButton>
+					<div className="inline-flex items-center justify-end select-none flex-shrink-0">
+						{isCostAvailable && (
+							<div
+								className="mr-1 px-1 py-0.25 rounded-full inline-flex shrink-0 text-badge-background bg-badge-foreground/70 items-center"
+								id="price-tag">
+								<span className="text-xs">${totalCost?.toFixed(4)}</span>
+							</div>
+						)}
+						<NewTaskButton className={BUTTON_CLASS} onClick={onClose} />
+					</div>
 				</div>
 
 				{/* Expand/Collapse Task Details */}
@@ -237,7 +225,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						<div
 							ref={textContainerRef}
 							style={{
-								marginTop: -4,
+								marginTop: 2,
 								fontSize: "var(--vscode-font-size)",
 								overflowY: isTextExpanded ? "auto" : "hidden",
 								wordBreak: "break-word",
@@ -418,7 +406,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									)}
 								</div>
 								<div className="flex items-center flex-wrap" style={{ justifyContent: "flex-end" }}>
-									{IS_DEV === true && <OpenDiskTaskHistoryButton taskId={currentTaskItem?.id} />}
+									{IS_DEV === true && <OpenDiskConversationHistoryButton taskId={currentTaskItem?.id} />}
 									<CopyTaskButton taskText={task.text} />
 									<DeleteTaskButton taskId={currentTaskItem?.id} taskSize={currentTaskItem?.size} />
 								</div>
@@ -448,7 +436,5 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		</div>
 	)
 }
-
-// export default memo(TaskHeader)
 
 export default TaskHeader

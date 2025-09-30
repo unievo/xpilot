@@ -7,7 +7,6 @@ import { ExtensionRegistryInfo } from "@/registry"
 import { productName } from "@/shared/Configuration"
 import type { ExtensionMessage } from "@/shared/ExtensionMessage"
 import { WebviewMessage } from "@/shared/WebviewMessage"
-import type { WebviewProviderType } from "@/shared/webview/types"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -22,10 +21,6 @@ export class VscodeWebviewProvider extends WebviewProvider implements vscode.Web
 
 	private webview?: vscode.WebviewView | vscode.WebviewPanel
 	private disposables: vscode.Disposable[] = []
-
-	constructor(context: vscode.ExtensionContext, providerType: WebviewProviderType) {
-		super(context, providerType)
-	}
 
 	override getWebviewUrl(path: string) {
 		if (!this.webview) {
