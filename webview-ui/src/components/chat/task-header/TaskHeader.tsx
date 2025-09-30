@@ -153,7 +153,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 				}}>
 				<div
 					style={{
-						height: isTaskExpanded ? "auto" : "50px",
+						height: isTaskExpanded ? "auto" : "45px",
 						display: "flex",
 						justifyContent: "space-between",
 						alignItems: "center",
