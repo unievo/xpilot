@@ -1,6 +1,7 @@
 import React from "react"
 import Announcement from "@/components/chat/Announcement"
 import { CURRENT_INFO_BANNER_VERSION } from "@/components/common/InfoBanner"
+import { CURRENT_MODEL_BANNER_VERSION } from "@/components/common/NewModelBanner"
 import HistoryPreview from "@/components/history/HistoryPreview"
 import HomeHeader from "@/components/welcome/HomeHeader"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -19,9 +20,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	taskHistory,
 	shouldShowQuickWins,
 }) => {
-	const { lastDismissedInfoBannerVersion } = useExtensionState()
+	const { lastDismissedInfoBannerVersion, lastDismissedModelBannerVersion } = useExtensionState()
 
 	const shouldShowInfoBanner = lastDismissedInfoBannerVersion < CURRENT_INFO_BANNER_VERSION
+	const shouldShowNewModelBanner = lastDismissedModelBannerVersion < CURRENT_MODEL_BANNER_VERSION
 
 	return (
 		<>
@@ -39,7 +41,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 				{/* {enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />} */}
 				{/* {shouldShowInfoBanner && <InfoBanner />} */}
 				{showAnnouncement && <Announcement hideAnnouncement={hideAnnouncement} version={version} />}
-				{/* <NewModelBanner /> */}
+				{/* {shouldShowNewModelBanner && <NewModelBanner />} */}
 				<HomeHeader /> {/* shouldShowQuickWins={shouldShowQuickWins} /> */}
 				{/* {!shouldShowQuickWins && taskHistory.length > 0 && */} <HistoryPreview showHistoryView={showHistoryView} />
 			</div>
