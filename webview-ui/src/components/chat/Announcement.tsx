@@ -103,24 +103,28 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</VSCodeButton>
 			{/* <span className="codicon codicon-info" style={{ marginLeft: "0px", fontSize: "20px" }}></span> */}
 			<div style={h3TitleStyle}>
-				Release <a href="https://github.com/unievo/astro/blob/main/CHANGELOG.md">v{version}</a>
+				Release <a href="https://github.com/unievo/astro/blob/main/CHANGELOG.md">v{minorVersion}</a>
 			</div>
 			{
 				<ul style={ulStyle}>
-					<b>Base Cline Features Update: </b>
-					<br />
-					<br />
 					<li>
-						<b>Focus Chain:</b> Automatically creates and maintains todo lists in tasks, breaking down tasks into
-						steps with real-time progress tracking
+						<b>Task Header:</b> Design update for better usability
 					</li>
+					<div className="mt-3" />
+					<b>Base Features Update: </b>
+					<div className="mt-1.5" />
+
 					<li>
+						<b>Claude Sonnet 4.5:</b> Support for Sonnet 4.5 in multiple API providers -{" "}
+						<a href={`${baseVersionUrl}`}>{baseVersion}</a>
+					</li>
+					{/* <li>
 						<b>Deep Planning:</b> New "/Deep Planning" slash command for codebase exploration and implementation
 						planning, that integrates with Focus Chain for automatic progress tracking
 					</li>
 					<li>
 						<b>New API providers, models, enhancements and fixes: </b> <a href={`${baseVersionUrl}`}>{baseVersion}</a>
-					</li>
+					</li> */}
 				</ul>
 			}
 
