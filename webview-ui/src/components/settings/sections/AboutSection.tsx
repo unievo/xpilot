@@ -20,9 +20,9 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 					</div>
 					<div style={{ marginRight: "-10px" }}>
 						<p>
-							{agentName} is a foundation for custom software agents, that can have specialized functionalities and
-							capabilities applicable to different domains and industries. It includes Cline's general
-							functionality, with additional customizations and features.
+							Astro is a foundation for custom software agents that can have specialized functionalities and
+							capabilities applicable to different domains. It includes Cline's general functionality with
+							additional customizations and features.
 						</p>
 						<p>If you have any issues, questions or feedback, feel free to contact us on:</p>
 						<p style={{ margin: "0 0 0 5px", fontSize: "13px", textAlign: "center" }}>
