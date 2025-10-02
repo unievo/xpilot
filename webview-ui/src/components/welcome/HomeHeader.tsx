@@ -1,10 +1,11 @@
 import { agentName } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
+import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/index.cline"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState } from "react"
 import AgentLogo from "@/assets/AgentLogo"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { UiServiceClient } from "@/services/grpc-client"
+import { StateServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { itemIconColor } from "../theme"
 
 interface HomeHeaderProps {
@@ -325,10 +326,10 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 												<span style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }}>
 													{" "}
 													(Right-click the {agentName} icon in the activity bar, and use <b>Move To</b>{" "}
-													{">"} <b>Secondary Side Bar</b>).
+													{">"} <b>Secondary Side Bar</b>)
 												</span>
 											</li>
-											<li style={{ marginBottom: "3px" }}>Open a workspace folder in VS Code.</li>
+											<li style={{ marginBottom: "3px" }}>Open a workspace folder</li>
 										</ul>
 									</div>
 								</CollapsibleSection>
@@ -347,9 +348,9 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										generating responses, that become also part of the context.
 										<br />
 										<br />
-										The task context is stored in a context window, and grows with each new task request. As
-										different AI models/providers support different context window sizes, there is a limit to
-										the amount of information that can be sent.
+										The task context is stored in a context window (active task memory) which grows with each
+										new task request. As different AI models/providers support different context window sizes,
+										there is a limit to the amount of information that can be sent.
 										<br />
 										<br />
 										The context window content translates into AI model tokens. Token usage information is
@@ -368,7 +369,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 									onToggle={() => toggleSection("taskContext")}
 									title="Task Context">
 									<div style={{ marginTop: "-4px", paddingLeft: "5px" }}>
-										A key for having a task completed efficiently, is providing the right context information
+										A key for having a task completed efficiently is providing the right context information
 										and tools to the right model -{" "}
 										<a href="https://www.philschmid.de/context-engineering">context engineering</a>. These are
 										some recommendations on how to achieve that:
@@ -401,7 +402,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											Use
 											<VSCodeLink
 												onClick={() => {
-													// setChatSettings({ mode: "plan" })
+													toggleChatMode(PlanActMode.PLAN)
 												}}
 												style={{ display: "inline" }}>
 												<b>Plan</b>
@@ -413,7 +414,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											Use
 											<VSCodeLink
 												onClick={() => {
-													// setChatSettings({ mode: "act" })
+													toggleChatMode(PlanActMode.ACT)
 												}}
 												style={{ display: "inline" }}>
 												<b>Act</b>
@@ -450,7 +451,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										}}>
 										<li style={{ marginBottom: "5px" }}>
 											Always start a new task each time you have a new scope. Keep your task context
-											specific to the same scope, so you can reuse it later if necessary.
+											specific to the same scope, so you can reuse its context later if necessary.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
 											Use the <b>/New Task</b> command in a current task, to create a new task with the
@@ -629,3 +630,14 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 }
 
 export default HomeHeader
+
+function toggleChatMode(mode: PlanActMode) {
+	StateServiceClient.togglePlanActModeProto(
+		TogglePlanActModeRequest.create({
+			mode: mode,
+			chatContent: {
+				message: "",
+			},
+		}),
+	)
+}
