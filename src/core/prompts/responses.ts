@@ -1,15 +1,27 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
-import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
+import { Mode } from "@/shared/storage/types"
 import { ignoreFile, workspaceInstructionsDirectoryPath } from "../../shared/Configuration"
+import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
 		`[[NOTE] This file read has been removed to save space in the context window. Refer to the latest file read for the most up to date version of this file.]`,
 
 	contextTruncationNotice: () =>
-		`[NOTE] Some previous conversation history with the user has been removed to maintain optimal context window length. The initial user task and the most recent exchanges have been retained for continuity, while intermediate conversation history has been removed. Please keep this in mind as you continue assisting the user.`,
+		`[NOTE] Some previous conversation history with the user has been removed to maintain optimal context window length. The initial user task has been retained for continuity, while intermediate conversation history has been removed. Keep this in mind as you continue assisting the user. Pay special attention to the user's latest messages.`,
+
+	processFirstUserMessageForTruncation: (originalContent: string) => {
+		const MAX_CHARS = 400_000
+
+		if (originalContent.length <= MAX_CHARS) {
+			return originalContent
+		}
+
+		const truncated = originalContent.substring(0, MAX_CHARS)
+		return truncated + "\n\n[[NOTE] This message was truncated past this point to preserve context window space.]"
+	},
 
 	condense: () =>
 		`The user has accepted the condensed conversation summary you generated. This summary covers important details of the historical conversation with the user which has been truncated.\n<explicit_instructions type="condense_response">It's crucial that you respond by ONLY asking the user what you should work on next. You should NOT take any initiative or make any assumptions about continuing with work. For example you should NOT suggest file changes or attempt to read any files.\nWhen asking the user what you should work on next, you can reference information in the summary which was just generated. However, you should NOT reference information outside of what's contained in the summary for this response. Keep this response CONCISE.</explicit_instructions>`,
@@ -50,7 +62,7 @@ Otherwise, if you have not completed the task and do not need additional informa
 		images?: string[],
 		fileString?: string,
 	): string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam> => {
-		let toolResultOutput = []
+		const toolResultOutput = []
 
 		if (!(images && images.length > 0) && !fileString) {
 			return text
@@ -148,7 +160,7 @@ Otherwise, if you have not completed the task and do not need additional informa
 	},
 
 	taskResumption: (
-		mode: "plan" | "act",
+		mode: Mode,
 		agoText: string,
 		cwd: string,
 		wasRecent: boolean | 0 | undefined,
@@ -232,10 +244,10 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`# Global instructions - (${globalClineRulesFilePath.toPosix()}/)\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions\n\nThe following content is from instruction files in the root-level (${workspaceInstructionsDirectoryPath}) directory applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions - (${workspaceInstructionsDirectoryPath})\n\nThe following content is from instruction files applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
-		`# (${workspaceInstructionsDirectoryPath})\n\nThe following is provided by a root-level (${workspaceInstructionsDirectoryPath}) file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+		`# The following content is provided by an instruction file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
 		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,

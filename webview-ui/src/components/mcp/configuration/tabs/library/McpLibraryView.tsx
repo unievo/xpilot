@@ -1,25 +1,24 @@
-import { useEffect, useMemo, useState } from "react"
+import { McpLibraryItem } from "@shared/mcp"
+import { mcpLibraryItems } from "@shared/mcpLibraryItems"
 import {
 	VSCodeButton,
-	VSCodeProgressRing,
-	VSCodeRadioGroup,
-	VSCodeRadio,
 	VSCodeDropdown,
 	VSCodeOption,
+	VSCodeProgressRing,
+	VSCodeRadio,
+	VSCodeRadioGroup,
 	VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react"
-import { McpLibraryItem, McpServer } from "@shared/mcp"
+import { useMemo, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { vscode } from "@/utils/vscode"
 import McpLibraryCard from "./McpLibraryCard"
-import { mcpLibraryItems } from "./McpLibraryItems"
 
 const McpLibraryView = () => {
 	const { mcpServers } = useExtensionState()
 	const [items, setItems] = useState<McpLibraryItem[]>(mcpLibraryItems)
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, _setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [isRefreshing, setIsRefreshing] = useState(false)
+	const [isRefreshing, _setIsRefreshing] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 	const [sortBy, setSortBy] = useState<"newest" | "name">("newest")
@@ -98,13 +97,13 @@ const McpLibraryView = () => {
 			<div style={{ padding: "20px 20px 5px", display: "flex", flexDirection: "column", gap: "16px" }}>
 				{/* Search row */}
 				<VSCodeTextField
-					style={{ width: "100%" }}
+					onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
 					placeholder="Search library..."
-					value={searchQuery}
-					onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}>
+					style={{ width: "100%" }}
+					value={searchQuery}>
 					<div
-						slot="start"
 						className="codicon codicon-search"
+						slot="start"
 						style={{
 							fontSize: 13,
 							opacity: 0.8,
@@ -112,8 +111,8 @@ const McpLibraryView = () => {
 					/>
 					{searchQuery && (
 						<div
-							className="codicon codicon-close"
 							aria-label="Clear search"
+							className="codicon codicon-close"
 							onClick={() => setSearchQuery("")}
 							slot="end"
 							style={{
@@ -151,11 +150,11 @@ const McpLibraryView = () => {
 							flex: 1,
 						}}>
 						<VSCodeDropdown
+							onChange={(e) => setSelectedCategory((e.target as HTMLSelectElement).value || null)}
 							style={{
 								width: "100%",
 							}}
-							value={selectedCategory || ""}
-							onChange={(e) => setSelectedCategory((e.target as HTMLSelectElement).value || null)}>
+							value={selectedCategory || ""}>
 							<VSCodeOption value="">All Categories</VSCodeOption>
 							{categories.map((category) => (
 								<VSCodeOption key={category} value={category}>
@@ -183,13 +182,13 @@ const McpLibraryView = () => {
 						Sort:
 					</span>
 					<VSCodeRadioGroup
+						onChange={(e) => setSortBy((e.target as HTMLInputElement).value as typeof sortBy)}
 						style={{
 							display: "flex",
 							flexWrap: "wrap",
 							marginTop: "-2.5px",
 						}}
-						value={sortBy}
-						onChange={(e) => setSortBy((e.target as HTMLInputElement).value as typeof sortBy)}>
+						value={sortBy}>
 						<VSCodeRadio value="name">Name</VSCodeRadio>
 						<VSCodeRadio value="newest">Newest</VSCodeRadio>
 					</VSCodeRadioGroup>
@@ -231,7 +230,9 @@ const McpLibraryView = () => {
 							: "No custom MCP servers found in the library"}
 					</div>
 				) : (
-					filteredItems.map((item) => <McpLibraryCard key={item.mcpId} item={item} installedServers={mcpServers} />)
+					filteredItems.map((item) => (
+						<McpLibraryCard installedServers={mcpServers} item={item} key={item.mcpId} setError={setError} />
+					))
 				)}
 			</div>
 		</div>

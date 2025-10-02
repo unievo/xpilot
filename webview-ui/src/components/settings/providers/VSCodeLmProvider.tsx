@@ -1,17 +1,25 @@
-import { EmptyRequest } from "@shared/proto/common"
-import { ModelsServiceClient } from "@/services/grpc-client"
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { Mode } from "@shared/storage/types"
 import { VSCodeDropdown, VSCodeLink, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
-import { useState, useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useInterval } from "react-use"
 import * as vscodemodels from "vscode"
-import { DropdownContainer, DROPDOWN_Z_INDEX } from "../ApiOptions"
-import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { ModelsServiceClient } from "@/services/grpc-client"
+import { DROPDOWN_Z_INDEX, DropdownContainer } from "../ApiOptions"
+import { getModeSpecificFields } from "../utils/providerUtils"
+import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 
-export const VSCodeLmProvider = () => {
+interface VSCodeLmProviderProps {
+	currentMode: Mode
+}
+
+export const VSCodeLmProvider = ({ currentMode }: VSCodeLmProviderProps) => {
 	const [vsCodeLmModels, setVsCodeLmModels] = useState<vscodemodels.LanguageModelChatSelector[]>([])
 	const { apiConfiguration } = useExtensionState()
-	const { handleFieldChange } = useApiConfigurationHandlers()
+	const { handleFieldChange, handleModeFieldChange } = useApiConfigurationHandlers()
+
+	const { vsCodeLmModelSelector } = getModeSpecificFields(apiConfiguration, currentMode)
 
 	// Poll VS Code LM models
 	const requestVsCodeLmModels = useCallback(async () => {
@@ -34,7 +42,7 @@ export const VSCodeLmProvider = () => {
 
 	return (
 		<div>
-			<DropdownContainer zIndex={DROPDOWN_Z_INDEX - 2} className="dropdown-container">
+			<DropdownContainer className="dropdown-container" zIndex={DROPDOWN_Z_INDEX - 2}>
 				<label htmlFor="vscode-lm-model">
 					<span style={{ fontWeight: 500 }}>Language Model</span>
 				</label>
@@ -42,11 +50,6 @@ export const VSCodeLmProvider = () => {
 					<div>
 						<VSCodeDropdown
 							id="vscode-lm-model"
-							value={
-								apiConfiguration?.vsCodeLmModelSelector
-									? `${apiConfiguration.vsCodeLmModelSelector.vendor ?? ""}/${apiConfiguration.vsCodeLmModelSelector.family ?? ""}`
-									: ""
-							}
 							onChange={(e) => {
 								const value = (e.target as HTMLInputElement).value
 								if (!value) {
@@ -54,9 +57,18 @@ export const VSCodeLmProvider = () => {
 								}
 								const [vendor, family] = value.split("/")
 
-								handleFieldChange("vsCodeLmModelSelector", { vendor, family })
+								handleModeFieldChange(
+									{ plan: "planModeVsCodeLmModelSelector", act: "actModeVsCodeLmModelSelector" },
+									{ vendor, family },
+									currentMode,
+								)
 							}}
-							style={{ width: "100%", marginTop: "5px" }}>
+							style={{ width: "100%" }}
+							value={
+								vsCodeLmModelSelector
+									? `${vsCodeLmModelSelector.vendor ?? ""}/${vsCodeLmModelSelector.family ?? ""}`
+									: ""
+							}>
 							<VSCodeOption value="">Select a model...</VSCodeOption>
 							{vsCodeLmModels.map((model) => (
 								<VSCodeOption key={`${model.vendor}/${model.family}`} value={`${model.vendor}/${model.family}`}>
@@ -72,8 +84,8 @@ export const VSCodeLmProvider = () => {
 								color: "var(--vscode-descriptionForeground)",
 								paddingLeft: "18px",
 							}}>
-							<li>For simpler tasks, you can use cost effective models such as OpenAI GPT-4.1.</li>
-							<li>For more complex coding tasks, use Claude Sonnet 4 / Gemini 2.5 Pro.</li>
+							<li>For simpler tasks you can use cost-effective models such as Grok Code, GPT-4.1.</li>
+							<li>For complex coding tasks use premium models such as Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.</li>
 						</ul>
 					</div>
 				) : (
@@ -94,7 +106,7 @@ export const VSCodeLmProvider = () => {
 						<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
 							enabling
 						</VSCodeLink>{" "}
-						the GitHub Copilot models.
+						the GitHub Copilot models in the Copilot Chat extension.
 					</p>
 				)}
 			</DropdownContainer>

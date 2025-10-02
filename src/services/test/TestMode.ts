@@ -3,12 +3,14 @@
  * This provides a centralized way to check if the extension is running in test mode
  * instead of relying on process.env which may not be consistent across different parts of the extension
  */
-import * as vscode from "vscode"
+
 import * as fs from "fs"
 import * as path from "path"
+import * as vscode from "vscode"
+import { HostProvider } from "@/hosts/host-provider"
+import { productName } from "@/shared/Configuration"
 import { Logger } from "../logging/Logger"
 import { createTestServer, shutdownTestServer } from "./TestServer"
-import { getHostBridgeProvider } from "@/hosts/host-providers"
 
 // State variable
 let isTestMode = false
@@ -34,7 +36,7 @@ export function isInTestMode(): boolean {
  */
 async function checkForTestMode(): Promise<boolean> {
 	// Get all workspace folders
-	const workspaceFolders = await getHostBridgeProvider().workspaceClient.getWorkspacePaths({})
+	const workspaceFolders = await HostProvider.workspace.getWorkspacePaths({})
 
 	// Check each workspace folder for an evals.env file
 	for (const folder of workspaceFolders.paths) {
@@ -62,7 +64,7 @@ export async function initializeTestMode(webviewProvider?: any): Promise<vscode.
 	if (IS_TEST) {
 		Logger.log("Test mode detected: Setting test mode state to true")
 		setTestMode(true)
-		vscode.commands.executeCommand("setContext", "cline.isTestMode", true)
+		vscode.commands.executeCommand("setContext", `${productName}.isTestMode`, true)
 
 		// Set up test server if in test mode
 		createTestServer(webviewProvider)
@@ -76,7 +78,7 @@ export async function initializeTestMode(webviewProvider?: any): Promise<vscode.
 		Logger.log(`evals.env file created at ${uri.fsPath}`)
 		if (!isInTestMode()) {
 			setTestMode(true)
-			vscode.commands.executeCommand("setContext", "cline.isTestMode", true)
+			vscode.commands.executeCommand("setContext", `${productName}.isTestMode`, true)
 			createTestServer(webviewProvider)
 		}
 	})
@@ -87,7 +89,7 @@ export async function initializeTestMode(webviewProvider?: any): Promise<vscode.
 		// Only deactivate if this was the last evals.env file
 		if (!checkForTestMode()) {
 			setTestMode(false)
-			vscode.commands.executeCommand("setContext", "cline.isTestMode", false)
+			vscode.commands.executeCommand("setContext", `${productName}.isTestMode`, false)
 			shutdownTestServer()
 		}
 	})

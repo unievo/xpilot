@@ -1,7 +1,7 @@
-import pWaitFor from "p-wait-for"
-import * as vscode from "vscode"
 import { arePathsEqual } from "@utils/path"
 import { getShellForProfile } from "@utils/shell"
+import pWaitFor from "p-wait-for"
+import * as vscode from "vscode"
 import { mergePromise, TerminalProcess, TerminalProcessResultPromise } from "./TerminalProcess"
 import { TerminalInfo, TerminalRegistry } from "./TerminalRegistry"
 
@@ -106,7 +106,7 @@ export class TerminalManager {
 				// Creating a read stream here results in a more consistent output. This is most obvious when running the `date` command.
 				e?.execution?.read()
 			})
-		} catch (error) {
+		} catch (_error) {
 			// console.error("Error setting up onDidEndTerminalShellExecution", error)
 		}
 		if (disposable) {
@@ -291,7 +291,7 @@ export class TerminalManager {
 								setTimeout(() => reject(new Error(`CWD timeout: Failed to update to ${cwd}`)), 1000),
 							),
 						])
-					} catch (err) {
+					} catch (_err) {
 						// Clear pending state on timeout
 						availableTerminal.pendingCwdChange = undefined
 						availableTerminal.cwdResolved = undefined
@@ -334,7 +334,9 @@ export class TerminalManager {
 		// }
 		this.terminalIds.clear()
 		this.processes.clear()
-		this.disposables.forEach((disposable) => disposable.dispose())
+		this.disposables.forEach((disposable) => {
+			disposable.dispose()
+		})
 		this.disposables = []
 	}
 
@@ -366,7 +368,7 @@ export class TerminalManager {
 			return { closedCount: 0, busyTerminals: [] }
 		}
 
-		const oldProfileId = this.defaultTerminalProfile
+		const _oldProfileId = this.defaultTerminalProfile
 		this.defaultTerminalProfile = profileId
 
 		// Get the shell path for the new profile

@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useCallback } from "react"
+import { McpDisplayMode } from "@shared/McpDisplayMode"
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
-import { useExtensionState } from "../../../context/ExtensionStateContext"
-import LinkPreview from "./LinkPreview"
-import ImagePreview from "./ImagePreview"
+import React, { useCallback, useEffect, useState } from "react"
 import styled from "styled-components"
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import ChatErrorBoundary from "@/components/chat/ChatErrorBoundary"
+import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
-import McpDisplayModeDropdown from "./McpDisplayModeDropdown"
 import { DropdownContainer } from "@/components/settings/ApiOptions"
 import { updateSetting } from "@/components/settings/utils/settingsHandlers"
-import { McpDisplayMode } from "@shared/McpDisplayMode"
-import { UrlMatch, processResponseUrls, DisplaySegment, buildDisplaySegments } from "./utils/mcpRichUtil"
 import { itemIconColor } from "@/components/theme"
+import { useExtensionState } from "../../../context/ExtensionStateContext"
+import ImagePreview from "./ImagePreview"
+import LinkPreview from "./LinkPreview"
+import McpDisplayModeDropdown from "./McpDisplayModeDropdown"
+import { buildDisplaySegments, DisplaySegment, processResponseUrls, UrlMatch } from "./utils/mcpRichUtil"
 
 // Maximum number of URLs to process in total, per response
 export const MAX_URLS = 50
@@ -21,7 +21,7 @@ const ResponseHeader = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 6px 6px;
+	padding: 4px 6px;
 	//color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	user-select: none;
@@ -50,6 +50,7 @@ const ResponseContainer = styled.div`
 	color: var(--vscode-editor-foreground, #d4d4d4);
 	border-radius: 0 0 6px 6px;
 	overflow: hidden;
+	z-index: 0;
 	margin-top: -18px;
 
 	.response-content {
@@ -230,10 +231,10 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 					<DropdownContainer
 						style={{ minWidth: isExpanded ? "auto" : "0", visibility: isExpanded ? "visible" : "hidden" }}>
 						<McpDisplayModeDropdown
-							value={mcpDisplayMode}
 							onChange={handleDisplayModeChange}
 							onClick={(e) => e.stopPropagation()}
 							style={{ minWidth: "120px", scale: "0.85" }}
+							value={mcpDisplayMode}
 						/>
 					</DropdownContainer>
 				</ResponseHeader>
@@ -241,7 +242,7 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 				{isExpanded && <div className="response-content">{renderContent()}</div>}
 			</ResponseContainer>
 		)
-	} catch (error) {
+	} catch (_error) {
 		console.log("Error rendering MCP response - falling back to plain text") // Restored comment
 		// Fallback for critical rendering errors
 		return (

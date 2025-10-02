@@ -1,25 +1,23 @@
+import Anthropic from "@anthropic-ai/sdk"
+import CheckpointTracker from "@integrations/checkpoints/CheckpointTracker"
+import getFolderSize from "get-folder-size"
+import { findLastIndex } from "@/shared/array"
 import { combineApiRequests } from "@/shared/combineApiRequests"
-import { ensureTaskDirectoryExists, saveApiConversationHistory, saveClineMessages } from "../storage/disk"
-import * as vscode from "vscode"
+import { combineCommandSequences } from "@/shared/combineCommandSequences"
 import { ClineMessage } from "@/shared/ExtensionMessage"
 import { getApiMetrics } from "@/shared/getApiMetrics"
-import { combineCommandSequences } from "@/shared/combineCommandSequences"
-import { findLastIndex } from "@/shared/array"
-import getFolderSize from "get-folder-size"
-import os from "os"
-import * as path from "path"
-import CheckpointTracker from "@integrations/checkpoints/CheckpointTracker"
 import { HistoryItem } from "@/shared/HistoryItem"
-import Anthropic from "@anthropic-ai/sdk"
-import { TaskState } from "./TaskState"
 import { getCwd, getDesktopDir } from "@/utils/path"
+import { ensureTaskDirectoryExists, saveApiConversationHistory, saveClineMessages } from "../storage/disk"
+import { TaskState } from "./TaskState"
 
 interface MessageStateHandlerParams {
-	context: vscode.ExtensionContext
 	taskId: string
+	ulid: string
 	taskIsFavorited?: boolean
 	updateTaskHistory: (historyItem: HistoryItem) => Promise<HistoryItem[]>
 	taskState: TaskState
+	checkpointManagerErrorMessage?: string
 }
 
 export class MessageStateHandler {
@@ -28,13 +26,13 @@ export class MessageStateHandler {
 	private taskIsFavorited: boolean
 	private checkpointTracker: CheckpointTracker | undefined
 	private updateTaskHistory: (historyItem: HistoryItem) => Promise<HistoryItem[]>
-	private context: vscode.ExtensionContext
 	private taskId: string
+	private ulid: string
 	private taskState: TaskState
 
 	constructor(params: MessageStateHandlerParams) {
-		this.context = params.context
 		this.taskId = params.taskId
+		this.ulid = params.ulid
 		this.taskState = params.taskState
 		this.taskIsFavorited = params.taskIsFavorited ?? false
 		this.updateTaskHistory = params.updateTaskHistory
@@ -62,7 +60,7 @@ export class MessageStateHandler {
 
 	async saveClineMessagesAndUpdateHistory(): Promise<void> {
 		try {
-			await saveClineMessages(this.context, this.taskId, this.clineMessages)
+			await saveClineMessages(this.taskId, this.clineMessages)
 
 			// combined as they are in ChatView
 			const apiMetrics = getApiMetrics(combineApiRequests(combineCommandSequences(this.clineMessages.slice(1))))
@@ -74,7 +72,7 @@ export class MessageStateHandler {
 						(message) => !(message.ask === "resume_task" || message.ask === "resume_completed_task"),
 					)
 				]
-			const taskDir = await ensureTaskDirectoryExists(this.context, this.taskId)
+			const taskDir = await ensureTaskDirectoryExists(this.taskId)
 			let taskDirSize = 0
 			try {
 				// getFolderSize.loose silently ignores errors
@@ -86,6 +84,7 @@ export class MessageStateHandler {
 			const cwd = await getCwd(getDesktopDir())
 			await this.updateTaskHistory({
 				id: this.taskId,
+				ulid: this.ulid,
 				ts: lastRelevantMessage.ts,
 				task: taskMessage.text ?? "",
 				tokensIn: apiMetrics.totalTokensIn,
@@ -98,6 +97,7 @@ export class MessageStateHandler {
 				cwdOnTaskInitialization: cwd,
 				conversationHistoryDeletedRange: this.taskState.conversationHistoryDeletedRange,
 				isFavorited: this.taskIsFavorited,
+				checkpointManagerErrorMessage: this.taskState.checkpointManagerErrorMessage,
 			})
 		} catch (error) {
 			console.error("Failed to save messages:", error)
@@ -106,12 +106,12 @@ export class MessageStateHandler {
 
 	async addToApiConversationHistory(message: Anthropic.MessageParam) {
 		this.apiConversationHistory.push(message)
-		await saveApiConversationHistory(this.context, this.taskId, this.apiConversationHistory)
+		await saveApiConversationHistory(this.taskId, this.apiConversationHistory)
 	}
 
 	async overwriteApiConversationHistory(newHistory: Anthropic.MessageParam[]): Promise<void> {
 		this.apiConversationHistory = newHistory
-		await saveApiConversationHistory(this.context, this.taskId, this.apiConversationHistory)
+		await saveApiConversationHistory(this.taskId, this.apiConversationHistory)
 	}
 
 	async addToClineMessages(message: ClineMessage) {

@@ -1,14 +1,14 @@
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import { CheckpointsServiceClient } from "@/services/grpc-client"
 import { flip, offset, shift, useFloating } from "@floating-ui/react"
-import { CheckpointRestoreRequest } from "@shared/proto/checkpoints"
-import { Int64Request } from "@shared/proto/common"
+import { CheckpointRestoreRequest } from "@shared/proto/cline/checkpoints"
+import { Int64Request } from "@shared/proto/cline/common"
 import { ClineCheckpointRestore } from "@shared/WebviewMessage"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import styled from "styled-components"
+import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { CheckpointsServiceClient } from "@/services/grpc-client"
 
 interface CheckmarkControlProps {
 	messageTs?: number
@@ -17,9 +17,9 @@ interface CheckmarkControlProps {
 
 export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: CheckmarkControlProps) => {
 	const [compareDisabled, setCompareDisabled] = useState(false)
-	const [restoreTaskDisabled, setRestoreTaskDisabled] = useState(false)
+	const [_restoreTaskDisabled, setRestoreTaskDisabled] = useState(false)
 	const [restoreWorkspaceDisabled, setRestoreWorkspaceDisabled] = useState(false)
-	const [restoreBothDisabled, setRestoreBothDisabled] = useState(false)
+	const [_restoreBothDisabled, setRestoreBothDisabled] = useState(false)
 	const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
 	const { onRelinquishControl } = useExtensionState()
 
@@ -161,8 +161,8 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 
 	return (
 		<Container
-			isMenuOpen={showRestoreConfirm}
 			$isCheckedOut={isCheckpointCheckedOut}
+			isMenuOpen={showRestoreConfirm}
 			onMouseEnter={handleControlsMouseEnter}
 			onMouseLeave={handleControlsMouseLeave}>
 			<i
@@ -181,7 +181,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 				<CustomButton
 					$isCheckedOut={isCheckpointCheckedOut}
 					disabled={compareDisabled}
-					style={{ cursor: compareDisabled ? "not-allowed" : "pointer" }}
+					//style={{ cursor: compareDisabled ? "not-allowed" : "pointer" }}
 					onClick={async () => {
 						setCompareDisabled(true)
 						try {
@@ -195,10 +195,11 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 						} finally {
 							setCompareDisabled(false)
 						}
-					}}>
+					}}
+					style={{ cursor: compareDisabled ? "wait" : "pointer" }}>
 					Compare
 				</CustomButton>
-				<DottedLine small $isCheckedOut={isCheckpointCheckedOut} />
+				<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
 				<div ref={refs.setReference} style={{ position: "relative", marginTop: -2 }}>
 					<CustomButton
 						$isCheckedOut={isCheckpointCheckedOut}
@@ -209,34 +210,27 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 					{showRestoreConfirm &&
 						createPortal(
 							<RestoreConfirmTooltip
-								ref={refs.setFloating}
-								style={floatingStyles}
 								data-placement={placement}
 								onMouseEnter={handleMouseEnter}
-								onMouseLeave={handleMouseLeave}>
+								onMouseLeave={handleMouseLeave}
+								ref={refs.setFloating}
+								style={floatingStyles}>
 								<RestoreOption>
 									<VSCodeButton
 										appearance="secondary"
 										onClick={handleRestoreTask}
 										// disabled={restoreTaskDisabled}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+										}}
 										style={{
 											backgroundColor: "var(--vscode-input-background)",
 											// cursor: restoreTaskDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
-										}}
-										onMouseEnter={(e) => {
-											// if (!restoreBothDisabled)
-											{
-												e.currentTarget.style.backgroundColor =
-													"var(--vscode-inputOption-activeBackground)"
-											}
-										}}
-										onMouseLeave={(e) => {
-											// if (!restoreBothDisabled)
-											{
-												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
-											}
 										}}>
 										<div style={{ fontSize: "12px" }}>Task</div>
 									</VSCodeButton>
@@ -247,24 +241,17 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 										appearance="secondary"
 										onClick={handleRestoreWorkspace}
 										// disabled={restoreWorkspaceDisabled}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+										}}
 										style={{
 											backgroundColor: "var(--vscode-button-secondaryBackground)",
 											// cursor: restoreWorkspaceDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
-										}}
-										onMouseEnter={(e) => {
-											// if (!restoreWorkspaceDisabled)
-											{
-												e.currentTarget.style.backgroundColor =
-													"var(--vscode-inputOption-activeBackground)"
-											}
-										}}
-										onMouseLeave={(e) => {
-											// if (!restoreWorkspaceDisabled)
-											{
-												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
-											}
 										}}>
 										<div style={{ fontSize: "12px" }}>Workspace</div>
 									</VSCodeButton>
@@ -279,24 +266,17 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 										appearance="secondary"
 										onClick={handleRestoreBoth}
 										// disabled={restoreBothDisabled}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+										}}
 										style={{
 											backgroundColor: "var(--vscode-button-secondaryBackground)",
 											// cursor: restoreBothDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
-										}}
-										onMouseEnter={(e) => {
-											// if (!restoreBothDisabled)
-											{
-												e.currentTarget.style.backgroundColor =
-													"var(--vscode-inputOption-activeBackground)"
-											}
-										}}
-										onMouseLeave={(e) => {
-											// if (!restoreBothDisabled)
-											{
-												e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
-											}
 										}}>
 										<div style={{ fontSize: "12px" }}>Task & Workspace</div>
 									</VSCodeButton>
@@ -306,7 +286,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 							document.body,
 						)}
 				</div>
-				<DottedLine small $isCheckedOut={isCheckpointCheckedOut} />
+				<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
 			</ButtonGroup>
 		</Container>
 	)
@@ -319,12 +299,33 @@ const Container = styled.div<{ isMenuOpen?: boolean; $isCheckedOut?: boolean }>`
 	gap: 4px;
 	position: relative;
 	min-width: 0;
+	min-height: 17px;
 	margin-top: -10px;
 	margin-bottom: -10px;
 	opacity: ${(props) => (props.$isCheckedOut ? 1 : props.isMenuOpen ? 1 : 0.5)};
 
 	&:hover {
 		opacity: 1;
+	}
+
+	.hover-content {
+		display: ${(props) => (props.isMenuOpen ? "flex" : "none")};
+		align-items: center;
+		gap: 4px;
+		flex: 1;
+	}
+
+	&:hover .hover-content {
+		display: flex;
+	}
+
+	.hover-show-inverse {
+		display: ${(props) => (props.isMenuOpen ? "none" : "flex")};
+		flex: 1;
+	}
+
+	&:hover .hover-show-inverse {
+		display: none;
 	}
 `
 

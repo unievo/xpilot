@@ -1,13 +1,12 @@
 import { readFile } from "fs/promises"
-import { describe, it, after } from "mocha"
+import { after, describe, it } from "mocha"
 import path from "path"
 import "should"
 import * as vscode from "vscode"
-import { agentName, plusButtonCommand } from "../shared/Configuration"
 
 const packagePath = path.join(__dirname, "..", "..", "package.json")
 
-describe(`${agentName} Extension`, () => {
+describe("Cline Extension", () => {
 	after(() => {
 		vscode.window.showInformationMessage("All tests done!")
 	})
@@ -22,7 +21,7 @@ describe(`${agentName} Extension`, () => {
 
 	it("should successfully execute the plus button command", async () => {
 		await new Promise((resolve) => setTimeout(resolve, 400))
-		await vscode.commands.executeCommand(plusButtonCommand)
+		await vscode.commands.executeCommand("cline.plusButtonClicked")
 	})
 
 	// New test to verify xvfb and webview functionality

@@ -1,20 +1,21 @@
-import { EmptyRequest } from "@shared/proto/common"
+import { groqDefaultModelId, groqModels } from "@shared/api"
+import { agentName } from "@shared/Configuration"
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse, { FuseResult } from "fuse.js"
-import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
-import { useRemark } from "react-remark"
+import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
-import { groqDefaultModelId, groqModels } from "@shared/api"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
-import { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
+// import { highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
-import { normalizeApiConfiguration } from "./utils/providerUtils"
+import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
-import { agentName } from "@shared/Configuration"
 
 export interface GroqModelPickerProps {
 	isPopup?: boolean
+	currentMode: Mode
 }
 
 const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
@@ -31,7 +32,9 @@ const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: stri
 
 	// Function to merge overlapping regions
 	const mergeRegions = (regions: [number, number][]): [number, number][] => {
-		if (regions.length === 0) return regions
+		if (regions.length === 0) {
+			return regions
+		}
 
 		// Sort regions by start index
 		regions.sort((a, b) => a[0] - b[0])
@@ -101,10 +104,11 @@ const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: stri
 		})
 }
 
-const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
+const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode }) => {
 	const { apiConfiguration, groqModels: dynamicGroqModels, setGroqModels } = useExtensionState()
-	const { handleFieldsChange } = useApiConfigurationHandlers()
-	const [searchTerm, setSearchTerm] = useState(apiConfiguration?.groqModelId || groqDefaultModelId)
+	const { handleModeFieldsChange } = useApiConfigurationHandlers()
+	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
+	const [searchTerm, setSearchTerm] = useState(modeFields.groqModelId || groqDefaultModelId)
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
@@ -116,16 +120,23 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 		// Use dynamic models if available, otherwise fall back to static models
 		const modelInfo = dynamicGroqModels?.[newModelId] || groqModels[newModelId as keyof typeof groqModels]
 
-		handleFieldsChange({
-			groqModelId: newModelId,
-			groqModelInfo: modelInfo,
-		})
+		handleModeFieldsChange(
+			{
+				groqModelId: { plan: "planModeGroqModelId", act: "actModeGroqModelId" },
+				groqModelInfo: { plan: "planModeGroqModelInfo", act: "actModeGroqModelInfo" },
+			},
+			{
+				groqModelId: newModelId,
+				groqModelInfo: modelInfo,
+			},
+			currentMode,
+		)
 		setSearchTerm(newModelId)
 	}
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
-		return normalizeApiConfiguration(apiConfiguration)
-	}, [apiConfiguration])
+		return normalizeApiConfiguration(apiConfiguration, currentMode)
+	}, [apiConfiguration, currentMode])
 
 	useMount(() => {
 		ModelsServiceClient.refreshGroqModels(EmptyRequest.create({}))
@@ -139,6 +150,12 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 				console.error("Failed to refresh Groq models:", err)
 			})
 	})
+
+	// Sync external changes when the modelId changes
+	useEffect(() => {
+		const currentModelId = modeFields.groqModelId || groqDefaultModelId
+		setSearchTerm(currentModelId)
+	}, [modeFields.groqModelId])
 
 	// Debounce search term to reduce re-renders
 	useEffect(() => {
@@ -191,14 +208,16 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		let results: { id: string; html: string }[] = debouncedSearchTerm
+		const results: { id: string; html: string }[] = debouncedSearchTerm
 			? highlight(fuse.search(debouncedSearchTerm), "model-item-highlight")
 			: searchableItems
 		return results
 	}, [searchableItems, debouncedSearchTerm, fuse])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) return
+		if (!isDropdownVisible) {
+			return
+		}
 
 		switch (event.key) {
 			case "ArrowDown":
@@ -261,26 +280,26 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 				<label htmlFor="model-search">
 					<span className="font-medium">Model</span>
 				</label>
-				<div ref={dropdownRef} className="relative w-full">
+				<div className="relative w-full" ref={dropdownRef}>
 					<VSCodeTextField
 						id="model-search"
-						placeholder="Search and select a model..."
-						value={searchTerm}
+						onFocus={() => setIsDropdownVisible(true)}
 						onInput={(e) => {
 							setSearchTerm((e.target as HTMLInputElement)?.value || "")
 							setIsDropdownVisible(true)
 						}}
-						onFocus={() => setIsDropdownVisible(true)}
 						onKeyDown={handleKeyDown}
+						placeholder="Search and select a model..."
 						style={{
 							width: "100%",
 							zIndex: GROQ_MODEL_PICKER_Z_INDEX,
 							position: "relative",
-						}}>
+						}}
+						value={searchTerm}>
 						{searchTerm && (
 							<div
-								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
 								aria-label="Clear search"
+								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
 								onClick={() => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
@@ -291,27 +310,27 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 					</VSCodeTextField>
 					{isDropdownVisible && (
 						<div
-							ref={dropdownListRef}
 							className="absolute top-[calc(100%-3px)] left-0 w-[calc(100%-2px)] max-h-[200px] overflow-y-auto border border-[var(--vscode-list-activeSelectionBackground)] rounded-b-[3px]"
+							ref={dropdownListRef}
 							style={{
 								backgroundColor: "var(--vscode-dropdown-background)",
 								zIndex: GROQ_MODEL_PICKER_Z_INDEX - 1,
 							}}>
 							{modelSearchResults.map((item, index) => (
 								<div
-									key={item.id}
-									ref={(el: HTMLDivElement | null) => (itemRefs.current[index] = el)}
 									className={`px-2.5 py-1.5 cursor-pointer break-all whitespace-normal hover:bg-[var(--vscode-list-activeSelectionBackground)] ${
 										index === selectedIndex ? "bg-[var(--vscode-list-activeSelectionBackground)]" : ""
 									}`}
-									onMouseEnter={() => setSelectedIndex(index)}
+									dangerouslySetInnerHTML={{
+										__html: item.html,
+									}}
+									key={item.id}
 									onClick={() => {
 										handleModelChange(item.id)
 										setIsDropdownVisible(false)
 									}}
-									dangerouslySetInnerHTML={{
-										__html: item.html,
-									}}
+									onMouseEnter={() => setSelectedIndex(index)}
+									ref={(el: HTMLDivElement | null) => (itemRefs.current[index] = el)}
 								/>
 							))}
 						</div>
@@ -320,19 +339,17 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup }) => {
 			</div>
 
 			{hasInfo ? (
-				<ModelInfoView selectedModelId={selectedModelId} modelInfo={selectedModelInfo} isPopup={isPopup} />
+				<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
 			) : (
 				<p className="text-xs mt-0 text-[var(--vscode-descriptionForeground)]">
-					<>
-						The extension automatically fetches the latest list of models available on{" "}
-						<VSCodeLink className="inline text-inherit" href="https://console.groq.com/docs/models">
-							Groq.
-						</VSCodeLink>
-						If you're unsure which model to choose, {agentName} works best with{" "}
-						<VSCodeLink className="inline text-inherit" onClick={() => handleModelChange("llama-3.3-70b-versatile")}>
-							llama-3.3-70b-versatile.
-						</VSCodeLink>
-					</>
+					The extension automatically fetches the latest list of models available on{" "}
+					<VSCodeLink className="inline text-inherit" href="https://console.groq.com/docs/models">
+						Groq.
+					</VSCodeLink>
+					If you're unsure which model to choose, {agentName} works best with{" "}
+					<VSCodeLink className="inline text-inherit" onClick={() => handleModelChange("llama-3.3-70b-versatile")}>
+						llama-3.3-70b-versatile.
+					</VSCodeLink>
 				</p>
 			)}
 		</div>

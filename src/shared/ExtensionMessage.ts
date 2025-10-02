@@ -1,27 +1,30 @@
 // type that represents json data that is sent from extension to webview, called ExtensionMessage and has 'type' enum which can be 'plusButtonClicked' or 'settingsButtonClicked' or 'hello'
-import { ApiConfiguration } from "./api"
-import { AutoApprovalSettings } from "./AutoApprovalSettings"
-import { BrowserSettings } from "./BrowserSettings"
-import { ChatSettings } from "./ChatSettings"
-import { HistoryItem } from "./HistoryItem"
-import { McpLibraryItem } from "./mcp"
-import { TelemetrySetting } from "./TelemetrySetting"
-import { ClineRulesToggles } from "./cline-rules"
-import { UserInfo } from "./UserInfo"
-import { McpDisplayMode } from "./McpDisplayMode"
 
+import { WorkspaceRoot } from "../core/workspace"
+import { AutoApprovalSettings } from "./AutoApprovalSettings"
+import { ApiConfiguration } from "./api"
+import { BrowserSettings } from "./BrowserSettings"
+import { ClineFeatureSetting } from "./ClineFeatureSetting"
+import { ClineRulesToggles } from "./cline-rules"
+import { DictationSettings } from "./DictationSettings"
+import { FocusChainSettings } from "./FocusChainSettings"
+import { HistoryItem } from "./HistoryItem"
+import { McpDisplayMode } from "./McpDisplayMode"
+import { Mode, OpenaiReasoningEffort } from "./storage/types"
+import { TelemetrySetting } from "./TelemetrySetting"
+import { UserInfo } from "./UserInfo"
 // webview will hold state
 export interface ExtensionMessage {
-	type: "grpc_response" | "mcpLibraryInstall" // New type for gRPC responses
-	mcpInstallDetails?: McpLibraryItem // Details for MCP library installation
+	type: "grpc_response" // New type for gRPC responses
+	grpc_response?: GrpcResponse
+}
 
-	grpc_response?: {
-		message?: any // JSON serialized protobuf message
-		request_id: string // Same ID as the request
-		error?: string // Optional error message
-		is_streaming?: boolean // Whether this is part of a streaming response
-		sequence_number?: number // For ordering chunks in streaming responses
-	}
+export type GrpcResponse = {
+	message?: any // JSON serialized protobuf message
+	request_id: string // Same ID as the request
+	error?: string // Optional error message
+	is_streaming?: boolean // Whether this is part of a streaming response
+	sequence_number?: number // For ordering chunks in streaming responses
 }
 
 export type Platform = "aix" | "darwin" | "freebsd" | "linux" | "openbsd" | "sunos" | "win32" | "unknown"
@@ -35,10 +38,13 @@ export interface ExtensionState {
 	autoApprovalSettings: AutoApprovalSettings
 	browserSettings: BrowserSettings
 	remoteBrowserHost?: string
-	chatSettings: ChatSettings
-	checkpointTrackerErrorMessage?: string
+	preferredLanguage?: string
+	openaiReasoningEffort?: OpenaiReasoningEffort
+	mode: Mode
+	checkpointManagerErrorMessage?: string
 	clineMessages: ClineMessage[]
 	currentTaskItem?: HistoryItem
+	currentFocusChainChecklist?: string | null
 	mcpMarketplaceEnabled?: boolean
 	mcpDisplayMode: McpDisplayMode
 	planActSeparateModelsSetting: boolean
@@ -51,7 +57,6 @@ export interface ExtensionState {
 	terminalReuseEnabled?: boolean
 	terminalOutputLineLimit: number
 	defaultTerminalProfile?: string
-	uriScheme?: string
 	userInfo?: UserInfo
 	version: string
 	distinctId: string
@@ -62,6 +67,21 @@ export interface ExtensionState {
 	localCursorRulesToggles: ClineRulesToggles
 	localWindsurfRulesToggles: ClineRulesToggles
 	mcpResponsesCollapsed?: boolean
+	strictPlanModeEnabled?: boolean
+	yoloModeToggled?: boolean
+	useAutoCondense?: boolean
+	focusChainSettings: FocusChainSettings
+	dictationSettings: DictationSettings
+	customPrompt?: string
+	autoCondenseThreshold?: number
+	favoritedModelIds: string[]
+	// NEW: Add workspace information
+	workspaceRoots: WorkspaceRoot[]
+	primaryRootIndex: number
+	isMultiRootWorkspace: boolean
+	multiRootSetting: ClineFeatureSetting
+	lastDismissedInfoBannerVersion: number
+	lastDismissedModelBannerVersion: number
 }
 
 export interface ClineMessage {
@@ -97,6 +117,7 @@ export type ClineAsk =
 	| "use_mcp_server"
 	| "new_task"
 	| "condense"
+	| "summarize_task"
 	| "report_bug"
 
 export type ClineSay =
@@ -128,6 +149,7 @@ export type ClineSay =
 	| "load_mcp_documentation"
 	| "get_mcp_tool_input_schema"
 	| "info" // Added for general informational messages like retry status
+	| "task_progress"
 
 export interface ClineSayTool {
 	tool:
@@ -139,6 +161,7 @@ export interface ClineSayTool {
 		| "listCodeDefinitionNames"
 		| "searchFiles"
 		| "webFetch"
+		| "summarizeTask"
 	path?: string
 	diff?: string
 	content?: string

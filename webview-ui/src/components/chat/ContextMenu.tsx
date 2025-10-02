@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
 import { cleanPathPrefix } from "@/components/common/CodeAccordian"
+import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
 import { dropdownBackground, itemIconColor } from "../theme"
 
 interface ContextMenuProps {
@@ -167,6 +167,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
 	return (
 		<div
+			onMouseDown={onMouseDown}
 			style={{
 				fontSize: "12px",
 				position: "absolute",
@@ -175,11 +176,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 				right: 7,
 				overflowX: "hidden",
 				zIndex: 1001,
-			}}
-			onMouseDown={onMouseDown}>
+			}}>
 			<div
-				ref={menuRef}
 				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				ref={menuRef}
 				style={{
 					backgroundColor: dropdownBackground,
 					// border: "1px solid var(--vscode-editorGroup-border)",
@@ -209,6 +209,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 					<div
 						key={`${option.type}-${option.value || index}`}
 						onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
+						onMouseEnter={() => isOptionSelectable(option) && setSelectedIndex(index)}
 						style={{
 							padding: "4px 3px",
 							cursor: isOptionSelectable(option) ? "pointer" : "default",
@@ -224,8 +225,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 								index === selectedIndex && isOptionSelectable(option)
 									? "var(--vscode-quickInputList-focusBackground)"
 									: "",
-						}}
-						onMouseEnter={() => isOptionSelectable(option) && setSelectedIndex(index)}>
+						}}>
 						<div
 							style={{
 								display: "flex",

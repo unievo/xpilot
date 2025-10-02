@@ -1,12 +1,11 @@
-import { agentName, discordUrl, baseVersion, repoUrl, xUrl, baseVersionUrl, baseName } from "@shared/Configuration"
-import Section from "../Section"
+import { agentName, baseName, baseVersion, baseVersionUrl, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import Section from "../Section"
 
 interface AboutSectionProps {
 	version: string
 	renderSectionHeader: (tabId: string) => JSX.Element | null
 }
-
 const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 	return (
 		<div>
@@ -20,6 +19,8 @@ const AboutSection = ({ version, renderSectionHeader }: AboutSectionProps) => {
 						<p className="text-center -mt-3 mb-7 p-0">v{version}</p>
 					</div>
 					<div style={{ marginRight: "-10px" }}>
+						<p>xPilot is an AI coding agent with a specialized knowledge base and tools for <a href="https://www.multiversx.com">MultiversX</a>.
+It is able to assist with coding any type of application, while also having specialized knowledge for handling MultiversX projects and tasks, using the dedicated instructions library, MCP tools, and built-in features.</p>
 						<p>If you have any issues, questions, or feedback, feel free to contact us on:</p>
 						<p style={{ margin: "0 0 0 5px", fontSize: "13px", textAlign: "center" }}>
 							<VSCodeLink href={repoUrl}>GitHub</VSCodeLink>

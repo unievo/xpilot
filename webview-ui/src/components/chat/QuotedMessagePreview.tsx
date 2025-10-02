@@ -1,6 +1,6 @@
-import React, { useEffect } from "react"
-import styled from "styled-components"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import React from "react"
+import styled from "styled-components"
 import { chatTextAreaBackground, chatTextAreaQuoteBackground } from "../theme"
 
 const PreviewContainer = styled.div`
@@ -72,7 +72,7 @@ interface QuotedMessagePreviewProps {
 }
 
 const QuotedMessagePreview: React.FC<QuotedMessagePreviewProps> = ({ text, onDismiss, isFocused }) => {
-	const cardClassName = `reply-card ${isFocused ? "reply-card--focused" : ""}`
+	const _cardClassName = `reply-card ${isFocused ? "reply-card--focused" : ""}`
 
 	return (
 		<PreviewContainer>
@@ -80,7 +80,7 @@ const QuotedMessagePreview: React.FC<QuotedMessagePreviewProps> = ({ text, onDis
 			<ContentRow>
 				<ReplyIcon className="codicon codicon-reply"></ReplyIcon>
 				<TextContainer title={text}>{text}</TextContainer>
-				<DismissButton appearance="icon" onClick={onDismiss} aria-label="Dismiss quote">
+				<DismissButton appearance="icon" aria-label="Dismiss quote" onClick={onDismiss}>
 					<span className="codicon codicon-close"></span>
 				</DismissButton>
 			</ContentRow>

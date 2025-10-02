@@ -1,9 +1,9 @@
-import { mkdir, access, constants } from "fs/promises"
-import * as path from "path"
-import * as vscode from "vscode"
-import os from "os"
-import { getCwd, getDesktopDir } from "@/utils/path"
 import { agentName } from "@shared/Configuration"
+import { access, constants, mkdir } from "fs/promises"
+import os from "os"
+import * as path from "path"
+import { HostProvider } from "@/hosts/host-provider"
+import { getCwd, getDesktopDir } from "@/utils/path"
 
 /**
  * Gets the path to the shadow Git repository in globalStorage.
@@ -14,20 +14,58 @@ import { agentName } from "@shared/Configuration"
  *     {cwdHash}/
  *       .git/
  *
- * @param globalStoragePath - The VS Code global storage path
- * @param taskId - The ID of the task
  * @param cwdHash - Hash of the working directory path
  * @returns Promise<string> The absolute path to the shadow git directory
  * @throws Error if global storage path is invalid
  */
-export async function getShadowGitPath(globalStoragePath: string, taskId: string, cwdHash: string): Promise<string> {
-	if (!globalStoragePath) {
-		throw new Error("Global storage uri is invalid")
-	}
-	const checkpointsDir = path.join(globalStoragePath, "checkpoints", cwdHash)
+export async function getShadowGitPath(cwdHash: string): Promise<string> {
+	const checkpointsDir = path.join(HostProvider.get().globalStorageFsPath, "checkpoints", cwdHash)
 	await mkdir(checkpointsDir, { recursive: true })
 	const gitPath = path.join(checkpointsDir, ".git")
 	return gitPath
+}
+
+/**
+ * Validates that a workspace path is safe for checkpoints.
+ * Checks that checkpoints are not being used in protected directories
+ * like home, Desktop, Documents, or Downloads. Also confirms that the workspace
+ * is accessible and that we will not encounter breaking permissions issues when
+ * creating checkpoints.
+ *
+ * Protected directories:
+ * - User's home directory
+ * - Desktop
+ * - Documents
+ * - Downloads
+ *
+ * @param workspacePath - The absolute path to the workspace directory to validate
+ * @returns Promise<void> Resolves if the path is valid
+ * @throws Error if the path is in a protected directory or if no read access
+ */
+export async function validateWorkspacePath(workspacePath: string): Promise<void> {
+	// Check if directory exists and we have read permissions
+	try {
+		await access(workspacePath, constants.R_OK)
+	} catch (error) {
+		const homedir = os.homedir()
+		const desktopPath = getDesktopDir()
+		const documentsPath = path.join(homedir, "Documents")
+		const downloadsPath = path.join(homedir, "Downloads")
+
+		switch (workspacePath) {
+			case homedir:
+				throw new Error("Cannot use checkpoints in home directory, please open a valid workspace directory.")
+			case desktopPath:
+				throw new Error("Cannot use checkpoints in Desktop directory, please open a valid workspace directory.")
+			case documentsPath:
+				throw new Error("Cannot use checkpoints in Documents directory, please open a valid workspace directory.")
+			case downloadsPath:
+				throw new Error("Cannot use checkpoints in Downloads directory, please open a valid workspace directory.")
+		}
+		throw new Error(
+			`Cannot access workspace directory. Please ensure you have a valid workspace open. Error: ${error instanceof Error ? error.message : String(error)}`,
+		)
+	}
 }
 
 /**
@@ -52,32 +90,8 @@ export async function getWorkingDirectory(): Promise<string> {
 		throw new Error(`No workspace detected. Please open ${agentName} in a workspace to use checkpoints.`)
 	}
 
-	// Check if directory exists and we have read permissions
-	try {
-		await access(cwd, constants.R_OK)
-	} catch (error) {
-		throw new Error(
-			`Cannot access workspace directory. Please ensure VS Code has permission to access your workspace. Error: ${error instanceof Error ? error.message : String(error)}`,
-		)
-	}
-
-	const homedir = os.homedir()
-	const desktopPath = getDesktopDir()
-	const documentsPath = path.join(homedir, "Documents")
-	const downloadsPath = path.join(homedir, "Downloads")
-
-	switch (cwd) {
-		case homedir:
-			throw new Error("Cannot use checkpoints in home directory")
-		case desktopPath:
-			throw new Error("Cannot use checkpoints in Desktop directory")
-		case documentsPath:
-			throw new Error("Cannot use checkpoints in Documents directory")
-		case downloadsPath:
-			throw new Error("Cannot use checkpoints in Downloads directory")
-		default:
-			return cwd
-	}
+	await validateWorkspacePath(cwd)
+	return cwd
 }
 
 /**

@@ -16,6 +16,11 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 		section: "task",
 	},
 	{
+		name: "Deep Planning",
+		description: "Create a comprehensive implementation plan before coding",
+		section: "task",
+	},
+	{
 		name: "Generate Instructions",
 		description: "Create task based instructions",
 		section: "instructions",
@@ -209,7 +214,11 @@ export function getMatchingSlashCommands(
 /**
  * Insert a slash command at position or replace partial command
  */
-export function insertSlashCommand(text: string, commandName: string): { newValue: string; commandIndex: number } {
+export function insertSlashCommand(
+	text: string,
+	commandName: string,
+	partialCommandLength: number,
+): { newValue: string; commandIndex: number } {
 	const slashIndex = text.indexOf("/")
 
 	// where the command ends, look for first space or end of text

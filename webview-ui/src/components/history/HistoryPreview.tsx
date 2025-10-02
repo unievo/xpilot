@@ -1,13 +1,12 @@
+import { maxHistoryPreviewItems } from "@shared/Configuration"
+import { StringRequest } from "@shared/proto/cline/common"
+import { GetTaskHistoryRequest } from "@shared/proto/cline/task"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { memo, useCallback, useEffect, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber } from "@/utils/format"
-import { StringRequest } from "@shared/proto/common"
-import { GetTaskHistoryRequest } from "@shared/proto/task"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { memo, useState, useEffect, useCallback } from "react"
 import HeroTooltip from "../common/HeroTooltip"
-import { itemIconColor } from "../theme"
-import { maxHistoryPreviewItems } from "@shared/Configuration"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -24,8 +23,8 @@ interface CustomFilterRadioProps {
 const CustomFilterRadio = ({ checked, onChange, icon, label }: CustomFilterRadioProps) => {
 	return (
 		<div
-			onClick={onChange}
-			className="flex items-center cursor-pointer py-[0em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none">
+			className="flex items-center cursor-pointer py-[0em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none"
+			onClick={onChange}>
 			<div
 				className={`scale-90 w-[14px] h-[14px] border border-[var(--vscode-checkbox-border)] relative flex justify-center items-center mr-[6px] ${
 					checked ? "bg-[var(--vscode-checkbox-background)]" : "bg-transparent"
@@ -199,18 +198,18 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 					}}>
 					<CustomFilterRadio
 						checked={showCurrentWorkspaceOnly}
-						onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
 						icon=""
 						label="Current workspace"
+						onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
 					/>
 					<HeroTooltip content="Show only tasks from the current workspace">
 						<span
+							className="codicon codicon-info"
 							style={{
 								marginLeft: "-5px",
 								opacity: 0.8,
 								fontSize: "12px",
 							}}
-							className="codicon codicon-info"
 						/>
 					</HeroTooltip>
 				</div>
@@ -221,11 +220,11 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 					{tasksToDisplay.length > 0 ? (
 						<>
 							{tasksToDisplay.map((item) => (
-								<div key={item.id} className="history-preview-item" onClick={() => handleHistorySelect(item.id)}>
+								<div className="history-preview-item" key={item.id} onClick={() => handleHistorySelect(item.id)}>
 									<div style={{ padding: "5px", paddingLeft: "12px", paddingRight: "12px" }}>
 										<div
-											id={`history-preview-task-${item.id}`}
 											className="history-preview-task"
+											id={`history-preview-task-${item.id}`}
 											style={{
 												fontSize: "var(--vscode-font-size)",
 												opacity: 0.9,
@@ -252,9 +251,9 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 													color: "var(--vscode-button-background)",
 												}}>
 												<span
-													style={{ fontSize: "12px" }}
-													className="codicon codicon-star-full"
 													aria-label="Favorited"
+													className="codicon codicon-star-full"
+													style={{ fontSize: "12px" }}
 												/>
 											</div>
 										)}
@@ -285,12 +284,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 												</span>
 												{/* {!!item.cacheWrites && (
 													<>
-														<span
-															style={{
-																color: "color-mix(in srgb, var(--vscode-descriptionForeground) 40%, transparent)",
-															}}>
-															•
-														</span>
+														{" • "}
 														<span>
 															Cache: +{formatLargeNumber(item.cacheWrites || 0)} →{" "}
 															{formatLargeNumber(item.cacheReads || 0)}
@@ -316,8 +310,8 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								}}>
 								<VSCodeButton
 									appearance="icon"
+									aria-label="View all history"
 									onClick={() => showHistoryView()}
-									className="cursor-pointer text-center transition-all duration-150 hover:opacity-80 flex items-center gap-1 bg-transparent border-none outline-none focus:outline-none"
 									style={{
 										opacity: 0.8,
 									}}>
@@ -334,7 +328,6 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 						</>
 					) : (
 						<div
-							className="text-center text-[var(--vscode-descriptionForeground)] py-4 rounded-xl"
 							style={{
 								textAlign: "center",
 								color: "var(--vscode-descriptionForeground)",

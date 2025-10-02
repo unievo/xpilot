@@ -48,16 +48,16 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 	return (
 		<svg
 			{...props}
-			version="1.0"
-			xmlns="http://www.w3.org/2000/svg"
-			style={{ ...animationStyle, ...props.style }}
-			viewBox="0 0 512.000000 512.000000"
+			onMouseDown={handleClick}
 			preserveAspectRatio="xMidYMid meet"
-			onMouseDown={handleClick}>
+			style={{ ...animationStyle, ...props.style }}
+			version="1.0"
+			viewBox="0 0 512.000000 512.000000"
+			xmlns="http://www.w3.org/2000/svg">
 			<g
-				transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)"
 				fill="var(--vscode-editorGhostText-foreground)"
-				stroke="none">
+				stroke="none"
+				transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)">
 				<path
 					d="M2355 4740 c-190 -19 -428 -74 -575 -132 -181 -71 -408 -200 -560
 			-317 -111 -85 -320 -294 -399 -399 -112 -149 -249 -389 -306 -538 l-27 -72
@@ -73,7 +73,6 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 			-365 776 -139 1710 541 2241 276 216 598 344 975 389 78 9 389 -3 480 -19z"
 				/>
 				<path
-					fill="var(--vscode-symbolIcon-textForeground)"
 					d="M3550 3462 c-8 -2 -34 -13 -57 -23 -23 -11 -48 -19 -55 -19 -7 0 -22
 			-7 -32 -15 -11 -8 -26 -15 -34 -15 -8 0 -33 -9 -56 -19 -47 -22 -184 -78 -271
 			-111 -90 -34 -96 -37 -145 -58 -25 -11 -62 -25 -82 -32 -21 -6 -40 -16 -43
@@ -101,6 +100,7 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 			5 112 69 195 109 28 14 52 27 55 30 3 3 39 22 80 43 41 22 129 67 195 102 66
 			35 154 80 195 101 41 22 77 41 80 44 3 3 30 17 60 33 70 35 202 106 207 111 3
 			2 -15 39 -38 83 -23 43 -62 116 -86 163 -50 97 -52 99 -73 92z"
+					fill="var(--vscode-symbolIcon-textForeground)"
 				/>
 			</g>
 		</svg>

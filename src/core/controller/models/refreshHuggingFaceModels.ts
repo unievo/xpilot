@@ -1,25 +1,12 @@
-import { Controller } from ".."
-import { EmptyRequest } from "../../../shared/proto/common"
-import { OpenRouterCompatibleModelInfo, OpenRouterModelInfo } from "../../../shared/proto/models"
-import axios from "axios"
-import path from "path"
-import fs from "fs/promises"
-import { fileExistsAtPath } from "@utils/fs"
-import { GlobalFileNames } from "@core/storage/disk"
 import { huggingFaceModels } from "@shared/api"
-
-/**
- * Ensures the cache directory exists and returns its path
- */
-async function ensureCacheDirectoryExists(controller: Controller): Promise<string> {
-	const cacheDir = path.join(controller.context.globalStorageUri.fsPath, "cache")
-	try {
-		await fs.mkdir(cacheDir, { recursive: true })
-	} catch (error) {
-		// Directory might already exist
-	}
-	return cacheDir
-}
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { OpenRouterCompatibleModelInfo, OpenRouterModelInfo } from "@shared/proto/cline/models"
+import { fileExistsAtPath } from "@utils/fs"
+import axios from "axios"
+import fs from "fs/promises"
+import path from "path"
+import { ensureCacheDirectoryExists } from "@/core/storage/disk"
+import { Controller } from ".."
 
 /**
  * Refreshes the Hugging Face models and returns the updated model list
@@ -28,10 +15,10 @@ async function ensureCacheDirectoryExists(controller: Controller): Promise<strin
  * @returns Response containing the Hugging Face models
  */
 export async function refreshHuggingFaceModels(
-	controller: Controller,
+	_controller: Controller,
 	_request: EmptyRequest,
 ): Promise<OpenRouterCompatibleModelInfo> {
-	const huggingFaceModelsFilePath = path.join(await ensureCacheDirectoryExists(controller), "huggingface_models.json")
+	const huggingFaceModelsFilePath = path.join(await ensureCacheDirectoryExists(), "huggingface_models.json")
 
 	let models: Record<string, OpenRouterModelInfo> = {}
 
@@ -46,6 +33,7 @@ export async function refreshHuggingFaceModels(
 
 			// Transform HF models to OpenRouter-compatible format
 			for (const rawModel of rawModels) {
+				const providersList = rawModel.providers?.map((provider: { provider: string }) => provider.provider)?.join(", ")
 				const modelInfo = OpenRouterModelInfo.create({
 					maxTokens: 8192, // HF doesn't provide max_tokens, use default
 					contextWindow: 128_000, // FIXME: HF doesn't provide context window, use default
@@ -55,7 +43,7 @@ export async function refreshHuggingFaceModels(
 					outputPrice: 0, // Will be set based on providers
 					cacheWritesPrice: 0,
 					cacheReadsPrice: 0,
-					description: `Available on providers: ${rawModel.providers?.join(", ") || "unknown"}`,
+					description: `Available on providers: ${providersList || "unknown"}`,
 				})
 
 				// Add model-specific configurations if we have them in our static models

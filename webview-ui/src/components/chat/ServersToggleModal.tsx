@@ -1,18 +1,15 @@
-import React, { useRef, useState, useEffect } from "react"
-import { useClickAway, useWindowSize } from "react-use"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import ServersToggleList from "@/components/mcp/configuration/tabs/installed/ServersToggleList"
-
-import { McpServiceClient } from "@/services/grpc-client"
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import Tooltip from "@/components/common/Tooltip"
-import { McpServers } from "@shared/proto/mcp"
-import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
-import { EmptyRequest } from "@shared/proto/common"
-import { itemIconColor, menuBackground } from "../theme"
-import HeroTooltip from "../common/HeroTooltip"
 import { mcpLibraryEnabled } from "@shared/Configuration"
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { McpServers } from "@shared/proto/cline/mcp"
+import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
+import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import React, { useEffect, useRef, useState } from "react"
+import { useClickAway, useWindowSize } from "react-use"
+import ServersToggleList from "@/components/mcp/configuration/tabs/installed/ServersToggleList"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { McpServiceClient } from "@/services/grpc-client"
+import HeroTooltip from "../common/HeroTooltip"
+import { itemIconColor, menuBackground } from "../theme"
 
 interface ServersToggleModalProps {
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
@@ -84,11 +81,11 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 
 	return (
 		<div ref={modalRef}>
-			<div ref={buttonRef} className="opacity-70 inline-flex min-w-0 max-w-full">
-				<HeroTooltip delay={1000} content="MCP Servers">
+			<div className="opacity-70 inline-flex min-w-0 max-w-full" ref={buttonRef}>
+				<HeroTooltip content="MCP Servers" delay={1000}>
 					<VSCodeButton
 						appearance="icon"
-						aria-label="MCP Servers"
+						aria-label={isVisible ? "Hide MCP Servers" : "Show MCP Servers"}
 						onClick={() => setIsVisible(!isVisible)}
 						style={{ marginLeft: "-2px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
@@ -124,40 +121,30 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 							<div className="ml-0.5 text-[13px] font-semibold">MCP Servers</div>
 							<VSCodeButton
 								appearance="icon"
+								aria-label="Go to MCP server settings"
 								onClick={() => {
 									setIsVisible(false)
-									navigateToMcp("installed")
+									navigateToMcp("configure")
 								}}>
 								<span className="codicon codicon-gear text-[10px]" style={{ color: itemIconColor }}></span>
 							</VSCodeButton>
 						</div>
 						<div
+							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto"
 							onMouseDown={() => {
 								setIsVisible(false)
 								// Focus the textarea after closing the modal
 								setTimeout(() => {
 									textAreaRef?.current?.focus()
 								}, 0)
-							}}
-							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto">
+							}}>
 							<span className="codicon codicon-close" />
 						</div>
 					</div>
-					{/* <div>
-						<p
-							style={{
-								fontSize: "12px",
-								marginLeft: 2,
-								marginTop: -10,
-								color: "var(--vscode-descriptionForeground)",
-							}}>
-							Enable or disable servers.
-						</p>
-					</div> */}
 					<div style={{ marginBottom: 10, fontSize: "12px" }}>
-						<ServersToggleList servers={mcpServers} isExpandable={true} hasTrashIcon={false} listGap="small" />
+						<ServersToggleList hasTrashIcon={false} isExpandable={true} listGap="small" servers={mcpServers} />
 					</div>
-					{mcpServers.length == 0 && (
+					{mcpServers.length === 0 && (
 						<div
 							style={{
 								fontSize: "12px",
@@ -167,24 +154,24 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 							}}>
 							You can edit the{" "}
 							<VSCodeLink
-								style={{ fontSize: "12px" }}
 								onClick={() => {
 									setIsVisible(false)
-									navigateToMcp("installed")
-								}}>
+									navigateToMcp("configure")
+								}}
+								style={{ fontSize: "12px" }}>
 								MCP configuration
 							</VSCodeLink>
 							{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
 								<span>
-									<span>, or install servers from the </span>
+									<span> and install servers from the </span>
 									{mcpLibraryEnabled && (
 										<span>
 											<VSCodeLink
-												style={{ fontSize: "12px" }}
 												onClick={() => {
 													setIsVisible(false)
 													navigateToMcp("library")
-												}}>
+												}}
+												style={{ fontSize: "12px" }}>
 												Library
 											</VSCodeLink>
 										</span>
@@ -193,11 +180,11 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 										<span>
 											{mcpLibraryEnabled && <span> or the </span>}
 											<VSCodeLink
-												style={{ fontSize: "12px" }}
 												onClick={() => {
 													setIsVisible(false)
 													navigateToMcp("marketplace")
-												}}>
+												}}
+												style={{ fontSize: "12px" }}>
 												Marketplace
 											</VSCodeLink>
 										</span>

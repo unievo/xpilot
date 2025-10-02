@@ -25,15 +25,15 @@
 	},
 	"styling": {
 		"eyebrows": "breadcrumbs",
-		"codeblocks": "system"
+		"codeblocks": "system",
+		"css": "styles.css"
 	},
 	"appearance": {
 		"default": "system",
 		"strict": false
 	},
 	"fonts": {
-		"family": "Roboto",
-		"weight": 400
+		"family": "Roboto"
 	},
 	"navbar": {
 		"links": [
@@ -57,29 +57,30 @@
 			{
 				"group": "Getting Started",
 				"pages": [
-					"getting-started/for-new-coders",
+					"getting-started/what-is-cline",
 					"getting-started/installing-cline",
-					"getting-started/installing-dev-essentials",
 					"getting-started/model-selection-guide",
 					"getting-started/task-management",
 					"getting-started/understanding-context-management",
-					"getting-started/what-is-cline"
+					{
+						"group": "For New Coders",
+						"pages": [
+							"getting-started/for-new-coders",
+							"getting-started/installing-dev-essentials"
+						]
+					}
 				]
 			},
 			{
 				"group": "Improving Your Prompting Skills",
-				"pages": ["prompting/prompt-engineering-guide", "prompting/cline-memory-bank"]
+				"pages": [
+					"prompting/prompt-engineering-guide",
+					"prompting/cline-memory-bank"
+				]
 			},
 			{
 				"group": "Features",
 				"pages": [
-					"features/auto-approve",
-					"features/checkpoints",
-					"features/cline-rules",
-					"features/drag-and-drop",
-					"features/plan-and-act",
-					"features/slash-commands/workflows",
-					"features/editing-messages",
 					{
 						"group": "@ Mentions",
 						"pages": [
@@ -91,15 +92,10 @@
 							"features/at-mentions/url-mentions"
 						]
 					},
-					{
-						"group": "Slash Commands",
-						"pages": [
-							"features/slash-commands/new-task",
-							"features/slash-commands/new-rule",
-							"features/slash-commands/smol",
-							"features/slash-commands/report-bug"
-						]
-					},
+					"features/auto-approve",
+					"features/auto-compact",
+					"features/checkpoints",
+					"features/cline-rules",
 					{
 						"group": "Commands & Shortcuts",
 						"pages": [
@@ -109,7 +105,31 @@
 							"features/commands-and-shortcuts/git-integration",
 							"features/commands-and-shortcuts/keyboard-shortcuts"
 						]
-					}
+					},
+					{
+						"group": "Customization",
+						"pages": [
+							"features/customization/opening-cline-in-sidebar",
+							"features/customization/disable-terminal-pagers"
+						]
+					},
+					"features/dictation",
+					"features/drag-and-drop",
+					"features/editing-messages",
+					"features/focus-chain",
+					"features/plan-and-act",
+					{
+						"group": "Slash Commands",
+						"pages": [
+							"features/slash-commands/new-task",
+							"features/slash-commands/new-rule",
+							"features/slash-commands/smol",
+							"features/slash-commands/report-bug",
+							"features/slash-commands/deep-planning"
+						]
+					},
+					"features/slash-commands/workflows",
+					"features/yolo-mode"
 				]
 			},
 			{
@@ -146,20 +166,33 @@
 				"pages": [
 					"provider-config/anthropic",
 					"provider-config/claude-code",
-					"provider-config/aws-bedrock-with-apikey-authentication",
-					"provider-config/aws-bedrock-with-credentials-authentication",
-					"provider-config/aws-bedrock-with-profile-authentication",
+					{
+						"group": "AWS Bedrock",
+						"pages": [
+							"provider-config/aws-bedrock/api-key",
+							"provider-config/aws-bedrock/iam-credentials",
+							"provider-config/aws-bedrock/cli-profile"
+						]
+					},
 					"provider-config/gcp-vertex-ai",
 					"provider-config/litellm-and-cline-using-codestral",
 					"provider-config/vscode-language-model-api",
 					"provider-config/xai-grok",
 					"provider-config/mistral-ai",
 					"provider-config/deepseek",
+					"provider-config/groq",
+					"provider-config/cerebras",
+					"provider-config/doubao",
+					"provider-config/fireworks",
+					"provider-config/zai",
 					"provider-config/ollama",
 					"provider-config/openai",
 					"provider-config/openai-compatible",
 					"provider-config/openrouter",
-					"provider-config/requesty"
+					"provider-config/sap-aicore",
+					"provider-config/vercel-ai-gateway",
+					"provider-config/requesty",
+					"provider-config/baseten"
 				]
 			},
 			{
@@ -172,11 +205,16 @@
 			},
 			{
 				"group": "Troubleshooting",
-				"pages": ["troubleshooting/terminal-quick-fixes", "troubleshooting/terminal-integration-guide"]
+				"pages": [
+					"troubleshooting/terminal-quick-fixes",
+					"troubleshooting/terminal-integration-guide"
+				]
 			},
 			{
 				"group": "More Info",
-				"pages": ["more-info/telemetry"]
+				"pages": [
+					"more-info/telemetry"
+				]
 			}
 		]
 	},
@@ -187,10 +225,25 @@
 			"discord": "https://discord.gg/cline"
 		}
 	},
+	"anchors": [
+		{
+			"name": "What is Cline",
+			"icon": "house",
+			"url": "getting-started/what-is-cline"
+		}
+	],
+	"redirects": [
+		{
+			"source": "/getting-started/installing-cline-jetbrains",
+			"destination": "/getting-started/installing-cline"
+		}
+	],
 	"search": {
 		"prompt": "Search Cline documentation..."
 	},
 	"contextual": {
-		"options": ["copy"]
+		"options": [
+			"copy"
+		]
 	}
 }

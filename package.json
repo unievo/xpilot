@@ -21,9 +21,7 @@
 		"AI",
 		"Chat",
 		"Programming Languages",
-		"Education",
-		"Snippets",
-		"Testing"
+		"Machine Learning"
 	],
 	"keywords": [
 		"xpilot",
@@ -83,19 +81,9 @@
 				"icon": "$(history)"
 			},
 			{
-				"command": "xpilot.popoutButtonClicked",
-				"title": "Open in Editor",
-				"icon": "$(link-external)"
-			},
-			{
 				"command": "xpilot.settingsButtonClicked",
 				"title": "Settings",
 				"icon": "$(settings-gear)"
-			},
-			{
-				"command": "xpilot.openInNewTab",
-				"title": "Open In New Tab",
-				"category": "xPilot"
 			},
 			{
 				"command": "xpilot.dev.createTestTasks",
@@ -122,7 +110,16 @@
 				"command": "xpilot.generateGitCommitMessage",
 				"title": "Generate Commit Message with xPilot",
 				"category": "xPilot",
-				"icon": "$(sparkle)"
+				"icon": {
+					"light": "assets/icons/icon_light.png",
+					"dark": "assets/icons/icon_dark.png"
+				}
+			},
+			{
+				"command": "xpilot.abortGitCommitMessage",
+				"title": "Generate Commit Message with xPilot - Stop",
+				"category": "xPilot",
+				"icon": "$(debug-stop)"
 			},
 			{
 				"command": "xpilot.explainCode",
@@ -138,6 +135,11 @@
 				"command": "xpilot.focusChatInput",
 				"title": "Jump to Chat Input",
 				"category": "xPilot"
+			},
+			{
+				"command": "xpilot.reconstructTaskHistory",
+				"title": "Reconstruct Task History",
+				"category": "xPilot"
 			}
 		],
 		"keybindings": [
@@ -151,7 +153,7 @@
 			},
 			{
 				"command": "xpilot.generateGitCommitMessage",
-				"when": "scmProvider == git"
+				"when": "config.git.enabled && scmProvider == git"
 			},
 			{
 				"command": "xpilot.focusChatInput",
@@ -183,38 +185,6 @@
 					"command": "xpilot.settingsButtonClicked",
 					"group": "navigation@4",
 					"when": "view == xpilot.SidebarProvider"
-				},
-				{
-					"command": "xpilot.popoutButtonClicked",
-					"group": "navigation@5",
-					"when": "view == xpilot.SidebarProvider"
-				}
-			],
-			"editor/title": [
-				{
-					"command": "xpilot.plusButtonClicked",
-					"group": "navigation@1",
-					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
-				},
-				{
-					"command": "xpilot.mcpButtonClicked",
-					"group": "navigation@2",
-					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
-				},
-				{
-					"command": "xpilot.historyButtonClicked",
-					"group": "navigation@3",
-					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
-				},
-				{
-					"command": "xpilot.popoutButtonClicked",
-					"group": "navigation@4",
-					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
-				},
-				{
-					"command": "xpilot.settingsButtonClicked",
-					"group": "navigation@5",
-					"when": "activeWebviewPanelId == xpilot.TabPanelProvider"
 				}
 			],
 			"editor/context": [
@@ -234,13 +204,22 @@
 				{
 					"command": "xpilot.generateGitCommitMessage",
 					"group": "navigation",
-					"when": "scmProvider == git"
+					"when": "config.git.enabled && scmProvider == git && !xpilot.isGeneratingCommit"
+				},
+				{
+					"command": "xpilot.abortGitCommitMessage",
+					"group": "navigation",
+					"when": "config.git.enabled && scmProvider == git && xpilot.isGeneratingCommit"
 				}
 			],
 			"commandPalette": [
 				{
 					"command": "xpilot.generateGitCommitMessage",
-					"when": "scmProvider == git"
+					"when": "config.git.enabled && scmProvider == git && !xpilot.isGeneratingCommit"
+				},
+				{
+					"command": "xpilot.abortGitCommitMessage",
+					"when": "config.git.enabled && scmProvider == git && xpilot.isGeneratingCommit"
 				}
 			]
 		},
@@ -253,52 +232,64 @@
 		"build": "npm run build:webview && npm run vsix",
 		"vsix": "rimraf bin && mkdir bin && npx vsce package --out bin",
 		"vscode:prepublish": "npm run package",
-		"compile": "npm run check-types && npm run lint && node esbuild.js",
-		"compile-standalone": "npm run check-types && npm run lint && node esbuild.js --standalone",
+		"compile": "npm run check-types && npm run lint && node esbuild.mjs",
+		"compile-standalone": "npm run check-types && npm run lint && node esbuild.mjs --standalone",
 		"postcompile-standalone": "node scripts/package-standalone.mjs",
 		"watch": "npm-run-all -p watch:*",
-		"watch:esbuild": "node esbuild.js --watch",
+		"watch:esbuild": "node esbuild.mjs --watch",
 		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-		"package": "npm run check-types && npm run build:webview && npm run lint && node esbuild.js --production",
-		"protos": "node scripts/build-proto.mjs && node scripts/generate-server-setup.mjs && node scripts/generate-host-bridge-client.mjs",
-		"postprotos": "prettier src/shared/proto src/core/controller src/hosts/ webview-ui/src/services src/generated --write --log-level warn",
-		"clean": "rimraf dist dist-standalone webview-ui/build src/generated out/",
+		"package": "npm run check-types && npm run build:webview && npm run lint && node esbuild.mjs --production",
+		"protos": "node scripts/build-proto.mjs",
+		"postprotos": "biome format src/shared/proto src/core/controller src/hosts/ webview-ui/src/services src/generated --write --no-errors-on-unmatched",
+		"clean:build": "rimraf dist dist-standalone webview-ui/build src/generated out/",
+		"clean:deps": "rimraf node_modules webview-ui/node_modules",
+		"clean:all": "npm run clean:build && npm run clean:deps",
 		"compile-tests": "node ./scripts/build-tests.js",
 		"watch-tests": "tsc -p . -w --outDir out",
 		"check-types": "npm run protos && npx tsc --noEmit && cd webview-ui && npx tsc -b --noEmit",
-		"lint": "eslint src --ext ts && eslint webview-ui/src --ext ts && buf lint && cd webview-ui && npm run lint",
-		"format": "prettier . --check",
-		"format:fix": "prettier . --write",
+		"lint": "biome lint --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error && buf lint",
+		"format": "biome format --changed --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error",
+		"format:fix": "biome check --changed --no-errors-on-unmatched --files-ignore-unknown=true --write",
+		"fix:all": "biome check --no-errors-on-unmatched --files-ignore-unknown=true --write --diagnostic-level=error --unsafe",
+		"ci:check-all": "npm-run-all -p check-types lint format",
+		"ci:build": "npm run protos && npm run build:webview && node esbuild.mjs && npm run compile-tests",
 		"pretest": "npm run compile && npm run compile-tests && npm run compile-standalone && npm run lint",
 		"test": "npm-run-all test:unit test:integration",
-		"test:ci": "node scripts/test-ci.js",
 		"test:integration": "vscode-test",
-		"test:unit": "TS_NODE_PROJECT='./tsconfig.unit-test.json' mocha",
+		"test:unit": "cross-env TS_NODE_PROJECT=./tsconfig.unit-test.json mocha",
 		"test:coverage": "vscode-test --coverage",
+		"test:sca-server": "npx tsx watch scripts/test-standalone-core-api-server.ts",
+		"test:tp-orchestrator": "npx tsx scripts/testing-platform-orchestrator.ts",
 		"e2e": "playwright test -c playwright.config.ts",
-		"test:e2e": "playwright install && vsce package --no-dependencies --out dist/e2e.vsix && node src/test/e2e/utils/build.js && playwright test",
+		"test:e2e:build": "vsce package --allow-package-secrets sendgrid --out dist/e2e.vsix",
+		"test:e2e": "playwright install && npm run test:e2e:build && node src/test/e2e/utils/build.mjs && playwright test",
+		"test:e2e:optimal": "npm run test:e2e:build && node src/test/e2e/utils/build.mjs && playwright test",
+		"test:e2e:ui": "npx tsx scripts/interactive-playwright.ts",
 		"install:all": "npm install && cd webview-ui && npm install",
 		"dev:webview": "cd webview-ui && npm run dev",
 		"build:webview": "cd webview-ui && npm run build",
 		"test:webview": "cd webview-ui && npm run test",
-		"publish:marketplace": "vsce publish && ovsx publish",
-		"publish:marketplace:prerelease": "vsce publish --pre-release && ovsx publish --pre-release",
+		"publish:marketplace": "vsce publish --allow-package-secrets sendgrid && ovsx publish",
+		"publish:marketplace:prerelease": "vsce publish --allow-package-secrets sendgrid --pre-release && ovsx publish --pre-release",
+		"publish:marketplace:nightly": "node ./scripts/publish-nightly.mjs",
 		"prepare": "husky",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
-		"docs": "cd docs && mintlify dev",
-		"docs:check-links": "cd docs && mintlify broken-links",
-		"docs:rename-file": "cd docs && mintlify rename",
+		"docs": "cd docs && npm run dev",
+		"docs:check-links": "cd docs && npm run check",
+		"docs:rename-file": "cd docs && npm run rename",
 		"report-issue": "node scripts/report-issue.js"
 	},
 	"lint-staged": {
 		"*": [
-			"prettier --write --ignore-unknown --log-level=log"
+			"biome check --write --staged --no-errors-on-unmatched --files-ignore-unknown=true"
 		]
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.1.4",
 		"@bufbuild/buf": "^1.54.0",
 		"@changesets/cli": "^2.27.12",
+		"@types/better-sqlite3": "^7.6.13",
 		"@types/chai": "^5.0.1",
 		"@types/clone-deep": "^4.0.4",
 		"@types/diff": "^5.2.1",
@@ -311,29 +302,27 @@
 		"@types/sinon": "^17.0.4",
 		"@types/turndown": "^5.0.5",
 		"@types/vscode": "^1.84.0",
-		"@typescript-eslint/eslint-plugin": "^7.14.1",
-		"@typescript-eslint/parser": "^7.18.0",
-		"@typescript-eslint/utils": "^8.33.0",
 		"@vscode/test-cli": "^0.0.10",
 		"@vscode/test-electron": "^2.5.2",
 		"@vscode/vsce": "^3.6.0",
+		"c8": "^10.1.3",
 		"chai": "^4.3.10",
-		"chalk": "^5.3.0",
+		"chalk": "5.6.2",
+		"cross-env": "^10.1.0",
 		"esbuild": "^0.25.0",
-		"eslint": "^8.57.0",
-		"eslint-plugin-eslint-rules": "file:eslint-rules",
 		"grpc-tools": "^1.13.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.1.0",
 		"minimatch": "^3.0.3",
-		"mintlify": "^4.0.515",
 		"npm-run-all": "^4.1.5",
-		"prettier": "^3.3.3",
+		"nyc": "^17.1.0",
+		"prebuild-install": "^7.1.3",
 		"protoc-gen-ts": "^0.8.7",
 		"proxyquire": "^2.1.3",
 		"rimraf": "^6.0.1",
 		"should": "^13.2.3",
 		"sinon": "^19.0.2",
+		"tree-kill": "^1.2.2",
 		"ts-node": "^10.9.2",
 		"ts-proto": "^2.6.1",
 		"tsconfig-paths": "^4.2.0",
@@ -347,7 +336,7 @@
 		"@bufbuild/protobuf": "^2.2.5",
 		"@cerebras/cerebras_cloud_sdk": "^1.35.0",
 		"@google-cloud/vertexai": "^1.9.3",
-		"@google/genai": "1.0.0",
+		"@google/genai": "^1.11.0",
 		"@grpc/grpc-js": "^1.9.15",
 		"@grpc/reflection": "^1.0.4",
 		"@mistralai/mistralai": "^1.5.0",
@@ -359,11 +348,14 @@
 		"@opentelemetry/sdk-trace-node": "^1.30.1",
 		"@opentelemetry/semantic-conventions": "^1.30.0",
 		"@playwright/test": "^1.53.2",
+		"@sap-ai-sdk/ai-api": "^1.17.0",
+		"@sap-ai-sdk/orchestration": "^1.17.0",
 		"@sentry/browser": "^9.12.0",
 		"@streamparser/json": "^0.0.22",
+		"@types/uuid": "^10.0.0",
 		"@vscode/codicons": "^0.0.36",
 		"archiver": "^7.0.1",
-		"axios": "^1.8.2",
+		"axios": "^1.12.0",
 		"cheerio": "^1.0.0",
 		"chokidar": "^4.0.1",
 		"chrome-launcher": "^1.1.2",
@@ -379,6 +371,7 @@
 		"globby": "^14.0.2",
 		"google-auth-library": "^10.1.0",
 		"grpc-health-check": "^2.0.2",
+		"https-proxy-agent": "^7.0.6",
 		"iconv-lite": "^0.6.3",
 		"ignore": "^7.0.3",
 		"image-size": "^2.0.2",
@@ -386,7 +379,6 @@
 		"jschardet": "^3.1.4",
 		"jwt-decode": "^4.0.0",
 		"mammoth": "^1.8.0",
-		"monaco-vscode-textmate-theme-converter": "^0.1.7",
 		"nice-grpc": "^2.1.12",
 		"ollama": "^0.5.13",
 		"open": "^10.1.2",
@@ -396,18 +388,55 @@
 		"p-timeout": "^6.1.4",
 		"p-wait-for": "^5.0.2",
 		"pdf-parse": "^1.1.1",
-		"posthog-node": "^4.8.1",
+		"posthog-node": "^5.8.0",
 		"puppeteer-chromium-resolver": "^23.0.0",
 		"puppeteer-core": "^23.4.0",
 		"reconnecting-eventsource": "^1.6.4",
 		"serialize-error": "^11.0.3",
 		"simple-git": "^3.27.0",
-		"strip-ansi": "^7.1.0",
+		"strip-ansi": "^7.1.2",
 		"tree-sitter-wasms": "^0.1.11",
 		"ts-morph": "^25.0.1",
 		"turndown": "^7.2.0",
+		"ulid": "^2.4.0",
+		"uuid": "^11.1.0",
 		"vscode-uri": "^3.1.0",
 		"web-tree-sitter": "^0.22.6",
 		"zod": "^3.24.2"
+	},
+	"c8": {
+		"reporter": [
+			"lcov",
+			"html"
+		],
+		"exclude": [
+			"**/testing-platform/**",
+			"**/webview-ui/**",
+			"**/.vscode-test/**",
+			"**/node_modules/**",
+			"node_modules",
+			"**/dist-standalone/src/**",
+			"**/dist-standalone/vsce-extension/https:/**",
+			"**/dist-standalone/vsce-extension/**",
+			"**/dist-standalone/https:/**",
+			"**/dist-standalone/LIB/src/**",
+			"**/dist-standalone/pdfjs-dist/**",
+			"**/*.d.ts",
+			"**/*.{test,spec}.{js,jsx,ts,tsx,mjs,cjs}",
+			"**/__tests__/**",
+			"**/test/**",
+			"**/tests/**",
+			"**/.nyc_output/**",
+			"**/tests-results/**",
+			"src/test/**",
+			"**/src/xml/**",
+			"**/standalone/**",
+			"**/src/generated/**",
+			"**/evals/cli/dist/**",
+			"**/evals/cli/src/**",
+			"dist"
+		],
+		"all": true,
+		"exclude-after-remap": true
 	}
 }

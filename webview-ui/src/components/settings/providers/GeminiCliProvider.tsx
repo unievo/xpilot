@@ -11,35 +11,37 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { ApiConfiguration, geminiCliModels } from "@shared/api"
+import { geminiCliModels } from "@shared/api"
+import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { memo } from "react"
-import { ModelSelector } from "../common/ModelSelector"
-import { ModelInfoView } from "../common/ModelInfoView"
-import { normalizeApiConfiguration } from "../utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 import { DebouncedTextField } from "../common/DebouncedTextField"
+import { ModelInfoView } from "../common/ModelInfoView"
+import { ModelSelector } from "../common/ModelSelector"
+import { normalizeApiConfiguration } from "../utils/providerUtils"
+import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 
 interface GeminiCliProviderProps {
 	showModelOptions: boolean
 	isPopup?: boolean
+	currentMode: Mode
 }
 
-const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps) => {
+const GeminiCliProvider = ({ showModelOptions, isPopup, currentMode }: GeminiCliProviderProps) => {
 	const { apiConfiguration } = useExtensionState()
-	const { handleFieldChange } = useApiConfigurationHandlers()
+	const { handleFieldChange, handleModeFieldChange } = useApiConfigurationHandlers()
 
 	// Get the normalized configuration
-	const { selectedModelId, selectedModelInfo } = normalizeApiConfiguration(apiConfiguration)
+	const { selectedModelId, selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, currentMode)
 	return (
 		<div>
 			<DebouncedTextField
 				initialValue={apiConfiguration?.geminiCliOAuthPath || ""}
-				style={{ width: "100%", marginTop: 3 }}
-				type="text"
 				onChange={(value) => handleFieldChange("geminiCliOAuthPath", value)}
-				placeholder="Default: ~/.gemini/oauth_creds.json">
+				placeholder="Default: ~/.gemini/oauth_creds.json"
+				style={{ width: "100%", marginTop: 3 }}
+				type="text">
 				<span style={{ fontWeight: 500 }}>OAuth Credentials Path (optional)</span>
 			</DebouncedTextField>
 			<p
@@ -54,10 +56,10 @@ const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps
 			{apiConfiguration?.geminiCliProjectId && (
 				<>
 					<VSCodeTextField
-						value={apiConfiguration.geminiCliProjectId}
+						disabled
 						style={{ width: "100%", marginTop: 3 }}
 						type="text"
-						disabled>
+						value={apiConfiguration.geminiCliProjectId}>
 						<span style={{ fontWeight: 500 }}>Discovered Project ID</span>
 					</VSCodeTextField>
 					<p
@@ -99,13 +101,19 @@ const GeminiCliProvider = ({ showModelOptions, isPopup }: GeminiCliProviderProps
 			{showModelOptions && (
 				<>
 					<ModelSelector
-						models={geminiCliModels}
-						selectedModelId={selectedModelId}
-						onChange={(e: any) => handleFieldChange("apiModelId", e.target.value)}
 						label="Model"
+						models={geminiCliModels}
+						onChange={(e: any) =>
+							handleModeFieldChange(
+								{ plan: "planModeApiModelId", act: "actModeApiModelId" },
+								e.target.value,
+								currentMode,
+							)
+						}
+						selectedModelId={selectedModelId}
 					/>
 
-					<ModelInfoView selectedModelId={selectedModelId} modelInfo={selectedModelInfo} isPopup={isPopup} />
+					<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
 				</>
 			)}
 

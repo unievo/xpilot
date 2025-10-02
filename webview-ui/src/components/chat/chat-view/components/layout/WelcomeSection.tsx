@@ -1,16 +1,15 @@
 import React from "react"
-import TelemetryBanner from "@/components/common/TelemetryBanner"
 import Announcement from "@/components/chat/Announcement"
-import HomeHeader from "@/components/welcome/HomeHeader"
+import { CURRENT_INFO_BANNER_VERSION } from "@/components/common/InfoBanner"
+import { CURRENT_MODEL_BANNER_VERSION } from "@/components/common/NewModelBanner"
 import HistoryPreview from "@/components/history/HistoryPreview"
-import { SuggestedTasks } from "@/components/welcome/SuggestedTasks"
-import AutoApproveBar from "@/components/chat/auto-approve-menu/AutoApproveBar"
+import HomeHeader from "@/components/welcome/HomeHeader"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 import { WelcomeSectionProps } from "../../types/chatTypes"
-import { enableTelemetrySettings } from "@shared/Configuration"
 
 /**
  * Welcome section shown when there's no active task
- * Includes telemetry banner, announcements, home header, and history preview
+ * Includes info banner, announcements, home header, and history preview
  */
 export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	showAnnouncement,
@@ -21,6 +20,11 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	taskHistory,
 	shouldShowQuickWins,
 }) => {
+	const { lastDismissedInfoBannerVersion, lastDismissedModelBannerVersion } = useExtensionState()
+
+	const shouldShowInfoBanner = lastDismissedInfoBannerVersion < CURRENT_INFO_BANNER_VERSION
+	const shouldShowNewModelBanner = lastDismissedModelBannerVersion < CURRENT_MODEL_BANNER_VERSION
+
 	return (
 		<>
 			<div
@@ -34,14 +38,14 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 					marginLeft: "-6px",
 					scrollbarGutter: "stable",
 				}}>
-				{enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />}
-				{showAnnouncement && <Announcement version={version} hideAnnouncement={hideAnnouncement} />}
-				<HomeHeader />
-				{/* {!shouldShowQuickWins && taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />} */}
-				<HistoryPreview showHistoryView={showHistoryView} />
+				{/* {enableTelemetrySettings && telemetrySetting === "unset" && <TelemetryBanner />} */}
+				{/* {shouldShowInfoBanner && <InfoBanner />} */}
+				{showAnnouncement && <Announcement hideAnnouncement={hideAnnouncement} version={version} />}
+				{/* {shouldShowNewModelBanner && <NewModelBanner />} */}
+				<HomeHeader /> {/* shouldShowQuickWins={shouldShowQuickWins} /> */}
+				{/* {!shouldShowQuickWins && taskHistory.length > 0 && */} <HistoryPreview showHistoryView={showHistoryView} />
 			</div>
 			{/* <SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} /> */}
-			<AutoApproveBar />
 		</>
 	)
 }

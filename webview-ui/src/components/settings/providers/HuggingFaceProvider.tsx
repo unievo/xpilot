@@ -1,11 +1,9 @@
-import { huggingFaceModels } from "@shared/api"
+import { Mode } from "@shared/storage/types"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 import { DebouncedTextField } from "../common/DebouncedTextField"
-import { ModelSelector } from "../common/ModelSelector"
-import { ModelInfoView } from "../common/ModelInfoView"
+import { HuggingFaceModelPicker } from "../HuggingFaceModelPicker"
 import { normalizeApiConfiguration } from "../utils/providerUtils"
 import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { HuggingFaceModelPicker } from "../HuggingFaceModelPicker"
 
 /**
  * Props for the HuggingFaceProvider component
@@ -13,26 +11,27 @@ import { HuggingFaceModelPicker } from "../HuggingFaceModelPicker"
 interface HuggingFaceProviderProps {
 	showModelOptions: boolean
 	isPopup?: boolean
+	currentMode: Mode
 }
 
 /**
  * The Hugging Face provider configuration component
  */
-export const HuggingFaceProvider = ({ showModelOptions, isPopup }: HuggingFaceProviderProps) => {
+export const HuggingFaceProvider = ({ showModelOptions, isPopup, currentMode }: HuggingFaceProviderProps) => {
 	const { apiConfiguration } = useExtensionState()
 	const { handleFieldChange } = useApiConfigurationHandlers()
 
 	// Get the normalized configuration
-	const { selectedModelId, selectedModelInfo } = normalizeApiConfiguration(apiConfiguration)
+	const { selectedModelId, selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, currentMode)
 
 	return (
 		<div>
 			<DebouncedTextField
 				initialValue={apiConfiguration?.huggingFaceApiKey || ""}
 				onChange={(value) => handleFieldChange("huggingFaceApiKey", value)}
+				placeholder="Enter API Key..."
 				style={{ width: "100%" }}
-				type="password"
-				placeholder="Enter API Key...">
+				type="password">
 				<span style={{ fontWeight: 500 }}>Hugging Face API Key</span>
 			</DebouncedTextField>
 			<p
@@ -43,16 +42,12 @@ export const HuggingFaceProvider = ({ showModelOptions, isPopup }: HuggingFacePr
 				}}>
 				This key is stored locally and only used to make API requests from this extension. We don’t show pricing here
 				because it depends on your Hugging Face provider settings and isn’t consistently available via their API{" "}
-				<a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">
+				<a href="https://huggingface.co/settings/tokens" rel="noopener noreferrer" target="_blank">
 					Get your API key here
 				</a>
 			</p>
 
-			{showModelOptions && (
-				<>
-					<HuggingFaceModelPicker isPopup={isPopup} />
-				</>
-			)}
+			{showModelOptions && <HuggingFaceModelPicker currentMode={currentMode} isPopup={isPopup} />}
 		</div>
 	)
 }

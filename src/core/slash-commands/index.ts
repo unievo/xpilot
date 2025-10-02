@@ -1,13 +1,14 @@
-import {
-	newTaskToolResponse,
-	condenseToolResponse,
-	newRuleToolResponse,
-	reportBugToolResponse,
-	gitInstructionsToolResponse,
-	gitWorkflowsToolResponse,
-} from "../prompts/commands"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import fs from "fs/promises"
+import { telemetryService } from "@/services/telemetry"
+import {
+	condenseToolResponse,
+	deepPlanningToolResponse,
+	gitInstructionsToolResponse,
+	gitWorkflowsToolResponse,
+	newRuleToolResponse,
+	newTaskToolResponse,
+} from "../prompts/commands"
 
 /**
  * Processes text for slash commands and transforms them with appropriate instructions
@@ -17,16 +18,26 @@ export async function parseSlashCommands(
 	text: string,
 	localWorkflowToggles: ClineRulesToggles,
 	globalWorkflowToggles: ClineRulesToggles,
+	ulid: string,
+	focusChainSettings?: { enabled: boolean },
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
-	const SUPPORTED_DEFAULT_COMMANDS = ["New Task", "Compact Task", "Generate Instructions", "Git Instructions", "Git Workflows"] //, "Report Bug"]
+	const SUPPORTED_DEFAULT_COMMANDS = [
+		"New Task",
+		"Compact Task",
+		"Deep Planning",
+		"Generate Instructions",
+		"Git Instructions",
+		"Git Workflows",
+	] //, "Report Bug"
 
 	const commandReplacements: Record<string, string> = {
 		"New Task": newTaskToolResponse(),
-		"Compact Task": condenseToolResponse(),
+		"Compact Task": condenseToolResponse(focusChainSettings),
 		"Generate Instructions": newRuleToolResponse(),
 		"Git Instructions": gitInstructionsToolResponse(),
 		"Git Workflows": gitWorkflowsToolResponse(),
 		//"Report Bug": reportBugToolResponse(),
+		"Deep Planning": deepPlanningToolResponse(focusChainSettings),
 	}
 
 	// Get all available workflow commands (without file extensions)
@@ -118,7 +129,10 @@ export async function parseSlashCommands(
 				const textWithoutSlashCommand = text.substring(0, slashCommandStartIndex) + text.substring(slashCommandEndIndex)
 				const processedText = commandReplacements[matchedCommand] + textWithoutSlashCommand
 
-				return { processedText: processedText, needsClinerulesFileCheck: matchedCommand === "newrule" ? true : false }
+				// Track telemetry for builtin slash command usage
+				// telemetryService.captureSlashCommandUsed(ulid, matchedCommand, "builtin")
+
+				return { processedText: processedText, needsClinerulesFileCheck: matchedCommand === "newrule" }
 			}
 
 			// Then check if the command matches any enabled workflow command name
@@ -149,6 +163,9 @@ export async function parseSlashCommands(
 					const processedText =
 						`<explicit_instructions type="${matchingWorkflow.fileName}">\n${workflowContent}\n</explicit_instructions>\n` +
 						textWithoutSlashCommand
+
+					// Track telemetry for workflow command usage
+					telemetryService.captureSlashCommandUsed(ulid, matchedCommand, "workflow")
 
 					return { processedText, needsClinerulesFileCheck: false }
 				} catch (error) {

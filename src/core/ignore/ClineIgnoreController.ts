@@ -1,9 +1,9 @@
-import path from "path"
+import { ignoreFile } from "@shared/Configuration"
 import { fileExistsAtPath } from "@utils/fs"
+import chokidar, { FSWatcher } from "chokidar"
 import fs from "fs/promises"
 import ignore, { Ignore } from "ignore"
-import * as vscode from "vscode"
-import { ignoreFile } from "../../shared/Configuration"
+import path from "path"
 
 export const LOCK_TEXT_SYMBOL = "\u{1F512}"
 
@@ -15,22 +15,22 @@ export const LOCK_TEXT_SYMBOL = "\u{1F512}"
 export class ClineIgnoreController {
 	private cwd: string
 	private ignoreInstance: Ignore
-	private disposables: vscode.Disposable[] = []
+	private fileWatcher?: FSWatcher
 	clineIgnoreContent: string | undefined
 
 	constructor(cwd: string) {
 		this.cwd = cwd
 		this.ignoreInstance = ignore()
 		this.clineIgnoreContent = undefined
-		// Set up file watcher for ${ignoreFile}
-		this.setupFileWatcher()
 	}
 
 	/**
-	 * Initialize the controller by loading custom patterns
+	 * Initialize the controller by loading custom patterns and setting up file watcher
 	 * Must be called after construction and before using the controller
 	 */
 	async initialize(): Promise<void> {
+		// Set up file watcher for .clineignore
+		this.setupFileWatcher()
 		await this.loadClineIgnore()
 	}
 
@@ -38,24 +38,35 @@ export class ClineIgnoreController {
 	 * Set up the file watcher for ${ignoreFile} changes
 	 */
 	private setupFileWatcher(): void {
-		const clineignorePattern = new vscode.RelativePattern(this.cwd, `${ignoreFile}`)
-		const fileWatcher = vscode.workspace.createFileSystemWatcher(clineignorePattern)
+		const ignorePath = path.join(this.cwd, `${ignoreFile}`)
 
-		// Watch for changes and updates
-		this.disposables.push(
-			fileWatcher.onDidChange(() => {
-				this.loadClineIgnore()
-			}),
-			fileWatcher.onDidCreate(() => {
-				this.loadClineIgnore()
-			}),
-			fileWatcher.onDidDelete(() => {
-				this.loadClineIgnore()
-			}),
-		)
+		this.fileWatcher = chokidar.watch(ignorePath, {
+			persistent: true, // Keep the process running as long as files are being watched
+			ignoreInitial: true, // Don't fire 'add' events when discovering the file initially
+			awaitWriteFinish: {
+				// Wait for writes to finish before emitting events (handles chunked writes)
+				stabilityThreshold: 100, // Wait 100ms for file size to remain constant
+				pollInterval: 100, // Check file size every 100ms while waiting for stability
+			},
+			atomic: true, // Handle atomic writes where editors write to a temp file then rename
+		})
 
-		// Add fileWatcher itself to disposables
-		this.disposables.push(fileWatcher)
+		// Watch for file changes, creation, and deletion
+		this.fileWatcher.on("change", () => {
+			this.loadClineIgnore()
+		})
+
+		this.fileWatcher.on("add", () => {
+			this.loadClineIgnore()
+		})
+
+		this.fileWatcher.on("unlink", () => {
+			this.loadClineIgnore()
+		})
+
+		this.fileWatcher.on("error", (error) => {
+			console.error("Error watching .clineignore file:", error)
+		})
 	}
 
 	/**
@@ -75,7 +86,7 @@ export class ClineIgnoreController {
 			} else {
 				this.clineIgnoreContent = undefined
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Should never happen: reading file failed even though it exists
 			console.error(`Unexpected error loading ${ignoreFile}:", error`)
 		}
@@ -153,7 +164,7 @@ export class ClineIgnoreController {
 
 			// Ignore expects paths to be path.relative()'d
 			return !this.ignoreInstance.ignores(relativePath)
-		} catch (error) {
+		} catch (_error) {
 			// console.error(`Error validating access for ${filePath}:`, error)
 			// Ignore is designed to work with relative file paths, so will throw error for paths outside cwd. We are allowing access to all files outside cwd.
 			return true
@@ -239,8 +250,10 @@ export class ClineIgnoreController {
 	/**
 	 * Clean up resources when the controller is no longer needed
 	 */
-	dispose(): void {
-		this.disposables.forEach((d) => d.dispose())
-		this.disposables = []
+	async dispose(): Promise<void> {
+		if (this.fileWatcher) {
+			await this.fileWatcher.close()
+			this.fileWatcher = undefined
+		}
 	}
 }

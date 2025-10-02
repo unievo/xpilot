@@ -1,5 +1,5 @@
-import execa from "execa"
 import chalk from "chalk"
+import execa from "execa"
 import path from "path"
 
 interface RunDiffEvalOptions {
@@ -10,6 +10,7 @@ interface RunDiffEvalOptions {
 	parsingFunction: string
 	diffEditFunction: string
 	thinkingBudget: number
+	provider: string
 	parallel: boolean
 	verbose: boolean
 	testPath: string
@@ -39,6 +40,8 @@ export async function runDiffEvalHandler(options: RunDiffEvalOptions) {
 		options.parsingFunction,
 		"--diff-edit-function",
 		options.diffEditFunction,
+		"--provider",
+		options.provider,
 	]
 
 	// Conditionally add the optional arguments
@@ -89,9 +92,13 @@ export async function runDiffEvalHandler(options: RunDiffEvalOptions) {
 
 		// Execute the script as a child process
 		// We use 'inherit' to stream the stdout/stderr directly to the user's terminal
-		const subprocess = execa("npx", ["tsx", "--tsconfig", path.resolve(__dirname, "../../../tsconfig.json"), scriptPath, ...args], {
-			stdio: "inherit",
-		})
+		const subprocess = execa(
+			"npx",
+			["tsx", "--tsconfig", path.resolve(__dirname, "../../../tsconfig.json"), scriptPath, ...args],
+			{
+				stdio: "inherit",
+			},
+		)
 
 		await subprocess
 

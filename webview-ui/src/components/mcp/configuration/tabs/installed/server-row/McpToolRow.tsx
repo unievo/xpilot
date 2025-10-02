@@ -1,12 +1,12 @@
+import { McpTool } from "@shared/mcp"
+import { ToggleToolAutoApproveRequest } from "@shared/proto/cline/mcp"
+import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
+import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
+import HeroTooltip from "@/components/common/HeroTooltip"
+import { itemIconColor } from "@/components/theme"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
-import { McpTool } from "@shared/mcp"
-import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
-import { ToggleToolAutoApproveRequest } from "@shared/proto/mcp"
-import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
-import { itemIconColor } from "@/components/theme"
-import HeroTooltip from "@/components/common/HeroTooltip"
 
 type McpToolRowProps = {
 	tool: McpTool
@@ -19,7 +19,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 	const [isParametersExpanded, setIsParametersExpanded] = useState(false)
 
 	// Accept the event object
-	const handleAutoApproveChange = (event: any) => {
+	const handleAutoApproveChange = (_event: any) => {
 		if (!serverName) {
 			return
 		}
@@ -47,8 +47,8 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 			}}>
 			<div
 				data-testid="tool-row-container"
-				style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-				onClick={(e) => e.stopPropagation()}>
+				onClick={(e) => e.stopPropagation()}
+				style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
 				<div style={{ display: "flex", alignItems: "center" }}>
 					<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }}></span>
 					<span style={{ fontWeight: 500 }}>{tool.name}</span>
@@ -56,10 +56,10 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 				{serverName && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
 					<HeroTooltip content="Auto-approve this tool">
 						<VSCodeCheckbox
-							style={{ opacity: 0.7, scale: "0.8", justifyContent: "flex-end" }}
 							checked={tool.autoApprove ?? false}
+							data-tool={tool.name}
 							onChange={handleAutoApproveChange}
-							data-tool={tool.name}>
+							style={{ opacity: 0.7, scale: "0.8", justifyContent: "flex-end" }}>
 							Auto
 						</VSCodeCheckbox>
 					</HeroTooltip>
@@ -71,6 +71,10 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 						marginTop: "5px",
 						opacity: 0.7,
 						fontSize: "0.9em",
+						display: "-webkit-box",
+						WebkitLineClamp: 4,
+						WebkitBoxOrient: "vertical",
+						overflow: "auto",
 					}}>
 					{tool.description}
 				</div>
@@ -87,6 +91,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 							padding: "5px",
 						}}>
 						<div
+							onClick={() => setIsParametersExpanded(!isParametersExpanded)}
 							style={{
 								marginBottom: "0px",
 								opacity: 0.8,
@@ -96,8 +101,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 								display: "flex",
 								alignItems: "center",
 								userSelect: "none",
-							}}
-							onClick={() => setIsParametersExpanded(!isParametersExpanded)}>
+							}}>
 							<span
 								className={`codicon ${isParametersExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
 								style={{ color: itemIconColor, marginRight: "4px", fontSize: "14px", fontWeight: "bold" }}

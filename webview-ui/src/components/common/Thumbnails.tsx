@@ -1,7 +1,8 @@
-import { FileServiceClient } from "@/services/grpc-client"
-import { StringRequest } from "@shared/proto/common"
+import { cn } from "@heroui/react"
+import { StringRequest } from "@shared/proto/cline/common"
 import React, { memo, useLayoutEffect, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
+import { FileServiceClient } from "@/services/grpc-client"
 import { itemIconColor } from "../theme"
 
 interface ThumbnailsProps {
@@ -11,9 +12,10 @@ interface ThumbnailsProps {
 	setImages?: React.Dispatch<React.SetStateAction<string[]>>
 	setFiles?: React.Dispatch<React.SetStateAction<string[]>>
 	onHeightChange?: (height: number) => void
+	className?: string
 }
 
-const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange }: ThumbnailsProps) => {
+const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange, className }: ThumbnailsProps) => {
 	const [hoveredIndex, setHoveredIndex] = useState<string | null>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { width } = useWindowSize()
@@ -55,24 +57,24 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange 
 
 	return (
 		<div
+			className={cn("flex flex-wrap", className)}
 			ref={containerRef}
 			style={{
-				display: "flex",
-				flexWrap: "wrap",
 				gap: 5,
 				rowGap: 3,
 				...style,
 			}}>
 			{images.map((image, index) => {
-				const imageName = image.split(/[\\/]/).pop() || `image-${index + 1}`
+				const _imageName = image.split(/[\\/]/).pop() || `image-${index + 1}`
 
 				return (
 					<div
 						key={`image-${index}`}
-						style={{ marginLeft: -0, position: "relative", overflow: "hidden" }}
+						onMouseLeave={() => setHoveredIndex(null)}
 						onMouseMove={() => setHoveredIndex(`image-${index}`)}
-						onMouseLeave={() => setHoveredIndex(null)}>
+						style={{ marginLeft: -0, position: "relative", overflow: "hidden" }}>
 						<div
+							onClick={() => handleImageClick(image)}
 							style={{
 								minWidth: 30,
 								height: 16,
@@ -85,24 +87,23 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange 
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
-							}}
-							onClick={() => handleImageClick(image)}>
+							}}>
 							{hoveredIndex === `image-${index}` && isDeletableImages ? (
 								<span
 									className="codicon codicon-close"
+									onClick={(e) => {
+										e.stopPropagation()
+										handleDeleteImages(index)
+									}}
 									style={{
 										fontSize: 14,
 										paddingRight: 2,
 										color: "var(--vscode-textColor)",
-									}}
-									onClick={(e) => {
-										e.stopPropagation()
-										handleDeleteImages(index)
 									}}></span>
 							) : (
 								<img
-									src={image}
 									alt={`Thumbnail`}
+									src={image}
 									style={{
 										width: 16,
 										height: 16,
@@ -136,10 +137,11 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange 
 				return (
 					<div
 						key={`file-${index}`}
-						style={{ marginLeft: -0, position: "relative", overflow: "hidden" }}
-						onMouseMove={() => setHoveredIndex(`file-${index}`)}
-						onMouseLeave={() => setHoveredIndex(null)}>
+						onMouseLeave={() => setHoveredIndex(null)}
+						onMouseMove={() => setHoveredIndex(`file-${index}`)}>
+						{/* style={{ position: "relative", overflow: "hidden" }} */}
 						<div
+							onClick={() => handleFileClick(filePath)}
 							style={{
 								minWidth: 30,
 								height: 16,
@@ -154,18 +156,9 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange 
 								//flexDirection: "column",
 								alignItems: "center",
 								justifyContent: "center",
-							}}
-							onClick={() => handleFileClick(filePath)}>
+							}}>
 							<span
 								className={`codicon ${hoveredIndex === `file-${index}` && isDeletableFiles ? "codicon-close" : "codicon-file"}`}
-								style={{
-									fontSize: 16,
-									paddingRight: 2,
-									color:
-										hoveredIndex === `file-${index}` && isDeletableFiles
-											? "var(--vscode-textColor)"
-											: itemIconColor,
-								}}
 								onClick={
 									hoveredIndex === `file-${index}` && isDeletableFiles
 										? (e) => {
@@ -173,7 +166,15 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange 
 												handleDeleteFiles(index)
 											}
 										: undefined
-								}></span>
+								}
+								style={{
+									fontSize: 16,
+									paddingRight: 2,
+									color:
+										hoveredIndex === `file-${index}` && isDeletableFiles
+											? "var(--vscode-textColor)"
+											: itemIconColor,
+								}}></span>
 							<span
 								style={{
 									fontSize: 10,

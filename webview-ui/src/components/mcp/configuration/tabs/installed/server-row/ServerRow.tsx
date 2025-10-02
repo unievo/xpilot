@@ -1,11 +1,12 @@
-import DangerButton from "@/components/common/DangerButton"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { McpServiceClient } from "@/services/grpc-client"
-import { getMcpServerDisplayName } from "@/utils/mcp"
 import { DEFAULT_MCP_TIMEOUT_SECONDS, McpServer } from "@shared/mcp"
+import { StringRequest } from "@shared/proto/cline/common"
+import {
+	McpServers,
+	ToggleMcpServerRequest,
+	ToggleToolAutoApproveRequest,
+	UpdateMcpTimeoutRequest,
+} from "@shared/proto/cline/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
-import { StringRequest } from "@shared/proto/common"
-import { McpServers, ToggleMcpServerRequest, ToggleToolAutoApproveRequest, UpdateMcpTimeoutRequest } from "@shared/proto/mcp"
 import {
 	VSCodeButton,
 	VSCodeCheckbox,
@@ -17,9 +18,14 @@ import {
 	VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useState } from "react"
+import DangerButton from "@/components/common/DangerButton"
+import { itemIconColor, rowBackground, rowBackgroundDisabled } from "@/components/theme"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { McpServiceClient } from "@/services/grpc-client"
+import { getMcpServerDisplayName } from "@/utils/mcp"
 import McpResourceRow from "./McpResourceRow"
 import McpToolRow from "./McpToolRow"
-import { itemIconColor, rowBackground, rowBackgroundDisabled } from "@/components/theme"
+
 // constant JSX.Elements
 const TimeoutOptions = [
 	{ value: "30", label: "30 seconds" },
@@ -80,7 +86,7 @@ const ServerRow = ({
 	const handleTimeoutChange = (e: any) => {
 		const select = e.target as HTMLSelectElement
 		const value = select.value
-		const num = parseInt(value)
+		const num = parseInt(value, 10)
 		setTimeoutValue(value)
 
 		McpServiceClient.updateMcpTimeout({
@@ -143,7 +149,9 @@ const ServerRow = ({
 	}
 
 	const handleAutoApproveChange = () => {
-		if (!server.name) return
+		if (!server.name) {
+			return
+		}
 
 		McpServiceClient.toggleToolAutoApprove(
 			ToggleToolAutoApproveRequest.create({
@@ -197,6 +205,7 @@ const ServerRow = ({
 	return (
 		<div style={{ marginBottom: "0px" }}>
 			<div
+				onClick={handleRowClick}
 				style={{
 					display: "flex",
 					alignItems: "center",
@@ -207,12 +216,11 @@ const ServerRow = ({
 					cursor: server.error ? "default" : isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || server.error ? "4px 4px 0 0" : "4px",
 					opacity: server.disabled ? 0.7 : 1,
-				}}
-				onClick={handleRowClick}>
+				}}>
 				{!server.error && isExpandable && (
 					<span
-						style={{ fontSize: "13px", marginLeft: "2px" }}
 						className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
+						style={{ fontSize: "13px", marginLeft: "2px" }}
 					/>
 				)}
 				<span
@@ -234,13 +242,46 @@ const ServerRow = ({
 					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
 				</span>
 				{/* Collapsed view controls */}
-
+				{/* {!server.error && (
+					<div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "8px" }}>
+						<VSCodeButton
+							appearance="icon"
+							disabled={server.status === "connecting" || isRestarting}
+							onClick={(e) => {
+								e.stopPropagation()
+								handleRestart()
+							}}
+							title="Restart Server">
+							<span className="codicon codicon-sync"></span>
+						</VSCodeButton>
+						{hasTrashIcon && (
+							<VSCodeButton
+								appearance="icon"
+								disabled={isDeleting}
+								onClick={(e) => {
+									e.stopPropagation()
+									handleDelete()
+								}}
+								title="Delete Server">
+								<span className="codicon codicon-trash"></span>
+							</VSCodeButton>
+						)}
+					</div>
+				)} */}
 				{/* Toggle Switch */}
-				<div style={{ display: "flex", alignItems: "center", marginLeft: "3px" }} onClick={(e) => e.stopPropagation()}>
+				<div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", marginLeft: "3px" }}>
 					<div
-						role="switch"
 						aria-checked={!server.disabled}
-						tabIndex={0}
+						onClick={() => {
+							handleToggleMcpServer()
+						}}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") {
+								e.preventDefault()
+								handleToggleMcpServer()
+							}
+						}}
+						role="switch"
 						style={{
 							width: "20px",
 							height: "11px",
@@ -253,15 +294,7 @@ const ServerRow = ({
 							transition: "background-color 0.2s",
 							opacity: server.disabled ? 0.5 : 0.9,
 						}}
-						onClick={() => {
-							handleToggleMcpServer()
-						}}
-						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") {
-								e.preventDefault()
-								handleToggleMcpServer()
-							}
-						}}>
+						tabIndex={0}>
 						<div
 							style={{
 								width: "8px",
@@ -281,12 +314,12 @@ const ServerRow = ({
 					<div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "3px", marginRight: "-4px" }}>
 						<VSCodeButton
 							appearance="icon"
-							title="Restart Server"
+							disabled={server.status === "connecting" || isRestarting}
 							onClick={(e) => {
 								e.stopPropagation()
 								handleRestart()
 							}}
-							disabled={server.status === "connecting" || isRestarting}>
+							title="Restart Server">
 							<span className="codicon codicon-sync" style={{ fontSize: "15px", marginBottom: "-1px" }}></span>
 						</VSCodeButton>
 					</div>
@@ -306,12 +339,12 @@ const ServerRow = ({
 						{!showConfirmDelete ? (
 							<VSCodeButton
 								appearance="icon"
-								title="Delete Server"
+								disabled={isDeleting}
 								onClick={(e) => {
 									e.stopPropagation()
 									handleDelete()
 								}}
-								disabled={isDeleting}>
+								title="Delete Server">
 								<span className="codicon codicon-trash" style={{ fontSize: "14px" }}></span>
 							</VSCodeButton>
 						) : (
@@ -319,23 +352,23 @@ const ServerRow = ({
 								<VSCodeButton
 									appearance="secondary"
 									aria-label="Confirm delete"
-									title="Confirm delete"
 									onClick={(e) => {
 										e.stopPropagation()
 										handleConfirmDelete()
 									}}
-									style={{ width: "25px", height: "20px" }}>
+									style={{ width: "25px", height: "20px" }}
+									title="Confirm delete">
 									✓
 								</VSCodeButton>
 								<VSCodeButton
 									appearance="secondary"
 									aria-label="Cancel delete"
-									title="Cancel delete"
 									onClick={(e) => {
 										e.stopPropagation()
 										handleCancelDelete()
 									}}
-									style={{ width: "25px", height: "20px" }}>
+									style={{ width: "25px", height: "20px" }}
+									title="Cancel delete">
 									✗
 								</VSCodeButton>
 							</div>
@@ -365,8 +398,8 @@ const ServerRow = ({
 					<div style={{ display: "flex" }}>
 						<VSCodeButton
 							appearance="secondary"
-							onClick={handleRestart}
 							disabled={server.status === "connecting"}
+							onClick={handleRestart}
 							style={{
 								width: "calc(100% - 20px)",
 								margin: "0 10px 10px 10px",
@@ -377,11 +410,11 @@ const ServerRow = ({
 
 						{!showConfirmDelete ? (
 							<DangerButton
-								style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}
 								disabled={isDeleting}
 								onClick={() => {
 									setShowConfirmDelete(true)
-								}}>
+								}}
+								style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}>
 								{isDeleting ? "Deleting..." : "Delete Server"}
 							</DangerButton>
 						) : (
@@ -424,13 +457,13 @@ const ServerRow = ({
 									Search in Tools & Resources
 								</label>
 								<VSCodeTextField
-									style={{ width: "100%", height: "28px" }}
+									onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
 									placeholder="Search"
-									value={searchQuery}
-									onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}>
+									style={{ width: "100%", height: "28px" }}
+									value={searchQuery}>
 									<div
-										slot="start"
 										className="codicon codicon-search"
+										slot="start"
 										style={{
 											fontSize: 12,
 											opacity: 0.8,
@@ -438,8 +471,8 @@ const ServerRow = ({
 									/>
 									{searchQuery && (
 										<div
-											className="codicon codicon-close"
 											aria-label="Clear search"
+											className="codicon codicon-close"
 											onClick={() => setSearchQuery("")}
 											slot="end"
 											style={{
@@ -467,20 +500,20 @@ const ServerRow = ({
 									Request Timeout
 								</label>
 								<VSCodeDropdown
+									onChange={handleTimeoutChange}
 									style={{ width: "100%", height: "28px" }}
-									value={timeoutValue}
-									onChange={handleTimeoutChange}>
+									value={timeoutValue}>
 									{TimeoutOptions}
 								</VSCodeDropdown>
 							</div>
 						</div>
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
-							<VSCodePanelTab style={{ fontSize: "inherit" }} id="tools">
+							<VSCodePanelTab id="tools" style={{ fontSize: "inherit" }}>
 								<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }} />
 								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
-							<VSCodePanelTab style={{ fontSize: "inherit" }} id="resources">
+							<VSCodePanelTab id="resources" style={{ fontSize: "inherit" }}>
 								<span
 									className={`codicon codicon-symbol-file`}
 									style={{ color: itemIconColor, marginRight: "6px" }}
@@ -492,7 +525,7 @@ const ServerRow = ({
 								)
 							</VSCodePanelTab>
 
-							<VSCodePanelView style={{ fontSize: "inherit" }} id="tools-view">
+							<VSCodePanelView id="tools-view" style={{ fontSize: "inherit" }}>
 								{filteredTools.length > 0 ? (
 									<div
 										style={{
@@ -507,15 +540,15 @@ const ServerRow = ({
 											autoApprovalSettings.actions.useMcp &&
 											!searchQuery && (
 												<VSCodeCheckbox
-													style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}
 													checked={server.tools?.every((tool) => tool.autoApprove) || false}
+													data-tool="all-tools"
 													onChange={handleAutoApproveChange}
-													data-tool="all-tools">
+													style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}>
 													Auto-approve all
 												</VSCodeCheckbox>
 											)}
 										{filteredTools.map((tool) => (
-											<McpToolRow key={tool.name} tool={tool} serverName={server.name} />
+											<McpToolRow key={tool.name} serverName={server.name} tool={tool} />
 										))}
 									</div>
 								) : (
@@ -529,7 +562,7 @@ const ServerRow = ({
 								)}
 							</VSCodePanelView>
 
-							<VSCodePanelView style={{ fontSize: "inherit" }} id="resources-view">
+							<VSCodePanelView id="resources-view" style={{ fontSize: "inherit" }}>
 								{filteredResources.length > 0 ? (
 									<div
 										style={{
@@ -540,8 +573,8 @@ const ServerRow = ({
 										}}>
 										{filteredResources.map((item) => (
 											<McpResourceRow
-												key={"uriTemplate" in item ? item.uriTemplate : item.uri}
 												item={item}
+												key={"uriTemplate" in item ? item.uriTemplate : item.uri}
 											/>
 										))}
 									</div>

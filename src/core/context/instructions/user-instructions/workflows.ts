@@ -1,23 +1,22 @@
-import path from "path"
-import { GlobalFileNames, ensureGlobalWorkflowsDirectoryExists } from "@core/storage/disk"
-import { ClineRulesToggles } from "@shared/cline-rules"
-import { getWorkspaceState, updateWorkspaceState, getGlobalState, updateGlobalState } from "@core/storage/state"
-import * as vscode from "vscode"
 import { synchronizeRuleToggles } from "@core/context/instructions/user-instructions/rule-helpers"
+import { ensureGlobalWorkflowsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
+import { ClineRulesToggles } from "@shared/cline-rules"
+import path from "path"
+import { Controller } from "@/core/controller"
 import { instructionsExcludedDirectories, instructionsExcludedFiles, instructionsFilesExtension } from "@/shared/Configuration"
 
 /**
  * Refresh the workflow toggles
  */
 export async function refreshWorkflowToggles(
-	context: vscode.ExtensionContext,
+	controller: Controller,
 	workingDirectory: string,
 ): Promise<{
 	globalWorkflowToggles: ClineRulesToggles
 	localWorkflowToggles: ClineRulesToggles
 }> {
 	// Global workflows
-	const globalWorkflowToggles = ((await getGlobalState(context, "globalWorkflowToggles")) as ClineRulesToggles) || {}
+	const globalWorkflowToggles = controller.stateManager.getGlobalSettingsKey("globalWorkflowToggles")
 	const globalClineWorkflowsFilePath = await ensureGlobalWorkflowsDirectoryExists()
 	const updatedGlobalWorkflowToggles = await synchronizeRuleToggles(
 		globalClineWorkflowsFilePath,
@@ -27,9 +26,9 @@ export async function refreshWorkflowToggles(
 		instructionsExcludedDirectories,
 		instructionsExcludedFiles,
 	)
-	await updateGlobalState(context, "globalWorkflowToggles", updatedGlobalWorkflowToggles)
+	controller.stateManager.setGlobalState("globalWorkflowToggles", updatedGlobalWorkflowToggles)
 
-	const workflowRulesToggles = ((await getWorkspaceState(context, "workflowToggles")) as ClineRulesToggles) || {}
+	const workflowRulesToggles = controller.stateManager.getWorkspaceStateKey("workflowToggles")
 	const workflowsDirPath = path.resolve(workingDirectory, GlobalFileNames.workflows)
 	const updatedWorkflowToggles = await synchronizeRuleToggles(
 		workflowsDirPath,
@@ -39,7 +38,7 @@ export async function refreshWorkflowToggles(
 		instructionsExcludedDirectories,
 		instructionsExcludedFiles,
 	)
-	await updateWorkspaceState(context, "workflowToggles", updatedWorkflowToggles)
+	controller.stateManager.setWorkspaceState("workflowToggles", updatedWorkflowToggles)
 
 	return {
 		globalWorkflowToggles: updatedGlobalWorkflowToggles,

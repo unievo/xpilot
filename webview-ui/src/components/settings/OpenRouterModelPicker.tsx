@@ -1,19 +1,21 @@
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { StateServiceClient } from "@/services/grpc-client"
-import { ApiConfiguration, openRouterDefaultModelId } from "@shared/api"
-import { StringRequest } from "@shared/proto/common"
+import { CLAUDE_SONNET_1M_SUFFIX, openRouterDefaultModelId } from "@shared/api"
+import { agentName } from "@shared/Configuration"
+import { StringRequest } from "@shared/proto/cline/common"
+import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse, { FuseResult } from "fuse.js"
 import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
 import { useRemark } from "react-remark"
 import { useMount } from "react-use"
 import styled from "styled-components"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { StateServiceClient } from "@/services/grpc-client"
+// import { highlight } from "../history/HistoryView"
+import { ContextWindowSwitcher } from "./common/ContextWindowSwitcher"
 import { ModelInfoView } from "./common/ModelInfoView"
-import { normalizeApiConfiguration } from "./utils/providerUtils"
 import FeaturedModelCard from "./FeaturedModelCard"
-import { agentName } from "../../../../src/shared/Configuration"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
+import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
 const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
@@ -30,7 +32,9 @@ const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: stri
 
 	// Function to merge overlapping regions
 	const mergeRegions = (regions: [number, number][]): [number, number][] => {
-		if (regions.length === 0) return regions
+		if (regions.length === 0) {
+			return regions
+		}
 
 		// Sort regions by start index
 		regions.sort((a, b) => a[0] - b[0])
@@ -123,32 +127,33 @@ const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: R
 
 export interface OpenRouterModelPickerProps {
 	isPopup?: boolean
+	currentMode: Mode
 }
 
 // Featured models for Cline provider
 const featuredModels = [
 	{
-		id: "anthropic/claude-sonnet-4",
-		description: "Recommended for agentic coding in Cline",
-		label: "Best",
-	},
-	{
-		id: "google/gemini-2.5-pro",
-		description: "Large 1M context window, great value",
-		label: "Trending",
-	},
-	{
-		id: "moonshotai/kimi-k2",
-		description: "Open source model topping coding benchmarks",
+		id: "anthropic/claude-sonnet-4.5",
+		description: "Recommended for agentic coding tasks",
 		label: "New",
+	},
+	{
+		id: "x-ai/grok-code-fast-1",
+		description: "Advanced model with 262K context for complex coding",
+		label: "Free",
+	},
+	{
+		id: "cline/code-supernova-1-million",
+		description: "Stealth coding model with image support",
+		label: "Free",
 	},
 ]
 
-const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }) => {
-	const { handleFieldsChange } = useApiConfigurationHandlers()
-	const { apiConfiguration, openRouterModels, refreshOpenRouterModels } = useExtensionState()
-	const [searchTerm, setSearchTerm] = useState(apiConfiguration?.openRouterModelId || openRouterDefaultModelId)
-	const [isSearchInputDirty, setIsSearchInputDirty] = useState(false)
+const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, currentMode }) => {
+	const { handleModeFieldsChange } = useApiConfigurationHandlers()
+	const { apiConfiguration, favoritedModelIds, openRouterModels, refreshOpenRouterModels } = useExtensionState()
+	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
+	const [searchTerm, setSearchTerm] = useState(modeFields.openRouterModelId || openRouterDefaultModelId)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -160,34 +165,30 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 
 		setSearchTerm(newModelId)
 
-		handleFieldsChange({
-			openRouterModelId: newModelId,
-			openRouterModelInfo: openRouterModels[newModelId],
-		})
+		handleModeFieldsChange(
+			{
+				openRouterModelId: { plan: "planModeOpenRouterModelId", act: "actModeOpenRouterModelId" },
+				openRouterModelInfo: { plan: "planModeOpenRouterModelInfo", act: "actModeOpenRouterModelInfo" },
+			},
+			{
+				openRouterModelId: newModelId,
+				openRouterModelInfo: openRouterModels[newModelId],
+			},
+			currentMode,
+		)
 	}
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
-		return normalizeApiConfiguration(apiConfiguration)
-	}, [apiConfiguration])
+		return normalizeApiConfiguration(apiConfiguration, currentMode)
+	}, [apiConfiguration, currentMode])
 
 	useMount(refreshOpenRouterModels)
 
-	// Sync external changes only when user isn't actively typing
+	// Sync external changes when the modelId changes
 	useEffect(() => {
-		if (!isSearchInputDirty) {
-			const currentModelId = apiConfiguration?.openRouterModelId || openRouterDefaultModelId
-			setSearchTerm(currentModelId)
-		}
-	}, [apiConfiguration?.openRouterModelId, isSearchInputDirty])
-
-	// Reset dirty flag after user stops typing (1 second timeout)
-	useEffect(() => {
-		if (!isSearchInputDirty) return
-		const timeout = setTimeout(() => {
-			setIsSearchInputDirty(false)
-		}, 1000)
-		return () => clearTimeout(timeout)
-	}, [searchTerm, isSearchInputDirty])
+		const currentModelId = modeFields.openRouterModelId || openRouterDefaultModelId
+		setSearchTerm(currentModelId)
+	}, [modeFields.openRouterModelId])
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -205,10 +206,14 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 	const modelIds = useMemo(() => {
 		const unfilteredModelIds = Object.keys(openRouterModels).sort((a, b) => a.localeCompare(b))
 
-		return apiConfiguration?.apiProvider === "cline"
-			? unfilteredModelIds.filter((id) => !id.includes(":free"))
-			: unfilteredModelIds
-	}, [openRouterModels, apiConfiguration?.apiProvider])
+		if (modeFields.apiProvider === "cline") {
+			// For Cline provider: exclude :free models
+			return unfilteredModelIds.filter((id) => !id.includes(":free"))
+		} else {
+			// For OpenRouter provider: exclude Cline-specific models
+			return unfilteredModelIds.filter((id) => !id.startsWith("cline/"))
+		}
+	}, [openRouterModels, modeFields.apiProvider])
 
 	const searchableItems = useMemo(() => {
 		return modelIds.map((id) => ({
@@ -230,8 +235,6 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const favoritedModelIds = apiConfiguration?.favoritedModelIds || []
-
 		// IMPORTANT: highlightjs has a bug where if you use sort/localCompare - "// results.sort((a, b) => a.id.localeCompare(b.id)) ...sorting like this causes ids in objects to be reordered and mismatched"
 
 		// First, get all favorited models
@@ -244,10 +247,12 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 
 		// Combine favorited models with search results
 		return [...favoritedModels, ...searchResults]
-	}, [searchableItems, searchTerm, fuse, apiConfiguration?.favoritedModelIds])
+	}, [searchableItems, searchTerm, fuse, favoritedModelIds])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) return
+		if (!isDropdownVisible) {
+			return
+		}
 
 		switch (event.key) {
 			case "ArrowDown":
@@ -298,7 +303,10 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 
 	const showBudgetSlider = useMemo(() => {
 		return (
+			Object.entries(openRouterModels)?.some(([id, m]) => id === selectedModelId && m.thinkingConfig) ||
+			selectedModelId?.toLowerCase().includes("claude-sonnet-4.5") ||
 			selectedModelId?.toLowerCase().includes("claude-sonnet-4") ||
+			selectedModelId?.toLowerCase().includes("claude-opus-4.1") ||
 			selectedModelId?.toLowerCase().includes("claude-opus-4") ||
 			selectedModelId?.toLowerCase().includes("claude-3-7-sonnet") ||
 			selectedModelId?.toLowerCase().includes("claude-3.7-sonnet") ||
@@ -321,15 +329,15 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 					<span style={{ fontWeight: 500 }}>Model</span>
 				</label>
 
-				{apiConfiguration?.apiProvider === "cline" && (
+				{modeFields.apiProvider === "cline" && (
 					<div style={{ marginBottom: "6px", marginTop: 4 }}>
 						{featuredModels.map((model) => (
 							<FeaturedModelCard
-								key={model.id}
-								modelId={model.id}
 								description={model.description}
-								label={model.label}
 								isSelected={selectedModelId === model.id}
+								key={model.id}
+								label={model.label}
+								modelId={model.id}
 								onClick={() => {
 									handleModelChange(model.id)
 									setIsDropdownVisible(false)
@@ -342,26 +350,25 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 				<DropdownWrapper ref={dropdownRef}>
 					<VSCodeTextField
 						id="model-search"
-						placeholder="Search and select a model..."
-						value={searchTerm}
+						onFocus={() => setIsDropdownVisible(true)}
 						onInput={(e) => {
-							setIsSearchInputDirty(true)
-							handleModelChange((e.target as HTMLInputElement)?.value?.toLowerCase())
+							setSearchTerm((e.target as HTMLInputElement)?.value.toLowerCase() || "")
 							setIsDropdownVisible(true)
 						}}
-						onFocus={() => setIsDropdownVisible(true)}
 						onKeyDown={handleKeyDown}
+						placeholder="Search and select a model..."
 						style={{
 							width: "100%",
 							zIndex: OPENROUTER_MODEL_PICKER_Z_INDEX,
 							position: "relative",
-						}}>
+						}}
+						value={searchTerm}>
 						{searchTerm && (
 							<div
-								className="input-icon-button codicon codicon-close"
 								aria-label="Clear search"
+								className="input-icon-button codicon codicon-close"
 								onClick={() => {
-									handleModelChange("")
+									setSearchTerm("")
 									setIsDropdownVisible(true)
 								}}
 								slot="end"
@@ -377,17 +384,17 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 					{isDropdownVisible && (
 						<DropdownList ref={dropdownListRef}>
 							{modelSearchResults.map((item, index) => {
-								const isFavorite = (apiConfiguration?.favoritedModelIds || []).includes(item.id)
+								const isFavorite = (favoritedModelIds || []).includes(item.id)
 								return (
 									<DropdownItem
-										key={item.id}
-										ref={(el) => (itemRefs.current[index] = el)}
 										isSelected={index === selectedIndex}
-										onMouseEnter={() => setSelectedIndex(index)}
+										key={item.id}
 										onClick={() => {
 											handleModelChange(item.id)
 											setIsDropdownVisible(false)
-										}}>
+										}}
+										onMouseEnter={() => setSelectedIndex(index)}
+										ref={(el) => (itemRefs.current[index] = el)}>
 										<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
 											<span dangerouslySetInnerHTML={{ __html: item.html }} />
 											<StarIcon
@@ -406,13 +413,29 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 						</DropdownList>
 					)}
 				</DropdownWrapper>
+
+				{/* Context window switcher for Claude Sonnet 4.5 */}
+				<ContextWindowSwitcher
+					base1mModelId={`anthropic/claude-sonnet-4.5${CLAUDE_SONNET_1M_SUFFIX}`}
+					base200kModelId="anthropic/claude-sonnet-4.5"
+					onModelChange={handleModelChange}
+					selectedModelId={selectedModelId}
+				/>
+
+				{/* Context window switcher for Claude Sonnet 4 */}
+				<ContextWindowSwitcher
+					base1mModelId={`anthropic/claude-sonnet-4${CLAUDE_SONNET_1M_SUFFIX}`}
+					base200kModelId="anthropic/claude-sonnet-4"
+					onModelChange={handleModelChange}
+					selectedModelId={selectedModelId}
+				/>
 			</div>
 
 			{hasInfo ? (
 				<>
-					{showBudgetSlider && <ThinkingBudgetSlider />}
+					{showBudgetSlider && <ThinkingBudgetSlider currentMode={currentMode} />}
 
-					<ModelInfoView selectedModelId={selectedModelId} modelInfo={selectedModelInfo} isPopup={isPopup} />
+					<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
 				</>
 			) : (
 				<p
@@ -421,19 +444,17 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup }
 						marginTop: 0,
 						color: "var(--vscode-descriptionForeground)",
 					}}>
-					<>
-						The extension automatically fetches the latest list of models available on{" "}
-						<VSCodeLink style={{ display: "inline", fontSize: "inherit" }} href="https://openrouter.ai/models">
-							OpenRouter.
-						</VSCodeLink>
-						If you're unsure which model to choose, {agentName} works best with{" "}
-						<VSCodeLink
-							style={{ display: "inline", fontSize: "inherit" }}
-							onClick={() => handleModelChange("anthropic/claude-sonnet-4")}>
-							anthropic/claude-sonnet-4.
-						</VSCodeLink>
-						You can also try searching "free" for no-cost options currently available.
-					</>
+					The extension automatically fetches the latest list of models available on{" "}
+					<VSCodeLink href="https://openrouter.ai/models" style={{ display: "inline", fontSize: "inherit" }}>
+						OpenRouter.
+					</VSCodeLink>
+					If you're unsure which model to choose, {agentName} works best with{" "}
+					<VSCodeLink
+						onClick={() => handleModelChange("anthropic/claude-sonnet-4.5")}
+						style={{ display: "inline", fontSize: "inherit" }}>
+						anthropic/claude-sonnet-4.5.
+					</VSCodeLink>
+					You can also try searching "free" for no-cost options currently available.
 				</p>
 			)}
 		</div>
@@ -601,6 +622,7 @@ export const ModelDescriptionMarkdown = memo(
 								}}
 							/>
 							<VSCodeLink
+								onClick={() => setIsExpanded(true)}
 								style={{
 									// cursor: "pointer",
 									// color: "var(--vscode-textLink-foreground)",
@@ -608,8 +630,7 @@ export const ModelDescriptionMarkdown = memo(
 									paddingRight: 0,
 									paddingLeft: 3,
 									backgroundColor: "var(--vscode-input-background)",
-								}}
-								onClick={() => setIsExpanded(true)}>
+								}}>
 								See more
 							</VSCodeLink>
 						</div>
