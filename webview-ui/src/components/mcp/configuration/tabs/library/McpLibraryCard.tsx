@@ -1,33 +1,28 @@
 import { McpLibraryItem, McpServer } from "@shared/mcp"
-import { useCallback, useMemo, useRef, useState } from "react"
-import { useEvent } from "react-use"
+import { StringRequest } from "@shared/proto/cline/common"
+import { useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { McpServiceClient } from "@/services/grpc-client"
 
 interface McpLibraryCardProps {
 	item: McpLibraryItem
 	installedServers: McpServer[]
+	setError: (error: string | null) => void
 }
 
-const McpLibraryCard = ({ item, installedServers }: McpLibraryCardProps) => {
+const McpLibraryCard = ({ item, installedServers, setError }: McpLibraryCardProps) => {
 	const isInstalled = installedServers.some((server) => server.name === item.mcpId)
 	const [isDownloading, setIsDownloading] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const githubLinkRef = useRef<HTMLDivElement>(null)
+	const { onRelinquishControl } = useExtensionState()
 
-	const handleMessage = useCallback((event: MessageEvent) => {
-		const message = event.data
-		switch (message.type) {
-			case "mcpLibraryInstall":
-				setIsDownloading(false)
-				//const libraryItem = message.mcpInstallDetails;
-				break
-			case "relinquishControl":
-				setIsLoading(false)
-				break
-		}
-	}, [])
-
-	useEvent("message", handleMessage)
+	useEffect(() => {
+		return onRelinquishControl(() => {
+			setIsLoading(false)
+		})
+	}, [onRelinquishControl])
 
 	const githubAuthorUrl = useMemo(() => {
 		const url = new URL(item.githubUrl)
@@ -58,25 +53,26 @@ const McpLibraryCard = ({ item, installedServers }: McpLibraryCardProps) => {
 				className="mcp-card"
 				href={item.githubUrl}
 				style={{
-					padding: "14px 16px",
+					padding: "8px 16px",
 					display: "flex",
 					flexDirection: "column",
-					gap: 12,
+					gap: 8,
 					cursor: isLoading ? "wait" : "pointer",
 					textDecoration: "none",
 					color: "inherit",
 					border: "none !important",
 				}}>
 				{/* Main container with logo and content */}
-				<div style={{ display: "flex", gap: "12px" }}>
+				<div style={{ display: "flex", gap: "8px" }}>
 					{/* Logo */}
 					{item.logoUrl && (
 						<img
 							alt={`${item.name} logo`}
 							src={item.logoUrl}
 							style={{
-								width: 42,
-								height: 42,
+								marginTop: 3,
+								width: 32,
+								height: 32,
 								borderRadius: 4,
 							}}
 						/>
@@ -108,16 +104,29 @@ const McpLibraryCard = ({ item, installedServers }: McpLibraryCardProps) => {
 								{item.name}
 							</h3>
 							<div
-								onClick={(_e) => {
-									// e.preventDefault() // Prevent card click when clicking install
-									// e.stopPropagation() // Stop event from bubbling up to parent link
-									// if (!isInstalled && !isDownloading) {
-									// 	setIsDownloading(true)
-									// 	vscode.postMessage({
-									// 		type: "installLibraryMcp",
-									// 		mcpLibraryItem: item,
-									// 	})
-									// }
+								onClick={async (e) => {
+									e.preventDefault() // Prevent card click when clicking install
+									e.stopPropagation() // Stop event from bubbling up to parent link
+									if (!isInstalled && !isDownloading) {
+										setIsDownloading(true)
+										try {
+											const response = await McpServiceClient.downloadLibraryMcp(
+												StringRequest.create({ value: item.mcpId }),
+											)
+											if (response.error) {
+												console.error("Library MCP download failed:", response.error)
+												setError(response.error)
+											} else {
+												console.log("Library MCP download successful:", response)
+												// Clear any previous errors on success
+												setError(null)
+											}
+										} catch (error) {
+											console.error("Failed to download library MCP:", error)
+										} finally {
+											setIsDownloading(false)
+										}
+									}
 								}}
 								style={{}}>
 								<StyledInstallButton $isInstalled={isInstalled} disabled={isInstalled || isDownloading}>
@@ -187,7 +196,7 @@ const McpLibraryCard = ({ item, installedServers }: McpLibraryCardProps) => {
 				</div>
 
 				{/* Description and tags */}
-				<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+				<div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
 					<p style={{ fontSize: "13px", margin: 0 }}>{item.description}</p>
 					<div
 						onScroll={(e) => {

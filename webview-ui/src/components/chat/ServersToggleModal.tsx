@@ -163,7 +163,7 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 							</VSCodeLink>
 							{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
 								<span>
-									<span>, or install servers from the </span>
+									<span> and install servers from the </span>
 									{mcpLibraryEnabled && (
 										<span>
 											<VSCodeLink

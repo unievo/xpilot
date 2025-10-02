@@ -17,28 +17,46 @@ type McpViewProps = {
 	initialTab?: McpViewTab
 }
 
+// Add a local type to allow "install" as a tab
+type LocalMcpViewTab = McpViewTab | "install"
+
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	const { mcpMarketplaceEnabled, setMcpServers, setMcpTab } = useExtensionState()
-	const [activeTab, setActiveTab] = useState<McpViewTab>(initialTab || "configure") // (mcpMarketplaceEnabled ? "marketplace" : "configure"))
+	const [activeTab, setActiveTab] = useState<LocalMcpViewTab>(initialTab || "configure")
+	const [installSubTab, setInstallSubTab] = useState<McpViewTab>("library")
 
-	const handleTabChange = (tab: McpViewTab) => {
-		setActiveTab(tab)
-		setMcpTab(tab) // Update the context state so navigation links work correctly
+	const handleTabChange = (tab: LocalMcpViewTab) => {
+		if (tab === "install") {
+			setActiveTab("install")
+			const firstSubTab = mcpLibraryEnabled ? "library" : "marketplace"
+			setInstallSubTab(firstSubTab)
+			setMcpTab(firstSubTab)
+		} else {
+			setActiveTab(tab)
+			setMcpTab(tab) // Update the context state so navigation links work correctly
+		}
+	}
+
+	const handleInstallSubTabChange = (tab: McpViewTab) => {
+		setInstallSubTab(tab)
+		setMcpTab(tab)
 	}
 
 	// Update activeTab when initialTab changes
 	useEffect(() => {
 		if (initialTab) {
-			setActiveTab(initialTab)
+			setActiveTab(initialTab === "library" || initialTab === "marketplace" ? "install" : initialTab)
+			if (initialTab === "library" || initialTab === "marketplace") {
+				setInstallSubTab(initialTab)
+			}
 		}
 	}, [initialTab])
 
 	useEffect(() => {
-		if (!mcpMarketplaceEnabled && activeTab === "marketplace") {
-			// If marketplace is disabled and we're on marketplace tab, switch to configure
-			setActiveTab("configure")
+		if (!mcpMarketplaceEnabled && installSubTab === "marketplace") {
+			setInstallSubTab("library")
 		}
-	}, [mcpMarketplaceEnabled, activeTab])
+	}, [mcpMarketplaceEnabled, installSubTab])
 
 	// Get setter for MCP marketplace catalog from context
 	const { setMcpMarketplaceCatalog } = useExtensionState()
@@ -99,29 +117,58 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 						padding: "0 20px 0 20px",
 						borderBottom: "1px solid var(--vscode-panel-border)",
 					}}>
-					<TabButton isActive={activeTab === "configure"} onClick={() => handleTabChange("configure")}>
-						Configuration
+					<TabButton
+						isActive={activeTab === "configure"}
+						onClick={() => handleTabChange("configure")}
+						style={{ flex: 1 }}>
+						<b>Configure</b>
 					</TabButton>
-					{mcpLibraryEnabled && (
-						<TabButton isActive={activeTab === "library"} onClick={() => handleTabChange("library")}>
-							Library
+					{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
+						<TabButton
+							isActive={activeTab === "install"}
+							onClick={() => handleTabChange("install")}
+							style={{ flex: 1 }}>
+							<b>Install</b>
 						</TabButton>
 					)}
-					{mcpMarketplaceEnabled && (
-						<TabButton isActive={activeTab === "marketplace"} onClick={() => handleTabChange("marketplace")}>
-							Marketplace
-						</TabButton>
-					)}
-					{/* <TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
-						Remote
-					</TabButton> */}
 				</div>
+
+				{/* Sub-tabs for Install */}
+				{activeTab === "install" && (mcpLibraryEnabled || mcpMarketplaceEnabled) && (
+					<div
+						style={{
+							display: "flex",
+							gap: "1px",
+							padding: "0 20px 0 40px",
+							borderBottom: "1px solid var(--vscode-panel-border)",
+							background: "var(--vscode-editor-background)",
+						}}>
+						{mcpLibraryEnabled && (
+							<TabButton
+								isActive={installSubTab === "library"}
+								onClick={() => handleInstallSubTabChange("library")}
+								style={{ flex: 1 }}>
+								Library
+							</TabButton>
+						)}
+						{mcpMarketplaceEnabled && (
+							<TabButton
+								isActive={installSubTab === "marketplace"}
+								onClick={() => handleInstallSubTabChange("marketplace")}
+								style={{ flex: 1 }}>
+								Marketplace
+							</TabButton>
+						)}
+					</div>
+				)}
 
 				{/* Content container */}
 				<div style={{ width: "100%" }}>
-					{mcpMarketplaceEnabled && activeTab === "marketplace" && <McpMarketplaceView />}
+					{activeTab === "install" && installSubTab === "library" && mcpLibraryEnabled && <McpLibraryView />}
+					{activeTab === "install" && installSubTab === "marketplace" && mcpMarketplaceEnabled && (
+						<McpMarketplaceView />
+					)}
 					{activeTab === "configure" && <ConfigureServersView />}
-					{activeTab === "library" && <McpLibraryView />}
 				</div>
 			</div>
 		</div>

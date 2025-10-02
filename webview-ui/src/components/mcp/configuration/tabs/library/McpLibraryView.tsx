@@ -1,4 +1,5 @@
 import { McpLibraryItem } from "@shared/mcp"
+import { mcpLibraryItems } from "@shared/mcpLibraryItems"
 import {
 	VSCodeButton,
 	VSCodeDropdown,
@@ -11,13 +12,12 @@ import {
 import { useMemo, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import McpLibraryCard from "./McpLibraryCard"
-import { mcpLibraryItems } from "./McpLibraryItems"
 
 const McpLibraryView = () => {
 	const { mcpServers } = useExtensionState()
 	const [items, setItems] = useState<McpLibraryItem[]>(mcpLibraryItems)
 	const [isLoading, _setIsLoading] = useState(false)
-	const [error, _setError] = useState<string | null>(null)
+	const [error, setError] = useState<string | null>(null)
 	const [isRefreshing, _setIsRefreshing] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -230,7 +230,9 @@ const McpLibraryView = () => {
 							: "No custom MCP servers found in the library"}
 					</div>
 				) : (
-					filteredItems.map((item) => <McpLibraryCard installedServers={mcpServers} item={item} key={item.mcpId} />)
+					filteredItems.map((item) => (
+						<McpLibraryCard installedServers={mcpServers} item={item} key={item.mcpId} setError={setError} />
+					))
 				)}
 			</div>
 		</div>

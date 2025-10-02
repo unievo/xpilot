@@ -1,5 +1,5 @@
-import { SUPPORTED_DICTATION_LANGUAGES } from "@shared/DictationSettings"
 import { enableYoloMode } from "@shared/Configuration"
+import { SUPPORTED_DICTATION_LANGUAGES } from "@shared/DictationSettings"
 import { McpDisplayMode } from "@shared/McpDisplayMode"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
 import { VSCodeCheckbox, VSCodeDropdown, VSCodeOption, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
@@ -58,10 +58,10 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								const checked = e.target.checked === true
 								updateSetting("mcpMarketplaceEnabled", checked)
 							}}>
-							Enable Cline MCP Marketplace
+							Enable MCP Marketplace
 						</VSCodeCheckbox>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-							Enables the MCP Marketplace tab for discovering and installing MCP servers.
+							Enables the MCP Marketplace tab provided by Cline, for discovering and installing MCP servers.
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>

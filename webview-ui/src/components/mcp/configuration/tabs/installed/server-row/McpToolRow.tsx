@@ -71,6 +71,10 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 						marginTop: "5px",
 						opacity: 0.7,
 						fontSize: "0.9em",
+						display: "-webkit-box",
+						WebkitLineClamp: 4,
+						WebkitBoxOrient: "vertical",
+						overflow: "auto",
 					}}>
 					{tool.description}
 				</div>

@@ -24,7 +24,7 @@ const ConfigureServersView = () => {
 					color: "var(--vscode-descriptionForeground)",
 				}}>
 				<div style={{ fontSize: "12px", margin: 5, marginBottom: 5 }}>
-					Use <b>Configure</b> to edit the MCP settings, or <b>Add Remote</b> to add a remote server{" "}
+					Use <b>Settings</b> to edit the MCP configuration settings file. Use <b>Remote</b> to add a remote server.{" "}
 					{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
 						<div style={{ marginTop: "-10px" }}>
 							<br />
@@ -42,6 +42,7 @@ const ConfigureServersView = () => {
 									</VSCodeLink>
 								</span>
 							)}
+							{"."}
 						</div>
 					)}
 				</div>
@@ -57,7 +58,7 @@ const ConfigureServersView = () => {
 					}}
 					style={{ flex: 1, width: "100%", marginBottom: "5px", background: "var(--vscode-button-Background)" }}>
 					<span className="codicon codicon-server" style={{ marginRight: "6px" }}></span>
-					Configure
+					Settings
 				</VSCodeButton>
 
 				{/* Collapsible Add Server Section styled as a button */}
@@ -73,8 +74,8 @@ const ConfigureServersView = () => {
 					}}>
 					<span
 						className={`codicon ${showAddServer ? "codicon-chevron-down" : "codicon-chevron-right"}`}
-						style={{ marginRight: "2px", fontSize: "16px" }}></span>
-					Add Remote
+						style={{ marginRight: "2px", marginBottom: "4px", fontSize: "16px" }}></span>
+					Remote
 				</VSCodeButton>
 			</div>
 			{showAddServer && (

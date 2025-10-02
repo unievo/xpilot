@@ -53,24 +53,25 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 				className="mcp-card"
 				href={item.githubUrl}
 				style={{
-					padding: "14px 16px",
+					padding: "8px 16px",
 					display: "flex",
 					flexDirection: "column",
-					gap: 12,
+					gap: 8,
 					cursor: isLoading ? "wait" : "pointer",
 					textDecoration: "none",
 					color: "inherit",
 				}}>
 				{/* Main container with logo and content */}
-				<div style={{ display: "flex", gap: "12px" }}>
+				<div style={{ display: "flex", gap: "8px" }}>
 					{/* Logo */}
 					{item.logoUrl && (
 						<img
 							alt={`${item.name} logo`}
 							src={item.logoUrl}
 							style={{
-								width: 42,
-								height: 42,
+								marginTop: 3,
+								width: 32,
+								height: 32,
 								borderRadius: 4,
 							}}
 						/>
@@ -208,7 +209,7 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 				</div>
 
 				{/* Description and tags */}
-				<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+				<div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
 					{/* {!item.isRecommended && (
 						<div
 							style={{

@@ -10,6 +10,7 @@ service McpService {
   rpc updateMcpTimeout(UpdateMcpTimeoutRequest) returns (McpServers);
   rpc addRemoteMcpServer(AddRemoteMcpServerRequest) returns (McpServers);
   rpc downloadMcp(StringRequest) returns (McpDownloadResponse);
+  rpc downloadLibraryMcp(StringRequest) returns (McpDownloadResponse);
   rpc restartMcpServer(StringRequest) returns (McpServers);
   rpc deleteMcpServer(StringRequest) returns (McpServers);
   rpc toggleToolAutoApprove(ToggleToolAutoApproveRequest) returns (McpServers);
