@@ -134,7 +134,7 @@ export interface OpenRouterModelPickerProps {
 const featuredModels = [
 	{
 		id: "anthropic/claude-sonnet-4.5",
-		description: "Recommended for agentic coding in Cline",
+		description: "Recommended for agentic coding tasks",
 		label: "New",
 	},
 	{

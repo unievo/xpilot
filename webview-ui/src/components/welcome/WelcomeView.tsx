@@ -1,6 +1,6 @@
 import { agentName } from "@shared/Configuration"
 import { BooleanRequest, EmptyRequest } from "@shared/proto/cline/common"
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { memo, useEffect, useState } from "react"
 import AgentLogo from "@/assets/AgentLogo"
 import ApiOptions from "@/components/settings/ApiOptions"
@@ -41,18 +41,19 @@ const WelcomeView = memo(() => {
 				</div>
 				<h2 className="flex mb-10 justify-center">Welcome to {agentName}!</h2>
 				<p>
-					{agentName} can use VS Code as an AI provider by{" "}
-					<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
+					{agentName} can use VS Code as an AI model provider by{" "}
+					<a href="https://code.visualstudio.com/docs/copilot/setup">
 						setting up
-					</VSCodeLink>
+					</a>{" "}
+					the <a href="https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat">GitHub Copilot</a> extension
 					and{" "}
-					<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
+					<a href="https://github.com/settings/copilot">
 						enabling
-					</VSCodeLink>{" "}
-					the GitHub Copilot models.
+					</a>{" "}
+					the Copilot models.
 				</p>
 				<p>
-					You can also bring your own API key, or you can sign in below with Cline or OpenRouter, for a variety of model
+					You can also bring your own API keys, or you can sign up below with Cline or OpenRouter, for a variety of model
 					options.
 				</p>
 				{/* <p className="text-[var(--vscode-descriptionForeground)]">

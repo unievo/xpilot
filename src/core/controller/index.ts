@@ -41,6 +41,7 @@ import {
 	GlobalFileNames,
 } from "../storage/disk"
 import { PersistenceErrorEvent, StateManager } from "../storage/StateManager"
+import { Settings } from "../storage/state-keys"
 import { Task } from "../task"
 import { sendMcpMarketplaceCatalogEvent } from "./mcp/subscribeToMcpMarketplaceCatalog"
 import { appendClineStealthModels } from "./models/refreshOpenRouterModels"
@@ -53,7 +54,6 @@ https://github.com/KumarVariable/vscode-extension-sidebar-html/blob/master/src/c
 */
 
 export class Controller {
-	readonly id: string
 	task?: Task
 
 	mcpHub: McpHub
@@ -65,11 +65,7 @@ export class Controller {
 	// NEW: Add workspace manager (optional initially)
 	private workspaceManager?: WorkspaceRootManager
 
-	constructor(
-		readonly context: vscode.ExtensionContext,
-		id: string,
-	) {
-		this.id = id
+	constructor(readonly context: vscode.ExtensionContext) {
 		PromptRegistry.getInstance() // Ensure prompts and tools are registered
 		HostProvider.get().logToChannel("Provider instantiated")
 		this.stateManager = new StateManager(context)
@@ -192,7 +188,13 @@ export class Controller {
 		this.stateManager.setGlobalState("userInfo", info)
 	}
 
-	async initTask(task?: string, images?: string[], files?: string[], historyItem?: HistoryItem) {
+	async initTask(
+		task?: string,
+		images?: string[],
+		files?: string[],
+		historyItem?: HistoryItem,
+		taskSettings?: Partial<Settings>,
+	) {
 		await this.clearTask() // ensures that an existing task doesn't exist before starting a new one, although this shouldn't be possible since user must clear task before starting a new one
 
 		const autoApprovalSettings = this.stateManager.getGlobalSettingsKey("autoApprovalSettings")
@@ -227,6 +229,13 @@ export class Controller {
 
 		const cwd = this.workspaceManager?.getPrimaryRoot()?.path || (await getCwd(getDesktopDir()))
 
+		const taskId = historyItem?.id || Date.now().toString()
+
+		await this.stateManager.loadTaskSettings(taskId)
+		if (taskSettings) {
+			this.stateManager.setTaskSettingsBatch(taskId, taskSettings)
+		}
+
 		this.task = new Task({
 			controller: this,
 			mcpHub: this.mcpHub,
@@ -245,12 +254,8 @@ export class Controller {
 			images,
 			files,
 			historyItem,
+			taskId,
 		})
-
-		// Load task settings after task creation
-		if (this.task.taskId) {
-			await this.stateManager.loadTaskSettings(this.task.taskId)
-		}
 	}
 
 	async reinitExistingTaskFromId(taskId: string) {
@@ -476,7 +481,7 @@ export class Controller {
 	}
 
 	async handleTaskCreation(prompt: string) {
-		await sendChatButtonClickedEvent(this.id)
+		await sendChatButtonClickedEvent()
 		await this.initTask(prompt)
 	}
 
@@ -744,7 +749,7 @@ export class Controller {
 
 	async postStateToWebview() {
 		const state = await this.getStateToPostToWebview()
-		await sendStateUpdate(this.id, state)
+		await sendStateUpdate(state)
 	}
 
 	async getStateToPostToWebview(): Promise<ExtensionState> {
@@ -870,7 +875,7 @@ export class Controller {
 	async clearTask() {
 		if (this.task) {
 			// Clear task settings cache when task ends
-			await this.stateManager.clearTaskSettings(this.task.taskId)
+			await this.stateManager.clearTaskSettings()
 		}
 		await this.task?.abortTask()
 		this.task = undefined // removes reference to it, so once promises end it will be garbage collected

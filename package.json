@@ -21,9 +21,7 @@
 		"AI",
 		"Chat",
 		"Programming Languages",
-		"Education",
-		"Snippets",
-		"Testing"
+		"Machine Learning"
 	],
 	"keywords": [
 		"astro",
@@ -80,19 +78,9 @@
 				"icon": "$(history)"
 			},
 			{
-				"command": "astro.popoutButtonClicked",
-				"title": "Open in Editor",
-				"icon": "$(link-external)"
-			},
-			{
 				"command": "astro.settingsButtonClicked",
 				"title": "Settings",
 				"icon": "$(settings-gear)"
-			},
-			{
-				"command": "astro.openInNewTab",
-				"title": "Open In New Tab",
-				"category": "Astro"
 			},
 			{
 				"command": "astro.dev.createTestTasks",
@@ -119,7 +107,10 @@
 				"command": "astro.generateGitCommitMessage",
 				"title": "Generate Commit Message with Astro",
 				"category": "Astro",
-				"icon": "$(sparkle)"
+				"icon": {
+					"light": "assets/icons/icon_light.png",
+					"dark": "assets/icons/icon_dark.png"
+				}
 			},
 			{
 				"command": "astro.abortGitCommitMessage",
@@ -191,38 +182,6 @@
 					"command": "astro.settingsButtonClicked",
 					"group": "navigation@4",
 					"when": "view == astro.SidebarProvider"
-				},
-				{
-					"command": "astro.popoutButtonClicked",
-					"group": "navigation@5",
-					"when": "view == astro.SidebarProvider"
-				}
-			],
-			"editor/title": [
-				{
-					"command": "astro.plusButtonClicked",
-					"group": "navigation@1",
-					"when": "activeWebviewPanelId == astro.TabPanelProvider"
-				},
-				{
-					"command": "astro.mcpButtonClicked",
-					"group": "navigation@2",
-					"when": "activeWebviewPanelId == astro.TabPanelProvider"
-				},
-				{
-					"command": "astro.historyButtonClicked",
-					"group": "navigation@3",
-					"when": "activeWebviewPanelId == astro.TabPanelProvider"
-				},
-				{
-					"command": "astro.popoutButtonClicked",
-					"group": "navigation@4",
-					"when": "activeWebviewPanelId == astro.TabPanelProvider"
-				},
-				{
-					"command": "astro.settingsButtonClicked",
-					"group": "navigation@5",
-					"when": "activeWebviewPanelId == astro.TabPanelProvider"
 				}
 			],
 			"editor/context": [
@@ -294,7 +253,7 @@
 		"pretest": "npm run compile && npm run compile-tests && npm run compile-standalone && npm run lint",
 		"test": "npm-run-all test:unit test:integration",
 		"test:integration": "vscode-test",
-		"test:unit": "TS_NODE_PROJECT='./tsconfig.unit-test.json' mocha",
+		"test:unit": "cross-env TS_NODE_PROJECT=./tsconfig.unit-test.json mocha",
 		"test:coverage": "vscode-test --coverage",
 		"test:sca-server": "npx tsx watch scripts/test-standalone-core-api-server.ts",
 		"test:tp-orchestrator": "npx tsx scripts/testing-platform-orchestrator.ts",
@@ -346,6 +305,7 @@
 		"c8": "^10.1.3",
 		"chai": "^4.3.10",
 		"chalk": "5.6.2",
+		"cross-env": "^10.1.0",
 		"esbuild": "^0.25.0",
 		"grpc-tools": "^1.13.0",
 		"husky": "^9.1.7",

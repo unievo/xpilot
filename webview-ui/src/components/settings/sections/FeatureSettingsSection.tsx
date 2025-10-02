@@ -1,4 +1,4 @@
-import { enableYoloMode } from "@shared/Configuration"
+import { agentName, enableDictation, enableYoloMode } from "@shared/Configuration"
 import { SUPPORTED_DICTATION_LANGUAGES } from "@shared/DictationSettings"
 import { McpDisplayMode } from "@shared/McpDisplayMode"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
@@ -173,7 +173,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							</p>
 						</div>
 					)}
-					{dictationSettings?.featureEnabled && (
+					{enableDictation && dictationSettings?.featureEnabled && (
 						<>
 							<div className="mt-2.5">
 								<VSCodeCheckbox
@@ -249,22 +249,6 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							</a>
 						</p>
 					</div>
-					{enableYoloMode && (
-						<div style={{ marginTop: 10 }}>
-							<VSCodeCheckbox
-								checked={yoloModeToggled}
-								onChange={(e: any) => {
-									const checked = e.target.checked === true
-									updateSetting("yoloModeToggled", checked)
-								}}>
-								Enable YOLO Mode
-							</VSCodeCheckbox>
-							<p className="text-xs text-[var(--vscode-errorForeground)]">
-								EXPERIMENTAL & DANGEROUS: This mode disables safety checks and user confirmations. Cline will
-								automatically approve all actions without asking. Use with extreme caution.
-							</p>
-						</div>
-					)}
 					{multiRootSetting.featureFlag && (
 						<div className="mt-2.5">
 							<VSCodeCheckbox
@@ -275,10 +259,27 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								}}>
 								Enable Multi-Root Workspace
 							</VSCodeCheckbox>
-							<p className="text-xs text-description">
-								Allows Cline to work across workspaces opened in your editor.
+							<p className="text-xs">
+								<span className="text-[var(--vscode-errorForeground)]">Experimental: </span>{" "}
+								<span className="text-description">Allows {agentName} to work across multiple workspaces.</span>
 							</p>
 						</div>
+					)}
+					{enableYoloMode && (
+						<div style={{ marginTop: 10 }}>
+						<VSCodeCheckbox
+							checked={yoloModeToggled}
+							onChange={(e: any) => {
+								const checked = e.target.checked === true
+								updateSetting("yoloModeToggled", checked)
+							}}>
+							Enable YOLO Mode
+						</VSCodeCheckbox>
+						<p className="text-xs text-[var(--vscode-errorForeground)]">
+							EXPERIMENTAL & DANGEROUS: This mode disables safety checks and user confirmations. {agentName} will
+							automatically approve all actions without asking. Use with extreme caution.
+						</p>
+					</div>
 					)}
 				</div>
 			</Section>

@@ -132,7 +132,7 @@ ${defaultInstallInstructions ? `\n` + defaultInstallInstructions : ``}${serverPr
 
 		// Initialize task and show chat view
 		await controller.initTask(task)
-		await sendChatButtonClickedEvent(controller.id)
+		await sendChatButtonClickedEvent()
 
 		// Return the download details
 		return McpDownloadResponse.create({

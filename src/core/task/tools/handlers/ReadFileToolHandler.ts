@@ -1,8 +1,9 @@
+import path from "node:path"
 import type { ToolUse } from "@core/assistant-message"
 import { formatResponse } from "@core/prompts/responses"
 import { getWorkspaceBasename, resolveWorkspacePath } from "@core/workspace"
 import { extractFileContent } from "@integrations/misc/extract-file-content"
-import { getReadablePath, isLocatedInWorkspace } from "@utils/path"
+import { arePathsEqual, getReadablePath, isLocatedInWorkspace } from "@utils/path"
 import { telemetryService } from "@/services/telemetry"
 import { agentName } from "@/shared/Configuration"
 import { ClineSayTool } from "@/shared/ExtensionMessage"
@@ -73,6 +74,15 @@ export class ReadFileToolHandler implements IFullyManagedTool {
 		const { absolutePath, displayPath } =
 			typeof pathResult === "string" ? { absolutePath: pathResult, displayPath: relPath! } : pathResult
 
+		// Determine workspace context for telemetry
+		const fallbackAbsolutePath = path.resolve(config.cwd, relPath ?? "")
+		const workspaceContext = {
+			isMultiRootEnabled: config.isMultiRootEnabled || false,
+			usedWorkspaceHint: typeof pathResult !== "string", // multi-root path result indicates hint usage
+			resolvedToNonPrimary: !arePathsEqual(absolutePath, fallbackAbsolutePath),
+			resolutionMethod: (typeof pathResult !== "string" ? "hint" : "primary_fallback") as "hint" | "primary_fallback",
+		}
+
 		// Handle approval flow
 		const sharedMessageProps = {
 			tool: "readFile",
@@ -90,7 +100,7 @@ export class ReadFileToolHandler implements IFullyManagedTool {
 			config.taskState.consecutiveAutoApprovedRequestsCount++
 
 			// Capture telemetry
-			telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, true, true)
+			telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, true, true, workspaceContext)
 		} else {
 			// Manual approval flow
 			const notificationMessage = `${agentName} wants to read ${getWorkspaceBasename(absolutePath, "ReadFileToolHandler.notification")}`
@@ -106,10 +116,24 @@ export class ReadFileToolHandler implements IFullyManagedTool {
 
 			const didApprove = await ToolResultUtils.askApprovalAndPushFeedback("tool", completeMessage, config)
 			if (!didApprove) {
-				telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, false, false)
+				telemetryService.captureToolUsage(
+					config.ulid,
+					block.name,
+					config.api.getModel().id,
+					false,
+					false,
+					workspaceContext,
+				)
 				return formatResponse.toolDenied()
 			} else {
-				telemetryService.captureToolUsage(config.ulid, block.name, config.api.getModel().id, false, true)
+				telemetryService.captureToolUsage(
+					config.ulid,
+					block.name,
+					config.api.getModel().id,
+					false,
+					true,
+					workspaceContext,
+				)
 			}
 		}
 

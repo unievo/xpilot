@@ -20,7 +20,6 @@ interface TaskTimelineProps {
 const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const scrollableRef = useRef<HTMLDivElement>(null)
-	const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
 
 	const { taskTimelinePropsMessages, messageIndexMap } = useMemo(() => {
 		if (messages.length <= 1) {
@@ -105,22 +104,11 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 				}
 			}
 
-			const handleMouseEnter = () => {
-				setHoveredIndex(index)
-			}
-
-			const handleMouseLeave = () => {
-				setHoveredIndex(null)
-			}
-
-			const isHovered = hoveredIndex === index
-
 			return (
 				<TaskTimelineTooltip message={message}>
 					<div
+						className="hover:brightness-120"
 						onClick={handleClick}
-						onMouseEnter={handleMouseEnter}
-						onMouseLeave={handleMouseLeave}
 						style={{
 							width: BLOCK_WIDTH,
 							height: BLOCK_WIDTH,
@@ -128,7 +116,6 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 							flexShrink: 0,
 							cursor: "pointer",
 							marginRight: BLOCK_GAP,
-							opacity: isHovered ? 1 : 0.7,
 							transition: "opacity 0.2s ease",
 							borderRadius: "20%",
 						}}
@@ -136,7 +123,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 				</TaskTimelineTooltip>
 			)
 		},
-		[taskTimelinePropsMessages, messageIndexMap, onBlockClick, hoveredIndex],
+		[taskTimelinePropsMessages, messageIndexMap, onBlockClick],
 	)
 
 	// Scroll to the end when messages change

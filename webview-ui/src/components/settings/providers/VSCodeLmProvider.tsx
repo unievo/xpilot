@@ -85,7 +85,7 @@ export const VSCodeLmProvider = ({ currentMode }: VSCodeLmProviderProps) => {
 								paddingLeft: "18px",
 							}}>
 							<li>For simpler tasks you can use cost-effective models such as Grok Code, GPT-4.1.</li>
-							<li>For complex coding tasks use premium models such as Sonnet 4, Gemini 2.5 Pro, GPT-5.</li>
+							<li>For complex coding tasks use premium models such as Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.</li>
 						</ul>
 					</div>
 				) : (

@@ -17,7 +17,7 @@ async function handleInstallWithCline(
 	platform: string,
 ): Promise<void> {
 	const platformName = platform === "darwin" ? "macOS" : platform === "win32" ? "Windows" : "Linux"
-	const installTask = `Please install ${dependencyName} for voice recording on ${platformName}.\n\nRun this command:\n\`\`\`bash\n${installCommand}\n\`\`\`\n\nThis will enable voice recording functionality in Cline.`
+	const installTask = `Please install ${dependencyName} for voice recording on ${platformName}.\n\nRun this command:\n\`\`\`bash\n${installCommand}\n\`\`\`\n\nThis will enable voice recording functionality.`
 
 	// Clear any existing task and start the installation task
 	await controller.clearTask()

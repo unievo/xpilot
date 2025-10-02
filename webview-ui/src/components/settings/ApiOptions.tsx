@@ -340,6 +340,32 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 							/>
 						)}
 					</VSCodeTextField>
+					<span
+						aria-label="Dropdown arrow"
+						className="input-icon-button codicon codicon-chevron-down"
+						onClick={() => {
+							setIsDropdownVisible((prev) => !prev)
+							if (!isDropdownVisible) {
+								setSearchTerm("")
+							}
+						}}
+						style={{
+							visibility: isDropdownVisible ? "hidden" : "visible",
+							fontWeight: "bold",
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							height: "100%",
+							position: "absolute",
+							right: 0,
+							top: 0,
+							bottom: 0,
+							width: 32,
+							cursor: "pointer",
+							background: "transparent",
+							zIndex: DROPDOWN_Z_INDEX + 1,
+						}}
+					/>
 					{isDropdownVisible && (
 						<ProviderDropdownList ref={dropdownListRef}>
 							{providerSearchResults.map((item, index) => (
