@@ -40,6 +40,7 @@ export const config: Omit<PromptVariant, "id"> = createVariant(ModelFamily.GENER
 		SystemPromptSection.RULES,
 		SystemPromptSection.SYSTEM_INFO,
 		SystemPromptSection.OBJECTIVE,
+		SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 		SystemPromptSection.USER_INSTRUCTIONS,
 	)
 	.tools(
@@ -128,6 +129,7 @@ export const createAdvancedVariant = (family: ModelFamily) =>
 			SystemPromptSection.RULES,
 			SystemPromptSection.SYSTEM_INFO,
 			SystemPromptSection.OBJECTIVE,
+			SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 			SystemPromptSection.USER_INSTRUCTIONS,
 		)
 		.tools(

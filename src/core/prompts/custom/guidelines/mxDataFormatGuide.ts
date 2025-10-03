@@ -5,7 +5,7 @@ export const mxDataFormatGuide = `
 - Format as bold numbered points for higher levels and nested indented bullet points for lower levels, separate top level by a new line.
 - Format timestamps in standard UTC datetime only if timestamp > 0.
 - Replace base64 encoded strings with their values decoded.
-- For all image URLs always use exactly "[name](url)" not "![name](url)"
+- Display icons/logos/images as links using "[name](url)", not as "![name](url)"
 - Format text as embedded links to explorer URLs
 
 ### Formatting numerical values
