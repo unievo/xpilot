@@ -4,6 +4,7 @@ import { getAgentRoleSection } from "./agent_role"
 import { getTodoListSection } from "./auto_todo"
 import { getCapabilitiesSection } from "./capabilities"
 import { getEditingFilesSection } from "./editing_files"
+import { getFeedbackSection } from "./feedback"
 import { getMcp } from "./mcp"
 import { getObjectiveSection } from "./objective"
 import { getRulesSection } from "./rules"
@@ -42,10 +43,10 @@ export function getSystemPromptComponents() {
 			id: SystemPromptSection.ACT_VS_PLAN,
 			fn: getActVsPlanModeSection,
 		},
-		// {
-		// 	id: SystemPromptSection.FEEDBACK,
-		// 	fn: getFeedbackSection,
-		// },
+		{
+			id: SystemPromptSection.FEEDBACK,
+			fn: getFeedbackSection,
+		},
 		{ id: SystemPromptSection.TASK_PROGRESS, fn: getUpdatingTaskProgress },
 	]
 }
