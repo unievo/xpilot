@@ -27,5 +27,6 @@ const nextGen: ClineToolSpec = {
 }
 
 const gpt = { ...nextGen, variant: ModelFamily.GPT }
+const generic = { ...nextGen, variant: ModelFamily.GENERIC }
 
-export const web_fetch_variants = [nextGen, gpt]
+export const web_fetch_variants = [nextGen, gpt, generic]

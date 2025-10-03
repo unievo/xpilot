@@ -47,6 +47,9 @@ export const baseTemplate = `{{${SystemPromptSection.AGENT_ROLE}}}
 
 ====
 
+{{${SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS}}}
+====
+
 {{${SystemPromptSection.USER_INSTRUCTIONS}}}`
 
 export const rules_template = (context: SystemPromptContext) => `RULES
