@@ -55,7 +55,7 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 			viewBox="0 0 512.000000 512.000000"
 			xmlns="http://www.w3.org/2000/svg">
 			<g
-				fill="var(--vscode-editorGhostText-foreground"
+				fill="var(--vscode-editorGhostText-foreground)"
 				stroke="none"
 				transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)">
 				<path
