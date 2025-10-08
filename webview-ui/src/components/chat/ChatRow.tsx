@@ -170,7 +170,7 @@ export const ChatRowContent = memo(
 		sendMessageFromChatRow,
 		onSetQuote,
 	}: ChatRowContentProps) => {
-		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl } = useExtensionState()
+		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl, textResponsesCollapsed: defaultTextResponsesCollapsed } = useExtensionState()
 		const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 		const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
 			visible: false,
@@ -178,7 +178,7 @@ export const ChatRowContent = memo(
 			left: 0,
 			selectedText: "",
 		})
-		const [textExpanded, setTextExpanded] = useState(false)
+		const [textResponseCollapsed, setTextResponseCollapsed] = useState(defaultTextResponsesCollapsed ?? true)
 		const contentRef = useRef<HTMLDivElement>(null)
 		const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, retryStatus] = useMemo(() => {
 			if (message.text != null && message.say === "api_req_started") {
@@ -207,6 +207,11 @@ export const ChatRowContent = memo(
 				console.warn("Failed to save mcpArgumentsCollapsed to localStorage:", error)
 			}
 		}, [mcpArgumentsCollapsed])
+
+		// Effect to update textCollapsed if textResponsesCollapsed changes from context
+		useEffect(() => {
+			setTextResponseCollapsed(defaultTextResponsesCollapsed ?? true)
+		}, [defaultTextResponsesCollapsed])
 
 		// when resuming task last won't be api_req_failed but a resume_task message so api_req_started will show loading spinner. that's why we just remove the last api_req_started that failed without streaming anything
 		const apiRequestFailedMessage =
@@ -1068,7 +1073,7 @@ export const ChatRowContent = memo(
 								// textToCopy={message.text}
 							>
 								<div
-									onClick={() => setTextExpanded(!textExpanded)}
+									onClick={() => setTextResponseCollapsed(!textResponseCollapsed)}
 									style={{
 										display: "flex",
 										alignItems: "flex-start",
@@ -1078,12 +1083,12 @@ export const ChatRowContent = memo(
 										<Markdown
 											fontSize= "0.95em"
 											markdown={message.text}
-											maxLines={textExpanded ? undefined : 3}
-											opacity={textExpanded ? undefined : 0.7}
+											maxLines={textResponseCollapsed ? 3 : undefined}
+											opacity={textResponseCollapsed ? 0.7 : undefined}
 										/>
 									</div>
 									<div style={{ display: "flex", alignItems: "flex-start" }}>
-										{!textExpanded && (
+										{textResponseCollapsed && (
 											<div
 												style={{
 													background: "var(--vscode-editor-background)",
@@ -1096,7 +1101,7 @@ export const ChatRowContent = memo(
 												<span className="codicon codicon-chevron-right" style={{ fontSize: "13px" }} />
 											</div>
 										)}
-										{textExpanded && (
+										{!textResponseCollapsed && (
 											<div
 												style={{
 													background: "var(--vscode-editor-background)",

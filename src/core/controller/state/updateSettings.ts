@@ -77,6 +77,11 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 			controller.stateManager.setGlobalState("mcpResponsesCollapsed", request.mcpResponsesCollapsed)
 		}
 
+		// Update text responses collapsed setting
+		if (request.textResponsesCollapsed !== undefined) {
+			controller.stateManager.setGlobalState("textResponsesCollapsed", request.textResponsesCollapsed)
+		}
+
 		// Update MCP display mode setting
 		if (request.mcpDisplayMode !== undefined) {
 			// Convert proto enum to string type

@@ -19,6 +19,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		mcpMarketplaceEnabled,
 		mcpDisplayMode,
 		mcpResponsesCollapsed,
+		textResponsesCollapsed,
 		openaiReasoningEffort,
 		strictPlanModeEnabled,
 		yoloModeToggled,
@@ -92,6 +93,19 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						</VSCodeCheckbox>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
 							Sets the default display mode for MCP response panels
+						</p>
+					</div>
+					<div style={{ marginTop: 10 }}>
+						<VSCodeCheckbox
+							checked={textResponsesCollapsed}
+							onChange={(e: any) => {
+								const checked = e.target.checked === true
+								updateSetting("textResponsesCollapsed", checked)
+							}}>
+							Collapse Text Responses
+						</VSCodeCheckbox>
+						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
+							Sets the default display mode for LLM text response messages
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>
