@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react"
-import HeroTooltip from "@/components/common/HeroTooltip"
 import { chatTextAreaBackground } from "@/components/theme"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
@@ -81,7 +80,7 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 				//backgroundColor: isModalVisible ? chatTextAreaBackgroundActive : chatTextAreaBackground,
 				...style,
 			}}>
-			<HeroTooltip content="Quick Access Auto-Approve Settings">
+			{/* <HeroTooltip content="Quick Access Auto-Approve Settings" delay={1000}> */}
 				<div
 					className="cursor-pointer py-[8px] pr-[0px] flex items-center justify-between gap-[8px]"
 					onClick={() => {
@@ -112,7 +111,7 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 						<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
 					)}
 				</div>
-			</HeroTooltip>
+			{/* </HeroTooltip> */}
 
 			<AutoApproveModal
 				ACTION_METADATA={ACTION_METADATA}

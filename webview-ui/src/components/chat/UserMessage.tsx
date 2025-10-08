@@ -90,7 +90,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 			onClick={handleClick}
 			style={{
 				backgroundColor: isEditing ? "unset" : "var(--vscode-input-background)",
-				color: "var(--vscode-badge-foreground)",
+				// color: "var(--vscode-badge-foreground)",
 				borderRadius: "5px",
 				padding: "15px",
 				marginTop: "10px",

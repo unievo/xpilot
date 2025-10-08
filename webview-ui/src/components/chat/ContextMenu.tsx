@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { cleanPathPrefix } from "@/components/common/CodeAccordian"
 import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
-import { dropdownBackground, itemIconColor } from "../theme"
+import { chatTextAreaBackground, itemIconColor } from "../theme"
 
 interface ContextMenuProps {
 	onSelect: (type: ContextMenuOptionType, value?: string) => void
@@ -181,7 +181,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
 				style={{
-					backgroundColor: dropdownBackground,
+					backgroundColor: chatTextAreaBackground,
 					// border: "1px solid var(--vscode-editorGroup-border)",
 					// borderRadius: "6px",
 					// boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
@@ -213,17 +213,22 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						style={{
 							padding: "4px 3px",
 							cursor: isOptionSelectable(option) ? "pointer" : "default",
+							border:
+								index === selectedIndex && isOptionSelectable(option)
+									? "1px solid var(--vscode-textBlockQuote-border)"
+									: "1px solid transparent",
+							borderRadius: 4,
 							color:
 								index === selectedIndex && isOptionSelectable(option)
-									? "var(--vscode-quickInputList-focusForeground)"
+									? "var(--vscode-editor-foreground)"
 									: "",
-							//borderBottom: "1px solid var(--vscode-editorGroup-border)",
+							// borderBottom: "1px solid var(--vscode-editorGroup-border)",
 							display: "flex",
 							alignItems: "center",
 							justifyContent: "space-between",
 							backgroundColor:
 								index === selectedIndex && isOptionSelectable(option)
-									? "var(--vscode-quickInputList-focusBackground)"
+									? "var(--vscode-list-hoverBackground)"
 									: "",
 						}}>
 						<div

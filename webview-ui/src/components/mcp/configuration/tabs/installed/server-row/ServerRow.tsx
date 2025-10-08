@@ -19,7 +19,7 @@ import {
 } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useState } from "react"
 import DangerButton from "@/components/common/DangerButton"
-import { itemIconColor, rowBackground, rowBackgroundDisabled } from "@/components/theme"
+import { itemIconColor, rowBackground, rowBackgroundDetails, rowBackgroundDisabled } from "@/components/theme"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 import { getMcpServerDisplayName } from "@/utils/mcp"
@@ -439,7 +439,7 @@ const ServerRow = ({
 				isExpanded && (
 					<div
 						style={{
-							background: "var(--vscode-textCodeBlock-background)",
+							background: rowBackgroundDetails,
 							padding: "1px 5px 5px 5px",
 							fontSize: "12px",
 							borderRadius: "0 0 4px 4px",

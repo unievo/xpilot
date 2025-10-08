@@ -30,7 +30,7 @@ import { FileServiceClient, TaskServiceClient, UiServiceClient } from "@/service
 import { findMatchingResourceOrTemplate, getMcpServerDisplayName } from "@/utils/mcp"
 import { CheckpointControls } from "../common/CheckpointControls"
 import CodeAccordian, { cleanPathPrefix } from "../common/CodeAccordian"
-import { itemIconColor } from "../theme"
+import { itemIconColor, toolsBackground } from "../theme"
 import { ErrorBlockTitle } from "./ErrorBlockTitle"
 import ErrorRow from "./ErrorRow"
 import NewTaskPreview from "./NewTaskPreview"
@@ -83,26 +83,46 @@ export const ProgressIndicator = () => (
 			alignItems: "center",
 			justifyContent: "center",
 		}}>
-		<div style={{ transform: "scale(0.55)", transformOrigin: "center" }}>
+		<div style={{ transform: "scale(0.35)", transformOrigin: "center" }}>
 			<VSCodeProgressRing />
 		</div>
 	</div>
 )
 
-const Markdown = memo(({ markdown }: { markdown?: string }) => {
-	return (
-		<div
-			style={{
-				wordBreak: "break-word",
-				overflowWrap: "anywhere",
-				marginBottom: -15,
-				marginTop: -15,
-				overflow: "hidden", // contain child margins so that parent diff matches height of children
-			}}>
-			<MarkdownBlock markdown={markdown} />
-		</div>
-	)
-})
+const Markdown = memo(
+	({
+		markdown,
+		maxLines,
+		opacity,
+		fontSize,
+	}: {
+		markdown?: string
+		maxLines?: number
+		opacity?: number
+		fontSize?: string | number
+	}) => {
+		return (
+			<div
+				style={{
+					transition: "all 0.2s",
+					wordBreak: "break-word",
+					overflowWrap: "anywhere",
+					marginBottom: -15,
+					marginTop: -15,
+					overflow: "hidden", // contain child margins so that parent diff matches height of children
+					...(maxLines && {
+						display: "-webkit-box",
+						WebkitLineClamp: maxLines,
+						WebkitBoxOrient: "vertical",
+					}),
+					...(opacity !== undefined && { opacity }),
+					fontSize: fontSize || "inherit",
+				}}>
+				<MarkdownBlock markdown={markdown} />
+			</div>
+		)
+	},
+)
 
 const ChatRow = memo(
 	(props: ChatRowProps) => {
@@ -158,6 +178,7 @@ export const ChatRowContent = memo(
 			left: 0,
 			selectedText: "",
 		})
+		const [textExpanded, setTextExpanded] = useState(false)
 		const contentRef = useRef<HTMLDivElement>(null)
 		const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, retryStatus] = useMemo(() => {
 			if (message.text != null && message.say === "api_req_started") {
@@ -330,8 +351,8 @@ export const ChatRowContent = memo(
 									marginBottom: "-1.5px",
 								}}></span>
 						),
-						<span style={{ color: normalColor, fontWeight: "bold" }}>
-							{agentName} wants to execute this command:
+						<span style={{ color: normalColor, fontWeight: "normal" }}>
+							Execute command:
 						</span>,
 					]
 				case "use_mcp_server":
@@ -349,13 +370,11 @@ export const ChatRowContent = memo(
 						),
 						<span
 							className="ph-no-capture"
-							style={{ color: normalColor, fontWeight: "bold", wordBreak: "break-word" }}>
-							{agentName} wants to {mcpServerUse.type === "use_mcp_tool" ? "use a tool" : "access a resource"} on
-							the{" "}
+							style={{ color: normalColor, fontWeight: "normal", wordBreak: "break-word" }}>
+							{mcpServerUse.type === "use_mcp_tool" ? "Execute MCP tool" : "Read MCP resource"} from{" "}
 							<code style={{ wordBreak: "break-all" }}>
 								{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
-							</code>{" "}
-							MCP server:
+							</code>{":"}
 						</span>,
 					]
 				case "completion_result":
@@ -364,9 +383,9 @@ export const ChatRowContent = memo(
 							className="codicon codicon-check"
 							style={{
 								color: successColor,
-								marginBottom: "-1.5px",
+								// marginBottom: "-1.5px",
 							}}></span>,
-						<span style={{ color: successColor, fontWeight: "bold" }}>Task Completed</span>,
+						<span style={{ color: successColor, fontWeight: "normal" }}>Task Completed</span>,
 					]
 				case "api_req_started":
 					return ErrorBlockTitle({
@@ -383,7 +402,7 @@ export const ChatRowContent = memo(
 								color: normalColor,
 								marginBottom: "-1.5px",
 							}}></span>,
-						<span style={{ color: normalColor, fontWeight: "bold" }}>{agentName} has a question:</span>,
+						<span style={{ color: normalColor, fontWeight: "bold" }}>Question:</span>,
 					]
 				default:
 					return [null, null]
@@ -443,7 +462,7 @@ export const ChatRowContent = memo(
 								{toolIcon("edit")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>{agentName} wants to edit this file:</span>
+								<span style={{ fontWeight: "bold" }}>Edit file:</span>
 							</div>
 							<CodeAccordian
 								// isLoading={message.partial}
@@ -461,7 +480,7 @@ export const ChatRowContent = memo(
 								{toolIcon("new-file")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>{agentName} wants to create a new file:</span>
+								<span style={{ fontWeight: "normal" }}>Create file:</span>
 							</div>
 							<CodeAccordian
 								code={tool.content!}
@@ -480,17 +499,16 @@ export const ChatRowContent = memo(
 								{toolIcon(isImage ? "file-media" : "file-code")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{/* {message.type === "ask" ? "" : "{agentName} read this file:"} */}
-									{agentName} wants to read this file:
+								<span style={{ fontWeight: "normal" }}>
+									Read file:
 								</span>
 							</div>
 							<div
 								style={{
-									borderRadius: 3,
+									borderRadius: 8,
 									backgroundColor: CODE_BLOCK_BG_COLOR,
 									overflow: "hidden",
-									border: "1px solid var(--vscode-editorGroup-border)",
+									// border: "1px solid var(--vscode-editorGroup-border)",
 								}}>
 								<div
 									onClick={
@@ -547,10 +565,10 @@ export const ChatRowContent = memo(
 								{toolIcon("folder-opened")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
+								<span style={{ fontWeight: "normal" }}>
 									{message.type === "ask"
-										? `${agentName} wants to view the top level files in this directory:`
-										: `${agentName} viewed the top level files in this directory:`}
+										? `List the top level files in this directory:`
+										: `Listed the top level files in this directory:`}
 								</span>
 							</div>
 							<CodeAccordian
@@ -569,10 +587,10 @@ export const ChatRowContent = memo(
 								{toolIcon("folder-opened")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
+								<span style={{ fontWeight: "normal" }}>
 									{message.type === "ask"
-										? `${agentName} wants to recursively view all files in this directory:`
-										: `${agentName} recursively viewed all files in this directory:`}
+										? `Recursively view all files in this directory:`
+										: `Recursively viewed all files in this directory:`}
 								</span>
 							</div>
 							<CodeAccordian
@@ -591,10 +609,10 @@ export const ChatRowContent = memo(
 								{toolIcon("file-code")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
+								<span style={{ fontWeight: "normal" }}>
 									{message.type === "ask"
-										? `${agentName} wants to view source code definition names used in this directory:`
-										: `${agentName} viewed source code definition names used in this directory:`}
+										? `View source code definition names used in this directory:`
+										: `Viewed source code definition names used in this directory:`}
 								</span>
 							</div>
 							<CodeAccordian
@@ -612,8 +630,8 @@ export const ChatRowContent = memo(
 								{toolIcon("search")}
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{agentName} wants to search this directory for{" "}
+								<span style={{ fontWeight: "normal" }}>
+									Search directory for{" "}
 									<code style={{ wordBreak: "break-all" }}>{tool.regex}</code>:
 								</span>
 							</div>
@@ -631,14 +649,14 @@ export const ChatRowContent = memo(
 						<>
 							<div style={headerStyle}>
 								{toolIcon("book")}
-								<span style={{ fontWeight: "bold" }}>{agentName} is condensing the conversation:</span>
+								<span style={{ fontWeight: "bold" }}>Condensing task:</span>
 							</div>
 							<div
 								style={{
-									borderRadius: 3,
+									borderRadius: 8,
 									backgroundColor: CODE_BLOCK_BG_COLOR,
 									overflow: "hidden",
-									border: "1px solid var(--vscode-editorGroup-border)",
+									// border: "1px solid var(--vscode-editorGroup-border)",
 								}}>
 								<div
 									onClick={handleToggle}
@@ -710,10 +728,10 @@ export const ChatRowContent = memo(
 									style={{ color: normalColor, marginBottom: "-1.5px" }}></span>
 								{tool.operationIsLocatedInWorkspace === false &&
 									toolIcon("sign-out", "yellow", -90, "This URL is external")}
-								<span style={{ fontWeight: "bold" }}>
+								<span style={{ fontWeight: "normal" }}>
 									{message.type === "ask"
-										? `${agentName} wants to fetch content from this URL:`
-										: `${agentName} fetched content from this URL:`}
+										? `Fetch content from:`
+										: `Fetched content from:`}
 								</span>
 							</div>
 							<div
@@ -726,10 +744,10 @@ export const ChatRowContent = memo(
 									}
 								}}
 								style={{
-									borderRadius: 3,
+									borderRadius: 8,
 									backgroundColor: CODE_BLOCK_BG_COLOR,
 									overflow: "hidden",
-									border: "1px solid var(--vscode-editorGroup-border)",
+									// border: "1px solid var(--vscode-editorGroup-border)",
 									padding: "9px 10px",
 									cursor: "pointer",
 									userSelect: "none",
@@ -805,8 +823,8 @@ export const ChatRowContent = memo(
 					</div>
 					<div
 						style={{
-							borderRadius: 3,
-							border: "1px solid var(--vscode-editorGroup-border)",
+							borderRadius: 8,
+							// border: "1px solid var(--vscode-editorGroup-border)",
 							overflow: "hidden",
 							backgroundColor: CODE_BLOCK_BG_COLOR,
 						}}>
@@ -822,10 +840,12 @@ export const ChatRowContent = memo(
 										width: "100%",
 										justifyContent: "flex-start",
 										cursor: "pointer",
-										padding: `2px 8px ${isExpanded ? 0 : 8}px 8px`,
+										padding: `2px 8px ${isExpanded ? 2 : 6}px 0px`,
 									}}>
 									<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
-									<span style={{ fontSize: "0.8em" }}>Command Output</span>
+									<span style={{ fontSize: "0.8em", color: "var(--vscode-textLink-foreground)", opacity: 0.8 }}>
+										Command Output
+									</span>
 								</div>
 								{isExpanded && <CodeBlock source={`${"```"}shell\n${output}\n${"```"}`} />}
 							</div>
@@ -861,9 +881,9 @@ export const ChatRowContent = memo(
 
 					<div
 						style={{
-							background: "var(--vscode-textCodeBlock-background)",
+							background: toolsBackground,
 							borderRadius: "6px 6px 0 0",
-							padding: "8px 6px",
+							padding: "8px 8px",
 							marginTop: "8px",
 						}}>
 						{useMcpServer.type === "access_mcp_resource" && (
@@ -945,16 +965,24 @@ export const ChatRowContent = memo(
 							<>
 								<div
 									onClick={handleToggle}
+									onMouseEnter={(e) => {
+										;(e.currentTarget as HTMLDivElement).style.opacity = "1"
+									}}
+									onMouseLeave={(e) => {
+										;(e.currentTarget as HTMLDivElement).style.opacity = isExpanded ? "1" : "0.5"
+									}}
 									style={{
 										...headerStyle,
 										marginBottom:
-											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : 0,
+											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : -6,
 										justifyContent: "space-between",
 										cursor: "pointer",
 										userSelect: "none",
 										WebkitUserSelect: "none",
 										MozUserSelect: "none",
 										msUserSelect: "none",
+										opacity: isExpanded ? 1 : 0.5,
+										transition: "all 0.3s",
 									}}>
 									<div
 										style={{
@@ -1031,12 +1059,57 @@ export const ChatRowContent = memo(
 						)
 					case "text":
 						return (
-							<WithCopyButton
-								onMouseUp={handleMouseUp}
-								position="bottom-right"
+							<div
+								// onMouseUp={handleMouseUp}
+								// position="bottom-right"
 								ref={contentRef}
-								textToCopy={message.text}>
-								<Markdown markdown={message.text} />
+								style={{ position: "relative", marginBottom: 10 }}
+								// style={{ width: "95%" }}
+								// textToCopy={message.text}
+							>
+								<div
+									onClick={() => setTextExpanded(!textExpanded)}
+									style={{
+										display: "flex",
+										alignItems: "flex-start",
+										cursor: "pointer",
+									}}>
+									<div style={{ flex: 1 }}>
+										<Markdown
+											fontSize= "0.95em"
+											markdown={message.text}
+											maxLines={textExpanded ? undefined : 3}
+											opacity={textExpanded ? undefined : 0.7}
+										/>
+									</div>
+									<div style={{ display: "flex", alignItems: "flex-start" }}>
+										{!textExpanded && (
+											<div
+												style={{
+													background: "var(--vscode-editor-background)",
+													padding: "8px 2px",
+													marginTop: "-4px",
+													borderRadius: "2px",
+													flexShrink: 0,
+													// opacity: 0.5,
+												}}>
+												<span className="codicon codicon-chevron-right" style={{ fontSize: "13px" }} />
+											</div>
+										)}
+										{textExpanded && (
+											<div
+												style={{
+													background: "var(--vscode-editor-background)",
+													padding: "8px 2px",
+													marginTop: "-4px",
+													borderRadius: "2px",
+													flexShrink: 0,
+												}}>
+												<span className="codicon codicon-chevron-up" style={{ fontSize: "12px" }} />
+											</div>
+										)}
+									</div>
+								</div>
 								{quoteButtonState.visible && (
 									<QuoteButton
 										left={quoteButtonState.left}
@@ -1046,7 +1119,8 @@ export const ChatRowContent = memo(
 										top={quoteButtonState.top}
 									/>
 								)}
-							</WithCopyButton>
+								{/* </WithCopyButton> */}
+							</div>
 						)
 					case "reasoning":
 						return (
@@ -1059,7 +1133,7 @@ export const ChatRowContent = memo(
 											cursor: "pointer",
 											color: "var(--vscode-descriptionForeground)",
 
-											fontStyle: "italic",
+											// fontStyle: "italic",
 											overflow: "hidden",
 										}}>
 										{isExpanded ? (
@@ -1163,7 +1237,6 @@ export const ChatRowContent = memo(
 									color: "var(--vscode-foreground)",
 									opacity: 0.7,
 									fontSize: 12,
-									padding: "4px 0",
 								}}>
 								<i className="codicon codicon-bracket-dot" style={{ marginRight: 6 }} />
 								{message.text}
@@ -1439,13 +1512,13 @@ export const ChatRowContent = memo(
 							<>
 								<div style={headerStyle}>
 									<span
-										className="codicon codicon-new-file"
+										className="codicon codicon-diff-added"
 										style={{
 											color: normalColor,
 											marginBottom: "-1.5px",
 										}}></span>
 									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										{agentName} wants to start a new task:
+										Start a new task:
 									</span>
 								</div>
 								<NewTaskPreview context={message.text || ""} />
@@ -1456,13 +1529,13 @@ export const ChatRowContent = memo(
 							<>
 								<div style={headerStyle}>
 									<span
-										className="codicon codicon-new-file"
+										className="codicon codicon-fold-down"
 										style={{
 											color: normalColor,
 											marginBottom: "-1.5px",
 										}}></span>
 									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										{agentName} wants to compact your conversation:
+										Compact task:
 									</span>
 								</div>
 								<NewTaskPreview context={message.text || ""} />
@@ -1479,7 +1552,7 @@ export const ChatRowContent = memo(
 											marginBottom: "-1.5px",
 										}}></span>
 									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										{agentName} wants to create a Github issue:
+										Create a Github issue:
 									</span>
 								</div>
 								<ReportBugPreview data={message.text || ""} />

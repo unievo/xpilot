@@ -65,7 +65,7 @@
 			{
 				"command": "astro.plusButtonClicked",
 				"title": "New Task",
-				"icon": "$(add)"
+				"icon": "$(diff-added)"
 			},
 			{
 				"command": "astro.mcpButtonClicked",

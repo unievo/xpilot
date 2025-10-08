@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react"
 import { getMatchingSlashCommands, SlashCommand } from "@/utils/slash-commands"
-import { dropdownBackground, itemIconColor } from "../theme"
+import { chatTextAreaBackground, itemIconColor } from "../theme"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -65,10 +65,10 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 					const itemIndex = index + indexOffset
 					return (
 						<div
-							className={`slash-command-menu-item py-0.5 px-1.5 cursor-pointer flex flex-col ${
+							className={`slash-command-menu-item py-0.5 px-1.5 cursor-pointer flex flex-col border rounded ${
 								itemIndex === selectedIndex
-									? "bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-quickInputList-focusForeground)]"
-									: ""
+									? "bg-[var(--vscode-list-hoverBackground)] border-[var(--vscode-textBlockQuote-border)] text-[var(--vscode-editor-foreground)]"
+									: "border-transparent"
 							} hover:bg-[var(--vscode-list-hoverBackground)]`}
 							id={`slash-command-menu-item-${itemIndex}`}
 							key={command.name}
@@ -105,7 +105,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 				ref={menuRef}
 				style={{
 					paddingBottom: 3,
-					background: dropdownBackground,
+					background: chatTextAreaBackground,
 					maxHeight: "min(800px, calc(50vh))",
 					overscrollBehavior: "contain",
 				}}>

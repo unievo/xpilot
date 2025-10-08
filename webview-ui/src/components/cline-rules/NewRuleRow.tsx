@@ -3,7 +3,6 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useRef, useState } from "react"
 import { useClickAway } from "react-use"
 import { FileServiceClient } from "@/services/grpc-client"
-import { rowBackground } from "../theme"
 
 interface NewRuleRowProps {
 	isGlobal: boolean
@@ -97,7 +96,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 					isExpanded ? "shadow-sm" : ""
 				}`}
 				style={{
-					border: `0.5px solid overflow-ellipsis ${rowBackground}`,
+					border: isExpanded ? `0.5px solid var(--vscode-editorWidget-border)` : "none",
 					marginTop: "3px",
 					paddingLeft: "2px",
 					overflow: "hidden",
@@ -134,7 +133,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 					</form>
 				) : (
 					<>
-						<div className="ml-0.5 overflow-ellipsis overflow-hidden flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)]">
+						<div className="ml-0.5 overflow-ellipsis overflow-hidden flex-1 text-[var(--vscode-descriptionForeground)]">
 							{ruleType === "workflow" ? "New workflow file..." : "New instructions file..."}
 						</div>
 						<div className="flex overflow-hidden items-center ml-2 space-x-2">

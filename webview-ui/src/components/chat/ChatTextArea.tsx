@@ -51,7 +51,15 @@ const { MAX_IMAGES_AND_FILES_PER_MESSAGE } = CHAT_CONSTANTS
 
 import { ignoreWorkspaceDirectories } from "@shared/Configuration"
 import HeroTooltip from "../common/HeroTooltip"
-import { actModeColor, chatTextAreaBackground, itemIconColor, menuBackground, planModeColor } from "../theme"
+import {
+	actModeTextColor,
+	chatTextAreaBackground,
+	getActModeColor,
+	getPlanModeColor,
+	inactiveModeTextColor,
+	itemIconColor,
+	menuBackground, planModeTextColor, useTheme
+} from "../theme"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -98,14 +106,14 @@ interface GitCommit {
 	description: string
 }
 
-const PLAN_MODE_COLOR = planModeColor
-const ACT_MODE_COLOR = actModeColor
+// const PLAN_MODE_COLOR = getPlanModeColor()
+// const ACT_MODE_COLOR = getActModeColor()
 
 const SwitchOption = styled.div.withConfig({
-	shouldForwardProp: (prop) => !["isActive"].includes(prop),
-})<{ isActive: boolean }>`
+	shouldForwardProp: (prop) => !["isActive", "mode"].includes(prop),
+})<{ isActive: boolean; mode: Mode }>`
 	padding: 2px 8px;
-	color: ${(props) => (props.isActive ? "white" : "var(--vscode-input-foreground)")};
+	color: ${(props) => (props.isActive ? (props.mode === "plan" ? planModeTextColor : actModeTextColor) : inactiveModeTextColor)};
 	z-index: 1;
 	transition: color 0.2s ease;
 	font-size: 12px;
@@ -121,7 +129,7 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 	display: flex;
 	align-items: center;
 	background-color: var(--vscode-editor-background);
-	border: 0px solid var(--vscode-charts-lines);
+	border: 0.5px solid var(--vscode-charts-lines);
 	border-radius: 5px;
 	overflow: hidden;
 	cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
@@ -138,7 +146,7 @@ const Slider = styled.div.withConfig({
 	position: absolute;
 	height: 100%;
 	width: 50%;
-	background-color: ${(props) => (props.isPlan ? PLAN_MODE_COLOR : ACT_MODE_COLOR)};
+	background-color: ${(props) => (props.isPlan ? getPlanModeColor() : getActModeColor())};
 	transition: transform 0.2s ease;
 	transform: translateX(${(props) => (props.isAct ? "100%" : "0%")});
 `
@@ -301,6 +309,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			dictationSettings,
 		} = useExtensionState()
 		const { clineUser } = useClineAuth()
+		
+		// Theme hook to force re-render on theme changes
+		useTheme()
+		
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
 		const [gitCommits, setGitCommits] = useState<GitCommit[]>([])
@@ -1698,18 +1710,18 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							/>
 						</div>
 					)}
-					{!isTextAreaFocused && (
+					{/* {!isTextAreaFocused && (
 						<div
 							style={{
 								position: "absolute",
 								inset: "10px 7px",
-								//border: "1px solid var(--vscode-input-border)",
+								border: "1px solid var(--vscode-input-border)",
 								borderRadius: 5,
 								pointerEvents: "none",
 								zIndex: 5,
 							}}
 						/>
-					)}
+					)} */}
 					<div
 						ref={highlightLayerRef}
 						style={{
@@ -1807,7 +1819,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								isDraggingOver && !showUnsupportedFileError // Only show drag outline if not showing error
 									? "2px dashed var(--vscode-focusBorder)"
 									: isTextAreaFocused
-										? `0px dotted ${mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
+										? `0px dotted ${mode === "plan" ? getPlanModeColor() : getActModeColor()}`
 										: "none",
 							outlineOffset: isDraggingOver && !showUnsupportedFileError ? "1px" : "0px", // Add offset for drag-over outline
 						}}
@@ -1879,8 +1891,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									color: inputValue
 										? `${
 												mode === "plan"
-													? `color-mix(in srgb, ${PLAN_MODE_COLOR} 20%, var(--vscode-editor-foreground))`
-													: `color-mix(in srgb, ${ACT_MODE_COLOR} 80%, var(--vscode-editor-foreground))`
+													? `color-mix(in srgb, ${getPlanModeColor()} 20%, var(--vscode-editor-foreground))`
+													: `color-mix(in srgb, ${getActModeColor()} 70%, var(--vscode-editor-foreground))`
 											}`
 										: undefined,
 									opacity: inputValue ? 1 : 0.3,
@@ -1900,6 +1912,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<HeroTooltip content="Switch to Plan Mode" delay={1000}>
 							<SwitchOption
 								isActive={mode === "plan"}
+								mode={mode}
 								onMouseLeave={() => setShownTooltipMode(null)}
 								onMouseOver={() => setShownTooltipMode("plan")}>
 								Plan
@@ -1908,6 +1921,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<HeroTooltip content="Switch to Act Mode" delay={1000}>
 							<SwitchOption
 								isActive={mode === "act"}
+								mode={mode}
 								onMouseLeave={() => setShownTooltipMode(null)}
 								onMouseOver={() => setShownTooltipMode("act")}>
 								Act
@@ -2018,13 +2032,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										style={{ padding: "0px 0px", height: "20px" }}>
 										<ButtonContainer>
 											<span
-												className="codicon codicon-file-add flex items-center"
+												className="codicon codicon-files flex items-center"
 												style={{
 													opacity: 0.6,
 													//color: itemIconColor,
-													fontWeight: "bold",
-													fontSize: "15.5px",
-													marginTop: 6,
+													// fontWeight: "bold",
+													fontSize: "15px",
+													marginTop: 4,
 													marginRight: 1.5,
 													marginLeft: -2,
 												}}

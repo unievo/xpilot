@@ -547,7 +547,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 												marginBlockEnd: 0,
 											}}>
 											<li style={{ marginBottom: "5px" }}>
-												<span className="codicon codicon-plus" style={{ verticalAlign: "middle" }} /> -
+												<span className="codicon codicon-diff-added" style={{ verticalAlign: "middle" }} /> -
 												start a new, empty task
 											</li>
 											<li style={{ marginBottom: "5px" }}>
@@ -561,13 +561,6 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											<li style={{ marginBottom: "5px" }}>
 												<span className="codicon codicon-gear" style={{ verticalAlign: "middle" }} /> -
 												access settings
-											</li>
-											<li style={{ marginBottom: "5px" }}>
-												<span
-													className="codicon codicon-link-external"
-													style={{ verticalAlign: "middle" }}
-												/>{" "}
-												- open new {agentName} instances
 											</li>
 										</ul>
 										<p>Use the bottom chat bar controls to:</p>
@@ -612,8 +605,8 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span
-													className="codicon codicon-file-add"
-													style={{ verticalAlign: "middle", fontWeight: "bold" }}
+													className="codicon codicon-files"
+													style={{ verticalAlign: "middle" }}
 												/>{" "}
 												- attach supported files and images
 											</li>

@@ -3,6 +3,7 @@ import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useRef, useState } from "react"
 import { useClickAway, useWindowSize } from "react-use"
 import HeroTooltip from "@/components/common/HeroTooltip"
+import { menuBackground } from "@/components/theme"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
 import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
@@ -150,7 +151,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 		return {
 			bottom: `${originalBottom}px`,
 			maxHeight: `${Math.max(finalMaxHeight, 200)}px`, // Ensure minimum usable height
-			background: "var(--vscode-input-background)",
+			background: menuBackground,
 			overscrollBehavior: "contain" as const,
 		}
 	}

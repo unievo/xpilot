@@ -7,7 +7,7 @@ import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import { DropdownContainer } from "@/components/settings/ApiOptions"
 import { updateSetting } from "@/components/settings/utils/settingsHandlers"
-import { itemIconColor } from "@/components/theme"
+import { itemIconColor, toolsBackground } from "@/components/theme"
 import { useExtensionState } from "../../../context/ExtensionStateContext"
 import ImagePreview from "./ImagePreview"
 import LinkPreview from "./LinkPreview"
@@ -46,7 +46,7 @@ const ResponseContainer = styled.div`
 	position: relative;
 	//font-family: var(--vscode-editor-font-family, monospace);
 	font-size: var(--vscode-editor-font-size, 12px);
-	background-color: var(--vscode-textCodeBlock-background);
+	background-color: ${toolsBackground};
 	color: var(--vscode-editor-foreground, #d4d4d4);
 	border-radius: 0 0 6px 6px;
 	overflow: hidden;

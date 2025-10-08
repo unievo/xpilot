@@ -56,7 +56,7 @@ export const ErrorBlockTitle = ({
 }: ErrorBlockTitleProps): [React.ReactElement, React.ReactElement] => {
 	const getIconSpan = (iconName: string, colorClass: string) => (
 		<div className="w-4 h-4 flex items-center justify-center">
-			<span className={`codicon codicon-${iconName} text-base -mb-0.5 ${colorClass}`}></span>
+			<span className={`codicon codicon-${iconName} text-base mb-0.5 ${colorClass}`}></span>
 		</div>
 	)
 
@@ -77,7 +77,7 @@ export const ErrorBlockTitle = ({
 
 	const title = (() => {
 		// Default loading state
-		const details = { title: "API Request...", classNames: ["font-bold"] }
+		const details = { title: "API Request...", classNames: ["text-xs"] }
 		// Handle cancellation states first
 		if (apiReqCancelReason === "user_cancelled") {
 			details.title = "API Request Cancelled"
@@ -88,7 +88,7 @@ export const ErrorBlockTitle = ({
 		} else if (cost != null) {
 			// Handle completed request
 			details.title = "API Request"
-			details.classNames.push("text-[var(--vscode-foreground)]")
+			details.classNames.push("text-[var(--vscode-foreground)] text-xs")
 		} else if (apiRequestFailedMessage) {
 			// Handle failed request
 			const clineError = ClineError.parse(apiRequestFailedMessage)

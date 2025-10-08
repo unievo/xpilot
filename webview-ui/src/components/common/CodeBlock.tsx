@@ -36,7 +36,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		border-radius: 5px;
 		margin: 0;
 		min-width: ${({ forceWrap }) => (forceWrap ? "auto" : "max-content")};
-		padding: 10px 10px;
+		padding: 5px 5px;
 	}
 
 	pre > code {

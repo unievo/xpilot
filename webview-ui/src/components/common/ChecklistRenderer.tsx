@@ -49,7 +49,7 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 
 	// Auto-scroll to show the most recently completed item when in scroll mode
 	useEffect(() => {
-		if (items.length >= 10 && containerRef.current && !isUserScrolling) {
+		if (items.length >= 5 && containerRef.current && !isUserScrolling) {
 			// Find the last completed item
 			let currentLastCompletedIndex = -1
 			for (let i = items.length - 1; i >= 0; i--) {
@@ -100,7 +100,7 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 				gap: "2px",
 				fontSize: "12px",
 				lineHeight: "1.3",
-				maxHeight: items.length >= 5 ? "150px" : "auto",
+				maxHeight: items.length >= 5 ? "95px" : "auto",
 				overflowY: items.length >= 5 ? "auto" : "visible",
 			}}>
 			{items.map((item, index) => (
@@ -112,9 +112,9 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 					<span
 						className={cn("text-xs break-words flex-1", item.checked ? "text-description" : "text-foreground")}
 						style={{
-							color: item.checked ? "var(--vscode-descriptionForeground)" : "inherit",
+							color: "var(--vscode-textForeground)", // Override any inherited color to ensure visibility
 							// textDecoration: item.checked ? "line-through" : "none",
-							// opacity: item.checked ? 0.7 : 1,
+							opacity: item.checked ? 0.6 : 1,
 							fontSize: "12px",
 							wordBreak: "break-word",
 							overflowWrap: "anywhere",

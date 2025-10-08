@@ -105,6 +105,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 					restoreType,
 				}),
 			)
+			setShowRestoreConfirm(false)
 		} catch (err) {
 			console.error("Checkpoint restore task error:", err)
 			setRestoreTaskDisabled(false)
@@ -121,6 +122,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 					restoreType,
 				}),
 			)
+			setShowRestoreConfirm(false)
 		} catch (err) {
 			console.error("Checkpoint restore workspace error:", err)
 			setRestoreWorkspaceDisabled(false)
@@ -137,6 +139,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 					restoreType,
 				}),
 			)
+			setShowRestoreConfirm(false)
 		} catch (err) {
 			console.error("Checkpoint restore both error:", err)
 			setRestoreBothDisabled(false)
@@ -224,10 +227,10 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
 										}}
 										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
 										}}
 										style={{
-											backgroundColor: "var(--vscode-input-background)",
+											backgroundColor: "var(--vscode-button-secondaryBackground)",
 											// cursor: restoreTaskDisabled ? "not-allowed" : "pointer",
 											width: "100%",
 											marginBottom: "3px",
@@ -245,7 +248,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
 										}}
 										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
 										}}
 										style={{
 											backgroundColor: "var(--vscode-button-secondaryBackground)",
@@ -253,7 +256,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 											width: "100%",
 											marginBottom: "3px",
 										}}>
-										<div style={{ fontSize: "12px" }}>Workspace</div>
+										<div style={{ fontSize: "12px" }}>Files</div>
 									</VSCodeButton>
 									{/* <p>
 										Restores your project's files back to a snapshot taken at this point (use "Compare" to see
@@ -270,7 +273,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
 										}}
 										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-input-background)"
+											e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
 										}}
 										style={{
 											backgroundColor: "var(--vscode-button-secondaryBackground)",
@@ -278,7 +281,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 											width: "100%",
 											marginBottom: "3px",
 										}}>
-										<div style={{ fontSize: "12px" }}>Task & Workspace</div>
+										<div style={{ fontSize: "12px" }}>Task & Files</div>
 									</VSCodeButton>
 									{/* <p>Restores your project's files and deletes all messages after this point</p> */}
 								</RestoreOption>

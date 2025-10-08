@@ -217,7 +217,6 @@ const StyledMarkdown = styled.div`
 		word-wrap: break-word;
 		border-radius: 3px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
 		font-family: var(--vscode-editor-font-family);
 	}
 
@@ -246,7 +245,6 @@ const StyledMarkdown = styled.div`
 		"Open Sans",
 		"Helvetica Neue",
 		sans-serif;
-	font-size: var(--vscode-font-size, 13px);
 
 	p,
 	li,
