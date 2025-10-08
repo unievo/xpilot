@@ -813,7 +813,7 @@ export class Task {
 			throw new Error("Unexpected: No existing API conversation history")
 		}
 
-		const newUserContent: UserContent = [...modifiedOldUserContent]
+		let newUserContent: UserContent = [...modifiedOldUserContent]
 
 		const agoText = (() => {
 			const timestamp = lastClineMessage?.ts ?? Date.now()
@@ -852,6 +852,18 @@ export class Task {
 		)
 
 		if (taskResumptionMessage !== "") {
+			// Only include items from existing User Content that appear before any previous taskResumptionMessage, to avoid accumulating multiple such messages
+			const previousTaskResumptionIndex = modifiedOldUserContent.findIndex(
+				(item) => item.type === "text" && item.text?.startsWith(taskResumptionMessage.substring(0, 10)), // match first 10 chars
+			)
+			// If found, slice up to that index, else keep all
+			modifiedOldUserContent =
+				previousTaskResumptionIndex !== -1
+					? modifiedOldUserContent.slice(0, previousTaskResumptionIndex)
+					: [...modifiedOldUserContent]
+
+			newUserContent = [...modifiedOldUserContent]
+
 			newUserContent.push({
 				type: "text",
 				text: taskResumptionMessage,
