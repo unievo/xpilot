@@ -1,6 +1,13 @@
+import {
+	chatInputSectionBorder,
+	iconHighlightColor,
+	isHighContrastTheme,
+	menuBackground,
+	menuFontSize,
+	menuTopBorder,
+} from "@components/config"
 import React, { useCallback, useEffect, useRef } from "react"
 import { getMatchingSlashCommands, SlashCommand } from "@/utils/slash-commands"
-import { chatTextAreaBackground, itemIconColor } from "../theme"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -50,7 +57,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	const filteredCommands = getMatchingSlashCommands(query, localWorkflowToggles, globalWorkflowToggles)
 	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "task" || !cmd.section)
 	const instructionsCommands = filteredCommands.filter((cmd) => cmd.section === "instructions")
-	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "custom")
+	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "workflows")
 
 	// Create a reusable function for rendering a command section
 	const renderCommandSection = (commands: SlashCommand[], title: string, indexOffset: number, showDescriptions: boolean) => {
@@ -65,10 +72,12 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 					const itemIndex = index + indexOffset
 					return (
 						<div
-							className={`slash-command-menu-item py-0.5 px-1.5 cursor-pointer flex flex-col border rounded ${
+							className={`slash-command-menu-item py-0.5 px-1.5 cursor-pointer flex flex-col rounded-md ${
 								itemIndex === selectedIndex
-									? "bg-[var(--vscode-list-hoverBackground)] border-[var(--vscode-textBlockQuote-border)] text-[var(--vscode-editor-foreground)]"
-									: "border-transparent"
+									? isHighContrastTheme()
+										? "underline bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-sash-hoverBorder)]"
+										: "bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-quickInputList-focusForeground)]"
+									: ""
 							} hover:bg-[var(--vscode-list-hoverBackground)]`}
 							id={`slash-command-menu-item-${itemIndex}`}
 							key={command.name}
@@ -79,12 +88,14 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 								style={{ paddingTop: "1px", paddingBottom: "2px" }}>
 								<span
 									className="codicon codicon-sparkle"
-									style={{ color: itemIconColor, opacity: 0.9, fontSize: "13px", marginRight: 4 }}
+									style={{ color: iconHighlightColor, opacity: 0.9, fontSize: "13px", marginRight: 4 }}
 								/>
 								<span>{command.name}</span>
-								{showDescriptions && command.description && (
+								{showDescriptions && ( //command.description && (
 									<span className="text-[0.8em] text-[var(--vscode-descriptionForeground)] whitespace-nowrap overflow-hidden text-ellipsis">
-										<span className="ph-no-capture ml-1.5 opacity-80">{command.description}</span>
+										<span className="ph-no-capture ml-1.5 opacity-80">
+											{command.description ?? "External"}
+										</span>
 									</span>
 								)}
 							</div>
@@ -97,15 +108,17 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 	return (
 		<div
-			className="absolute bottom-[calc(100%-7px)] left-[7px] right-[7px] overflow-x-hidden z-[1000]"
+			className="absolute bottom-[calc(100%-7px)] left-[0px] right-[0px] overflow-x-hidden z-[1000]"
 			onMouseDown={onMouseDown}
-			style={{ fontSize: "12px" }}>
+			style={{ fontSize: menuFontSize }}>
 			<div
-				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				className="mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
 				style={{
+					border: chatInputSectionBorder,
+					borderTop: menuTopBorder,
 					paddingBottom: 3,
-					background: chatTextAreaBackground,
+					background: menuBackground,
 					maxHeight: "min(800px, calc(50vh))",
 					overscrollBehavior: "contain",
 				}}>
@@ -114,7 +127,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 						const sections = [
 							{ commands: defaultCommands, title: "Task", showDescriptions: true },
 							{ commands: instructionsCommands, title: "Instructions", showDescriptions: true },
-							{ commands: workflowCommands, title: "Workflows", showDescriptions: false },
+							{ commands: workflowCommands, title: "Workflows", showDescriptions: true },
 						]
 
 						let currentIndex = 0

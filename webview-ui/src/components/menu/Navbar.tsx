@@ -1,6 +1,6 @@
 import { productName } from "@shared/Configuration"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { HistoryIcon, PlusIcon, SettingsIcon, UserCircleIcon } from "lucide-react"
+import { HistoryIcon, PlusIcon, SettingsIcon } from "lucide-react"
 import { useMemo } from "react"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { useExtensionState } from "../../context/ExtensionStateContext"
@@ -10,7 +10,7 @@ import HeroTooltip from "../common/HeroTooltip"
 const McpServerIcon = ({ className, size }: { className?: string; size?: number }) => (
 	<span
 		className={`codicon codicon-server flex items-center ${className || ""}`}
-		style={{ fontSize: size ? `${size}px` : "12.5px", marginBottom: "1px" }}
+		style={{ fontSize: size ? `${size - 1}px` : "12.5px", marginBottom: "1px" }}
 	/>
 )
 
@@ -34,13 +34,6 @@ export const Navbar = () => {
 				},
 			},
 			{
-				id: "mcp",
-				name: "MCP",
-				tooltip: "MCP Servers",
-				icon: McpServerIcon,
-				navigate: navigateToMcp,
-			},
-			{
 				id: "history",
 				name: "History",
 				tooltip: "History",
@@ -48,12 +41,19 @@ export const Navbar = () => {
 				navigate: navigateToHistory,
 			},
 			{
-				id: "account",
-				name: "Account",
-				tooltip: "Account",
-				icon: UserCircleIcon,
-				navigate: navigateToAccount,
+				id: "mcp",
+				name: "MCP",
+				tooltip: "MCP Servers",
+				icon: McpServerIcon,
+				navigate: navigateToMcp,
 			},
+			// {
+			// 	id: "account",
+			// 	name: "Account",
+			// 	tooltip: "Account",
+			// 	icon: UserCircleIcon,
+			// 	navigate: navigateToAccount,
+			// },
 			{
 				id: "settings",
 				name: "Settings",

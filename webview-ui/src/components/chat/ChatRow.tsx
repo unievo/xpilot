@@ -1,3 +1,33 @@
+import {
+	apiRequestCompletedVisible,
+	codeBlockFontSize,
+	defaultBorderRadius,
+	defaultDuration,
+	ellipsisText,
+	ellipsisTextColor,
+	errorColor,
+	iconHighlightColor,
+	mcpSectionsPadding,
+	normalColor,
+	primaryFontSize,
+	responseTextCollapsedOpacity,
+	responseTextFontSize,
+	responseTextLineClamp,
+	rowHeaderGap,
+	rowHideDuration,
+	rowIconFontSize,
+	rowIconVisible,
+	rowItemBackgroundOpacity,
+	rowItemExpandedMaxHeight,
+	rowPaddingBottom,
+	rowPaddingLeft,
+	rowPaddingRight,
+	rowPaddingTop,
+	secondaryColor,
+	showTextResponseHeader,
+	successColor,
+	warningColor,
+} from "@components/config"
 import { agentName } from "@shared/Configuration"
 import { COMMAND_OUTPUT_STRING, COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
 import {
@@ -10,27 +40,48 @@ import {
 	COMPLETION_RESULT_CHANGES_FLAG,
 } from "@shared/ExtensionMessage"
 import { Int64Request, StringRequest } from "@shared/proto/cline/common"
-import { VSCodeBadge, VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import deepEqual from "fast-deep-equal"
 import React, { MouseEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSize } from "react-use"
 import styled from "styled-components"
 import { OptionsButtons } from "@/components/chat/OptionsButtons"
-import TaskFeedbackButtons from "@/components/chat/TaskFeedbackButtons"
 import { CheckmarkControl } from "@/components/common/CheckmarkControl"
-import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import CodeBlock from "@/components/common/CodeBlock"
 import { WithCopyButton } from "@/components/common/CopyButton"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import SuccessButton from "@/components/common/SuccessButton"
-import McpResponseDisplay from "@/components/mcp/chat-display/McpResponseDisplay"
 import McpResourceRow from "@/components/mcp/configuration/tabs/installed/server-row/McpResourceRow"
 import McpToolRow from "@/components/mcp/configuration/tabs/installed/server-row/McpToolRow"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { FileServiceClient, TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
+import { TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { findMatchingResourceOrTemplate, getMcpServerDisplayName } from "@/utils/mcp"
 import { CheckpointControls } from "../common/CheckpointControls"
-import CodeAccordian, { cleanPathPrefix } from "../common/CodeAccordian"
-import { itemIconColor, toolsBackground } from "../theme"
+import CodeAccordian from "../common/CodeAccordian"
+import HeroTooltip from "../common/HeroTooltip"
+import McpResponseDisplay from "../mcp/chat-display/McpResponseDisplay"
+import { ApprovalContainer } from "./ApprovalContainer"
+import {
+	CommandRow,
+	CompletionRow,
+	CompletionRowContainer,
+	HighlightRowContainer,
+	MarkdownContainer,
+	McpResponseRow,
+	McpRow,
+	OptionsRow,
+	PrimaryRowStyle,
+	ResponseRowContainer,
+	RowHeader,
+	RowIcon,
+	RowItem,
+	RowItemExpandable,
+	RowItemText,
+	RowTitle,
+	RowVisibility,
+	SecondaryRowStyle,
+	SpacingRowContainer,
+} from "./ChatRowStyles"
 import { ErrorBlockTitle } from "./ErrorBlockTitle"
 import ErrorRow from "./ErrorRow"
 import NewTaskPreview from "./NewTaskPreview"
@@ -39,14 +90,14 @@ import ReportBugPreview from "./ReportBugPreview"
 import SearchResultsDisplay from "./SearchResultsDisplay"
 import UserMessage from "./UserMessage"
 
-const normalColor = "var(--vscode-foreground)"
-const errorColor = "var(--vscode-editorWarning-foreground)" // "var(--vscode-errorForeground)"
-const successColor = "var(--vscode-charts-green)"
-const _cancelledColor = "var(--vscode-descriptionForeground)"
-
-const ChatRowContainer = styled.div`
-	padding: 10px 8px 10px 13px;
+const ChatRowContainer = styled.div<{ $isHidden?: boolean }>`
+	padding-top: ${({ $isHidden }) => ($isHidden ? 0 : rowPaddingTop)}px;
+	padding-bottom: ${({ $isHidden }) => ($isHidden ? 0 : rowPaddingBottom)}px;
+	padding-left: ${rowPaddingLeft}px;
+	padding-right: ${rowPaddingRight}px;
 	position: relative;
+	font-size: ${primaryFontSize}px;
+	transition: all ${rowHideDuration}ms;
 
 	&:hover ${CheckpointControls} {
 		opacity: 1;
@@ -72,18 +123,20 @@ interface QuoteButtonState {
 	selectedText: string
 }
 
-interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
+interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {
+	onVisibilityChange?: (visible: boolean) => void
+}
 
 export const ProgressIndicator = () => (
 	<div
 		style={{
-			width: "16px",
-			height: "16px",
+			width: rowIconFontSize,
+			height: rowIconFontSize,
 			display: "flex",
 			alignItems: "center",
 			justifyContent: "center",
 		}}>
-		<div style={{ transform: "scale(0.35)", transformOrigin: "center" }}>
+		<div style={{ transform: "scale(0.4)", transformOrigin: "center" }}>
 			<VSCodeProgressRing />
 		</div>
 	</div>
@@ -95,30 +148,116 @@ const Markdown = memo(
 		maxLines,
 		opacity,
 		fontSize,
+		customEllipsis,
 	}: {
 		markdown?: string
 		maxLines?: number
 		opacity?: number
 		fontSize?: string | number
+		customEllipsis?: string
 	}) => {
+		const contentRef = useRef<HTMLDivElement>(null)
+		const textRef = useRef<HTMLDivElement>(null)
+		const [isTruncated, setIsTruncated] = useState(false)
+
+		useEffect(() => {
+			if (maxLines && textRef.current && contentRef.current) {
+				const checkTruncation = () => {
+					// Use requestAnimationFrame to ensure DOM is fully updated
+					requestAnimationFrame(() => {
+						// Check if refs are still valid
+						if (textRef.current && contentRef.current) {
+							let contentHeight = contentRef.current.clientHeight
+							if (!contentHeight) {
+								contentHeight = contentRef.current.getBoundingClientRect().height
+							}
+							// Add a small threshold (1px) to account for rounding differences
+							const isOverflowing = textRef.current.scrollHeight > contentHeight + 1
+
+							setIsTruncated(isOverflowing)
+						}
+					})
+				}
+
+				// Check immediately
+				checkTruncation()
+
+				// Use ResizeObserver to detect when the content size changes
+				// This handles window resizing and dynamic content changes
+				let resizeObserver: ResizeObserver | undefined
+				if (contentRef.current) {
+					resizeObserver = new ResizeObserver(() => {
+						checkTruncation()
+					})
+					resizeObserver.observe(contentRef.current)
+				}
+
+				return () => {
+					if (resizeObserver) {
+						resizeObserver.disconnect()
+					}
+				}
+			}
+		}, [maxLines, markdown])
+
 		return (
 			<div
+				ref={contentRef}
 				style={{
-					transition: "all 0.2s",
 					wordBreak: "break-word",
 					overflowWrap: "anywhere",
-					marginBottom: -15,
-					marginTop: -15,
 					overflow: "hidden", // contain child margins so that parent diff matches height of children
-					...(maxLines && {
-						display: "-webkit-box",
-						WebkitLineClamp: maxLines,
-						WebkitBoxOrient: "vertical",
-					}),
-					...(opacity !== undefined && { opacity }),
+					position: maxLines ? "relative" : undefined,
 					fontSize: fontSize || "inherit",
+					opacity: opacity || 1,
 				}}>
-				<MarkdownBlock markdown={markdown} />
+				<div
+					ref={textRef}
+					style={{
+						...(maxLines && {
+							display: "-webkit-box",
+							WebkitLineClamp: maxLines,
+							WebkitBoxOrient: "vertical",
+							overflow: "hidden",
+						}),
+					}}>
+					<MarkdownContainer>
+						<MarkdownBlock markdown={markdown} />
+					</MarkdownContainer>
+				</div>
+				{maxLines && customEllipsis && isTruncated && (
+					<div
+						style={{
+							position: "absolute",
+							right: 0,
+							bottom: 0,
+							display: "flex",
+							alignItems: "center",
+						}}>
+						<span
+							style={{
+								width: 50,
+								height: "1.2em",
+								background: "linear-gradient(to right, transparent 0%, var(--vscode-sideBar-background) 60%)",
+							}}
+						/>
+						<span
+							style={{
+								position: "absolute",
+								right: 0,
+								bottom: 0,
+								padding: "0 2px",
+								background: "var(--vscode-sideBar-background)",
+								border: "0px solid var(--vscode-editorWidget-border)",
+								// borderRadius: "50%",
+								color: ellipsisTextColor,
+								fontSize: fontSize || "inherit",
+								opacity: 1,
+							}}>
+							{customEllipsis}
+						</span>
+					</div>
+				)}
 			</div>
 		)
 	},
@@ -130,10 +269,11 @@ const ChatRow = memo(
 		// Store the previous height to compare with the current height
 		// This allows us to detect changes without causing re-renders
 		const prevHeightRef = useRef(0)
+		const [isVisible, setIsVisible] = useState(true)
 
 		const [chatrow, { height }] = useSize(
-			<ChatRowContainer>
-				<ChatRowContent {...props} />
+			<ChatRowContainer $isHidden={!isVisible}>
+				<ChatRowContent {...props} onVisibilityChange={setIsVisible} />
 			</ChatRowContainer>,
 		)
 
@@ -169,8 +309,14 @@ export const ChatRowContent = memo(
 		inputValue,
 		sendMessageFromChatRow,
 		onSetQuote,
+		onVisibilityChange,
 	}: ChatRowContentProps) => {
-		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl, textResponsesCollapsed: defaultTextResponsesCollapsed } = useExtensionState()
+		const {
+			mcpServers,
+			mcpMarketplaceCatalog,
+			onRelinquishControl,
+			textResponsesCollapsed: defaultTextResponsesCollapsed,
+		} = useExtensionState()
 		const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 		const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
 			visible: false,
@@ -188,6 +334,9 @@ export const ChatRowContent = memo(
 			return [undefined, undefined, undefined, undefined, undefined]
 		}, [message.text, message.say])
 
+		// Get auto approval settings from context
+		const { autoApprovalSettings } = useExtensionState()
+
 		// Get saved collapsed state from localStorage or default to false
 		const getMcpArgumentsCollapsedState = () => {
 			try {
@@ -198,6 +347,9 @@ export const ChatRowContent = memo(
 			}
 		}
 		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(getMcpArgumentsCollapsedState())
+
+		// Add state for toggling maxLines between maxLines and undefined
+		const [maxLines, setMaxLines] = useState<number | undefined>(responseTextLineClamp)
 
 		// Update the saved state when the collapsed state changes
 		useEffect(() => {
@@ -225,6 +377,13 @@ export const ChatRowContent = memo(
 			lastModifiedMessage?.text?.includes(COMMAND_OUTPUT_STRING)
 
 		const isMcpServerResponding = isLast && lastModifiedMessage?.say === "mcp_server_request_started"
+
+		const isReasoning = isLast && lastModifiedMessage?.say === "reasoning"
+		const isResponding = isLast && lastModifiedMessage?.say === "text"
+
+		const isLastProcessing = isLast && lastModifiedMessage?.ts === message.ts
+
+		const [isProcessed, setIsProcessed] = useState(false)
 
 		const type = message.type === "ask" ? message.ask : message.say
 
@@ -310,116 +469,186 @@ export const ChatRowContent = memo(
 			}, 0) // Delay of 0ms pushes execution after current event cycle
 		}, []) // Dependencies remain empty
 
-		const [icon, title] = useMemo(() => {
+		const [icon, title, visible = true] = useMemo(() => {
 			switch (type) {
 				case "error":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-error"
-							style={{
-								color: errorColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Error</span>,
+							color={errorColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={errorColor} isLast={isLast}>
+							Error
+						</RowTitle>,
 					]
 				case "mistake_limit_reached":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-error"
-							style={{
-								color: errorColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>
+							color={errorColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={errorColor} fontWeight="bold" isLast={isLast}>
 							{agentName} is having trouble...
-						</span>,
+						</RowTitle>,
 					]
 				case "auto_approval_max_req_reached":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-warning"
-							style={{
-								color: errorColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Maximum Requests Reached</span>,
+							color={warningColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={warningColor} isLast={isLast}>
+							Maximum Requests Reached
+						</RowTitle>,
 					]
 				case "command":
 					return [
-						isCommandExecuting ? (
-							<ProgressIndicator />
+						isLastProcessing || isCommandExecuting ? (
+							<>
+								{isCommandExecuting && setIsProcessed(true)}
+								<ProgressIndicator />
+							</>
 						) : (
-							<span
-								className="codicon codicon-terminal"
-								style={{
-									color: normalColor,
-									marginBottom: "-1.5px",
-								}}></span>
+							<RowIcon
+								className={`codicon codicon-${isProcessed ? "check" : "terminal"}`}
+								color={isProcessed ? successColor : ""}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
 						),
-						<span style={{ color: normalColor, fontWeight: "normal" }}>
-							Execute command:
-						</span>,
+						<RowTitle isLast={isLast}>Execute command:</RowTitle>,
+					]
+				case "reasoning":
+					return [
+						isReasoning ? (
+							<RowIcon
+								className="codicon codicon-sparkle-filled"
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize + 3 }}
+							/>
+						) : (
+							<RowIcon className="codicon codicon-sparkle" isLast={isLast} style={{ fontSize: rowIconFontSize }} />
+						),
+						<RowTitle isExpanded={isExpanded} isLast={isLast}>
+							{isReasoning ? "Thinking" : "Thought"}
+						</RowTitle>,
+					]
+				case "text":
+					return [
+						isResponding ? (
+							<RowIcon
+								className="codicon codicon-sparkle-filled"
+								color={iconHighlightColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize + 3 }}
+							/>
+						) : (
+							<RowIcon
+								className="codicon codicon-sparkle"
+								color={iconHighlightColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
+						),
+						<RowTitle isExpanded={isExpanded} isLast={isLast}>
+							{isResponding ? "Responding" : "Response"}
+						</RowTitle>,
 					]
 				case "use_mcp_server":
 					const mcpServerUse = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
 					return [
-						isMcpServerResponding ? (
-							<ProgressIndicator />
+						isLastProcessing || isMcpServerResponding ? (
+							<>
+								{isMcpServerResponding && setIsProcessed(true)}
+								<ProgressIndicator />
+							</>
 						) : (
-							<span
-								className="codicon codicon-server"
-								style={{
-									color: normalColor,
-									marginBottom: "-1.5px",
-								}}></span>
+							<RowIcon
+								className={`codicon codicon-${isProcessed ? "check" : "server"}`}
+								color={isProcessed ? successColor : ""}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
 						),
-						<span
-							className="ph-no-capture"
-							style={{ color: normalColor, fontWeight: "normal", wordBreak: "break-word" }}>
-							{mcpServerUse.type === "use_mcp_tool" ? "Execute MCP tool" : "Read MCP resource"} from{" "}
+						<RowTitle className="ph-no-capture" isLast={isLast} wordBreak="break-word">
+							{mcpServerUse.type === "use_mcp_tool" ? "Call tool" : "Read resource"} from{" "}
 							<code style={{ wordBreak: "break-all" }}>
 								{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
-							</code>{":"}
-						</span>,
+							</code>
+							{":"}
+						</RowTitle>,
 					]
 				case "completion_result":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-check"
-							style={{
-								color: successColor,
-								// marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: successColor, fontWeight: "normal" }}>Task Completed</span>,
+							color={successColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={successColor} fontWeight={"bold"} isLast={isLast}>
+							Task Completed
+						</RowTitle>,
 					]
 				case "api_req_started":
-					return ErrorBlockTitle({
+					const [icon, title, visible] = ErrorBlockTitle({
 						cost,
 						apiReqCancelReason,
 						apiRequestFailedMessage,
 						retryStatus,
+						apiRequestCompletedVisible: apiRequestCompletedVisible,
 					})
+					return [
+						<RowIcon isLast={isLast} style={{ fontSize: rowIconFontSize }}>
+							{icon}
+						</RowIcon>,
+						<RowTitle isExpanded={isExpanded} isLast={isLast}>
+							{title}
+						</RowTitle>,
+						visible,
+					]
 				case "followup":
 					return [
-						<span
-							className="codicon codicon-question"
-							style={{
-								color: normalColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: normalColor, fontWeight: "bold" }}>Question:</span>,
+						<RowIcon className="codicon codicon-question" isLast={isLast} style={{ fontSize: rowIconFontSize }} />,
+						<RowTitle color={normalColor} fontWeight={"bold"} isLast={isLast}>
+							Question:
+						</RowTitle>,
+					]
+				case "plan_mode_respond":
+					return [
+						<RowIcon className="codicon codicon-info" isLast={isLast} style={{ fontSize: rowIconFontSize }} />,
+						<RowTitle color={normalColor} fontWeight={"bold"} isLast={isLast}>
+							Plan Response
+						</RowTitle>,
 					]
 				default:
 					return [null, null]
 			}
-		}, [type, cost, apiRequestFailedMessage, isCommandExecuting, apiReqCancelReason, isMcpServerResponding, message.text])
+		}, [
+			type,
+			cost,
+			apiRequestFailedMessage,
+			isCommandExecuting,
+			apiReqCancelReason,
+			isMcpServerResponding,
+			isReasoning,
+			isResponding,
+			isLastProcessing,
+			isExpanded,
+			isLast,
+			message.text,
+		])
 
-		const headerStyle: React.CSSProperties = {
-			display: "flex",
-			alignItems: "center",
-			gap: "6px",
-			marginBottom: "8px",
-		}
+		// Notify parent of visibility changes
+		useEffect(() => {
+			onVisibilityChange?.(visible)
+		}, [visible, onVisibilityChange])
 
 		const _pStyle: React.CSSProperties = {
 			margin: 0,
@@ -452,9 +681,9 @@ export const ChatRowContent = memo(
 				<span
 					className={`codicon codicon-${name} ph-no-capture`}
 					style={{
-						color: color ? colorMap[color as keyof typeof colorMap] || color : "var(--vscode-foreground)",
-						marginBottom: "-1.5px",
+						color: color ? colorMap[color as keyof typeof colorMap] || color : "",
 						transform: rotation ? `rotate(${rotation}deg)` : undefined,
+						fontSize: rowIconFontSize,
 					}}
 					title={title}></span>
 			)
@@ -462,323 +691,551 @@ export const ChatRowContent = memo(
 			switch (tool.tool) {
 				case "editedExistingFile":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("edit")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>Edit file:</span>
-							</div>
-							<CodeAccordian
-								// isLoading={message.partial}
-								code={tool.content}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.editFilesExternally
+										: autoApprovalSettings.actions.editFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && (
+												<RowIcon isLast={isLast}>
+													{toolIcon("file")}
+													{/* {toolIcon("check", "green")} */}
+												</RowIcon>
+											)
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Edit
+										</RowTitle>
+										{tool.operationIsLocatedInWorkspace === false && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+											</RowIcon>
+										)}
+
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable fullWidth={true} isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													// isLoading={message.partial}
+													code={tool.content}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									</RowHeader>
+								</HighlightRowContainer>
+							</ApprovalContainer>
+						</PrimaryRowStyle>
 					)
 				case "newFileCreated":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("new-file")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "normal" }}>Create file:</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								isLoading={message.partial}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.editFilesExternally
+										: autoApprovalSettings.actions.editFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && (
+												<RowIcon isLast={isLast}>
+													{toolIcon("new-file")}
+													{/* {toolIcon("check", "green")} */}
+												</RowIcon>
+											)
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Create
+										</RowTitle>
+										{tool.operationIsLocatedInWorkspace === false && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+											</RowIcon>
+										)}
+
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable fullWidth={true} isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													isLoading={message.partial}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									</RowHeader>
+								</HighlightRowContainer>
+							</ApprovalContainer>
+						</PrimaryRowStyle>
 					)
 				case "readFile":
 					const isImage = isImageFile(tool.path || "")
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon(isImage ? "file-media" : "file-code")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "normal" }}>
-									Read file:
-								</span>
-							</div>
-							<div
-								style={{
-									borderRadius: 8,
-									backgroundColor: CODE_BLOCK_BG_COLOR,
-									overflow: "hidden",
-									// border: "1px solid var(--vscode-editorGroup-border)",
-								}}>
-								<div
-									onClick={
-										isImage
-											? undefined
-											: () => {
-													FileServiceClient.openFile(
-														StringRequest.create({ value: tool.content }),
-													).catch((err) => console.error("Failed to open file:", err))
-												}
-									}
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										display: "flex",
-										alignItems: "center",
-										padding: "9px 10px",
-										cursor: isImage ? "default" : "pointer",
-										userSelect: isImage ? "text" : "none",
-										WebkitUserSelect: isImage ? "text" : "none",
-										MozUserSelect: isImage ? "text" : "none",
-										msUserSelect: isImage ? "text" : "none",
-									}}>
-									{tool.path?.startsWith(".") && <span>.</span>}
-									{tool.path && !tool.path.startsWith(".") && <span>/</span>}
-									<span
-										className="ph-no-capture"
-										style={{
-											whiteSpace: "nowrap",
-											overflow: "hidden",
-											textOverflow: "ellipsis",
-											marginRight: "8px",
-											direction: "rtl",
-											textAlign: "left",
-										}}>
-										{cleanPathPrefix(tool.path ?? "") + "\u200E"}
-									</span>
-									<div style={{ flexGrow: 1 }}></div>
-									{!isImage && (
-										<span
-											className={`codicon codicon-link-external`}
-											style={{
-												fontSize: 13.5,
-												margin: "1px 0",
-											}}></span>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon(isImage ? "file-media" : "file-code")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
 									)}
-								</div>
-							</div>
-						</>
+									<RowTitle isLast={isLast}>Read</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+										</RowIcon>
+									)}
+
+									<HeroTooltip content={tool.path!}>
+										<RowItem isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												isLoading={message.partial}
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+												showExpand={false}
+											/>
+										</RowItem>
+									</HeroTooltip>
+								</RowHeader>
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "listFilesTopLevel":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("folder-opened")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "normal" }}>
-									{message.type === "ask"
-										? `List the top level files in this directory:`
-										: `Listed the top level files in this directory:`}
-								</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								language="shell-session"
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("folder-opened")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `List top level:` : `Listed top level:`}
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													language="shell-session"
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												language="shell-session"
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "listFilesRecursive":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("folder-opened")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "normal" }}>
-									{message.type === "ask"
-										? `Recursively view all files in this directory:`
-										: `Recursively viewed all files in this directory:`}
-								</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								language="shell-session"
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("folder-opened")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `List recursive:` : `Listed recursive:`}
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													language="shell-session"
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												language="shell-session"
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "listCodeDefinitionNames":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("file-code")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "normal" }}>
-									{message.type === "ask"
-										? `View source code definition names used in this directory:`
-										: `Viewed source code definition names used in this directory:`}
-								</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("file-code")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `List definitions:` : `Listed definitions:`}
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "searchFiles":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("search")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "normal" }}>
-									Search directory for{" "}
-									<code style={{ wordBreak: "break-all" }}>{tool.regex}</code>:
-								</span>
-							</div>
-							<SearchResultsDisplay
-								content={tool.content!}
-								filePattern={tool.filePattern}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("search")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isLast={isLast}>
+										Search for <code style={{ wordBreak: "break-word" }}>{tool.regex}</code>:
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<SearchResultsDisplay
+													content={tool.content!}
+													filePattern={tool.filePattern}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<SearchResultsDisplay
+												content={tool.content!}
+												filePattern={tool.filePattern}
+												isExpanded={isExpanded}
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "summarizeTask":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("book")}
-								<span style={{ fontWeight: "bold" }}>Condensing task:</span>
-							</div>
-							<div
-								style={{
-									borderRadius: 8,
-									backgroundColor: CODE_BLOCK_BG_COLOR,
-									overflow: "hidden",
-									// border: "1px solid var(--vscode-editorGroup-border)",
-								}}>
-								<div
-									onClick={handleToggle}
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										padding: "9px 10px",
-										cursor: "pointer",
-										userSelect: "none",
-										WebkitUserSelect: "none",
-										MozUserSelect: "none",
-										msUserSelect: "none",
-									}}>
-									{isExpanded ? (
-										<div>
-											<div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-												<span style={{ fontWeight: "bold", marginRight: "4px" }}>Summary:</span>
-												<div style={{ flexGrow: 1 }}></div>
-												<span
-													className="codicon codicon-chevron-up"
-													style={{
-														fontSize: 13.5,
-														margin: "1px 0",
-													}}></span>
-											</div>
-											<span
-												className="ph-no-capture"
-												style={{
-													whiteSpace: "pre-wrap",
-													wordBreak: "break-word",
-													overflowWrap: "anywhere",
-												}}>
-												{tool.content}
-											</span>
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<SpacingRowContainer>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && (
+												<RowIcon isLast={isLast}>
+													{toolIcon("book")}
+													{/* {toolIcon("check", "green")} */}
+												</RowIcon>
+											)
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Condensing task
+										</RowTitle>
+									</RowHeader>
+									<RowItemExpandable
+										isExpanded={isExpanded}
+										isLast={isLast}
+										linkOnHover={false}
+										style={{
+											width: "auto",
+										}}>
+										<div
+											onClick={handleToggle}
+											style={{
+												// color: "var(--vscode-descriptionForeground)",
+												maxHeight: rowItemExpandedMaxHeight,
+												overflowY: "auto",
+												padding: "5px 5px",
+												cursor: "pointer",
+												userSelect: "none",
+												WebkitUserSelect: "none",
+												MozUserSelect: "none",
+												msUserSelect: "none",
+											}}>
+											{isExpanded ? (
+												<div>
+													<div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+														<span style={{ fontWeight: "bold", marginRight: "4px" }}>Summary:</span>
+														<div style={{ flexGrow: 1 }}></div>
+														<span
+															className="codicon codicon-chevron-up"
+															style={{
+																fontSize: "inherit",
+																margin: "1px 0",
+															}}></span>
+													</div>
+													<span
+														className="ph-no-capture"
+														style={{
+															whiteSpace: "pre-wrap",
+															wordBreak: "break-word",
+															overflowWrap: "anywhere",
+														}}>
+														{tool.content}
+													</span>
+												</div>
+											) : (
+												<div style={{ display: "flex", alignItems: "center" }}>
+													<span
+														className="ph-no-capture"
+														style={{
+															width: "auto",
+															whiteSpace: "nowrap",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															marginRight: "8px",
+															direction: "rtl",
+															textAlign: "left",
+															flex: 1,
+														}}>
+														{tool.content + "\u200E"}
+													</span>
+													<span
+														className="codicon codicon-chevron-down"
+														style={{
+															fontSize: 13.5,
+															margin: "1px 0",
+															flexShrink: 0,
+														}}></span>
+												</div>
+											)}
 										</div>
-									) : (
-										<div style={{ display: "flex", alignItems: "center" }}>
-											<span
-												className="ph-no-capture"
-												style={{
-													whiteSpace: "nowrap",
-													overflow: "hidden",
-													textOverflow: "ellipsis",
-													marginRight: "8px",
-													direction: "rtl",
-													textAlign: "left",
-													flex: 1,
-												}}>
-												{tool.content + "\u200E"}
-											</span>
-											<span
-												className="codicon codicon-chevron-down"
-												style={{
-													fontSize: 13.5,
-													margin: "1px 0",
-													flexShrink: 0,
-												}}></span>
-										</div>
-									)}
-								</div>
-							</div>
-						</>
+									</RowItemExpandable>
+								</HighlightRowContainer>
+							</SpacingRowContainer>
+						</PrimaryRowStyle>
 					)
 				case "webFetch":
 					return (
-						<>
-							<div style={headerStyle}>
-								<span
-									className="codicon codicon-link"
-									style={{ color: normalColor, marginBottom: "-1.5px" }}></span>
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This URL is external")}
-								<span style={{ fontWeight: "normal" }}>
-									{message.type === "ask"
-										? `Fetch content from:`
-										: `Fetched content from:`}
-								</span>
-							</div>
-							<div
-								onClick={() => {
-									// Open the URL in the default browser using gRPC
-									if (tool.path) {
-										UiServiceClient.openUrl(StringRequest.create({ value: tool.path })).catch((err) => {
-											console.error("Failed to open URL:", err)
-										})
-									}
-								}}
-								style={{
-									borderRadius: 8,
-									backgroundColor: CODE_BLOCK_BG_COLOR,
-									overflow: "hidden",
-									// border: "1px solid var(--vscode-editorGroup-border)",
-									padding: "9px 10px",
-									cursor: "pointer",
-									userSelect: "none",
-									WebkitUserSelect: "none",
-									MozUserSelect: "none",
-									msUserSelect: "none",
-								}}>
-								<span
-									className="ph-no-capture"
-									style={{
-										whiteSpace: "nowrap",
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-										marginRight: "8px",
-										direction: "rtl",
-										textAlign: "left",
-										color: "var(--vscode-textLink-foreground)",
-										textDecoration: "underline",
-										display: "block",
-									}}>
-									{tool.path + "\u200E"}
-								</span>
-							</div>
-							{/* Displaying the 'content' which now holds "Fetching URL: [URL]" */}
-							{/* <div style={{ paddingTop: 5, fontSize: '0.9em', opacity: 0.8 }}>{tool.content}</div> */}
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={autoApprovalSettings.actions.useBrowser}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("link")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `Fetch:` : isLastProcessing ? `Fetching:` : `Fetched:`}
+									</RowTitle>
+
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This URL is external")}
+										</RowIcon>
+									)}
+
+									<HeroTooltip content={tool.path || ""}>
+										<RowItem isLast={isLast}>
+											<div
+												onClick={() => {
+													// Open the URL in the default browser using gRPC
+													if (tool.path) {
+														UiServiceClient.openUrl(StringRequest.create({ value: tool.path })).catch(
+															(err) => {
+																console.error("Failed to open URL:", err)
+															},
+														)
+													}
+												}}
+												style={{
+													overflow: "hidden",
+													cursor: "pointer",
+													userSelect: "none",
+													WebkitUserSelect: "none",
+													MozUserSelect: "none",
+													msUserSelect: "none",
+												}}>
+												<span
+													className="ph-no-capture"
+													style={{
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														marginRight: "8px",
+														// direction: "rtl",
+														textAlign: "left",
+														color: "var(--vscode-textLink-foreground)",
+														textDecoration: "underline",
+														opacity: 0.8,
+														display: "block",
+													}}>
+													{tool.path + "\u200E"}
+												</span>
+											</div>
+										</RowItem>
+									</HeroTooltip>
+								</RowHeader>
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				default:
 					return null
@@ -821,144 +1278,171 @@ export const ChatRowContent = memo(
 			const command = requestsApproval ? rawCommand.slice(0, -COMMAND_REQ_APP_STRING.length) : rawCommand
 
 			return (
-				<>
-					<div style={headerStyle}>
-						{icon}
-						{title}
-					</div>
-					<div
-						style={{
-							borderRadius: 8,
-							// border: "1px solid var(--vscode-editorGroup-border)",
-							overflow: "hidden",
-							backgroundColor: CODE_BLOCK_BG_COLOR,
-						}}>
-						<CodeBlock forceWrap={true} source={`${"```"}shell\n${command}\n${"```"}`} />
-						{output.length > 0 && (
-							<div style={{ width: "100%" }}>
-								<div
-									onClick={handleToggle}
-									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: "4px",
-										width: "100%",
-										justifyContent: "flex-start",
-										cursor: "pointer",
-										padding: `2px 8px ${isExpanded ? 2 : 6}px 0px`,
-									}}>
-									<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
-									<span style={{ fontSize: "0.8em", color: "var(--vscode-textLink-foreground)", opacity: 0.8 }}>
-										Command Output
-									</span>
-								</div>
-								{isExpanded && <CodeBlock source={`${"```"}shell\n${output}\n${"```"}`} />}
-							</div>
-						)}
-					</div>
-					{requestsApproval && (
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 10,
-								padding: 8,
-								fontSize: "12px",
-								color: "var(--vscode-editorWarning-foreground)",
-							}}>
-							<i className="codicon codicon-warning"></i>
-							<span>The model has determined this command requires explicit approval.</span>
-						</div>
-					)}
-				</>
+				<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+					<SpacingRowContainer>
+						<RowHeader>
+							{rowIconVisible && icon}
+							{title}
+						</RowHeader>
+						<CommandRow isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								approvalRequested={requestsApproval}
+								autoApproveSetting={autoApprovalSettings.actions.executeSafeCommands}
+								isExecuting={isCommandExecuting}
+								isLastProcessing={isLastProcessing}>
+								<WithCopyButton
+									onMouseUp={handleMouseUp}
+									position="top-right"
+									ref={contentRef}
+									textToCopy={command}>
+									<div
+										style={{
+											borderRadius: defaultBorderRadius,
+											padding: "3px",
+											overflow: "hidden",
+										}}>
+										<CodeBlock
+											fontSize={codeBlockFontSize}
+											forceWrap={true}
+											source={`${"```"}shell\n${command}\n${"```"}`}
+										/>
+
+										{output.length > 0 && (
+											<div style={{ width: "100%" }}>
+												<div
+													onClick={handleToggle}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: "4px",
+														width: "100%",
+														justifyContent: "flex-start",
+														cursor: "pointer",
+														padding: `6px 8px ${isExpanded ? 2 : 4}px 0px`,
+													}}>
+													<span
+														className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
+														style={{ fontSize: "inherit" }}></span>
+													<span
+														style={{
+															fontSize: "0.85em",
+															textTransform: "uppercase",
+															color: secondaryColor,
+														}}>
+														Output
+													</span>
+												</div>
+												{isExpanded && (
+													<div style={{ marginTop: "4px" }}>
+														<CodeBlock
+															fontSize={codeBlockFontSize}
+															maxHeight={rowItemExpandedMaxHeight}
+															source={`${"```"}shell\n${output}\n${"```"}`}
+														/>
+													</div>
+												)}
+											</div>
+										)}
+									</div>
+								</WithCopyButton>
+							</ApprovalContainer>
+						</CommandRow>
+					</SpacingRowContainer>
+				</PrimaryRowStyle>
 			)
 		}
 
 		if (message.ask === "use_mcp_server" || message.say === "use_mcp_server") {
 			const useMcpServer = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
 			const server = mcpServers.find((server) => server.name === useMcpServer.serverName)
+			const autoApprove = server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove
+
 			return (
-				<>
-					<div style={headerStyle}>
-						{icon}
-						{title}
-					</div>
-
-					<div
-						style={{
-							background: toolsBackground,
-							borderRadius: "6px 6px 0 0",
-							padding: "8px 8px",
-							marginTop: "8px",
-						}}>
-						{useMcpServer.type === "access_mcp_resource" && (
-							<McpResourceRow
-								item={{
-									...(findMatchingResourceOrTemplate(
-										useMcpServer.uri || "",
-										server?.resources,
-										server?.resourceTemplates,
-									) || {
-										name: "",
-										mimeType: "",
-										description: "",
-									}),
-									uri: useMcpServer.uri || "",
-								}}
-							/>
-						)}
-
-						{useMcpServer.type === "use_mcp_tool" && (
-							<>
-								<div onClick={(e) => e.stopPropagation()}>
-									<McpToolRow
-										serverName={useMcpServer.serverName}
-										tool={{
-											name: useMcpServer.toolName || "",
-											description:
-												server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.description ||
-												"",
-											autoApprove:
-												server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove ||
-												false,
+				<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+					<SpacingRowContainer>
+						<RowHeader>
+							{rowIconVisible && icon}
+							{title}
+						</RowHeader>
+						<McpRow isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={autoApprovalSettings.actions.useMcp}
+								autoApproveToolSetting={autoApprove}
+								isLastProcessing={isLastProcessing}>
+								{useMcpServer.type === "access_mcp_resource" && (
+									<McpResourceRow
+										collapseDescription={true}
+										item={{
+											...(findMatchingResourceOrTemplate(
+												useMcpServer.uri || "",
+												server?.resources,
+												server?.resourceTemplates,
+											) || {
+												name: "",
+												mimeType: "",
+												description: "",
+											}),
+											uri: useMcpServer.uri || "",
 										}}
 									/>
-								</div>
-								{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
-									<div style={{ marginTop: "8px" }}>
-										<div
-											onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}
-											style={{
-												display: "flex",
-												alignItems: "center",
-												cursor: "pointer",
-											}}>
-											<span
-												className={`codicon codicon-chevron-${!mcpArgumentsCollapsed ? "down" : "right"}`}
-												style={{ marginRight: "4px" }}></span>
-											<span
-												style={{
-													opacity: 0.8,
-													fontSize: "12px",
-													color: itemIconColor,
-												}}>
-												Arguments
-											</span>
-										</div>
-										{!mcpArgumentsCollapsed && (
-											<CodeAccordian
-												code={useMcpServer.arguments}
-												isExpanded={true}
-												language="json"
-												onToggleExpand={handleToggle}
-											/>
-										)}
-									</div>
 								)}
-							</>
-						)}
-					</div>
-				</>
+								{useMcpServer.type === "use_mcp_tool" && (
+									<>
+										<div style={{ color: normalColor }}>
+											<McpToolRow
+												collapseDescription={true}
+												serverName={useMcpServer.serverName}
+												tool={{
+													name: useMcpServer.toolName || "",
+													description:
+														server?.tools?.find((tool) => tool.name === useMcpServer.toolName)
+															?.description || "",
+													autoApprove:
+														server?.tools?.find((tool) => tool.name === useMcpServer.toolName)
+															?.autoApprove || false,
+												}}
+											/>
+										</div>
+
+										{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
+											<div style={{ padding: mcpSectionsPadding }}>
+												<div
+													onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														cursor: "pointer",
+													}}>
+													<span
+														className={`codicon codicon-chevron-${!mcpArgumentsCollapsed ? "down" : "right"}`}
+														style={{ marginRight: "4px", fontSize: "inherit" }}></span>
+													<span
+														style={{
+															fontSize: "0.85em",
+															textTransform: "uppercase",
+															color: secondaryColor,
+														}}>
+														Arguments
+													</span>
+												</div>
+												{!mcpArgumentsCollapsed && (
+													<div style={{ marginTop: "7px" }}>
+														<CodeAccordian
+															code={useMcpServer.arguments}
+															isExpanded={true}
+															language="json"
+															onToggleExpand={handleToggle}
+														/>
+													</div>
+												)}
+											</div>
+										)}
+									</>
+								)}
+							</ApprovalContainer>
+						</McpRow>
+					</SpacingRowContainer>
+				</PrimaryRowStyle>
 			)
 		}
 
@@ -967,248 +1451,277 @@ export const ChatRowContent = memo(
 				switch (message.say) {
 					case "api_req_started":
 						return (
-							<>
-								<div
-									onClick={handleToggle}
-									onMouseEnter={(e) => {
-										;(e.currentTarget as HTMLDivElement).style.opacity = "1"
-									}}
-									onMouseLeave={(e) => {
-										;(e.currentTarget as HTMLDivElement).style.opacity = isExpanded ? "1" : "0.5"
-									}}
-									style={{
-										...headerStyle,
-										marginBottom:
-											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : -6,
-										justifyContent: "space-between",
-										cursor: "pointer",
-										userSelect: "none",
-										WebkitUserSelect: "none",
-										MozUserSelect: "none",
-										msUserSelect: "none",
-										opacity: isExpanded ? 1 : 0.5,
-										transition: "all 0.3s",
-									}}>
-									<div
+							<RowVisibility visible={visible}>
+								<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+									<RowHeader
+										className={`group`}
+										onClick={handleToggle}
 										style={{
-											display: "flex",
-											alignItems: "center",
-											gap: "10px",
+											marginBottom:
+												(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage
+													? 10
+													: "",
+											justifyContent: "space-between",
+											cursor: "pointer",
+											userSelect: "none",
+											WebkitUserSelect: "none",
+											MozUserSelect: "none",
+											msUserSelect: "none",
 										}}>
-										{icon}
-										{title}
-										{/* Need to render this every time since it affects height of row by 2px */}
-										<VSCodeBadge
+										<div
 											style={{
-												opacity: cost != null && cost > 0 ? 1 : 0,
+												marginTop: 2,
+												marginBottom: 2,
+												display: "flex",
+												alignItems: "center",
+												gap: rowHeaderGap,
 											}}>
-											${Number(cost || 0)?.toFixed(4)}
-										</VSCodeBadge>
-									</div>
-									<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
-								</div>
-								{((cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage) && (
-									<ErrorRow
-										apiReqStreamingFailedMessage={apiReqStreamingFailedMessage}
-										apiRequestFailedMessage={apiRequestFailedMessage}
-										errorType="error"
-										message={message}
-									/>
-								)}
-
-								{isExpanded && (
-									<div style={{ marginTop: "10px" }}>
-										<CodeAccordian
-											code={JSON.parse(message.text || "{}").request}
-											isExpanded={true}
-											language="markdown"
-											onToggleExpand={handleToggle}
+											{icon}
+											{title}
+											{cost != null && cost > 0 && (
+												<span
+													style={{
+														position: "relative",
+														display: "flex",
+														alignItems: "center",
+														marginLeft: 5,
+														fontSize: primaryFontSize - 2,
+														border: "1px solid var(--vscode-editorGroup-border)",
+														padding: "0px 3px",
+														marginBottom: -1.5,
+														borderRadius: defaultBorderRadius,
+														fontFamily: "var(--vscode-editor-font-family)",
+														backgroundColor: "var(--vscode-editor-background)",
+														opacity: cost != null && cost >= 0 ? 1 : 0,
+													}}>
+													${Number(cost || 0)?.toFixed(4)}
+												</span>
+											)}
+											<span
+												className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+												style={{ fontSize: "inherit" }}></span>
+										</div>
+									</RowHeader>
+									{((cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage) && (
+										<ErrorRow
+											apiReqStreamingFailedMessage={apiReqStreamingFailedMessage}
+											apiRequestFailedMessage={apiRequestFailedMessage}
+											errorType="error"
+											message={message}
 										/>
-									</div>
-								)}
-							</>
+									)}
+									{isExpanded && (
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={JSON.parse(message.text || "{}").request}
+												isExpanded={isExpanded}
+												language="markdown"
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+											/>
+										</RowItemExpandable>
+									)}
+								</SecondaryRowStyle>
+							</RowVisibility>
 						)
 					case "api_req_finished":
 						return null // we should never see this message type
 					case "mcp_server_response":
-						return <McpResponseDisplay responseText={message.text || ""} />
+						return (
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<McpResponseRow isLast={isLast}>
+									<McpResponseDisplay responseText={message.text || ""} />
+								</McpResponseRow>
+							</PrimaryRowStyle>
+						)
 					case "mcp_notification":
 						return (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "flex-start",
-									gap: "8px",
-									padding: "8px 12px",
-									backgroundColor: "var(--vscode-textBlockQuote-background)",
-									borderRadius: "4px",
-									fontSize: "13px",
-									color: "var(--vscode-foreground)",
-									opacity: 0.9,
-									marginBottom: "8px",
-								}}>
-								<i
-									className="codicon codicon-bell"
-									style={{
-										marginTop: "2px",
-										fontSize: "14px",
-										color: "var(--vscode-notificationsInfoIcon-foreground)",
-										flexShrink: 0,
-									}}
-								/>
-								<div style={{ flex: 1, wordBreak: "break-word" }}>
-									<span style={{ fontWeight: 500 }}>MCP Notification: </span>
-									<span className="ph-no-capture">{message.text}</span>
-								</div>
-							</div>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader className="group" onClick={handleToggle} style={{ cursor: "pointer" }}>
+										<RowIcon isLast={isLast}>
+											<i
+												className="codicon codicon-bell"
+												style={{
+													fontSize: "inherit",
+													color: "var(--vscode-notificationsInfoIcon-foreground)",
+													flexShrink: 0,
+												}}
+											/>
+										</RowIcon>
+										<RowTitle isLast={isLast}>MCP Notification</RowTitle>
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}
+										/>
+									</RowHeader>
+									{isExpanded && (
+										<RowItemText
+											className="ph-no-capture"
+											isExpanded={isExpanded}
+											isLast={isLast}
+											onClick={() =>
+												setMaxLines((prev) =>
+													prev === responseTextLineClamp ? undefined : responseTextLineClamp,
+												)
+											}
+											style={{ cursor: "pointer" }}>
+											<Markdown customEllipsis={ellipsisText} markdown={message.text} maxLines={maxLines} />
+										</RowItemText>
+									)}
+								</HighlightRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "text":
 						return (
-							<div
-								// onMouseUp={handleMouseUp}
-								// position="bottom-right"
-								ref={contentRef}
-								style={{ position: "relative", marginBottom: 10 }}
-								// style={{ width: "95%" }}
-								// textToCopy={message.text}
-							>
-								<div
-									onClick={() => setTextResponseCollapsed(!textResponseCollapsed)}
-									style={{
-										display: "flex",
-										alignItems: "flex-start",
-										cursor: "pointer",
-									}}>
-									<div style={{ flex: 1 }}>
-										<Markdown
-											fontSize= "0.95em"
-											markdown={message.text}
-											maxLines={textResponseCollapsed ? 3 : undefined}
-											opacity={textResponseCollapsed ? 0.7 : undefined}
-										/>
-									</div>
-									<div style={{ display: "flex", alignItems: "flex-start" }}>
-										{textResponseCollapsed && (
-											<div
-												style={{
-													background: "var(--vscode-editor-background)",
-													padding: "8px 2px",
-													marginTop: "-4px",
-													borderRadius: "2px",
-													flexShrink: 0,
-													// opacity: 0.5,
-												}}>
-												<span className="codicon codicon-chevron-right" style={{ fontSize: "13px" }} />
-											</div>
-										)}
-										{!textResponseCollapsed && (
-											<div
-												style={{
-													background: "var(--vscode-editor-background)",
-													padding: "8px 2px",
-													marginTop: "-4px",
-													borderRadius: "2px",
-													flexShrink: 0,
-												}}>
-												<span className="codicon codicon-chevron-up" style={{ fontSize: "12px" }} />
-											</div>
-										)}
-									</div>
-								</div>
-								{quoteButtonState.visible && (
-									<QuoteButton
-										left={quoteButtonState.left}
-										onClick={() => {
-											handleQuoteClick()
-										}}
-										top={quoteButtonState.top}
-									/>
+							<>
+								{message.text && (
+									<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+										<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+											<RowHeader
+												className={`group`}
+												onClick={showTextResponseHeader ? handleToggle : undefined}
+												style={{ cursor: showTextResponseHeader ? "pointer" : "default" }}>
+												{isExpanded && showTextResponseHeader && (
+													<>
+														<HeroTooltip content={title}>{icon}</HeroTooltip>
+														{title}
+													</>
+												)}
+												{!isExpanded && <HeroTooltip content={title}>{icon}</HeroTooltip>}
+
+												{showTextResponseHeader && (isResponding || !isExpanded) && (
+													<RowItemText
+														className="ph-no-capture"
+														isExpanded={isExpanded}
+														isLast={isLast}
+														opacity={responseTextCollapsedOpacity}
+														style={{
+															whiteSpace: "nowrap",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															direction: "rtl",
+															textAlign: "left",
+															flex: 1,
+														}}>
+														{message.text + "\u200E"}
+													</RowItemText>
+												)}
+												{(showTextResponseHeader || !isExpanded) && (
+													<span
+														className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 30} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+														style={{ fontSize: "inherit" }}
+													/>
+												)}
+											</RowHeader>
+
+											{isExpanded && (
+												<RowItemText
+													className="ph-no-capture"
+													isExpanded={isExpanded}
+													isLast={isLast}
+													onClick={() =>
+														setMaxLines((prev) =>
+															prev === responseTextLineClamp ? undefined : responseTextLineClamp,
+														)
+													}
+													style={{ cursor: "pointer" }}>
+													<Markdown
+														customEllipsis={ellipsisText}
+														fontSize={responseTextFontSize}
+														markdown={message.text}
+														maxLines={maxLines}
+													/>
+												</RowItemText>
+											)}
+										</ResponseRowContainer>
+									</PrimaryRowStyle>
 								)}
-								{/* </WithCopyButton> */}
-							</div>
+							</>
 						)
 					case "reasoning":
 						return (
 							<>
 								{message.text && (
-									<div
-										onClick={handleToggle}
-										style={{
-											// marginBottom: 15,
-											cursor: "pointer",
-											color: "var(--vscode-descriptionForeground)",
-
-											// fontStyle: "italic",
-											overflow: "hidden",
-										}}>
-										{isExpanded ? (
-											<div style={{ marginTop: -3 }}>
-												<span style={{ fontWeight: "bold", display: "block", marginBottom: "4px" }}>
-													Thinking
-													<span
-														className="codicon codicon-chevron-down"
+									<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+										<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+											<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+												{rowIconVisible && icon}
+												{title}
+												{isReasoning && !isExpanded && (
+													<RowItemText
+														className={`ph-no-capture`}
+														isExpanded={isExpanded}
+														isLast={isLast}
+														opacity={rowItemBackgroundOpacity}
 														style={{
-															display: "inline-block",
-															transform: "translateY(3px)",
-															marginLeft: "1.5px",
-														}}
-													/>
-												</span>
-												<span className="ph-no-capture">{message.text}</span>
-											</div>
-										) : (
-											<div style={{ display: "flex", alignItems: "center" }}>
-												<span style={{ fontWeight: "bold", marginRight: "4px" }}>Thinking:</span>
+															whiteSpace: "nowrap",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															direction: "rtl",
+															textAlign: "left",
+															flex: 1,
+														}}>
+														{message.text + "\u200E"}
+													</RowItemText>
+												)}
 												<span
-													className="ph-no-capture"
-													style={{
-														whiteSpace: "nowrap",
-														overflow: "hidden",
-														textOverflow: "ellipsis",
-														direction: "rtl",
-														textAlign: "left",
-														flex: 1,
-													}}>
-													{message.text + "\u200E"}
-												</span>
-												<span
-													className="codicon codicon-chevron-right"
-													style={{
-														marginLeft: "4px",
-														flexShrink: 0,
-													}}
+													className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+													style={{ fontSize: "inherit" }}
 												/>
-											</div>
-										)}
-									</div>
+											</RowHeader>
+
+											{isExpanded && (
+												<RowItemText
+													className="ph-no-capture"
+													isExpanded={isExpanded}
+													isLast={isLast}
+													onClick={() =>
+														setMaxLines((prev) =>
+															prev === responseTextLineClamp ? undefined : responseTextLineClamp,
+														)
+													}
+													style={{ cursor: "pointer" }}>
+													<Markdown
+														customEllipsis={ellipsisText}
+														markdown={message.text}
+														maxLines={maxLines}
+													/>
+												</RowItemText>
+											)}
+										</ResponseRowContainer>
+									</SecondaryRowStyle>
 								)}
 							</>
 						)
 					case "user_feedback":
 						return (
-							<UserMessage
-								files={message.files}
-								images={message.images}
-								messageTs={message.ts}
-								sendMessageFromChatRow={sendMessageFromChatRow}
-								text={message.text}
-							/>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<UserMessage
+									files={message.files}
+									images={message.images}
+									messageTs={message.ts}
+									sendMessageFromChatRow={sendMessageFromChatRow}
+									text={message.text}
+								/>
+							</PrimaryRowStyle>
 						)
 					case "user_feedback_diff":
 						const tool = JSON.parse(message.text || "{}") as ClineSayTool
 						return (
-							<div
-								style={{
-									marginTop: -10,
-									width: "100%",
-								}}>
-								<CodeAccordian
-									diff={tool.diff!}
-									isExpanded={isExpanded}
-									isFeedback={true}
-									onToggleExpand={handleToggle}
-								/>
-							</div>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+										<CodeAccordian
+											diff={tool.diff!}
+											isExpanded={isExpanded}
+											isFeedback={true}
+											maxHeight={rowItemExpandedMaxHeight}
+											onToggleExpand={handleToggle}
+										/>
+									</RowItemExpandable>
+								</HighlightRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "error":
 						return <ErrorRow errorType="error" message={message} />
@@ -1220,102 +1733,82 @@ export const ChatRowContent = memo(
 						return <CheckmarkControl isCheckpointCheckedOut={message.isCheckpointCheckedOut} messageTs={message.ts} />
 					case "load_mcp_documentation":
 						return (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "center",
-									color: "var(--vscode-foreground)",
-									opacity: 0.7,
-									fontSize: 12,
-									padding: "4px 0",
-								}}>
-								<i className="codicon codicon-book" style={{ marginRight: 6 }} />
-								Loading MCP documentation
-							</div>
+							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{rowIconVisible && (
+										<RowIcon isLast={isLast}>
+											<i className="codicon codicon-book" style={{ fontSize: "inherit" }} />
+										</RowIcon>
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										Load MCP documentation
+									</RowTitle>
+								</RowHeader>
+							</SecondaryRowStyle>
 						)
 					case "get_mcp_tool_input_schema":
+						const toolName = message.text?.split("///")[0] || "tool"
+						const serverName = message.text?.split("///")[1] || "MCP Server"
 						return (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "center",
-									color: "var(--vscode-foreground)",
-									opacity: 0.7,
-									fontSize: 12,
-								}}>
-								<i className="codicon codicon-bracket-dot" style={{ marginRight: 6 }} />
-								{message.text}
-							</div>
+							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+								<RowHeader style={{ flexWrap: "nowrap" }}>
+									<RowIcon isLast={isLast}>
+										<i className="codicon codicon-bracket-dot" style={{ fontSize: "inherit" }} />
+									</RowIcon>
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										Read <code style={{ wordBreak: "break-word" }}>{toolName}</code> schema from{" "}
+										<code style={{ wordBreak: "break-word" }}>{serverName}</code>
+									</RowTitle>
+								</RowHeader>
+							</SecondaryRowStyle>
 						)
 					case "completion_result":
 						const hasChanges = message.text?.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
 						const text = hasChanges ? message.text?.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length) : message.text
 						return (
-							<>
-								<div
-									style={{
-										...headerStyle,
-										marginBottom: "10px",
-									}}>
-									{icon}
-									{title}
-									{/* <TaskFeedbackButtons
-										isFromHistory={
-											!isLast ||
-											lastModifiedMessage?.ask === "resume_completed_task" ||
-											lastModifiedMessage?.ask === "resume_task"
-										}
-										messageTs={message.ts}
-										style={{
-											marginLeft: "auto",
-										}}
-									/> */}
-								</div>
-								<WithCopyButton
-									onMouseUp={handleMouseUp}
-									position="bottom-right"
-									ref={contentRef}
-									style={{
-										color: "var(--vscode-charts-white)",
-										paddingTop: 10,
-									}}
-									textToCopy={text}>
-									<Markdown markdown={text} />
-									{quoteButtonState.visible && (
-										<QuoteButton
-											left={quoteButtonState.left}
-											onClick={handleQuoteClick}
-											top={quoteButtonState.top}
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<CompletionRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+										{rowIconVisible && icon}
+										{title}
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}
 										/>
+									</RowHeader>
+									{isExpanded && (
+										<CompletionRow className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
+											<Markdown markdown={text} />
+										</CompletionRow>
 									)}
-								</WithCopyButton>
-								{message.partial !== true && hasChanges && (
-									<div style={{ paddingTop: 17 }}>
-										<SuccessButton
-											disabled={seeNewChangesDisabled}
-											onClick={() => {
-												setSeeNewChangesDisabled(true)
-												TaskServiceClient.taskCompletionViewChanges(
-													Int64Request.create({
-														value: message.ts,
-													}),
-												).catch((err) =>
-													console.error("Failed to show task completion view changes:", err),
-												)
-											}}
-											style={{
-												cursor: seeNewChangesDisabled ? "wait" : "pointer",
-												marginLeft: "2px",
-												marginRight: "2px",
-												display: "block",
-												textAlign: "center",
-											}}>
-											<i className="codicon codicon-new-file" style={{ marginRight: 6 }} />
-											See new changes
-										</SuccessButton>
-									</div>
-								)}
-							</>
+									{message.partial === false && hasChanges && (
+										<div style={{ paddingTop: 10, paddingBottom: 10 }}>
+											<SuccessButton
+												disabled={seeNewChangesDisabled}
+												onClick={() => {
+													setSeeNewChangesDisabled(true)
+													TaskServiceClient.taskCompletionViewChanges(
+														Int64Request.create({
+															value: message.ts,
+														}),
+													).catch((err) =>
+														console.error("Failed to show task completion view changes:", err),
+													)
+												}}
+												style={{
+													cursor: seeNewChangesDisabled ? "wait" : "pointer",
+													marginLeft: "2px",
+													marginRight: "2px",
+													display: "block",
+													textAlign: "center",
+												}}>
+												<i className="codicon codicon-diff-single" style={{ marginRight: 6 }} />
+												See new changes
+											</SuccessButton>
+										</div>
+									)}
+								</CompletionRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "shell_integration_warning":
 						return (
@@ -1369,17 +1862,19 @@ export const ChatRowContent = memo(
 						return null // task_progress messages should be displayed in TaskHeader only, not in chat
 					default:
 						return (
-							<>
-								{title && (
-									<div style={headerStyle}>
-										{icon}
-										{title}
-									</div>
-								)}
-								<div style={{ paddingTop: 10 }}>
-									<Markdown markdown={message.text} />
-								</div>
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+									{title && (
+										<RowHeader>
+											{rowIconVisible && icon}
+											{title}
+										</RowHeader>
+									)}
+									<RowItemText isExpanded={true} isLast={isLast}>
+										<Markdown markdown={message.text} />
+									</RowItemText>
+								</ResponseRowContainer>
+							</PrimaryRowStyle>
 						)
 				}
 			case "ask":
@@ -1390,74 +1885,54 @@ export const ChatRowContent = memo(
 						return <ErrorRow errorType="auto_approval_max_req_reached" message={message} />
 					case "completion_result":
 						if (message.text) {
-							const hasChanges = message.text.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
-							const text = hasChanges ? message.text.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length) : message.text
+							const hasChanges = message.text?.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
+							const text = hasChanges
+								? message.text?.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length)
+								: message.text
 							return (
-								<div>
-									<div
-										style={{
-											...headerStyle,
-											marginBottom: "10px",
-										}}>
-										{icon}
-										{title}
-										<TaskFeedbackButtons
-											isFromHistory={
-												!isLast ||
-												lastModifiedMessage?.ask === "resume_completed_task" ||
-												lastModifiedMessage?.ask === "resume_task"
-											}
-											messageTs={message.ts}
-											style={{
-												marginLeft: "auto",
-											}}
-										/>
-									</div>
-									<WithCopyButton
-										onMouseUp={handleMouseUp}
-										position="bottom-right"
-										ref={contentRef}
-										style={{
-											color: "var(--vscode-charts-green)",
-											paddingTop: 10,
-										}}
-										textToCopy={text}>
-										<Markdown markdown={text} />
-										{quoteButtonState.visible && (
-											<QuoteButton
-												left={quoteButtonState.left}
-												onClick={handleQuoteClick}
-												top={quoteButtonState.top}
+								<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+									<CompletionRowContainer isExpanded={isExpanded} isLast={isLast}>
+										<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+											{rowIconVisible && icon}
+											{title}
+											<span
+												className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+												style={{ fontSize: "inherit" }}
 											/>
+										</RowHeader>
+										{isExpanded && (
+											<CompletionRow className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
+												<Markdown markdown={text} />
+											</CompletionRow>
 										)}
-									</WithCopyButton>
-									{message.partial !== true && hasChanges && (
-										<div style={{ marginTop: 15 }}>
-											<SuccessButton
-												appearance="icon"
-												disabled={seeNewChangesDisabled}
-												onClick={() => {
-													setSeeNewChangesDisabled(true)
-													TaskServiceClient.taskCompletionViewChanges(
-														Int64Request.create({
-															value: message.ts,
-														}),
-													).catch((err) =>
-														console.error("Failed to show task completion view changes:", err),
-													)
-												}}>
-												<i
-													className="codicon codicon-new-file"
-													style={{
-														marginRight: 6,
-														cursor: seeNewChangesDisabled ? "wait" : "pointer",
+										{message.partial === false && hasChanges && (
+											<div style={{ paddingTop: 10, paddingBottom: 10 }}>
+												<SuccessButton
+													disabled={seeNewChangesDisabled}
+													onClick={() => {
+														setSeeNewChangesDisabled(true)
+														TaskServiceClient.taskCompletionViewChanges(
+															Int64Request.create({
+																value: message.ts,
+															}),
+														).catch((err) =>
+															console.error("Failed to show task completion view changes:", err),
+														)
 													}}
-												/>
-												See new changes
-											</SuccessButton>
-										</div>
-									)}
-								</div>
+													style={{
+														cursor: seeNewChangesDisabled ? "wait" : "pointer",
+														marginLeft: "2px",
+														marginRight: "2px",
+														display: "block",
+														textAlign: "center",
+													}}>
+													<i className="codicon codicon-diff-single" style={{ marginRight: 6 }} />
+													See new changes
+												</SuccessButton>
+											</div>
+										)}
+									</CompletionRowContainer>
+								</PrimaryRowStyle>
 							)
 						} else {
 							return null // Don't render anything when we get a completion_result ask without text
@@ -1477,91 +1952,83 @@ export const ChatRowContent = memo(
 						}
 
 						return (
-							<>
-								{title && (
-									<div style={headerStyle}>
-										{icon}
-										{title}
-									</div>
-								)}
-								<WithCopyButton
-									onMouseUp={handleMouseUp}
-									position="bottom-right"
-									ref={contentRef}
-									style={{ paddingTop: 10 }}
-									textToCopy={question}>
-									<Markdown markdown={question} />
-									<OptionsButtons
-										inputValue={inputValue}
-										isActive={
-											(isLast && lastModifiedMessage?.ask === "followup") ||
-											(!selected && options && options.length > 0)
-										}
-										options={options}
-										selected={selected}
-									/>
-									{quoteButtonState.visible && (
-										<QuoteButton
-											left={quoteButtonState.left}
-											onClick={() => {
-												handleQuoteClick()
-											}}
-											top={quoteButtonState.top}
-										/>
-									)}
-								</WithCopyButton>
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && icon}
+										<RowTitle isLast={isLast}>{title}</RowTitle>
+									</RowHeader>
+									<span>
+										<RowItemText isExpanded={true} isLast={isLast}>
+											<Markdown markdown={question} />
+										</RowItemText>
+										<OptionsRow isLast={isLast}>
+											<OptionsButtons
+												inputValue={inputValue}
+												isActive={isLast && !selected && options && options.length > 0}
+												options={options}
+												selected={selected}
+											/>
+										</OptionsRow>
+									</span>
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "new_task":
 						return (
-							<>
-								<div style={headerStyle}>
-									<span
-										className="codicon codicon-diff-added"
-										style={{
-											color: normalColor,
-											marginBottom: "-1.5px",
-										}}></span>
-									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										Start a new task:
-									</span>
-								</div>
-								<NewTaskPreview context={message.text || ""} />
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												<span className="codicon codicon-add" style={{ fontSize: "inherit" }} />
+											</RowIcon>
+										)}
+										<RowTitle isLast={isLast}>Start a new task:</RowTitle>
+									</RowHeader>
+									<RowItemText isExpanded={true} isLast={isLast}>
+										<NewTaskPreview context={message.text || ""} />
+									</RowItemText>
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "condense":
 						return (
-							<>
-								<div style={headerStyle}>
-									<span
-										className="codicon codicon-fold-down"
-										style={{
-											color: normalColor,
-											marginBottom: "-1.5px",
-										}}></span>
-									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										Compact task:
-									</span>
-								</div>
-								<NewTaskPreview context={message.text || ""} />
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && (
+											<RowIcon
+												className="codicon codicon-fold-down"
+												isLast={isLast}
+												style={{ fontSize: "inherit" }}></RowIcon>
+										)}
+										<RowTitle isLast={isLast} style={{ color: normalColor, fontWeight: "bold" }}>
+											Compact task:
+										</RowTitle>
+									</RowHeader>
+									<RowItemText isExpanded={true} isLast={isLast}>
+										<NewTaskPreview context={message.text || ""} />
+									</RowItemText>
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "report_bug":
 						return (
-							<>
-								<div style={headerStyle}>
-									<span
-										className="codicon codicon-new-file"
-										style={{
-											color: normalColor,
-											marginBottom: "-1.5px",
-										}}></span>
-									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										Create a Github issue:
-									</span>
-								</div>
-								<ReportBugPreview data={message.text || ""} />
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && (
+											<RowIcon
+												className="codicon codicon-new-file"
+												isLast={isLast}
+												style={{ fontSize: "inherit" }}></RowIcon>
+										)}
+										<RowTitle isLast={isLast}>Create a Github issue:</RowTitle>
+									</RowHeader>
+									<ReportBugPreview data={message.text || ""} />
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "plan_mode_respond": {
 						let response: string | undefined
@@ -1577,31 +2044,64 @@ export const ChatRowContent = memo(
 							response = message.text
 						}
 						return (
-							<WithCopyButton
-								onMouseUp={handleMouseUp}
-								position="bottom-right"
-								ref={contentRef}
-								textToCopy={response}>
-								<Markdown markdown={response} />
-								<OptionsButtons
-									inputValue={inputValue}
-									isActive={
-										(isLast && lastModifiedMessage?.ask === "plan_mode_respond") ||
-										(!selected && options && options.length > 0)
-									}
-									options={options}
-									selected={selected}
-								/>
-								{quoteButtonState.visible && (
-									<QuoteButton
-										left={quoteButtonState.left}
-										onClick={() => {
-											handleQuoteClick()
-										}}
-										top={quoteButtonState.top}
-									/>
-								)}
-							</WithCopyButton>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+										{rowIconVisible && icon}
+										{title}
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}
+										/>
+									</RowHeader>
+									{isExpanded && (
+										<RowItemText
+											className={`ph-no-capture`}
+											isExpanded={isExpanded}
+											isLast={isLast}
+											// onClick={() => {
+											// 	setMaxLines((prev) =>
+											// 		prev === responseTextLineClamp ? undefined : responseTextLineClamp,
+											// 	)
+											// }}
+											// style={{ cursor: "pointer" }}
+										>
+											<WithCopyButton
+												onMouseUp={(e) => {
+													handleMouseUp(e)
+													e.stopPropagation()
+												}}
+												position="top-right"
+												ref={contentRef}
+												textToCopy={response}>
+												<Markdown
+													// customEllipsis={ellipsisText}
+													markdown={response}
+													// maxLines={isLast ? undefined : maxLines}
+												/>
+												<OptionsButtons
+													inputValue={inputValue}
+													isActive={
+														(isLast && lastModifiedMessage?.ask === "plan_mode_respond") ||
+														(!selected && options && options.length > 0)
+													}
+													options={options}
+													selected={selected}
+												/>
+												{quoteButtonState.visible && (
+													<QuoteButton
+														left={quoteButtonState.left}
+														onClick={() => {
+															handleQuoteClick()
+														}}
+														top={quoteButtonState.top}
+													/>
+												)}
+											</WithCopyButton>
+										</RowItemText>
+									)}
+								</ResponseRowContainer>
+							</PrimaryRowStyle>
 						)
 					}
 					default:

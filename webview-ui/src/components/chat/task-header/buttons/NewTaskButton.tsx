@@ -7,11 +7,11 @@ const NewTaskButton: React.FC<{
 	className?: string
 }> = ({ className, onClick }) => {
 	return (
-		<HeroTooltip content="Close current task to start new one" delay={1000} placement="bottom">
+		<HeroTooltip content="Close task" delay={1000} placement="bottom">
 			<button
 				aria-label="Start a New Task"
 				className={cn(
-					"flex items-center border-0 text-sm font-bold bg-transparent opacity-70 hover:opacity-100",
+					"flex ml-1 items-center border-0 text-sm font-bold bg-transparent opacity-70 hover:opacity-100",
 					className,
 					"hover:bg-muted/10 px-0 cursor-pointer",
 				)}
@@ -21,7 +21,7 @@ const NewTaskButton: React.FC<{
 					onClick()
 				}}
 				type="button">
-				<XIcon size="14" />
+				<XIcon size="16" />
 			</button>
 		</HeroTooltip>
 	)

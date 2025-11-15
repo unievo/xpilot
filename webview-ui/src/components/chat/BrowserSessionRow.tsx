@@ -1,3 +1,4 @@
+import { defaultBorderRadius, rowIconVisible, secondaryFontSize, toolBorder } from "@components/config"
 import { BROWSER_VIEWPORT_PRESETS } from "@shared/BrowserSettings"
 import { BrowserAction, BrowserActionResult, ClineMessage, ClineSayBrowserAction } from "@shared/ExtensionMessage"
 import { StringRequest } from "@shared/proto/cline/common"
@@ -12,7 +13,8 @@ import { CheckpointControls } from "@/components/common/CheckpointControls"
 import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient } from "@/services/grpc-client"
-import { agentName } from "../../../../src/shared/Configuration"
+import ApprovalContainer from "./ApprovalContainer"
+import { PrimaryRowStyle, RowHeader, RowIcon, RowItemExpandable, RowTitle } from "./ChatRowStyles"
 
 interface BrowserSessionRowProps {
 	messages: ClineMessage[]
@@ -24,17 +26,17 @@ interface BrowserSessionRowProps {
 	onSetQuote: (text: string) => void
 }
 
-const browserSessionRowContainerInnerStyle: CSSProperties = {
-	display: "flex",
-	alignItems: "center",
-	gap: "10px",
-	marginBottom: "10px",
-}
-const browserIconStyle: CSSProperties = {
-	color: "var(--vscode-foreground)",
-	marginBottom: "-1.5px",
-}
-const approveTextStyle: CSSProperties = { fontWeight: "bold" }
+// const browserSessionRowContainerInnerStyle: CSSProperties = {
+// 	display: "flex",
+// 	alignItems: "center",
+// 	gap: chatRowHeaderGap,
+// 	marginBottom: rowItemMultilineMargin,
+// }
+// const browserIconStyle: CSSProperties = {
+// 	color: "var(--vscode-foreground)",
+// 	marginBottom: "-1.5px",
+// }
+// const approveTextStyle: CSSProperties = { fontWeight: "bold" }
 const urlBarContainerStyle: CSSProperties = {
 	margin: "5px auto",
 	width: "calc(100% - 10px)",
@@ -88,22 +90,22 @@ const codeBlockContainerStyle: CSSProperties = {
 }
 const browserActionBoxContainerStyle: CSSProperties = { padding: "10px 0 0 0" }
 const browserActionBoxContainerInnerStyle: CSSProperties = {
-	borderRadius: 3,
+	borderRadius: defaultBorderRadius,
 	backgroundColor: CODE_BLOCK_BG_COLOR,
 	overflow: "hidden",
-	border: "1px solid var(--vscode-editorGroup-border)",
+	border: toolBorder,
 }
 const browseActionRowContainerStyle: CSSProperties = {
 	display: "flex",
 	alignItems: "center",
-	padding: "9px 10px",
+	padding: "4px 8px",
 }
 const browseActionRowStyle: CSSProperties = {
 	whiteSpace: "normal",
 	wordBreak: "break-word",
 }
-const browseActionTextStyle: CSSProperties = { fontWeight: 500 }
-const chatRowContentContainerStyle: CSSProperties = { padding: "10px 0 10px 0" }
+const browseActionTextStyle: CSSProperties = { fontSize: secondaryFontSize }
+const chatRowContentContainerStyle: CSSProperties = { padding: "2px 0" }
 const headerStyle: CSSProperties = {
 	display: "flex",
 	alignItems: "center",
@@ -117,6 +119,9 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	const prevHeightRef = useRef(0)
 	const [maxActionHeight, setMaxActionHeight] = useState(0)
 	const [consoleLogsExpanded, setConsoleLogsExpanded] = useState(false)
+
+	// Get auto approval settings from context
+	const { autoApprovalSettings } = useExtensionState()
 
 	const isLastApiReqInterrupted = useMemo(() => {
 		// Check if last api_req_started is cancelled
@@ -353,135 +358,154 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	}, [messages])
 
 	// Calculate maxWidth
-	const maxWidth = browserSettings.viewport.width < BROWSER_VIEWPORT_PRESETS["Small Desktop (900x600)"].width ? 200 : undefined
+	const maxWidth = browserSettings.viewport.width < BROWSER_VIEWPORT_PRESETS["Small Desktop (900x600)"].width ? 200 : 400 //undefined
 
 	const [browserSessionRow, { height }] = useSize(
 		// We don't declare a constant for the inline style here because `useSize` will try to modify the style object
 		// Which will cause `Uncaught TypeError: Cannot assign to read only property 'position' of object '#<Object>'`
-		<BrowserSessionRowContainer style={{ marginBottom: -10 }}>
-			<div style={browserSessionRowContainerInnerStyle}>
-				{isBrowsing && !isLastMessageResume ? (
-					<ProgressIndicator />
-				) : (
-					<span className="codicon codicon-inspect" style={browserIconStyle}></span>
-				)}
-				<span style={approveTextStyle}>
-					{isAutoApproved ? `${agentName} is using the browser:` : `${agentName} wants to use the browser:`}
-				</span>
-			</div>
-			<div
-				style={{
-					borderRadius: 3,
-					border: "1px solid var(--vscode-editorGroup-border)",
-					// overflow: "hidden",
-					backgroundColor: CODE_BLOCK_BG_COLOR,
-					// marginBottom: 10,
-					maxWidth,
-					margin: "0 auto 10px auto", // Center the container
-				}}>
-				{/* URL Bar */}
-				<div style={urlBarContainerStyle}>
-					<div
-						style={{
-							flex: 1,
-							backgroundColor: "var(--vscode-input-background)",
-							border: "1px solid var(--vscode-input-border)",
-							borderRadius: "4px",
-							padding: "3px 5px",
-							minWidth: 0,
-							color: displayState.url ? "var(--vscode-input-foreground)" : "var(--vscode-descriptionForeground)",
-							fontSize: "12px",
-						}}>
-						<div style={urlTextStyle}>{displayState.url || "http"}</div>
-					</div>
-					<BrowserSettingsMenu />
-				</div>
-
-				{/* Screenshot Area */}
-				<div
-					style={{
-						width: "100%",
-						paddingBottom: `${(browserSettings.viewport.height / browserSettings.viewport.width) * 100}%`,
-						position: "relative",
-						backgroundColor: "var(--vscode-input-background)",
-					}}>
-					{displayState.screenshot ? (
-						<img
-							alt="Browser screenshot"
-							onClick={() =>
-								FileServiceClient.openImage(StringRequest.create({ value: displayState.screenshot })).catch(
-									(err) => console.error("Failed to open image:", err),
-								)
-							}
-							src={displayState.screenshot}
-							style={imgScreenshotStyle}
-						/>
+		<PrimaryRowStyle isLast={isLast}>
+			<BrowserSessionRowContainer style={{ marginBottom: -10 }}>
+				<RowHeader>
+					{isBrowsing && !isLastMessageResume ? (
+						<ProgressIndicator />
 					) : (
-						<div style={noScreenshotContainerStyle}>
-							<span className="codicon codicon-globe" style={noScreenshotIconStyle} />
+						rowIconVisible && (
+							<RowIcon isLast={isLast}>
+								<span className="codicon codicon-inspect" style={{ fontSize: "inherit" }}></span>
+							</RowIcon>
+						)
+					)}
+					<RowTitle isLast={isLast}>Browser use:</RowTitle>
+				</RowHeader>
+
+				<RowItemExpandable
+					isExpanded={true}
+					isLast={isLast}
+					linkOnHover={false}
+					style={{
+						border: toolBorder,
+						// overflow: "hidden",
+						// backgroundColor: CODE_BLOCK_BG_COLOR,
+						// marginBottom: 10,
+						maxWidth: maxWidth,
+						margin: "10px auto", // Center the container
+					}}>
+					<ApprovalContainer
+						approvalRequested={false}
+						autoApproveSetting={autoApprovalSettings.actions.useBrowser}
+						isExecuting={isBrowsing}
+						isLastProcessing={isLast}>
+						{/* URL Bar */}
+						<div style={urlBarContainerStyle}>
+							<div
+								style={{
+									flex: 1,
+									backgroundColor: "var(--vscode-input-background)",
+									border: "1px solid var(--vscode-input-border)",
+									borderRadius: "4px",
+									padding: "3px 5px",
+									minWidth: 0,
+									color: displayState.url
+										? "var(--vscode-input-foreground)"
+										: "var(--vscode-descriptionForeground)",
+									fontSize: secondaryFontSize - 1,
+								}}>
+								<div style={urlTextStyle}>{displayState.url || "http"}</div>
+							</div>
+							<BrowserSettingsMenu />
 						</div>
-					)}
-					{displayState.mousePosition && (
-						<BrowserCursor
+
+						{/* Screenshot Area */}
+						<div
 							style={{
-								position: "absolute",
-								top: `${(parseInt(mousePosition.split(",")[1], 10) / browserSettings.viewport.height) * 100}%`,
-								left: `${(parseInt(mousePosition.split(",")[0], 10) / browserSettings.viewport.width) * 100}%`,
-								transition: "top 0.3s ease-out, left 0.3s ease-out",
-							}}
-						/>
-					)}
-				</div>
+								width: "100%",
+								paddingBottom: `${(browserSettings.viewport.height / browserSettings.viewport.width) * 100}%`,
+								position: "relative",
+								backgroundColor: "var(--vscode-input-background)",
+							}}>
+							{displayState.screenshot ? (
+								<img
+									alt="Browser screenshot"
+									onClick={() =>
+										FileServiceClient.openImage(
+											StringRequest.create({ value: displayState.screenshot }),
+										).catch((err) => console.error("Failed to open image:", err))
+									}
+									src={displayState.screenshot}
+									style={imgScreenshotStyle}
+								/>
+							) : (
+								<div style={noScreenshotContainerStyle}>
+									<span className="codicon codicon-globe" style={noScreenshotIconStyle} />
+								</div>
+							)}
+							{displayState.mousePosition && (
+								<BrowserCursor
+									style={{
+										position: "absolute",
+										top: `${(parseInt(mousePosition.split(",")[1], 10) / browserSettings.viewport.height) * 100}%`,
+										left: `${(parseInt(mousePosition.split(",")[0], 10) / browserSettings.viewport.width) * 100}%`,
+										transition: "top 0.3s ease-out, left 0.3s ease-out",
+									}}
+								/>
+							)}
+						</div>
 
-				<div style={consoleLogsContainerStyle}>
-					<div
-						onClick={() => {
-							setConsoleLogsExpanded(!consoleLogsExpanded)
-						}}
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: "4px",
-							// width: "100%",
-							justifyContent: "flex-start",
-							cursor: "pointer",
-							padding: `9px 8px ${consoleLogsExpanded ? 0 : 8}px 8px`,
-						}}>
-						<span className={`codicon codicon-chevron-${consoleLogsExpanded ? "down" : "right"}`}></span>
-						<span style={consoleLogsTextStyle}>Console Logs</span>
+						<div style={consoleLogsContainerStyle}>
+							<div
+								onClick={() => {
+									setConsoleLogsExpanded(!consoleLogsExpanded)
+								}}
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "4px",
+									// width: "100%",
+									justifyContent: "flex-start",
+									cursor: "pointer",
+									padding: `9px 8px ${consoleLogsExpanded ? 6 : 4}px 8px`,
+								}}>
+								<span
+									className={`codicon codicon-chevron-${consoleLogsExpanded ? "down" : "right"}`}
+									style={{ fontSize: "inherit" }}></span>
+								<span style={consoleLogsTextStyle}>Console Logs</span>
+							</div>
+							{consoleLogsExpanded && (
+								<CodeBlock source={`${"```"}shell\n${displayState.consoleLogs || "(No new logs)"}\n${"```"}`} />
+							)}
+						</div>
+					</ApprovalContainer>
+				</RowItemExpandable>
+
+				{/* Action content with min height */}
+				<div style={{ minHeight: maxActionHeight - 20 }}>{actionContent}</div>
+
+				{/* Pagination moved to bottom */}
+				{pages.length > 1 && (
+					<div style={paginationContainerStyle}>
+						<div>
+							Step {currentPageIndex + 1} of {pages.length}
+						</div>
+						<div style={paginationButtonGroupStyle}>
+							<VSCodeButton
+								appearance="icon"
+								disabled={currentPageIndex === 0 || isBrowsing}
+								onClick={() => setCurrentPageIndex((i) => i - 1)}>
+								Previous
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="icon"
+								disabled={currentPageIndex === pages.length - 1 || isBrowsing}
+								onClick={() => setCurrentPageIndex((i) => i + 1)}>
+								Next
+							</VSCodeButton>
+						</div>
 					</div>
-					{consoleLogsExpanded && (
-						<CodeBlock source={`${"```"}shell\n${displayState.consoleLogs || "(No new logs)"}\n${"```"}`} />
-					)}
-				</div>
-			</div>
+				)}
 
-			{/* Action content with min height */}
-			<div style={{ minHeight: maxActionHeight }}>{actionContent}</div>
-
-			{/* Pagination moved to bottom */}
-			{pages.length > 1 && (
-				<div style={paginationContainerStyle}>
-					<div>
-						Step {currentPageIndex + 1} of {pages.length}
-					</div>
-					<div style={paginationButtonGroupStyle}>
-						<VSCodeButton
-							disabled={currentPageIndex === 0 || isBrowsing}
-							onClick={() => setCurrentPageIndex((i) => i - 1)}>
-							Previous
-						</VSCodeButton>
-						<VSCodeButton
-							disabled={currentPageIndex === pages.length - 1 || isBrowsing}
-							onClick={() => setCurrentPageIndex((i) => i + 1)}>
-							Next
-						</VSCodeButton>
-					</div>
-				</div>
-			)}
-
-			{/* {shouldShowCheckpoints && <CheckpointOverlay messageTs={lastCheckpointMessageTs} />} */}
-		</BrowserSessionRowContainer>,
+				{/* {shouldShowCheckpoints && <CheckpointOverlay messageTs={lastCheckpointMessageTs} />} */}
+			</BrowserSessionRowContainer>
+		</PrimaryRowStyle>,
 	)
 
 	// Height change effect

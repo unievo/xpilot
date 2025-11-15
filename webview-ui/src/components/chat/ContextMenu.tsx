@@ -1,7 +1,15 @@
+import {
+	chatInputSectionBorder,
+	iconHighlightColor,
+	isHighContrastTheme,
+	menuBackground,
+	menuFontSize,
+	menuTopBorder,
+	primaryFontSize,
+} from "@components/config"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { cleanPathPrefix } from "@/components/common/CodeAccordian"
 import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
-import { chatTextAreaBackground, itemIconColor } from "../theme"
 
 interface ContextMenuProps {
 	onSelect: (type: ContextMenuOptionType, value?: string) => void
@@ -87,7 +95,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.Terminal:
 				return <span>Terminal</span>
 			case ContextMenuOptionType.URL:
-				return <span>Paste URL for web content</span>
+				return <span>Paste URL to fetch content</span>
 			case ContextMenuOptionType.NoResults:
 				return <span>No results found</span>
 			case ContextMenuOptionType.Git:
@@ -100,7 +108,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<span
 								className="ph-no-capture"
 								style={{
-									fontSize: "11px",
+									fontSize: primaryFontSize - 1,
 									opacity: 0.7,
 									whiteSpace: "nowrap",
 									overflow: "hidden",
@@ -153,7 +161,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.URL:
 				return "link"
 			case ContextMenuOptionType.Git:
-				return "git-merge"
+				return "git-commit"
 			case ContextMenuOptionType.NoResults:
 				return "info"
 			default:
@@ -169,20 +177,21 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 		<div
 			onMouseDown={onMouseDown}
 			style={{
-				fontSize: "12px",
+				fontSize: menuFontSize,
 				position: "absolute",
 				bottom: "calc(100% - 7px)",
-				left: 7,
-				right: 7,
+				left: 0,
+				right: 0,
 				overflowX: "hidden",
 				zIndex: 1001,
 			}}>
 			<div
-				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				className="mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
 				style={{
-					backgroundColor: chatTextAreaBackground,
-					// border: "1px solid var(--vscode-editorGroup-border)",
+					backgroundColor: menuBackground,
+					border: chatInputSectionBorder,
+					borderTop: menuTopBorder,
 					// borderRadius: "6px",
 					// boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
 					// zIndex: 1000,
@@ -213,14 +222,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						style={{
 							padding: "4px 3px",
 							cursor: isOptionSelectable(option) ? "pointer" : "default",
-							border:
-								index === selectedIndex && isOptionSelectable(option)
-									? "1px solid var(--vscode-textBlockQuote-border)"
-									: "1px solid transparent",
-							borderRadius: 4,
+							borderRadius: 6,
+							textDecoration:
+								index === selectedIndex && isOptionSelectable(option) && isHighContrastTheme() ? "underline" : "",
 							color:
 								index === selectedIndex && isOptionSelectable(option)
-									? "var(--vscode-editor-foreground)"
+									? isHighContrastTheme()
+										? "var(--vscode-sash-hoverBorder)"
+										: "var(--vscode-quickInputList-focusForeground)"
 									: "",
 							// borderBottom: "1px solid var(--vscode-editorGroup-border)",
 							display: "flex",
@@ -228,7 +237,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							justifyContent: "space-between",
 							backgroundColor:
 								index === selectedIndex && isOptionSelectable(option)
-									? "var(--vscode-list-hoverBackground)"
+									? "var(--vscode-quickInputList-focusBackground)"
 									: "",
 						}}>
 						<div
@@ -242,7 +251,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<i
 								className={`codicon codicon-${getIconForOption(option)}`}
 								style={{
-									color: itemIconColor,
+									color: iconHighlightColor,
 									marginRight: "5px",
 									flexShrink: 0,
 									fontSize: "13px",
@@ -258,7 +267,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 									className="codicon codicon-chevron-right"
 									style={{
 										opacity: 0.5,
-										fontSize: "12px",
+										fontSize: menuFontSize,
 										flexShrink: 0,
 										marginLeft: 8,
 									}}
@@ -274,7 +283,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 								className="codicon codicon-add"
 								style={{
 									opacity: 0.5,
-									fontSize: "12px",
+									fontSize: menuFontSize,
 									flexShrink: 0,
 									marginLeft: 8,
 								}}

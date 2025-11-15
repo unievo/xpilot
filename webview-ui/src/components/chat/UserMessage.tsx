@@ -1,3 +1,4 @@
+import { defaultBorderRadius, userMessagePadding } from "@components/config"
 import { CheckpointRestoreRequest } from "@shared/proto/cline/checkpoints"
 import { ClineCheckpointRestore } from "@shared/WebviewMessage"
 import React, { forwardRef, useRef, useState } from "react"
@@ -5,6 +6,7 @@ import DynamicTextArea from "react-textarea-autosize"
 import Thumbnails from "@/components/common/Thumbnails"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { CheckpointsServiceClient } from "@/services/grpc-client"
+import { UserMessageContainer } from "./ChatRowStyles"
 import { highlightText } from "./task-header/Highlights"
 
 interface UserMessageProps {
@@ -86,14 +88,10 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 	}
 
 	return (
-		<div
+		<UserMessageContainer
+			isEditing={isEditing}
 			onClick={handleClick}
 			style={{
-				backgroundColor: isEditing ? "unset" : "var(--vscode-input-background)",
-				// color: "var(--vscode-badge-foreground)",
-				borderRadius: "5px",
-				padding: "15px",
-				marginTop: "10px",
 				whiteSpace: "pre-line",
 				wordWrap: "break-word",
 				cursor: isEditing ? "default" : "pointer",
@@ -108,14 +106,14 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 						ref={textAreaRef}
 						style={{
 							width: "99%",
-							marginLeft: "-15px",
-							marginTop: "-15px",
+							marginLeft: "-10px",
+							marginTop: "-10px",
 							backgroundColor: "var(--vscode-input-background)",
 							color: "var(--vscode-input-foreground)",
 							borderColor: "var(--vscode-input-border)",
 							border: "1px solid",
-							borderRadius: "5px",
-							padding: "15px",
+							borderRadius: defaultBorderRadius,
+							padding: userMessagePadding,
 							fontFamily: "inherit",
 							fontSize: "inherit",
 							lineHeight: "inherit",
@@ -163,7 +161,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 			{((images && images.length > 0) || (files && files.length > 0)) && (
 				<Thumbnails files={files ?? []} images={images ?? []} style={{ marginTop: "8px" }} />
 			)}
-		</div>
+		</UserMessageContainer>
 	)
 }
 

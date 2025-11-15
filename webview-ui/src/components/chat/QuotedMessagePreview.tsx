@@ -1,10 +1,10 @@
+import { chatInputSectionBackground, chatInputSectionQuoteBackground } from "@components/config"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React from "react"
 import styled from "styled-components"
-import { chatTextAreaBackground, chatTextAreaQuoteBackground } from "../theme"
 
 const PreviewContainer = styled.div`
-	background-color: ${chatTextAreaBackground}; /* Outer box matches text area */
+	background-color: ${chatInputSectionBackground}; /* Outer box matches text area */
 	/* border-left: 3px solid var(--vscode-textBlockQuote-border); */ /* Remove left border */
 	/* border-top: 1px solid var(--vscode-editorGroup-border); */ /* Remove top border */
 	padding: 4px 10px 4px 10px; /* Removed bottom padding */
@@ -19,7 +19,7 @@ const PreviewContainer = styled.div`
 
 const ContentRow = styled.div`
 	/* Mix outer background with white to ensure a much lighter inner box */
-	background-color: ${chatTextAreaQuoteBackground};
+	background-color: ${chatInputSectionQuoteBackground};
 	border-radius: 7px 7px 7px 7px; /* Round top corners, square bottom corners */
 	padding: 8px 10px 8px 8px; /* Reduced left padding */
 	margin-bottom: 7px;

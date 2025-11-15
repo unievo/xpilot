@@ -92,9 +92,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 			onClick={() => !isExpanded && setIsExpanded(true)}
 			ref={componentRef}>
 			<div
-				className={`flex items-center p-0 rounded transition-all duration-300 ease-in-out min-h-[12px] ${
-					isExpanded ? "shadow-sm" : ""
-				}`}
+				className={`flex items-center p-0 rounded min-h-[12px] ${isExpanded ? "shadow-sm" : ""}`}
 				style={{
 					border: isExpanded ? `0.5px solid var(--vscode-editorWidget-border)` : "none",
 					marginTop: "3px",
@@ -114,7 +112,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 							ref={inputRef}
 							style={{
 								outline: "none",
-								fontSize: "12px",
+								fontSize: "inherit",
 							}}
 							type="text"
 							value={filename}

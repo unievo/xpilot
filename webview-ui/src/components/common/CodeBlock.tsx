@@ -4,6 +4,7 @@ import rehypeHighlight, { Options } from "rehype-highlight"
 import styled from "styled-components"
 import { visit } from "unist-util-visit"
 import "./codeblock-parser.css"
+import { defaultBorderRadius } from "@components/config"
 
 export const CODE_BLOCK_BG_COLOR = "var(--vscode-editor-background, --vscode-sideBar-background, rgb(30 30 30))"
 
@@ -18,6 +19,8 @@ minWidth: "max-content",
 interface CodeBlockProps {
 	source?: string
 	forceWrap?: boolean
+	maxHeight?: number
+	fontSize?: number
 }
 
 const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
@@ -30,6 +33,8 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
       overflow-wrap: anywhere;
     }
   `}
+
+	border-radius: ${defaultBorderRadius}px;
 
 	pre {
 		background-color: ${CODE_BLOCK_BG_COLOR};
@@ -59,7 +64,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		word-wrap: break-word;
 		border-radius: 5px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		font-size: 11px; //var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+		// font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
 		font-family: var(--vscode-editor-font-family);
 	}
 
@@ -67,7 +72,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		font-family: var(--vscode-editor-font-family);
 		color: #f78383;
 	}
-
+	
 	background-color: ${CODE_BLOCK_BG_COLOR};
 	font-family:
 		var(--vscode-font-family),
@@ -82,7 +87,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		"Open Sans",
 		"Helvetica Neue",
 		sans-serif;
-	font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+	// font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
 	color: var(--vscode-editor-foreground, #fff);
 
 	p,
@@ -110,7 +115,7 @@ const StyledPre = styled.pre<{ theme: any }>`
 			.join("")}
 `
 
-const CodeBlock = memo(({ source, forceWrap = false }: CodeBlockProps) => {
+const CodeBlock = memo(({ source, forceWrap = false, maxHeight, fontSize = 11 }: CodeBlockProps) => {
 	const [reactContent, setMarkdownSource] = useRemark({
 		remarkPlugins: [
 			() => {
@@ -146,9 +151,11 @@ const CodeBlock = memo(({ source, forceWrap = false }: CodeBlockProps) => {
 	return (
 		<div
 			style={{
-				overflowY: forceWrap ? "visible" : "auto",
-				maxHeight: forceWrap ? "none" : "100%",
+				overflowY: maxHeight ? "scroll" : forceWrap ? "visible" : "auto",
+				maxHeight: maxHeight ?? (forceWrap ? "none" : "100%"),
 				backgroundColor: CODE_BLOCK_BG_COLOR,
+				borderRadius: defaultBorderRadius,
+				fontSize: fontSize,
 			}}>
 			<StyledMarkdown className="ph-no-capture" forceWrap={forceWrap}>
 				{reactContent}

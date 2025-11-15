@@ -1,8 +1,6 @@
 import { useMemo, useRef, useState } from "react"
-import { chatTextAreaBackground } from "@/components/theme"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
-import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
 import AutoApproveMenuItem from "./AutoApproveMenuItem"
 import AutoApproveModal from "./AutoApproveModal"
 import { ACTION_METADATA, NOTIFICATIONS_SETTING } from "./constants"
@@ -72,45 +70,40 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 	}
 
 	return (
-		<div
-			className="px-[10px] mt-[1px] mx-[8px] -mb-2 select-none rounded-[10px_10px_0_0]"
-			style={{
-				borderTop: `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`,
-				backgroundColor: chatTextAreaBackground,
-				//backgroundColor: isModalVisible ? chatTextAreaBackgroundActive : chatTextAreaBackground,
-				...style,
-			}}>
+		<div className="px-[10px] select-none">
 			{/* <HeroTooltip content="Quick Access Auto-Approve Settings" delay={1000}> */}
+			<div
+				className="cursor-pointer py-[5px] pr-[0px] flex items-center justify-between gap-[8px]"
+				onClick={() => {
+					setIsModalVisible((prev) => !prev)
+				}}
+				ref={buttonRef}>
 				<div
-					className="cursor-pointer py-[8px] pr-[0px] flex items-center justify-between gap-[8px]"
-					onClick={() => {
-						setIsModalVisible((prev) => !prev)
-					}}
-					ref={buttonRef}>
-					<div
-						className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
-						style={{
-							opacity: isModalVisible ? 1 : 0.7,
-							fontSize: "0.88em",
-							msOverflowStyle: "none",
-							scrollbarWidth: "none",
-							WebkitOverflowScrolling: "touch",
-						}}>
-						<span>Auto:</span>
-						{(() => {
-							if (!autoApprovalSettings.enabled) {
-								return " off"
-							}
-							const items = getQuickAccessItems()
-							return items.length > 0 ? items : " none"
-						})()}
-					</div>
+					className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
+					style={{
+						opacity: isModalVisible ? 1 : 0.7,
+						fontSize: "0.88em",
+						msOverflowStyle: "none",
+						scrollbarWidth: "none",
+						WebkitOverflowScrolling: "touch",
+					}}>
+					<span>Auto:</span>
+					{(() => {
+						if (!autoApprovalSettings.enabled) {
+							return " off"
+						}
+						const items = getQuickAccessItems()
+						return items.length > 0 ? items : " none"
+					})()}
+				</div>
+				<div>
 					{isModalVisible ? (
 						<span className="codicon codicon-chevron-down" />
 					) : (
 						<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
 					)}
 				</div>
+			</div>
 			{/* </HeroTooltip> */}
 
 			<AutoApproveModal

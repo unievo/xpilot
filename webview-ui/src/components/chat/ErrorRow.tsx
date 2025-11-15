@@ -1,11 +1,18 @@
-import { agentName, ignoreFile } from "@shared/Configuration"
+import { errorMessageOpacity, errorRowColor, errorRowFontSize, errorRowPadding } from "@components/config"
+import { ignoreFile } from "@shared/Configuration"
 import { ClineMessage } from "@shared/ExtensionMessage"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { memo } from "react"
 import CreditLimitError from "@/components/chat/CreditLimitError"
-import { useClineAuth } from "@/context/ClineAuthContext"
+import { handleSignIn, useClineAuth } from "@/context/ClineAuthContext"
 import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 
-const _errorColor = "var(--vscode-editorWarning-foreground)" //"var(--vscode-errorForeground)"
+const errorMessageStyle: React.CSSProperties = {
+	color: errorRowColor,
+	padding: errorRowPadding,
+	fontSize: errorRowFontSize,
+	opacity: errorMessageOpacity,
+}
 
 interface ErrorRowProps {
 	message: ClineMessage
@@ -48,7 +55,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 					if (clineError?.isErrorType(ClineErrorType.RateLimit)) {
 						return (
 							<p
-								className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}>
+								className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}
+								style={errorMessageStyle}>
 								{clineErrorMessage}
 								{requestId && <div>Request ID: {requestId}</div>}
 							</p>
@@ -58,7 +66,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 					// Default error display
 					return (
 						<p
-							className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}>
+							className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}
+							style={errorMessageStyle}>
 							{clineErrorMessage}
 							{requestId && <div>Request ID: {requestId}</div>}
 							{clineErrorMessage?.toLowerCase()?.includes("powershell") && (
@@ -79,7 +88,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 									<br />
 									<br />
 									{/* The user is signed in or not using cline provider */}
-									{/* {clineUser && !isClineProvider ? (
+									{clineUser && !_isClineProvider ? (
 										<span className="mb-4 text-[var(--vscode-editorWarning-foreground)]">
 											(Click "Retry" below)
 										</span>
@@ -87,7 +96,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 										<VSCodeButton className="w-full mb-4" onClick={handleSignIn}>
 											Sign in to Cline
 										</VSCodeButton>
-									)} */}
+									)}
 								</>
 							)}
 						</p>
@@ -96,23 +105,29 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 				// Regular error message
 				return (
-					<p className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}>
+					<p
+						className={`m-0 whitespace-pre-wrap text-xs text-[var(--vscode-editorWarning-foreground)] wrap-anywhere`}
+						style={errorMessageStyle}>
 						{message.text}
 					</p>
 				)
 
 			case "diff_error":
 				return (
-					<div className="flex flex-col p-2 rounded text-xs opacity-80 bg-[var(--vscode-textBlockQuote-background)] text-[var(--vscode-foreground)]">
+					<div
+						className="flex flex-col p-2 rounded text-xs opacity-80 text-[var(--vscode-foreground)]"
+						style={errorMessageStyle}>
 						<div>The model used search patterns that don't match anything in the file. Retrying...</div>
 					</div>
 				)
 
 			case "clineignore_error":
 				return (
-					<div className="flex flex-col p-2 rounded text-xs bg-[var(--vscode-textBlockQuote-background)] text-[var(--vscode-foreground)] opacity-80">
+					<div
+						className="flex flex-col p-2 rounded text-xs text-[var(--vscode-foreground)] opacity-80"
+						style={errorMessageStyle}>
 						<div>
-							{agentName} tried to access <code>{message.text}</code> which is blocked by the{" "}
+							The model tried to access <code>{message.text}</code> which is blocked by the{" "}
 							<code>{ignoreFile}</code>
 							file.
 						</div>

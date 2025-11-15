@@ -8,11 +8,14 @@ const CompactTaskButton: React.FC<{
 	onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
 }> = ({ onClick, className }) => {
 	return (
-		<HeroTooltip content={"Reduces the number of tokens used by summarizing the task."} delay={500} placement="bottom">
+		<HeroTooltip
+			content={"Compact task - reduces the number of context tokens by summarizing the task."}
+			delay={500}
+			placement="bottom">
 			<VSCodeButton
 				appearance="icon"
 				className={cn(
-					"text-foreground flex items-center text-sm font-bold hover:bg-transparent hover:opacity-80",
+					"text-foreground flex items-center text-sm font-bold hover:bg-transparent opacity-80 hover:opacity-100",
 					className,
 				)}
 				onClick={onClick}

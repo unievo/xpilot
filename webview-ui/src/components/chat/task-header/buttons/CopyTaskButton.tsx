@@ -1,4 +1,3 @@
-import { Button } from "@heroui/button"
 import { cn } from "@heroui/react"
 import { CheckIcon, CopyIcon } from "lucide-react"
 import { useCallback, useState } from "react"
@@ -23,18 +22,26 @@ const CopyTaskButton: React.FC<{
 
 	return (
 		<HeroTooltip content="Copy Text" placement="right">
-			<Button
-				aria-label="Copy"
-				className={cn(
-					"flex -m-0.5 items-center border-0 text-sm font-bold bg-transparent hover:opacity-100 p-0 text-[var(--vscode-icon-foreground)]",
-					className,
-				)}
-				isIconOnly={true}
-				onPress={() => handleCopy()}
-				radius="sm"
-				size="sm">
-				{copied ? <CheckIcon size="13" /> : <CopyIcon size="13" />}
-			</Button>
+			{copied ? (
+				<CheckIcon
+					aria-label="Copy"
+					className={cn(
+						"flex items-center border-0 opacity-50 hover:opacity-100 p-1 text-[var(--vscode-icon-foreground)]",
+						className,
+					)}
+					size="12"
+				/>
+			) : (
+				<CopyIcon
+					aria-label="Copied"
+					className={cn(
+						"flex items-center border-0 opacity-50 hover:opacity-100 p-1 text-[var(--vscode-icon-foreground)]",
+						className,
+					)}
+					onClick={handleCopy}
+					size="12"
+				/>
+			)}
 		</HeroTooltip>
 	)
 }

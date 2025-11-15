@@ -1,3 +1,10 @@
+import {
+	chatInputSectionBackground,
+	chatInputSectionBorder,
+	chatInputSectionMargin,
+	defaultBorderRadius,
+	menuTopBorder,
+} from "@components/config"
 import { findLast } from "@shared/array"
 import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
@@ -6,6 +13,7 @@ import { getApiMetrics } from "@shared/getApiMetrics"
 import { BooleanRequest, StringRequest } from "@shared/proto/cline/common"
 import { useCallback, useEffect, useMemo } from "react"
 import { useMount } from "react-use"
+import styled from "styled-components"
 import { normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useShowNavbar } from "@/context/PlatformContext"
@@ -28,6 +36,14 @@ import {
 	useScrollBehavior,
 	WelcomeSection,
 } from "./chat-view"
+
+const ChatInputSection = styled.div`
+	background: ${chatInputSectionBackground};
+	border: ${chatInputSectionBorder};
+	border-radius: ${defaultBorderRadius}px;
+	border-top: ${menuTopBorder};
+	margin: ${chatInputSectionMargin};
+`
 
 interface ChatViewProps {
 	isHidden: boolean
@@ -324,9 +340,9 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 	const placeholderText = useMemo(() => {
 		if (task) {
-			return mode === "plan" ? "Type a message to plan" : "Type a message to execute"
+			return mode === "plan" ? "Type a message to plan" : "Type a message"
 		}
-		return mode === "plan" ? "Type to plan a task" : "Type to execute a task"
+		return mode === "plan" ? "Type to plan a new task" : "Type a new task"
 	}, [task, mode])
 
 	return (
@@ -382,16 +398,17 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				}}
 				task={task}
 			/>
-			<AutoApproveBar />
-
-			<InputSection
-				chatState={chatState}
-				messageHandlers={messageHandlers}
-				placeholderText={placeholderText}
-				scrollBehavior={scrollBehavior}
-				selectFilesAndImages={selectFilesAndImages}
-				shouldDisableFilesAndImages={shouldDisableFilesAndImages}
-			/>
+			<ChatInputSection>
+				<AutoApproveBar />
+				<InputSection
+					chatState={chatState}
+					messageHandlers={messageHandlers}
+					placeholderText={placeholderText}
+					scrollBehavior={scrollBehavior}
+					selectFilesAndImages={selectFilesAndImages}
+					shouldDisableFilesAndImages={shouldDisableFilesAndImages}
+				/>
+			</ChatInputSection>
 		</ChatLayout>
 	)
 }

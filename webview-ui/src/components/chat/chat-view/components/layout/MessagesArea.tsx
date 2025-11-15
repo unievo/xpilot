@@ -1,6 +1,7 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
 import React, { useCallback } from "react"
 import { Virtuoso } from "react-virtuoso"
+import { chatFooterEmptyHeight } from "@/components/config"
 import { ChatState, MessageHandlers, ScrollBehavior } from "../../types/chatTypes"
 import { createMessageRenderer } from "../messages/MessageRenderer"
 
@@ -74,7 +75,7 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
 					atBottomThreshold={10} // trick to make sure virtuoso re-renders when task changes, and we use initialTopMostItemIndex to start at the bottom
 					className="scrollable"
 					components={{
-						Footer: () => <div style={{ height: 5 }} />, // Add empty padding at the bottom
+						Footer: () => <div style={{ height: chatFooterEmptyHeight }} />, // Add empty padding at the bottom
 					}}
 					data={groupedMessages}
 					// increasing top by 3_000 to prevent jumping around when user collapses a row

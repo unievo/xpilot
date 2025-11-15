@@ -1,8 +1,7 @@
+import { rowIconFontSize, warningColor } from "@components/config"
 import React from "react"
 import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 import { ProgressIndicator } from "./ChatRow"
-
-const errorColor = "var(--vscode-editorWarning-foreground)" //"var(--vscode-errorForeground)"
 
 const RetryMessage = React.memo(
 	({ seconds, attempt, retryOperations }: { retryOperations: number; attempt: number; seconds?: number }) => {
@@ -46,6 +45,7 @@ interface ErrorBlockTitleProps {
 		delaySec?: number
 		errorSnippet?: string
 	}
+	apiRequestCompletedVisible?: boolean
 }
 
 export const ErrorBlockTitle = ({
@@ -53,48 +53,52 @@ export const ErrorBlockTitle = ({
 	apiReqCancelReason,
 	apiRequestFailedMessage,
 	retryStatus,
-}: ErrorBlockTitleProps): [React.ReactElement, React.ReactElement] => {
+	apiRequestCompletedVisible = true,
+}: ErrorBlockTitleProps): [React.ReactElement, React.ReactElement, boolean] => {
 	const getIconSpan = (iconName: string, colorClass: string) => (
-		<div className="w-4 h-4 flex items-center justify-center">
-			<span className={`codicon codicon-${iconName} text-base mb-0.5 ${colorClass}`}></span>
+		<div className="flex items-center justify-center">
+			<span className={`codicon codicon-${iconName} text-base ${colorClass}`} style={{ fontSize: rowIconFontSize }}></span>
 		</div>
 	)
+
+	let rowVisible = true
 
 	const icon =
 		apiReqCancelReason != null ? (
 			apiReqCancelReason === "user_cancelled" ? (
 				getIconSpan("error", "text-[var(--vscode-descriptionForeground)]")
 			) : (
-				getIconSpan("error", `text-[${errorColor}]`)
+				getIconSpan("error", `text-[${warningColor}]`)
 			)
 		) : cost != null ? (
 			getIconSpan("check", "text-[var(--vscode-charts-green)]")
 		) : apiRequestFailedMessage ? (
-			getIconSpan("error", `text-[${errorColor}]`)
+			getIconSpan("error", `text-[${warningColor}]`)
 		) : (
 			<ProgressIndicator />
 		)
 
 	const title = (() => {
 		// Default loading state
-		const details = { title: "API Request...", classNames: ["text-xs"] }
+		const details = { title: "Working...", classNames: [""] }
 		// Handle cancellation states first
 		if (apiReqCancelReason === "user_cancelled") {
-			details.title = "API Request Cancelled"
-			details.classNames.push("text-[var(--vscode-foreground)]")
+			details.title = "Request Cancelled"
+			// details.classNames.push("text-[var(--vscode-foreground)]")
 		} else if (apiReqCancelReason != null) {
-			details.title = "API Streaming Failed"
-			details.classNames.push(`text-[${errorColor}]`)
+			details.title = "Streaming Failed"
+			details.classNames.push(`text-[${warningColor}]`)
 		} else if (cost != null) {
 			// Handle completed request
-			details.title = "API Request"
-			details.classNames.push("text-[var(--vscode-foreground)] text-xs")
+			details.title = "Completed"
+			// details.classNames.push("text-[var(--vscode-foreground)]")
+			rowVisible = apiRequestCompletedVisible
 		} else if (apiRequestFailedMessage) {
 			// Handle failed request
 			const clineError = ClineError.parse(apiRequestFailedMessage)
-			const titleText = clineError?.isErrorType(ClineErrorType.Balance) ? "Credit Limit Reached" : "API Request Failed"
+			const titleText = clineError?.isErrorType(ClineErrorType.Balance) ? "Credit Limit Reached" : "Request Failed"
 			details.title = titleText
-			details.classNames.push(`font-bold text-[${errorColor}]`)
+			details.classNames.push(`text-[${warningColor}]`)
 		} else if (retryStatus) {
 			// Handle retry state
 			const retryOperations = Math.max(0, retryStatus.maxAttempts - 1)
@@ -104,5 +108,5 @@ export const ErrorBlockTitle = ({
 		return <span className={details.classNames.join(" ")}>{details.title}</span>
 	})()
 
-	return [icon, title]
+	return [icon, title, rowVisible]
 }

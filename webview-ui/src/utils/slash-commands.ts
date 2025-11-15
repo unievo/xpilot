@@ -1,7 +1,7 @@
 export interface SlashCommand {
 	name: string
 	description?: string
-	section?: "task" | "instructions" | "custom"
+	section?: "task" | "instructions" | "workflows" //| "default"
 }
 
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
@@ -33,7 +33,7 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	{
 		name: "Git Workflows",
 		description: "Get workflows from git",
-		section: "instructions",
+		section: "workflows",
 	},
 
 	// {
@@ -53,11 +53,14 @@ export function getWorkflowCommands(
 			(acc, [filePath, _]) => {
 				const fileName = filePath.replace(/^.*[/\\]/, "")
 				const fileNameWithoutExtension = fileName.replace(/\.[^/.]+$/, "")
+				const dirPath = filePath.replace(fileName, "").replace(/[/\\]$/, "")
+				const fileDirName = dirPath.split(/[/\\]/).pop() || ""
 
 				// Add to array of workflows
 				acc.workflows.push({
 					name: fileNameWithoutExtension,
-					section: "custom",
+					section: "workflows",
+					description: "Local: /" + fileDirName,
 				} as SlashCommand)
 
 				// Add to set of names
@@ -73,6 +76,8 @@ export function getWorkflowCommands(
 		.flatMap(([filePath, _]) => {
 			const fileName = filePath.replace(/^.*[/\\]/, "")
 			const fileNameWithoutExtension = fileName.replace(/\.[^/.]+$/, "")
+			const dirPath = filePath.replace(fileName, "").replace(/[/\\]$/, "")
+			const fileDirName = dirPath.split(/[/\\]/).pop() || ""
 
 			// skip if a local workflow with the same name exists
 			if (localWorkflowNames.has(fileNameWithoutExtension)) {
@@ -82,7 +87,8 @@ export function getWorkflowCommands(
 			return [
 				{
 					name: fileNameWithoutExtension,
-					section: "custom",
+					section: "workflows",
+					description: "Global: /" + fileDirName,
 				},
 			] as SlashCommand[]
 		})

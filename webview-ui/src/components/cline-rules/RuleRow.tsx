@@ -1,9 +1,9 @@
+import { menuRowBackground, menuRowDisabledBackground } from "@components/config"
 import { StringRequest } from "@shared/proto/cline/common"
 import { RuleFileRequest } from "@shared/proto/index.cline"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
 import { FileServiceClient } from "@/services/grpc-client"
-import { rowBackground, rowBackgroundDisabled } from "../theme"
 
 const RuleRow: React.FC<{
 	rulePath: string
@@ -109,7 +109,7 @@ const RuleRow: React.FC<{
 					alignItems: "center",
 					overflow: "hidden",
 					padding: "1px 1px 1px 2.5px",
-					background: enabled ? rowBackground : rowBackgroundDisabled,
+					background: enabled ? menuRowBackground : menuRowDisabledBackground,
 					borderRadius: "4px",
 					opacity: enabled ? 1 : 0.8,
 					cursor: "default",

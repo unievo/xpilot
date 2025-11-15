@@ -8,7 +8,7 @@ const SuccessButtonTW: React.FC<SuccessButtonTWProps> = (props) => {
 			{...props}
 			appearance="icon"
 			className={`
-				!bg-[#176f2c] 
+				!bg-[#175126] 
 				!border-[#176f2c] 
 				!text-white
 				hover:!bg-[#197f31] 

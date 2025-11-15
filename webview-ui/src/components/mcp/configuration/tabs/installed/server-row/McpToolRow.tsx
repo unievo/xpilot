@@ -4,19 +4,21 @@ import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mc
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
 import HeroTooltip from "@/components/common/HeroTooltip"
-import { itemIconColor } from "@/components/theme"
+import { iconHighlightColor, mcpSectionsPadding } from "@/components/config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 
 type McpToolRowProps = {
 	tool: McpTool
 	serverName?: string
+	collapseDescription?: boolean
 }
 
-const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
+const McpToolRow = ({ tool, serverName, collapseDescription }: McpToolRowProps) => {
 	const { autoApprovalSettings } = useExtensionState()
 	const { setMcpServers } = useExtensionState()
 	const [isParametersExpanded, setIsParametersExpanded] = useState(false)
+	const [isDescriptionCollapsed, setIsDescriptionCollapsed] = useState(collapseDescription ?? false)
 
 	// Accept the event object
 	const handleAutoApproveChange = (_event: any) => {
@@ -43,36 +45,54 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 		<div
 			key={tool.name}
 			style={{
-				padding: "0 0",
+				padding: mcpSectionsPadding,
 			}}>
 			<div
 				data-testid="tool-row-container"
-				onClick={(e) => e.stopPropagation()}
+				onClick={(e) => {
+					e.stopPropagation()
+				}}
 				style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-				<div style={{ display: "flex", alignItems: "center" }}>
-					<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }}></span>
-					<span style={{ fontWeight: 500 }}>{tool.name}</span>
+				<div
+					onClick={() => setIsDescriptionCollapsed(!isDescriptionCollapsed)}
+					style={{ display: "flex", alignItems: "center", gap: "3px", cursor: "pointer", userSelect: "none", flex: 1 }}>
+					<span className="codicon codicon-tools" style={{ color: iconHighlightColor }}></span>
+					<span
+						className={`codicon ${isDescriptionCollapsed ? "codicon-chevron-right" : "codicon-chevron-down"}`}
+						style={{ fontSize: "inherit" }}
+					/>
+					<span style={{ width: "100%", fontWeight: "500" }}>{tool.name}</span>
 				</div>
 				{serverName && autoApprovalSettings.enabled && autoApprovalSettings.actions.useMcp && (
-					<HeroTooltip content="Auto-approve this tool">
-						<VSCodeCheckbox
-							checked={tool.autoApprove ?? false}
-							data-tool={tool.name}
-							onChange={handleAutoApproveChange}
-							style={{ opacity: 0.7, scale: "0.8", justifyContent: "flex-end" }}>
-							Auto
-						</VSCodeCheckbox>
-					</HeroTooltip>
+					<div onClick={(e) => e.stopPropagation()}>
+						<HeroTooltip content="Auto-approve this tool">
+							<VSCodeCheckbox
+								checked={tool.autoApprove ?? false}
+								data-tool={tool.name}
+								onChange={handleAutoApproveChange}
+								style={{
+									opacity: 0.7,
+									scale: "0.8",
+									justifyContent: "flex-end",
+									display: "flex",
+									marginTop: -1,
+									marginBottom: -1,
+									marginRight: -10,
+								}}>
+								Auto
+							</VSCodeCheckbox>
+						</HeroTooltip>
+					</div>
 				)}
 			</div>
-			{tool.description && (
+			{!isDescriptionCollapsed && tool.description && (
 				<div
 					style={{
-						marginTop: "5px",
-						opacity: 0.7,
+						margin: "6px 8px 0 6px",
+						opacity: 0.8,
 						fontSize: "0.9em",
 						display: "-webkit-box",
-						WebkitLineClamp: 4,
+						WebkitLineClamp: 10,
 						WebkitBoxOrient: "vertical",
 						overflow: "auto",
 					}}>
@@ -84,16 +104,15 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 				Object.keys(tool.inputSchema.properties as Record<string, any>).length > 0 && (
 					<div
 						style={{
-							marginTop: "8px",
-							fontSize: "inherit",
+							marginTop: "7px",
 							border: "0.5px solid color-mix(in srgb, var(--vscode-descriptionForeground) 30%, transparent)",
 							borderRadius: "6px",
-							padding: "5px",
+							padding: "3px",
 						}}>
 						<div
 							onClick={() => setIsParametersExpanded(!isParametersExpanded)}
 							style={{
-								marginBottom: "0px",
+								marginTop: "0px",
 								opacity: 0.8,
 								fontSize: "0.8em",
 								textTransform: "uppercase",
@@ -104,7 +123,7 @@ const McpToolRow = ({ tool, serverName }: McpToolRowProps) => {
 							}}>
 							<span
 								className={`codicon ${isParametersExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
-								style={{ color: itemIconColor, marginRight: "4px", fontSize: "14px", fontWeight: "bold" }}
+								style={{ fontSize: "inherit", marginRight: "4px" }}
 							/>
 							Parameters ({Object.keys(tool.inputSchema.properties as Record<string, any>).length})
 						</div>

@@ -4,7 +4,7 @@ import { StringRequest } from "@shared/proto/cline/common"
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 import React, { memo, useCallback, useMemo, useState } from "react"
 import ChecklistRenderer from "@/components/common/ChecklistRenderer"
-import { toolsBackground } from "@/components/theme"
+import { chatInputSectionBorder, defaultBorderRadius, toolBackground } from "@/components/config"
 import { FileServiceClient } from "@/services/grpc-client"
 
 // Optimized interface with readonly properties to prevent accidental mutations
@@ -60,7 +60,7 @@ const ToDoListHeader = memo<{
 						className={cn(
 							"rounded-lg px-2 py-0.25 text-xs inline-block shrink-0 bg-badge-foreground/20 text-foreground",
 							{
-								"bg-success text-black": isCompleted,
+								"bg-success text-background": isCompleted,
 							},
 						)}>
 						{currentIndex}/{totalCount}
@@ -193,7 +193,7 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 			<div
 				className="relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
 				onClick={handleToggle}
-				style={{ backgroundColor: toolsBackground }}
+				style={{ backgroundColor: toolBackground, borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
 				title={CLICK_TO_EDIT_TITLE}>
 				<ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />
 				{isExpanded && (

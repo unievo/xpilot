@@ -42,7 +42,8 @@ export class GetMcpToolInputSchemaHandler implements IToolHandler, IPartialBlock
 
 			await config.callbacks.say(
 				"get_mcp_tool_input_schema",
-				`Read "${tool_name}" input schema from "${server_name}"`,
+				// Send tool and server names and let the UI format the message
+				`${tool_name}///${server_name}`,
 				undefined,
 				undefined,
 				false,

@@ -14,6 +14,7 @@ interface ContextWindowInfoProps {
 	cacheWrites?: number
 	cacheReads?: number
 	size?: number
+	showCondenseButton?: boolean
 }
 
 interface ContextWindowProgressProps extends ContextWindowInfoProps {
@@ -28,7 +29,7 @@ const ConfirmationDialog = memo<{
 	onConfirm: (e: React.MouseEvent) => void
 	onCancel: (e: React.MouseEvent) => void
 }>(({ onConfirm, onCancel }) => (
-	<div className="text-xs my-2 flex items-center gap-0 justify-between text-[var(--vscode-editor-foreground)] bg-[var(--vscode-editor-background)] border border-[var(--vscode-editor-border)] rounded-md px-2 py-1">
+	<div className="text-xs my-2 flex items-center gap-0 justify-between text-[var(--vscode-editor-foreground)] bg-[var(--vscode-editor-background)] border-0 border-[var(--vscode-editor-border)] rounded-md px-2 py-1">
 		<span className="text-s pr-2">Compact current task? This action cannot be undone.</span>
 		<span className="flex gap-1 h-5 scale-90">
 			<VSCodeButton
@@ -59,6 +60,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 	autoCondenseThreshold = 0.75,
 	onSendMessage,
 	useAutoCondense,
+	showCondenseButton = true,
 	tokensIn,
 	tokensOut,
 	cacheWrites,
@@ -202,7 +204,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 	}
 
 	return (
-		<div className="flex flex-col -mt-1 mb-0 opacity-90" onMouseLeave={debounceCloseHover}>
+		<div className="flex flex-col mr-0 opacity-90" onMouseLeave={debounceCloseHover}>
 			<div className="flex gap-1 flex-row @max-xs:flex-col @max-xs:items-start items-center text-sm">
 				<div className="flex items-center gap-1.5 flex-1 whitespace-nowrap text-xs">
 					<span className="cursor-pointer" title="Current tokens used in this request">
@@ -273,7 +275,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 						{formatTokenNumber(tokenData.max)}
 					</span>
 				</div>
-				<CompactTaskButton onClick={handleCompactClick} />
+				{showCondenseButton && <CompactTaskButton onClick={handleCompactClick} />}
 			</div>
 			{confirmationNeeded && <ConfirmationDialog onCancel={handleCancel} onConfirm={handleConfirm} />}
 		</div>

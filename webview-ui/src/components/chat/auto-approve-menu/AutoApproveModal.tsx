@@ -3,7 +3,7 @@ import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useRef, useState } from "react"
 import { useClickAway, useWindowSize } from "react-use"
 import HeroTooltip from "@/components/common/HeroTooltip"
-import { menuBackground } from "@/components/theme"
+import { chatInputSectionBackground, chatInputSectionBorder, menuTopBorder } from "@/components/config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
 import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
@@ -124,7 +124,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 	// Calculate safe positioning to prevent overflow while preserving original position
 	const calculateModalStyle = () => {
 		// Original positioning: bottom: calc(100vh - ${menuPosition}px + 6px)
-		const originalBottom = viewportHeight - menuPosition + 1
+		const originalBottom = viewportHeight - menuPosition + 1.5
 
 		// Calculate the available space from the button to the top of the viewport
 		const availableSpace = viewportHeight - originalBottom
@@ -151,15 +151,17 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 		return {
 			bottom: `${originalBottom}px`,
 			maxHeight: `${Math.max(finalMaxHeight, 200)}px`, // Ensure minimum usable height
-			background: menuBackground,
+			background: chatInputSectionBackground,
 			overscrollBehavior: "contain" as const,
+			border: chatInputSectionBorder,
+			borderTop: menuTopBorder,
 		}
 	}
 
 	return (
 		<div className="overflow-hidden" ref={modalRef}>
 			<div
-				className="fixed left-[16px] right-[16px] border border-[var(--vscode-editorGroup-border)] p-2.5 rounded z-[1000] overflow-hidden"
+				className={`fixed left-[13px] right-[14px] p-2.5 rounded-t-lg z-[1000] overflow-hidden`}
 				style={calculateModalStyle()}>
 				<div className="flex justify-between items-center mb-3">
 					{/* <div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div> */}
@@ -236,9 +238,9 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 				<HeroTooltip
 					content={`${agentName} will automatically make this many API requests before asking for approval to proceed with the task.`}
 					placement="top">
-					<div className="flex items-center pl-7.5 my-0">
-						<span className="codicon codicon-settings text-[#CCCCCC] text-[14px]" />
-						<span className="text-[#CCCCCC] text-xs font-medium ml-2">Max Requests:</span>
+					<div className="flex items-center pl-7.5 my-0 text-[color:var(--vscode-foreground)]">
+						<span className="codicon codicon-settings text-[14px]" />
+						<span className="text-xs font-medium ml-2">Max Requests:</span>
 						<span className="max-w-10 ml-1">
 							<VSCodeTextField
 								onInput={async (e) => {

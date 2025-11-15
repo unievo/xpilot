@@ -5,9 +5,17 @@ import styled from "styled-components"
 import ChatErrorBoundary from "@/components/chat/ChatErrorBoundary"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
+import {
+	codeBlockFontSize,
+	defaultBorderRadius,
+	errorColor,
+	mcpSectionsPadding,
+	rowItemExpandedMaxHeight,
+	secondaryColor,
+	toolBackground,
+} from "@/components/config"
 import { DropdownContainer } from "@/components/settings/ApiOptions"
 import { updateSetting } from "@/components/settings/utils/settingsHandlers"
-import { itemIconColor, toolsBackground } from "@/components/theme"
 import { useExtensionState } from "../../../context/ExtensionStateContext"
 import ImagePreview from "./ImagePreview"
 import LinkPreview from "./LinkPreview"
@@ -21,12 +29,12 @@ const ResponseHeader = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 4px 6px;
+	padding: 1px 0px;
 	//color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	user-select: none;
 	//border-bottom: 1px dashed var(--vscode-editorGroup-border);
-	//margin-bottom: 8px;
+	// margin-bottom: 8px;
 
 	.header-title {
 		display: flex;
@@ -44,23 +52,26 @@ const ResponseHeader = styled.div`
 
 const ResponseContainer = styled.div`
 	position: relative;
-	//font-family: var(--vscode-editor-font-family, monospace);
-	font-size: var(--vscode-editor-font-size, 12px);
-	background-color: ${toolsBackground};
+	padding: ${mcpSectionsPadding}px;
+	// font-family: var(--vscode-editor-font-family, monospace);
+	// font-size: var(--vscode-editor-font-size, 12px);
+	// background-color: ${toolBackground};
 	color: var(--vscode-editor-foreground, #d4d4d4);
-	border-radius: 0 0 6px 6px;
+	border-radius: 0 0 ${defaultBorderRadius}px ${defaultBorderRadius}px;
 	overflow: hidden;
 	z-index: 0;
-	margin-top: -18px;
+
 
 	.response-content {
 		overflow-x: auto;
-		overflow-y: hidden;
+		overflow-y: auto;
 		max-width: 100%;
+		max-height: ${rowItemExpandedMaxHeight}px;
 		padding: 8px;
-		margin: 6px;
+		// margin: 0px 8px 8px 8px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		border-radius: 3px;
+		border-radius: ${defaultBorderRadius}px;
+		font-size: ${codeBlockFontSize}px;
 	}
 `
 
@@ -70,7 +81,7 @@ const UrlText = styled.div`
 	word-break: break-all;
 	overflow-wrap: break-word;
 	font-family: var(--vscode-editor-font-family, monospace);
-	font-size: 10px; // var(--vscode-editor-font-size, 12px);
+	// font-size: var(--vscode-editor-font-size, 12px);
 `
 
 interface McpResponseDisplayProps {
@@ -222,14 +233,20 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 					onClick={toggleExpand}
 					style={{
 						//borderBottom: isExpanded ? "1px dashed var(--vscode-editorGroup-border)" : "none",
-						marginBottom: isExpanded ? "-6px" : "-2px",
+						marginBottom: isExpanded ? "-4px" : "0px",
 					}}>
-					<div className="header-title">
-						<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}></span>
-						<span style={{ opacity: 0.8, color: itemIconColor }}>Response</span>
+					<div className="header-title" style={{ marginBottom: isExpanded ? 12 : 0 }}>
+						<span
+							className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}
+							style={{ fontSize: "inherit" }}></span>
+						<span style={{ fontSize: "0.85em", textTransform: "uppercase", color: secondaryColor }}>Response</span>
 					</div>
 					<DropdownContainer
-						style={{ minWidth: isExpanded ? "auto" : "0", visibility: isExpanded ? "visible" : "hidden" }}>
+						style={{
+							visibility: isExpanded ? "visible" : "hidden",
+							margin: -6,
+							marginBottom: isExpanded ? 2 : -6,
+						}}>
 						<McpDisplayModeDropdown
 							onChange={handleDisplayModeChange}
 							onClick={(e) => e.stopPropagation()}
@@ -249,8 +266,12 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 			<ResponseContainer>
 				<ResponseHeader onClick={toggleExpand}>
 					<div className="header-title">
-						<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}></span>
-						Response (Error)
+						<span
+							className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}
+							style={{ fontSize: "inherit" }}></span>
+						<span style={{ color: errorColor, fontSize: "0.85em", textTransform: "uppercase" }}>
+							Response (Error)
+						</span>
 					</div>
 				</ResponseHeader>
 				{isExpanded && (

@@ -1,3 +1,4 @@
+import { iconHighlightColor } from "@components/config"
 import { agentName } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/index.cline"
@@ -6,7 +7,6 @@ import { useEffect, useState } from "react"
 import AgentLogo from "@/assets/AgentLogo"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient, UiServiceClient } from "@/services/grpc-client"
-import { itemIconColor } from "../theme"
 
 interface HomeHeaderProps {
 	shouldShowQuickWins?: boolean
@@ -325,8 +325,8 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 												move it to the secondary side bar.
 												<span style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }}>
 													{" "}
-													(Right-click the {agentName} icon in the activity bar, and use <b>Move To</b>{" "}
-													{">"} <b>Secondary Side Bar</b>)
+													(Right-click on the {agentName} icon in the activity bar, and use{" "}
+													<b>Move To</b> {">"} <b>Secondary Side Bar</b>)
 												</span>
 											</li>
 											<li style={{ marginBottom: "3px" }}>Open a workspace folder</li>
@@ -340,7 +340,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 									<div style={{ marginTop: "-8px", marginBottom: "16px", paddingLeft: "5px" }}>
 										{agentName} manages your requests using <b>tasks</b>.
 										<br />A task is composed of {agentName}'s system prompt, your chat messages, added files
-										or folders, tool call responses, and any additional information provided in instruction
+										or folders, tool call results, and any additional information provided in instruction
 										files.
 										<br />
 										<br />
@@ -349,8 +349,9 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										<br />
 										<br />
 										The task context is stored in a context window (active task memory) which grows with each
-										new task request. As different AI models/providers support different context window sizes,
-										there is a limit to the amount of information that can be sent.
+										new task request as new information is added. Different AI models/providers support
+										different context window sizes, and there is always a limit to the amount of information a
+										task context cannot grow beyond.
 										<br />
 										<br />
 										The context window content translates into AI model tokens. Token usage information is
@@ -359,7 +360,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										and the maximum context window size the selected provider/model supports.
 										<br />
 										<br />
-										For usage-based providers, the task log and the task header also shows the cost per each
+										For usage-based providers, the task log and the task header also shows the cost for each
 										request and total cost of the task.
 									</div>
 								</CollapsibleSection>
@@ -369,7 +370,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 									onToggle={() => toggleSection("taskContext")}
 									title="Task Context">
 									<div style={{ marginTop: "-4px", paddingLeft: "5px" }}>
-										A key for having a task completed efficiently is providing the right context information
+										A key for having a task completed efficiently, is providing the right context information
 										and tools to the right model -{" "}
 										<a href="https://www.philschmid.de/context-engineering">context engineering</a>. These are
 										some recommendations on how to achieve that:
@@ -391,12 +392,12 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											and the files that are visible.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Include any relevant files, folders, or code problems, by typing <b>@</b> when writing
-											a chat message. You can also drag and drop files in the chat message by holding Shift.
+											Include any other relevant context information by typing <b>@</b> when writing a chat
+											message. You can also drag and drop files in the chat message by holding Shift.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
 											Select any text in the file editor and use the <b>Add to {agentName}</b> context menu
-											command to add the selected text to the current chat message.
+											command to add the selected text and file to the current chat message.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
 											Use
@@ -471,8 +472,8 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											useful to correct AI mistakes or change the course of the task.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Do not try to correct AI mistakes using chat messages. Instead, restore a checkpoint,
-											or edit a previous chat message and restart from that point.
+											Do not try to correct AI mistakes using new chat messages. Instead, restore a
+											checkpoint, or edit a previous chat message and restart from that point.
 										</li>
 
 										<li style={{ marginBottom: "5px" }}>
@@ -501,29 +502,28 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										<p>
 											Use workflow files to define a sequence of executable steps that can be triggered as a
 											command, by starting a chat message with <b>/Workflow name</b>{" "}
-											<i>any optional info</i>. Workflows can be used to automate complex or repetitive
-											tasks.
+											<i>followed by any optional info</i>. Workflows can be used to automate complex or
+											repetitive tasks.
 										</p>
 										<p>
-											Use <b>/Generate Instructions</b> <i>short description of purpose</i>, to create a new
-											instructions file based on the current task context. This is useful to create reusable
-											instructions for similar tasks in the future.
+											Use <b>/Generate Instructions</b> <i>followed by a short description of purpose</i>,
+											to create a new instruction file based on the current task context. This is useful to
+											create reusable instructions for similar tasks in the future.
 										</p>
 										<p>
 											Use the <b>/Git Instructions</b> and <b>/Git Workflows</b> commands to get instruction
 											and workflow files from a dedicated git repository. You can specify as arguments any
-											repository source, and the location (global/workspace).
+											repository source, and the location (global/workspace). The repository will be cloned
+											into the specified location. If the repository already exists, it will pull any
+											updates.
 										</p>
 										<p>
 											The <b>global</b> location is used to store instructions and workflows that are
 											available across all workspaces.
-											<br />
-											The <b>workspace</b> location is used to store instruction and workflow files in the
-											current workspace.
 										</p>
 										<p>
-											The repository will be cloned into the specified location. If the repository already
-											exists, it will pull any updates.
+											The <b>workspace</b> location is used to store instructions and workflows only in the
+											current workspace.
 										</p>
 									</div>
 								</CollapsibleSection>
@@ -533,10 +533,6 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 									onToggle={() => toggleSection("controls")}
 									title="Interface Controls">
 									<div style={{ marginTop: "-18px", paddingLeft: "5px" }}>
-										<p>
-											There are two main locations to control the interface: the top bar and the bottom chat
-											bar.
-										</p>
 										<p>Use the top bar controls to:</p>
 
 										<ul
@@ -547,7 +543,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 												marginBlockEnd: 0,
 											}}>
 											<li style={{ marginBottom: "5px" }}>
-												<span className="codicon codicon-diff-added" style={{ verticalAlign: "middle" }} /> -
+												<span className="codicon codicon-add" style={{ verticalAlign: "middle" }} /> -
 												start a new, empty task
 											</li>
 											<li style={{ marginBottom: "5px" }}>
@@ -599,16 +595,17 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											<li style={{ marginBottom: "5px" }}>
 												<span
 													className="codicon codicon-sparkle-filled"
-													style={{ verticalAlign: "middle", color: itemIconColor, fontSize: "14px" }}
+													style={{
+														verticalAlign: "middle",
+														color: iconHighlightColor,
+														fontSize: "14px",
+													}}
 												/>{" "}
 												- change the current provider/model
 											</li>
 											<li style={{ marginBottom: "5px" }}>
-												<span
-													className="codicon codicon-files"
-													style={{ verticalAlign: "middle" }}
-												/>{" "}
-												- attach supported files and images
+												<span className="codicon codicon-files" style={{ verticalAlign: "middle" }} /> -
+												attach supported files and images
 											</li>
 										</ul>
 									</div>

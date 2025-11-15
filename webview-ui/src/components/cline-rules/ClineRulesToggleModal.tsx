@@ -1,3 +1,4 @@
+import { chatInputSectionBorder, iconHighlightColor, menuBackground, menuFontSize, menuTopBorder } from "@components/config"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import {
 	ClineRulesToggles,
@@ -14,7 +15,6 @@ import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient } from "@/services/grpc-client"
 import HeroTooltip from "../common/HeroTooltip"
-import { itemIconColor, menuBackground } from "../theme"
 import RulesToggleList from "./RulesToggleList"
 
 // Helper function to sort rule entries by filename
@@ -251,23 +251,25 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 
 			{isVisible && (
 				<div
-					className="fixed left-[15px] right-[15px] overflow-hidden border border-[var(--vscode-editorGroup-border)] p-2 rounded-md z-[1000] overflow-y-auto"
+					className={`fixed left-[15px] right-[15px] overflow-hidden p-2 rounded-md z-[1000] overflow-y-auto shadow-[0_2px_5px_rgba(0,0,0,0.25)]`}
 					style={{
-						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
+						bottom: `calc(100vh - ${menuPosition}px + 10px)`,
+						border: chatInputSectionBorder,
+						borderTop: menuTopBorder,
 						background: menuBackground,
 						maxHeight: "calc(100vh - 70px)",
 						overscrollBehavior: "contain",
 						paddingBottom: "10px",
-						fontSize: "12px",
+						fontSize: menuFontSize,
 					}}>
-					<div
-						className="fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[var(--vscode-editorGroup-border)]"
+					{/* <div
+						className={`fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[${chatTextAreaBorder}]`}
 						style={{
 							bottom: `calc(100vh - ${menuPosition}px)`,
 							right: arrowPosition,
 							background: menuBackground,
 						}}
-					/>
+					/> */}
 
 					{/* Tabs container */}
 					<div
@@ -286,8 +288,8 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 								<span
 									className="codicon codicon-book flex items-center"
 									style={{
-										color: itemIconColor,
-										fontSize: "18px",
+										color: iconHighlightColor,
+										fontSize: "16px",
 										marginLeft: -3,
 										paddingRight: 5,
 										verticalAlign: "-20%",
@@ -301,7 +303,12 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							<TabButton isActive={currentView === "workflows"} onClick={() => setCurrentView("workflows")}>
 								<span
 									className="codicon codicon-server-process flex items-center"
-									style={{ color: itemIconColor, fontSize: "18px", paddingRight: 5, verticalAlign: "-20%" }}
+									style={{
+										color: iconHighlightColor,
+										fontSize: "16px",
+										paddingRight: 5,
+										verticalAlign: "-20%",
+									}}
 								/>
 								Workflows
 							</TabButton>

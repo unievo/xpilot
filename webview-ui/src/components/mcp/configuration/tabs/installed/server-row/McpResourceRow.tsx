@@ -1,59 +1,72 @@
 import { McpResource, McpResourceTemplate } from "@shared/mcp"
-import { itemIconColor } from "@/components/theme"
+import { useState } from "react"
+import { iconHighlightColor, mcpSectionsPadding, primaryFontSize } from "@/components/config"
 
 type McpResourceRowProps = {
 	item: McpResource | McpResourceTemplate
+	collapseDescription?: boolean
 }
 
-const McpResourceRow = ({ item }: McpResourceRowProps) => {
+const McpResourceRow = ({ item, collapseDescription }: McpResourceRowProps) => {
 	const hasUri = "uri" in item
 	const uri = hasUri ? item.uri : item.uriTemplate
+	const [isDescriptionCollapsed, setIsDescriptionCollapsed] = useState(collapseDescription ?? false)
 
 	return (
-		<div
-			key={uri}
-			style={{
-				padding: "3px 0",
-			}}>
+		<div key={uri}>
 			<div
 				style={{
-					display: "flex",
-					alignItems: "center",
-					marginBottom: "4px",
+					padding: mcpSectionsPadding,
+					// display: "flex",
+					// alignItems: "center",
+					// marginBottom: "4px",
 				}}>
-				<span className={`codicon codicon-symbol-file`} style={{ color: itemIconColor, marginRight: "6px" }} />
-				<span style={{ fontWeight: 500, wordBreak: "break-all" }}>{uri}</span>
+				<div
+					onClick={() => setIsDescriptionCollapsed(!isDescriptionCollapsed)}
+					style={{ display: "flex", alignItems: "center", gap: "3px", cursor: "pointer", userSelect: "none" }}>
+					<span className={`codicon codicon-symbol-file`} style={{ color: iconHighlightColor }} />
+					<span
+						className={`codicon ${isDescriptionCollapsed ? "codicon-chevron-right" : "codicon-chevron-down"}`}
+						style={{ fontSize: primaryFontSize }}
+					/>
+					<span style={{ fontWeight: 500, wordBreak: "break-all" }}>{uri}</span>
+				</div>
 			</div>
-			<div
-				style={{
-					opacity: 0.8,
-					fontSize: "0.9em",
-					margin: "6px 0",
-				}}>
-				{item.name && item.description
-					? `${item.name}: ${item.description}`
-					: !item.name && item.description
-						? item.description
-						: !item.description && item.name
-							? item.name
-							: "No description"}
-			</div>
-			<div
-				style={{
-					opacity: 0.7,
-					fontSize: "0.9em",
-				}}>
-				<span>Returns </span>
-				<code
+			{!isDescriptionCollapsed && (
+				<div
 					style={{
-						color: "var(--vscode-textPreformat-foreground)",
-						background: "var(--vscode-textPreformat-background)",
-						padding: "1px 4px",
-						borderRadius: "3px",
+						opacity: 0.8,
+						fontSize: "0.9em",
+						margin: "6px 8px 0 10px",
 					}}>
-					{item.mimeType || "Unknown"}
-				</code>
-			</div>
+					<div>
+						{item.name && item.description
+							? `${item.name}: ${item.description}`
+							: !item.name && item.description
+								? item.description
+								: !item.description && item.name
+									? item.name
+									: "No description"}
+					</div>
+					<div
+						style={{
+							opacity: 0.7,
+							fontSize: "0.9em",
+							padding: "6px 0 8px 0",
+						}}>
+						<span>Returns </span>
+						<code
+							style={{
+								color: "var(--vscode-textPreformat-foreground)",
+								background: "var(--vscode-textPreformat-background)",
+								padding: "1px 4px",
+								borderRadius: "3px",
+							}}>
+							{item.mimeType || "Unknown"}
+						</code>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

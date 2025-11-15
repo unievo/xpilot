@@ -1,5 +1,16 @@
+import {
+	codeBlockFontSize,
+	defaultDuration,
+	rowHeaderGap,
+	rowIconOpacity,
+	rowItemFullFilePath,
+	rowItemLeadingPathSeparator,
+} from "@components/config"
+import { StringRequest } from "@shared/proto/cline/common"
 import { memo, useMemo } from "react"
-import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import CodeBlock from "@/components/common/CodeBlock"
+import { FileServiceClient } from "@/services/grpc-client"
+import { extractFileName, hasValidFileName } from "@/utils/format"
 import { getLanguageFromPath } from "@/utils/getLanguageFromPath"
 
 interface CodeAccordianProps {
@@ -10,8 +21,12 @@ interface CodeAccordianProps {
 	isFeedback?: boolean
 	isConsoleLogs?: boolean
 	isExpanded: boolean
+	showExpand?: boolean
 	onToggleExpand: () => void
 	isLoading?: boolean
+	maxHeight?: number
+	minWidth?: number
+	fontSize?: number
 }
 
 /*
@@ -30,8 +45,12 @@ const CodeAccordian = ({
 	isFeedback,
 	isConsoleLogs,
 	isExpanded,
+	showExpand = true,
 	onToggleExpand,
 	isLoading,
+	maxHeight,
+	minWidth,
+	fontSize,
 }: CodeAccordianProps) => {
 	const inferredLanguage = useMemo(
 		() => code && (language ?? (path ? getLanguageFromPath(path) : undefined)),
@@ -45,23 +64,28 @@ const CodeAccordian = ({
 		return undefined
 	}, [code])
 
+	const isValidFileName = hasValidFileName(path ?? "")
+
 	return (
 		<div
-			style={{
-				marginTop: "8px",
-				borderRadius: 8,
-				backgroundColor: CODE_BLOCK_BG_COLOR,
-				overflow: "hidden", // This ensures the inner scrollable area doesn't overflow the rounded corners
-				//border: "1px solid var(--vscode-editorGroup-border)",
-			}}>
+			style={
+				{
+					// marginTop: "8px",
+					// borderRadius: defaultBorderRadius,
+					// backgroundColor: CODE_BLOCK_BG_COLOR,
+					// overflow: "hidden", // This ensures the inner scrollable area doesn't overflow the rounded corners
+					// border: "1px solid var(--vscode-editorGroup-border)",
+				}
+			}>
 			{(path || isFeedback || isConsoleLogs) && (
 				<div
-					onClick={isLoading ? undefined : onToggleExpand}
+					className={`group`}
+					// onClick={isLoading ? undefined : onToggleExpand}
 					style={{
-						color: "var(--vscode-descriptionForeground)",
+						// color: "var(--vscode-descriptionForeground)",
 						display: "flex",
 						alignItems: "center",
-						padding: "9px 10px",
+						// padding: "9px 10px",
 						cursor: isLoading ? "wait" : "pointer",
 						opacity: isLoading ? 0.7 : 1,
 						// pointerEvents: isLoading ? "none" : "auto",
@@ -71,63 +95,135 @@ const CodeAccordian = ({
 						msUserSelect: "none",
 					}}>
 					{isFeedback || isConsoleLogs ? (
-						<div style={{ display: "flex", alignItems: "center" }}>
-							<span
-								className={`codicon codicon-${isFeedback ? "feedback" : "output"}`}
-								style={{ marginRight: "6px" }}></span>
-							<span
-								style={{
-									whiteSpace: "nowrap",
-									overflow: "hidden",
-									textOverflow: "ellipsis",
-									marginRight: "8px",
-								}}>
-								{isFeedback ? "User Edits" : "Console Logs"}
-							</span>
-						</div>
-					) : (
-						<>
-							{path?.startsWith(".") && <span>.</span>}
-							{path && !path.startsWith(".") && <span>/</span>}
-							<span
-								style={{
-									whiteSpace: "nowrap",
-									overflow: "hidden",
-									textOverflow: "ellipsis",
-									marginRight: "8px",
-									// trick to get ellipsis at beginning of string
-									direction: "rtl",
-									textAlign: "left",
-								}}>
-								{cleanPathPrefix(path ?? "") + "\u200E"}
-							</span>
-						</>
-					)}
-					<div style={{ flexGrow: 1 }}></div>
-					{numberOfEdits !== undefined && (
 						<div
+							onClick={isLoading ? undefined : onToggleExpand}
 							style={{
 								display: "flex",
 								alignItems: "center",
-								marginRight: "8px",
-								color: "var(--vscode-descriptionForeground)",
+								gap: rowHeaderGap,
+								cursor: isLoading ? "wait" : "pointer",
 							}}>
-							<span className="codicon codicon-diff-single" style={{ marginRight: "4px" }}></span>
-							<span>{numberOfEdits}</span>
+							<span
+								className={`codicon codicon-${isFeedback ? "feedback" : "output"}`}
+								style={{ fontSize: "inherit", opacity: rowIconOpacity, marginLeft: "-3px" }}></span>
+							<span
+								style={{
+									whiteSpace: "nowrap",
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									// marginRight: "8px",
+								}}>
+								{isFeedback ? "User Edits" : "Console Logs"}
+							</span>
+							<span
+								className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+								style={{ fontSize: "inherit" }}></span>
+						</div>
+					) : (
+						<div // path display
+							style={{
+								cursor: isLoading ? "wait" : "pointer",
+								display: "flex",
+								alignItems: "center",
+								flex: 1,
+								minWidth: minWidth ?? 0,
+							}}>
+							<div
+								onClick={
+									isValidFileName
+										? () =>
+												FileServiceClient.openFileRelativePath(
+													StringRequest.create({ value: path }),
+												).catch((err) => console.error("Failed to open file:", err))
+										: onToggleExpand
+								}
+								style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+								{path?.startsWith(".") && <span>.</span>}
+								{rowItemLeadingPathSeparator && path && !path.startsWith(".") && <span>/</span>}
+								<span
+									style={{
+										whiteSpace: "nowrap",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										marginRight: "8px",
+										// trick to get ellipsis at beginning of string
+										direction: "rtl",
+										textAlign: "left",
+										minWidth: 0,
+										flexShrink: 1,
+									}}>
+									{!rowItemFullFilePath && extractFileName(cleanPathPrefix(path ?? "")) + "\u200E"}
+									{rowItemFullFilePath && cleanPathPrefix(path ?? "") + "\u200E"}
+								</span>
+								{isValidFileName && (
+									<span
+										className={`codicon codicon-link-external`}
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											fontSize: "0.9em",
+											marginRight: "6px",
+										}}></span>
+								)}
+							</div>
+							{numberOfEdits !== undefined && (
+								<div
+									onClick={isLoading ? undefined : onToggleExpand}
+									style={{ display: "flex", alignItems: "center" }}>
+									<span
+										style={{
+											flexGrow: 1,
+											textAlign: "right",
+											color: "var(--vscode-descriptionForeground)",
+										}}>
+										→
+									</span>
+									<span
+										style={{
+											display: "flex",
+											alignItems: "center",
+											marginRight: "6px",
+											color: "var(--vscode-charts-green)",
+										}}>
+										<span
+											className="codicon codicon-diff-single"
+											style={{
+												paddingRight: "4px",
+												paddingLeft: "4px",
+												fontSize: "inherit",
+											}}></span>
+										<span>{numberOfEdits}</span>
+									</span>
+								</div>
+							)}
+							{showExpand && (
+								<div
+									onClick={isLoading ? undefined : onToggleExpand}
+									style={{ display: "flex", alignItems: "end", flex: 1 }}>
+									<div style={{ flex: 1 }} />
+									<div
+										className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
+										style={{
+											fontSize: "inherit",
+											color: "var(--vscode-descriptionForeground)",
+										}}></div>
+								</div>
+							)}
 						</div>
 					)}
-					<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
 				</div>
 			)}
 			{(!(path || isFeedback || isConsoleLogs) || isExpanded) && (
 				<div
 					//className="code-block-scrollable" this doesn't seem to be necessary anymore, on silicon macs it shows the native mac scrollbar instead of the vscode styled one
 					style={{
-						overflowX: "auto",
-						overflowY: "hidden",
-						maxWidth: "100%",
+						// overflowX: "auto",
+						// overflowY: "hidden",
+						// maxWidth: "100%",
+						marginTop: 4,
 					}}>
 					<CodeBlock
+						fontSize={fontSize ?? codeBlockFontSize}
+						maxHeight={maxHeight}
 						source={`${"```"}${diff !== undefined ? "diff" : inferredLanguage}\n${(
 							code ?? diff ?? ""
 						).trim()}\n${"```"}`}

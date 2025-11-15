@@ -49,17 +49,21 @@ import ServersToggleModal from "./ServersToggleModal"
 
 const { MAX_IMAGES_AND_FILES_PER_MESSAGE } = CHAT_CONSTANTS
 
-import { ignoreWorkspaceDirectories } from "@shared/Configuration"
-import HeroTooltip from "../common/HeroTooltip"
 import {
 	actModeTextColor,
-	chatTextAreaBackground,
+	chatInputSectionBackground,
+	chatInputSectionBorder,
 	getActModeColor,
 	getPlanModeColor,
+	iconHighlightColor,
 	inactiveModeTextColor,
-	itemIconColor,
-	menuBackground, planModeTextColor, useTheme
-} from "../theme"
+	menuBackground,
+	planModeTextColor,
+	primaryFontSize,
+	useTheme,
+} from "@components/config"
+import { ignoreWorkspaceDirectories } from "@shared/Configuration"
+import HeroTooltip from "../common/HeroTooltip"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -173,10 +177,8 @@ const ControlsContainer = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-top: -5px;
+	margin-top: 5px;
 	padding: 0px 5px 5px 10px;
-	margin-left: 8px;
-	margin-right: 8px;
 	overflow: hidden;
 `
 
@@ -186,7 +188,8 @@ const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
 	left: 15px;
 	right: 15px;
 	background: ${menuBackground};
-	border: 1px solid var(--vscode-editorGroup-border);
+	border: ${chatInputSectionBorder};
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 	padding: 12px;
 	border-radius: 3px;
 	z-index: 1000;
@@ -205,19 +208,19 @@ const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
 	}
 
 	// Arrow pointing down
-	&::after {
-		content: "";
-		position: fixed;
-		bottom: ${(props) => `calc(100vh - ${props.menuPosition}px)`};
-		right: ${(props) => props.arrowPosition}px;
-		width: 10px;
-		height: 10px;
-		background: ${menuBackground};
-		border-right: 1px solid var(--vscode-editorGroup-border);
-		border-bottom: 1px solid var(--vscode-editorGroup-border);
-		transform: rotate(45deg);
-		z-index: -1;
-	}
+	// &::after {
+	// 	content: "";
+	// 	position: fixed;
+	// 	bottom: ${(props) => `calc(100vh - ${props.menuPosition}px)`};
+	// 	right: ${(props) => props.arrowPosition}px;
+	// 	width: 10px;
+	// 	height: 10px;
+	// 	background: ${menuBackground};
+	// 	border-right: 1px solid var(--vscode-editorGroup-border);
+	// 	border-bottom: 1px solid var(--vscode-editorGroup-border);
+	// 	transform: rotate(45deg);
+	// 	z-index: -1;
+	// }
 `
 
 const ModelContainer = styled.div`
@@ -309,10 +312,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			dictationSettings,
 		} = useExtensionState()
 		const { clineUser } = useClineAuth()
-		
+
 		// Theme hook to force re-render on theme changes
 		useTheme()
-		
+
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
 		const [gitCommits, setGitCommits] = useState<GitCommit[]>([])
@@ -949,7 +952,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									setSearchLoading(false)
 								})
 						}, 200) // 200ms debounce
-					} else if (query.length > 0 && selectedType) {
+					} else if (selectedType) {
 						// When filtering within a selected type, always highlight the first item
 						setSelectedMenuIndex(0)
 					} else {
@@ -1612,20 +1615,20 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			.replace(/.$/, (match) => match.toUpperCase())
 
 		return (
-			<div style={{ paddingBottom: "5px" }}>
+			<div>
 				<div
-					className="relative flex transition-colors ease-in-out duration-100 px-3.5 py-2.5"
+					className="relative flex transition-colors ease-in-out duration-100"
 					onDragEnter={handleDragEnter}
 					onDragLeave={handleDragLeave}
 					onDragOver={onDragOver}
 					onDrop={onDrop}
 					style={{
-						padding: "10px 10px",
-						backgroundColor: chatTextAreaBackground,
-						marginLeft: "8px",
-						marginRight: "8px",
-						marginBottom: "0px",
-						marginTop: "-2px",
+						padding: "3px 0px",
+						backgroundColor: chatInputSectionBackground,
+						marginLeft: "5px",
+						marginRight: "5px",
+						// marginBottom: "0px",
+						// marginTop: "-2px",
 						opacity: 1,
 						position: "relative",
 						display: "flex",
@@ -1726,18 +1729,17 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						ref={highlightLayerRef}
 						style={{
 							position: "absolute",
-							top: 9,
-							left: 2,
-							right: 8,
-							bottom: 10,
+							top: 0,
+							left: 0,
+							right: 0,
+							bottom: 0,
 							pointerEvents: "none",
 							whiteSpace: "pre-wrap",
 							wordWrap: "break-word",
 							color: "transparent",
 							overflow: "hidden",
-							backgroundColor: chatTextAreaBackground,
 							fontFamily: "var(--vscode-font-family)",
-							fontSize: "var(--vscode-editor-font-size)",
+							fontSize: primaryFontSize, // "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
 							borderRadius: 5,
 							borderLeft: 0,
@@ -1745,7 +1747,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							borderTop: 0,
 							borderColor: "transparent",
 							borderBottom: `${thumbnailsHeight + 6}px solid transparent`,
-							padding: "9px 28px 3px 9px",
+							padding: "10px 0px 0px 5px",
 							opacity: 0.6,
 						}}
 					/>
@@ -1787,14 +1789,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						style={{
 							width: "100%",
 							boxSizing: "border-box",
-							marginLeft: -4,
-							marginRight: -3,
 							backgroundColor: "transparent",
 							color: "var(--vscode-input-foreground)",
-							//border: "1px solid var(--vscode-input-border)",
+							border: "0px solid var(--vscode-input-border)",
 							borderRadius: 5,
 							fontFamily: "var(--vscode-font-family)",
-							fontSize: "var(--vscode-editor-font-size)",
+							fontSize: primaryFontSize, // "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
 							resize: "none",
 							overflowX: "hidden",
@@ -1811,7 +1811,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							// borderLeft: "9px solid transparent", // NOTE: react-textarea-autosize doesn't calculate correct height when using borderLeft/borderRight so we need to use horizontal padding instead
 							// Instead of using boxShadow, we use a div with a border to better replicate the behavior when the textarea is focused
 							// boxShadow: "0px 0px 0px 1px var(--vscode-input-border)",
-							padding: "8px 28px 9px 5px",
+							padding: "7px 32px 6px 5px",
 							cursor: "text",
 							flex: 1,
 							zIndex: 1,
@@ -1840,8 +1840,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							style={{
 								position: "absolute",
 								paddingTop: 4,
-								bottom: 14,
-								left: 8,
+								bottom: 2,
+								left: 2,
 								right: 34,
 								zIndex: 2,
 							}}
@@ -1886,8 +1886,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								}}
 								style={{
 									fontSize: 24,
-									marginBottom: 4,
-									marginRight: -6,
+									marginBottom: -6,
+									marginRight: -11,
 									color: inputValue
 										? `${
 												mode === "plan"
@@ -1902,7 +1902,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					</div>
 				</div>
 
-				<ControlsContainer style={{ borderRadius: "0 0 10px 10px", backgroundColor: chatTextAreaBackground }}>
+				<ControlsContainer>
 					<SwitchContainer
 						data-testid="mode-switch"
 						disabled={false}
@@ -1965,13 +1965,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 						<ServersToggleModal textAreaRef={textAreaRef} />
 
-						<HeroTooltip content="Select AI Provider / Model" delay={1000}>
+						<HeroTooltip content="Select Model / API Provider" delay={1000}>
 							<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
 								<div
 									className="codicon codicon-sparkle-filled"
 									style={{
 										fontSize: "14px",
-										color: itemIconColor,
+										color: iconHighlightColor,
 										marginLeft: "0px",
 										marginTop: "6px",
 										opacity: 0.7,
@@ -1987,8 +1987,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										onClick={handleModelButtonClick}
 										role="button"
 										style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
-										tabIndex={0}
-										title="Select Model / API Provider">
+										tabIndex={0}>
 										<ModelButtonContent>{modelDisplayName}</ModelButtonContent>
 									</ModelDisplayButton>
 								</ModelButtonWrapper>
@@ -2035,8 +2034,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 												className="codicon codicon-files flex items-center"
 												style={{
 													opacity: 0.6,
-													//color: itemIconColor,
-													// fontWeight: "bold",
 													fontSize: "15px",
 													marginTop: 4,
 													marginRight: 1.5,

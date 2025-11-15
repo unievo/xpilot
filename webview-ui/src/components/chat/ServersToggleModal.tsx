@@ -1,3 +1,4 @@
+import { chatInputSectionBorder, iconHighlightColor, menuBackground, menuFontSize, menuTopBorder } from "@components/config"
 import { mcpLibraryEnabled } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { McpServers } from "@shared/proto/cline/mcp"
@@ -9,7 +10,6 @@ import ServersToggleList from "@/components/mcp/configuration/tabs/installed/Ser
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 import HeroTooltip from "../common/HeroTooltip"
-import { itemIconColor, menuBackground } from "../theme"
 
 interface ServersToggleModalProps {
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
@@ -100,21 +100,23 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 
 			{isVisible && (
 				<div
-					className="fixed left-[15px] right-[15px] border border-[var(--vscode-editorGroup-border)] p-2 rounded-md z-[1000] overflow-y-auto"
+					className={`fixed left-[15px] right-[15px] p-2 rounded-md z-[1000] overflow-y-auto shadow-[0_2px_5px_rgba(0,0,0,0.25)]`}
 					style={{
-						bottom: `calc(100vh - ${menuPosition}px + 6px)`,
+						bottom: `calc(100vh - ${menuPosition}px + 10px)`,
+						border: chatInputSectionBorder,
+						borderTop: menuTopBorder,
 						background: menuBackground,
 						maxHeight: "calc(100vh - 70px)",
 						overscrollBehavior: "contain",
 					}}>
-					<div
-						className="fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[var(--vscode-editorGroup-border)]"
+					{/* <div
+						className={`fixed w-[10px] h-[10px] z-[-1] rotate-45 border-r border-b border-[${chatTextAreaBorder}]`}
 						style={{
 							bottom: `calc(100vh - ${menuPosition}px)`,
 							right: arrowPosition,
 							background: menuBackground,
 						}}
-					/>
+					/> */}
 
 					<div className="flex justify-between items-center mb-2.5">
 						<div className="flex items-center gap-1">
@@ -126,7 +128,7 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 									setIsVisible(false)
 									navigateToMcp("configure")
 								}}>
-								<span className="codicon codicon-gear text-[10px]" style={{ color: itemIconColor }}></span>
+								<span className="codicon codicon-gear text-[10px]" style={{ color: iconHighlightColor }}></span>
 							</VSCodeButton>
 						</div>
 						<div
@@ -141,7 +143,7 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 							<span className="codicon codicon-close" />
 						</div>
 					</div>
-					<div style={{ marginBottom: 10, fontSize: "12px" }}>
+					<div style={{ marginBottom: 10, fontSize: menuFontSize }}>
 						<ServersToggleList hasTrashIcon={false} isExpandable={true} listGap="small" servers={mcpServers} />
 					</div>
 					{mcpServers.length === 0 && (

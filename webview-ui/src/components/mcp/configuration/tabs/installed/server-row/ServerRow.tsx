@@ -19,7 +19,13 @@ import {
 } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useState } from "react"
 import DangerButton from "@/components/common/DangerButton"
-import { itemIconColor, rowBackground, rowBackgroundDetails, rowBackgroundDisabled } from "@/components/theme"
+import {
+	chatInputSectionBorder,
+	iconHighlightColor,
+	menuRowBackground,
+	menuRowDetailsBackground,
+	menuRowDisabledBackground,
+} from "@/components/config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 import { getMcpServerDisplayName } from "@/utils/mcp"
@@ -212,7 +218,7 @@ const ServerRow = ({
 					paddingLeft: !server.error ? "0px" : "15px",
 					paddingRight: "8px",
 					minHeight: "22px",
-					background: server.disabled ? rowBackgroundDisabled : rowBackground,
+					background: server.disabled ? menuRowDisabledBackground : menuRowBackground,
 					cursor: server.error ? "default" : isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || server.error ? "4px 4px 0 0" : "4px",
 					opacity: server.disabled ? 0.7 : 1,
@@ -220,7 +226,7 @@ const ServerRow = ({
 				{!server.error && isExpandable && (
 					<span
 						className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
-						style={{ fontSize: "13px", marginLeft: "2px" }}
+						style={{ marginLeft: "2px", fontSize: "inherit" }}
 					/>
 				)}
 				<span
@@ -236,8 +242,13 @@ const ServerRow = ({
 						padding: "1px ",
 					}}>
 					<span
-						className="codicon codicon-combine"
-						style={{ color: itemIconColor, fontSize: "13px", marginRight: "5px", verticalAlign: "middle" }}
+						className="codicon codicon-server"
+						style={{
+							color: iconHighlightColor,
+							marginRight: "5px",
+							verticalAlign: "middle",
+							fontSize: "inherit",
+						}}
 					/>
 					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
 				</span>
@@ -320,7 +331,7 @@ const ServerRow = ({
 								handleRestart()
 							}}
 							title="Restart Server">
-							<span className="codicon codicon-sync" style={{ fontSize: "15px", marginBottom: "-1px" }}></span>
+							<span className="codicon codicon-sync" style={{ fontSize: "inherit", marginBottom: "-4px" }}></span>
 						</VSCodeButton>
 					</div>
 				}
@@ -345,7 +356,9 @@ const ServerRow = ({
 									handleDelete()
 								}}
 								title="Delete Server">
-								<span className="codicon codicon-trash" style={{ fontSize: "14px" }}></span>
+								<span
+									className="codicon codicon-trash"
+									style={{ fontSize: "inherit", marginBottom: "-1px" }}></span>
 							</VSCodeButton>
 						) : (
 							<div style={{ display: "flex", gap: "2px", marginRight: "3px", padding: 2, overflow: "hidden" }}>
@@ -439,10 +452,11 @@ const ServerRow = ({
 				isExpanded && (
 					<div
 						style={{
-							background: rowBackgroundDetails,
+							background: menuRowDetailsBackground,
 							padding: "1px 5px 5px 5px",
-							fontSize: "12px",
 							borderRadius: "0 0 4px 4px",
+							border: chatInputSectionBorder,
+							borderTop: "none",
 						}}>
 						<div style={{ margin: "7px 5px 0", display: "flex", gap: "15px", alignItems: "end" }}>
 							<div style={{ flex: 1 }}>
@@ -450,22 +464,22 @@ const ServerRow = ({
 									style={{
 										display: "block",
 										marginBottom: "8px",
-										fontSize: "11px",
+										fontSize: "0.95em",
 										fontWeight: "bold",
 										color: "var(--vscode-foreground)",
 									}}>
-									Search in Tools & Resources
+									Search
 								</label>
 								<VSCodeTextField
 									onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
-									placeholder="Search"
-									style={{ width: "100%", height: "28px" }}
+									placeholder="Name or details"
+									style={{ width: "100%", height: "26px", fontSize: "inherit" }}
 									value={searchQuery}>
 									<div
 										className="codicon codicon-search"
 										slot="start"
 										style={{
-											fontSize: 12,
+											fontSize: "inherit",
 											opacity: 0.8,
 										}}
 									/>
@@ -480,7 +494,6 @@ const ServerRow = ({
 												justifyContent: "center",
 												alignItems: "center",
 												cursor: "pointer",
-												fontSize: 12,
 												opacity: 0.8,
 												padding: "2px",
 											}}
@@ -493,15 +506,15 @@ const ServerRow = ({
 									style={{
 										display: "block",
 										marginBottom: "8px",
-										fontSize: "11px",
+										fontSize: "0.95em",
 										fontWeight: "bold",
 										color: "var(--vscode-foreground)",
 									}}>
-									Request Timeout
+									Timeout
 								</label>
 								<VSCodeDropdown
 									onChange={handleTimeoutChange}
-									style={{ width: "100%", height: "28px" }}
+									style={{ width: "100%", height: "26px" }}
 									value={timeoutValue}>
 									{TimeoutOptions}
 								</VSCodeDropdown>
@@ -510,13 +523,16 @@ const ServerRow = ({
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab id="tools" style={{ fontSize: "inherit" }}>
-								<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }} />
+								<span
+									className="codicon codicon-tools"
+									style={{ color: iconHighlightColor, marginRight: "6px" }}
+								/>
 								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab id="resources" style={{ fontSize: "inherit" }}>
 								<span
 									className={`codicon codicon-symbol-file`}
-									style={{ color: itemIconColor, marginRight: "6px" }}
+									style={{ color: iconHighlightColor, marginRight: "6px" }}
 								/>
 								Resources (
 								{searchQuery
@@ -543,7 +559,7 @@ const ServerRow = ({
 													checked={server.tools?.every((tool) => tool.autoApprove) || false}
 													data-tool="all-tools"
 													onChange={handleAutoApproveChange}
-													style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}>
+													style={{ fontSize: "0.95em", opacity: 0.7, marginBottom: 0 }}>
 													Auto-approve all
 												</VSCodeCheckbox>
 											)}

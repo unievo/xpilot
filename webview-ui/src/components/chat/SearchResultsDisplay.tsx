@@ -1,3 +1,4 @@
+import { defaultBorderRadius } from "@components/config"
 import React, { useMemo } from "react"
 import CodeAccordian from "../common/CodeAccordian"
 
@@ -7,6 +8,8 @@ interface SearchResultsDisplayProps {
 	onToggleExpand: () => void
 	path: string
 	filePattern?: string
+	maxHeight?: number
+	minWidth?: number
 }
 
 const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
@@ -15,6 +18,8 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 	onToggleExpand,
 	path,
 	filePattern,
+	maxHeight,
+	minWidth,
 }) => {
 	const parsedData = useMemo(() => {
 		// Check if this is a multi-workspace result
@@ -71,6 +76,8 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 				code={content}
 				isExpanded={isExpanded}
 				language="plaintext"
+				maxHeight={maxHeight}
+				minWidth={minWidth}
 				onToggleExpand={onToggleExpand}
 				path={path + (filePattern ? `/(${filePattern})` : "")}
 			/>
@@ -83,10 +90,11 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 	return (
 		<div
 			style={{
-				borderRadius: 3,
+				borderRadius: defaultBorderRadius,
 				backgroundColor: "var(--vscode-textCodeBlock-background)",
 				overflow: "hidden",
 				border: "1px solid var(--vscode-editorGroup-border)",
+				maxHeight: maxHeight ?? "auto",
 			}}>
 			<div
 				onClick={onToggleExpand}
@@ -115,7 +123,6 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 				<span
 					className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
 					style={{
-						fontSize: 13.5,
 						margin: "1px 0",
 					}}></span>
 			</div>

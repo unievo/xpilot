@@ -139,7 +139,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 						style={{
 							display: "flex",
 							gap: "1px",
-							padding: "0 20px 0 40px",
+							padding: "0 20px",
 							borderBottom: "1px solid var(--vscode-panel-border)",
 							background: "var(--vscode-editor-background)",
 						}}>

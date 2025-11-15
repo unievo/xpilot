@@ -1,3 +1,4 @@
+import { textLineHeight } from "@components/config"
 import { StringRequest } from "@shared/proto/cline/common"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/cline/state"
 import type { ComponentProps } from "react"
@@ -193,7 +194,7 @@ const StyledMarkdown = styled.div`
 		padding: 10px 10px;
 		max-width: calc(100vw - 20px);
 		overflow-x: auto;
-		//overflow-y: hidden;
+		overflow-y: hidden;
 		padding-right: 70px;
 	}
 
@@ -250,7 +251,7 @@ const StyledMarkdown = styled.div`
 	li,
 	ol,
 	ul {
-		line-height: 1.25;
+		line-height: ${textLineHeight};
 	}
 
 	ol,
@@ -382,7 +383,11 @@ const MarkdownBlock = memo(({ markdown }: MarkdownBlockProps) => {
 								<code {...props} />
 								<button
 									className="codicon codicon-link-external bg-transparent border-0 appearance-none p-0 ml-0.5 leading-none align-middle opacity-70 hover:opacity-100 transition-opacity text-[1em] relative top-[1px] text-[var(--vscode-textPreformat-foreground)] translate-y-[-2px]"
-									onClick={() => FileServiceClient.openFileRelativePath({ value: filePath })}
+									onClick={(e) => {
+										e.stopPropagation()
+										FileServiceClient.openFileRelativePath({ value: filePath })
+									}}
+									style={{ cursor: "pointer", fontSize: "0.95em" }}
 									title={`Open ${filePath} in editor`}
 									type="button"
 								/>

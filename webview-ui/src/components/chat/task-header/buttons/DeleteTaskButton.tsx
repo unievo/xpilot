@@ -1,4 +1,4 @@
-import { Button, cn } from "@heroui/react"
+import { cn } from "@heroui/react"
 import { StringArrayRequest } from "@shared/proto/cline/common"
 import { TrashIcon } from "lucide-react"
 import HeroTooltip from "@/components/common/HeroTooltip"
@@ -11,20 +11,17 @@ const DeleteTaskButton: React.FC<{
 	className?: string
 }> = ({ taskId, className, taskSize }) => (
 	<HeroTooltip content={`Delete Task (size: ${taskSize ? formatSize(taskSize) : "--"})`} placement="right">
-		<Button
+		<TrashIcon
 			aria-label="Delete Task"
 			className={cn(
-				"flex -m-0.5 items-center border-0 text-sm font-bold bg-transparent hover:opacity-100 p-0 text-[var(--vscode-icon-foreground)]",
+				"flex items-center border-0 opacity-50 hover:opacity-100 p-1 text-[var(--vscode-icon-foreground)]",
 				className,
 			)}
-			isIconOnly={true}
-			onPress={() => {
+			onClick={() => {
 				taskId && TaskServiceClient.deleteTasksWithIds(StringArrayRequest.create({ value: [taskId] }))
 			}}
-			radius="sm"
-			size="sm">
-			<TrashIcon size="13" />
-		</Button>
+			size="12"
+		/>
 	</HeroTooltip>
 )
 DeleteTaskButton.displayName = "DeleteTaskButton"

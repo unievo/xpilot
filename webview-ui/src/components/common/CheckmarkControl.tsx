@@ -1,3 +1,12 @@
+import {
+	checkPointContainerHoverOpacity,
+	checkPointContainerMargin,
+	checkPointContainerMinHeight,
+	checkPointContainerNormalOpacity,
+	checkPointIconSize,
+	checkPointLineNormalOpacity,
+	defaultBorderRadius,
+} from "@components/config"
 import { flip, offset, shift, useFloating } from "@floating-ui/react"
 import { CheckpointRestoreRequest } from "@shared/proto/cline/checkpoints"
 import { Int64Request } from "@shared/proto/cline/common"
@@ -168,129 +177,144 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 			isMenuOpen={showRestoreConfirm}
 			onMouseEnter={handleControlsMouseEnter}
 			onMouseLeave={handleControlsMouseLeave}>
+			{/* <i
+				className="codicon codicon-bookmark"
+				style={{
+					color: isCheckpointCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)",
+					fontSize: rowIconFontSize,
+					flexShrink: 0,
+				}}
+			/> */}
+			<DottedLine $isCheckedOut={isCheckpointCheckedOut} className="hover-show-inverse" />
+			<div className="hover-content">
+				<Label $isCheckedOut={isCheckpointCheckedOut}>
+					{isCheckpointCheckedOut ? "Checkpoint (restored)" : "Checkpoint"}
+				</Label>
+				<DottedLine $isCheckedOut={isCheckpointCheckedOut} />
+				<ButtonGroup>
+					<CustomButton
+						$isCheckedOut={isCheckpointCheckedOut}
+						disabled={compareDisabled}
+						//style={{ cursor: compareDisabled ? "not-allowed" : "pointer" }}
+						onClick={async () => {
+							setCompareDisabled(true)
+							try {
+								await CheckpointsServiceClient.checkpointDiff(
+									Int64Request.create({
+										value: messageTs,
+									}),
+								)
+							} catch (err) {
+								console.error("CheckpointDiff error:", err)
+							} finally {
+								setCompareDisabled(false)
+							}
+						}}
+						style={{ cursor: compareDisabled ? "wait" : "pointer" }}>
+						Compare
+					</CustomButton>
+					<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
+					<div ref={refs.setReference} style={{ position: "relative", marginTop: -2 }}>
+						<CustomButton
+							$isCheckedOut={isCheckpointCheckedOut}
+							isActive={showRestoreConfirm}
+							onClick={() => setShowRestoreConfirm(true)}>
+							Restore
+						</CustomButton>
+						{showRestoreConfirm &&
+							createPortal(
+								<RestoreConfirmTooltip
+									data-placement={placement}
+									onMouseEnter={handleMouseEnter}
+									onMouseLeave={handleMouseLeave}
+									ref={refs.setFloating}
+									style={floatingStyles}>
+									<RestoreOption>
+										<VSCodeButton
+											appearance="secondary"
+											onClick={handleRestoreTask}
+											// disabled={restoreTaskDisabled}
+											onMouseEnter={(e) => {
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}}
+											onMouseLeave={(e) => {
+												e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
+											}}
+											style={{
+												backgroundColor: "var(--vscode-button-secondaryBackground)",
+												// cursor: restoreTaskDisabled ? "not-allowed" : "pointer",
+												width: "100%",
+												marginBottom: "3px",
+											}}>
+											<div style={{ fontSize: "12px" }}>Task</div>
+										</VSCodeButton>
+										{/* <p>Deletes messages after this point (does not affect workspace files)</p> */}
+									</RestoreOption>
+									<RestoreOption>
+										<VSCodeButton
+											appearance="secondary"
+											onClick={handleRestoreWorkspace}
+											// disabled={restoreWorkspaceDisabled}
+											onMouseEnter={(e) => {
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}}
+											onMouseLeave={(e) => {
+												e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
+											}}
+											style={{
+												backgroundColor: "var(--vscode-button-secondaryBackground)",
+												// cursor: restoreWorkspaceDisabled ? "not-allowed" : "pointer",
+												width: "100%",
+												marginBottom: "3px",
+											}}>
+											<div style={{ fontSize: "12px" }}>Files</div>
+										</VSCodeButton>
+										{/* <p>
+										Restores your project's files back to a snapshot taken at this point (use "Compare" to see
+										what will be reverted)
+									</p> */}
+									</RestoreOption>
+
+									<RestoreOption>
+										<VSCodeButton
+											appearance="secondary"
+											onClick={handleRestoreBoth}
+											// disabled={restoreBothDisabled}
+											onMouseEnter={(e) => {
+												e.currentTarget.style.backgroundColor =
+													"var(--vscode-inputOption-activeBackground)"
+											}}
+											onMouseLeave={(e) => {
+												e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
+											}}
+											style={{
+												backgroundColor: "var(--vscode-button-secondaryBackground)",
+												// cursor: restoreBothDisabled ? "not-allowed" : "pointer",
+												width: "100%",
+												marginBottom: "3px",
+											}}>
+											<div style={{ fontSize: "12px" }}>Task & Files</div>
+										</VSCodeButton>
+										{/* <p>Restores your project's files and deletes all messages after this point</p> */}
+									</RestoreOption>
+								</RestoreConfirmTooltip>,
+								document.body,
+							)}
+					</div>
+					<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
+				</ButtonGroup>
+			</div>
 			<i
 				className="codicon codicon-bookmark"
 				style={{
 					color: isCheckpointCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)",
-					fontSize: "12px",
+					fontSize: checkPointIconSize,
+					marginBottom: -2,
 					flexShrink: 0,
 				}}
 			/>
-			<Label $isCheckedOut={isCheckpointCheckedOut}>
-				{isCheckpointCheckedOut ? "Checkpoint (restored)" : "Checkpoint"}
-			</Label>
-			<DottedLine $isCheckedOut={isCheckpointCheckedOut} />
-			<ButtonGroup>
-				<CustomButton
-					$isCheckedOut={isCheckpointCheckedOut}
-					disabled={compareDisabled}
-					//style={{ cursor: compareDisabled ? "not-allowed" : "pointer" }}
-					onClick={async () => {
-						setCompareDisabled(true)
-						try {
-							await CheckpointsServiceClient.checkpointDiff(
-								Int64Request.create({
-									value: messageTs,
-								}),
-							)
-						} catch (err) {
-							console.error("CheckpointDiff error:", err)
-						} finally {
-							setCompareDisabled(false)
-						}
-					}}
-					style={{ cursor: compareDisabled ? "wait" : "pointer" }}>
-					Compare
-				</CustomButton>
-				<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
-				<div ref={refs.setReference} style={{ position: "relative", marginTop: -2 }}>
-					<CustomButton
-						$isCheckedOut={isCheckpointCheckedOut}
-						isActive={showRestoreConfirm}
-						onClick={() => setShowRestoreConfirm(true)}>
-						Restore
-					</CustomButton>
-					{showRestoreConfirm &&
-						createPortal(
-							<RestoreConfirmTooltip
-								data-placement={placement}
-								onMouseEnter={handleMouseEnter}
-								onMouseLeave={handleMouseLeave}
-								ref={refs.setFloating}
-								style={floatingStyles}>
-								<RestoreOption>
-									<VSCodeButton
-										appearance="secondary"
-										onClick={handleRestoreTask}
-										// disabled={restoreTaskDisabled}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
-										}}
-										style={{
-											backgroundColor: "var(--vscode-button-secondaryBackground)",
-											// cursor: restoreTaskDisabled ? "not-allowed" : "pointer",
-											width: "100%",
-											marginBottom: "3px",
-										}}>
-										<div style={{ fontSize: "12px" }}>Task</div>
-									</VSCodeButton>
-									{/* <p>Deletes messages after this point (does not affect workspace files)</p> */}
-								</RestoreOption>
-								<RestoreOption>
-									<VSCodeButton
-										appearance="secondary"
-										onClick={handleRestoreWorkspace}
-										// disabled={restoreWorkspaceDisabled}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
-										}}
-										style={{
-											backgroundColor: "var(--vscode-button-secondaryBackground)",
-											// cursor: restoreWorkspaceDisabled ? "not-allowed" : "pointer",
-											width: "100%",
-											marginBottom: "3px",
-										}}>
-										<div style={{ fontSize: "12px" }}>Files</div>
-									</VSCodeButton>
-									{/* <p>
-										Restores your project's files back to a snapshot taken at this point (use "Compare" to see
-										what will be reverted)
-									</p> */}
-								</RestoreOption>
-
-								<RestoreOption>
-									<VSCodeButton
-										appearance="secondary"
-										onClick={handleRestoreBoth}
-										// disabled={restoreBothDisabled}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-inputOption-activeBackground)"
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = "var(--vscode-button-secondaryBackground)"
-										}}
-										style={{
-											backgroundColor: "var(--vscode-button-secondaryBackground)",
-											// cursor: restoreBothDisabled ? "not-allowed" : "pointer",
-											width: "100%",
-											marginBottom: "3px",
-										}}>
-										<div style={{ fontSize: "12px" }}>Task & Files</div>
-									</VSCodeButton>
-									{/* <p>Restores your project's files and deletes all messages after this point</p> */}
-								</RestoreOption>
-							</RestoreConfirmTooltip>,
-							document.body,
-						)}
-				</div>
-				<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
-			</ButtonGroup>
 		</Container>
 	)
 }
@@ -298,14 +322,15 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 const Container = styled.div<{ isMenuOpen?: boolean; $isCheckedOut?: boolean }>`
 	display: flex;
 	align-items: center;
-	padding: 4px 0;
+	padding: 6px 0;
+	margin: ${checkPointContainerMargin};
 	gap: 4px;
 	position: relative;
 	min-width: 0;
-	min-height: 17px;
+	min-height: ${checkPointContainerMinHeight}px;
 	margin-top: -10px;
 	margin-bottom: -10px;
-	opacity: ${(props) => (props.$isCheckedOut ? 1 : props.isMenuOpen ? 1 : 0.5)};
+	opacity: ${(props) => (props.$isCheckedOut ? 1 : props.isMenuOpen ? checkPointContainerHoverOpacity : checkPointContainerNormalOpacity)};
 
 	&:hover {
 		opacity: 1;
@@ -325,10 +350,11 @@ const Container = styled.div<{ isMenuOpen?: boolean; $isCheckedOut?: boolean }>`
 	.hover-show-inverse {
 		display: ${(props) => (props.isMenuOpen ? "none" : "flex")};
 		flex: 1;
+		opacity: ${(props) => (props.isMenuOpen ? 0.5 : checkPointLineNormalOpacity)};
 	}
 
 	&:hover .hover-show-inverse {
-		display: none;
+		display: none;;
 	}
 `
 
@@ -339,9 +365,9 @@ const Label = styled.span<{ $isCheckedOut?: boolean }>`
 `
 
 const DottedLine = styled.div<{ small?: boolean; $isCheckedOut?: boolean }>`
-	flex: ${(props) => (props.small ? "0 0 5px" : "1")};
-	min-width: ${(props) => (props.small ? "5px" : "5px")};
-	height: 1px;
+	flex: ${(props) => (props.small ? "0 0 3px" : "1")};
+	min-width: ${(props) => (props.small ? "3px" : "5px")};
+	height: 0.5px;
 	background-image: linear-gradient(
 		to right,
 		${(props) => (props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)")} 50%,
@@ -366,6 +392,7 @@ const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $is
 				: "var(--vscode-descriptionForeground)"
 			: "transparent"};
 	border: none;
+	border-radius: ${defaultBorderRadius}px;
 	color: ${(props) =>
 		props.isActive || props.disabled
 			? "var(--vscode-editor-background)"
@@ -384,21 +411,8 @@ const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $is
 		left: 0;
 		right: 0;
 		bottom: 0;
-		border-radius: 1px;
-		background-image: ${(props) =>
-			props.isActive || props.disabled
-				? "none"
-				: `linear-gradient(to right, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
-            linear-gradient(to bottom, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
-            linear-gradient(to right, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%),
-            linear-gradient(to bottom, ${props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)"} 50%, transparent 50%)`};
-		background-size: ${(props) => (props.isActive || props.disabled ? "auto" : `4px 1px, 1px 4px, 4px 1px, 1px 4px`)};
-		background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
-		background-position:
-			0 0,
-			100% 0,
-			0 100%,
-			0 0;
+		border-radius: ${defaultBorderRadius}px;
+		border: 0.5px solid ${(props) => (props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)")};
 	}
 
 	&:hover:not(:disabled) {
