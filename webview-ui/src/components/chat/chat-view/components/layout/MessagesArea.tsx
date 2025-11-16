@@ -60,7 +60,8 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
 			messageHandlers,
 		],
 	)
-
+	const messageType = chatState.lastMessage?.type === "ask" ? chatState.lastMessage.ask : chatState.lastMessage?.say
+	const isCompletion = messageType === "completion_result"
 	return (
 		<div className="overflow-hidden flex flex-col h-full">
 			<div className="flex-grow flex" ref={scrollContainerRef}>
@@ -75,7 +76,7 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
 					atBottomThreshold={10} // trick to make sure virtuoso re-renders when task changes, and we use initialTopMostItemIndex to start at the bottom
 					className="scrollable"
 					components={{
-						Footer: () => <div style={{ height: chatFooterEmptyHeight }} />, // Add empty padding at the bottom
+						Footer: () => <div style={{ height: isCompletion ? 0 : chatFooterEmptyHeight }} />, // Add empty padding at the bottom
 					}}
 					data={groupedMessages}
 					// increasing top by 3_000 to prevent jumping around when user collapses a row

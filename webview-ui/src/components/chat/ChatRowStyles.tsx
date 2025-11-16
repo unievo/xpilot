@@ -5,7 +5,6 @@ import {
 	defaultDuration,
 	iconHighlightColor,
 	linkColor,
-	mcpResponseMarginTop,
 	primaryColor,
 	primaryFontSize,
 	primaryOpacity,
@@ -26,7 +25,9 @@ import {
 	rowItemMultilineMargin,
 	rowItemPadding,
 	rowItemPrimaryOpacity,
+	rowPaddingBottom,
 	rowPaddingRight,
+	rowPaddingTop,
 	secondaryColor,
 	secondaryFontSize,
 	secondaryOpacity,
@@ -46,7 +47,7 @@ import styled from "styled-components"
 
 // Markdown container to adjust default markdown styles
 export const MarkdownContainer = styled.div`
-	margin: -1.1em 0px; // Remove markdown default paragraph padding top and bottom
+	margin: -1.2em 0px; // Remove markdown default paragraph padding top and bottom
 `
 
 // Primary rows - primary visibility
@@ -94,11 +95,20 @@ export const CompletionRowContainer = styled.div<{ isLast: boolean; isExpanded: 
 `
 
 // Row visibility wrapper - handles show/hide with animation
-export const RowVisibility = styled.div<{ visible: boolean }>`
-	max-height: ${({ visible }) => (visible ? "1000px" : "0.5px")};
-	opacity: ${({ visible }) => (visible ? 1 : 0)};
+export const RowVisibility = styled.div<{ hide: boolean }>`
+	display: grid;
+	grid-template-rows: ${({ hide }) => (hide ? "0fr" : "1fr")};
+	grid-template-columns: minmax(0, 1fr);
+	width: 100%;
+	opacity: ${({ hide }) => (hide ? 0 : 1)};
 	overflow: hidden;
-	transition: max-height ${rowHideDuration}ms ease-in-out, opacity ${rowHideDuration}ms ease-in-out;
+	transition: grid-template-rows ${rowHideDuration}ms ease-in-out, opacity ${rowHideDuration}ms ease-in-out;
+
+	// Keep the minimum non-zero height for virtuoso not to complain about zero-height items
+	& > * {
+		min-height: 0.5px;
+		overflow: hidden;
+	}
 `
 
 // Row header - container for row header elements
@@ -207,6 +217,7 @@ export const CommandRow = styled.div<{ isLast: boolean; isExpanded: boolean }>`
 // MCP row - row for MCP tools/resources
 export const McpRow = styled.div<{ isLast: boolean }>`
 	margin-top: ${rowItemMultilineMargin}px;
+	margin-bottom: ${-rowPaddingBottom - spacingContainerMarginBottom}px;
 	opacity: ${({ isLast }) => (isLast ? 1 : rowItemExpandedOpacity)};
 	background: ${toolBackground};
 	border: ${toolBorder};
@@ -225,7 +236,7 @@ export const McpRow = styled.div<{ isLast: boolean }>`
 
 // MCP response row - row for MCP tools/resources responses
 export const McpResponseRow = styled.div<{ isLast: boolean }>`
-	margin-top: ${mcpResponseMarginTop}px;
+	margin-top: ${-rowPaddingTop}px;
 	margin-bottom: ${({ isLast }) => (isLast ? "0px" : spacingContainerMarginBottom + "px")};
 	background: ${toolBackground};
 	border: ${toolBorder};

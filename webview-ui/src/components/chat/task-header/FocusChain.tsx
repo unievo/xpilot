@@ -2,7 +2,7 @@ import { cn } from "@heroui/react"
 import { isCompletedFocusChainItem, isFocusChainItem } from "@shared/focus-chain-utils"
 import { StringRequest } from "@shared/proto/cline/common"
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
-import React, { memo, useCallback, useMemo, useState } from "react"
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
 import ChecklistRenderer from "@/components/common/ChecklistRenderer"
 import { chatInputSectionBorder, defaultBorderRadius, toolBackground } from "@/components/config"
 import { FileServiceClient } from "@/services/grpc-client"
@@ -26,6 +26,9 @@ const COMPLETED_MESSAGE = "All steps have been completed!"
 const TODO_LIST_LABEL = "To-Do list"
 const NEW_STEPS_MESSAGE = "New steps will be generated if you continue the task"
 const CLICK_TO_EDIT_TITLE = "Click to edit to-do list in file"
+const COLLAPSED_PLACEHOLDER_HEIGHT = 30
+const EXPANDED_MAX_HEIGHT = 200
+const SHOW_DURATION_MS = 300
 
 // Optimized header component with minimal re-renders
 const ToDoListHeader = memo<{
@@ -168,8 +171,21 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 			[lastProgressMessageText],
 		)
 
+		const hasTodoContent = Boolean(todoInfo)
+
+		useEffect(() => {
+			if (!todoInfo) {
+				setIsExpanded(false)
+			}
+		}, [todoInfo])
+
 		// Static callbacks that don't change
-		const handleToggle = useCallback(() => setIsExpanded((prev) => !prev), [])
+		const handleToggle = useCallback(() => {
+			if (!todoInfo) {
+				return
+			}
+			setIsExpanded((prev) => !prev)
+		}, [todoInfo])
 
 		const handleEditClick = useCallback(
 			(e: React.MouseEvent) => {
@@ -182,28 +198,31 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 			[currentTaskItemId],
 		)
 
-		// Early return for no content
-		if (!todoInfo) {
-			return null
-		}
-
-		// const isCompleted = todoInfo.completedCount === todoInfo.totalCount
-
 		return (
 			<div
-				className="relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
-				onClick={handleToggle}
-				style={{ backgroundColor: toolBackground, borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
-				title={CLICK_TO_EDIT_TITLE}>
-				<ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />
-				{isExpanded && (
-					<div className="mx-1 pb-2 px-1 relative" onClick={handleEditClick}>
-						<ChecklistRenderer text={lastProgressMessageText!} />
-						{/* {isCompleted && (
+				className={cn(`overflow-hidden transition-[max-height,opacity] duration-${SHOW_DURATION_MS} ease-in-out`, {
+					"opacity-0 pointer-events-none": !hasTodoContent,
+					"opacity-100": hasTodoContent,
+				})}
+				style={{
+					maxHeight: hasTodoContent ? EXPANDED_MAX_HEIGHT : COLLAPSED_PLACEHOLDER_HEIGHT,
+					minHeight: COLLAPSED_PLACEHOLDER_HEIGHT,
+				}}>
+				<div
+					className="relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
+					onClick={handleToggle}
+					style={{ backgroundColor: toolBackground, borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
+					title={CLICK_TO_EDIT_TITLE}>
+					{todoInfo && <ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />}
+					{todoInfo && isExpanded && (
+						<div className="mx-1 pb-2 px-1 relative" onClick={handleEditClick}>
+							<ChecklistRenderer text={lastProgressMessageText!} />
+							{/* {isCompleted && (
 							<div className="mt-2 text-xxs font-semibold text-muted-foreground">{NEW_STEPS_MESSAGE}</div>
 						)} */}
-					</div>
-				)}
+						</div>
+					)}
+				</div>
 			</div>
 		)
 	},

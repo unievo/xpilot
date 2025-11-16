@@ -9,12 +9,13 @@ import {
 	pulseDuration,
 	rowHeaderGap,
 } from "@components/config"
-import { memo, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import styled, { css } from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 
 const approvalContainerPadding = 3
 const approvalBorderPadding = 2
+const approvalDebounce = 500
 
 const ApprovalContainerStyled = styled.div<{ $showApproval: boolean }>`
 	border: ${({ $showApproval }) => ($showApproval ? approvalContainerBorder : "")};
@@ -49,6 +50,7 @@ const ApprovalContainerComponent: React.FC<ApprovalContainerProps> = ({
 }) => {
 	const { autoApprovalSettings } = useExtensionState()
 	const [hasExecuted, setHasExecuted] = useState(false)
+	const [showApproval, setShowApproval] = useState(false)
 	const executing = isExecuting ?? false
 
 	if (executing && !hasExecuted) {
@@ -57,14 +59,33 @@ const ApprovalContainerComponent: React.FC<ApprovalContainerProps> = ({
 
 	const requestApproval = approvalRequested ?? false
 
-	const showApproval = useMemo(
-		() =>
-			!hasExecuted &&
-			isLastProcessing &&
-			!executing &&
-			(requestApproval || !(autoApprovalSettings.enabled && autoApproveSetting && (autoApproveToolSetting ?? true))),
-		[isLastProcessing, executing, requestApproval, autoApprovalSettings.enabled, autoApproveSetting, autoApproveToolSetting],
-	)
+	const shouldShowApproval = useMemo(() => {
+		const canAutoApprove = autoApprovalSettings.enabled && autoApproveSetting && (autoApproveToolSetting ?? true)
+
+		return !hasExecuted && isLastProcessing && !executing && (requestApproval || !canAutoApprove)
+	}, [
+		isLastProcessing,
+		executing,
+		requestApproval,
+		autoApprovalSettings.enabled,
+		autoApproveSetting,
+		autoApproveToolSetting,
+		hasExecuted,
+	])
+
+	useEffect(() => {
+		if (shouldShowApproval) {
+			if (requestApproval) {
+				setShowApproval(true)
+				return
+			}
+			// Delay showing the approval to prevent flicker from auto-approval settings changing while loading
+			const timer = setTimeout(() => setShowApproval(true), approvalDebounce)
+			return () => clearTimeout(timer)
+		}
+
+		setShowApproval(false)
+	}, [shouldShowApproval, requestApproval])
 
 	return (
 		<ApprovalContainerStyled $showApproval={showApproval}>

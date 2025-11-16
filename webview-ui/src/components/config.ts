@@ -15,13 +15,15 @@ export const defaultExpandedMessageTypes: (ClineSay | ClineAsk)[] = [
 export const showTextResponseHeader = !defaultExpandedMessageTypes.includes("text")
 
 // Chat settings
-export const apiRequestCompletedVisible = false
+export const hideApiRequestCompletedRow = true
+export const hideResponseRow = false
+export const hideReasoningRow = false
 export const responseTextLineClamp = 3
 export const rowIconVisible = true
 
 // General settings
 export const defaultBorderRadius = 6
-export const chatFooterEmptyHeight = 50
+export const chatFooterEmptyHeight = 100
 
 // Opacity
 export const primaryOpacity = 1
@@ -147,8 +149,6 @@ export const userMessageMargin = "20px 0px 20px 0px"
 
 // Mcp Sections
 export const mcpSectionsPadding = 5
-// Adjust MCP response to align with MCP request box
-export const mcpResponseMarginTop = -(rowPaddingTop + rowPaddingBottom + spacingContainerMarginBottom)
 
 // Error row
 export const errorRowFontSize = primaryFontSize - 1

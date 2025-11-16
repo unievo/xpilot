@@ -1,11 +1,13 @@
 import {
-	apiRequestCompletedVisible,
 	codeBlockFontSize,
 	defaultBorderRadius,
 	defaultDuration,
 	ellipsisText,
 	ellipsisTextColor,
 	errorColor,
+	hideApiRequestCompletedRow,
+	hideReasoningRow,
+	hideResponseRow,
 	iconHighlightColor,
 	mcpSectionsPadding,
 	normalColor,
@@ -90,9 +92,9 @@ import ReportBugPreview from "./ReportBugPreview"
 import SearchResultsDisplay from "./SearchResultsDisplay"
 import UserMessage from "./UserMessage"
 
-const ChatRowContainer = styled.div<{ $isHidden?: boolean }>`
-	padding-top: ${({ $isHidden }) => ($isHidden ? 0 : rowPaddingTop)}px;
-	padding-bottom: ${({ $isHidden }) => ($isHidden ? 0 : rowPaddingBottom)}px;
+const ChatRowContainer = styled.div<{ hide: boolean }>`
+	padding-top: ${({ hide }) => (hide ? 0 : rowPaddingTop)}px;
+	padding-bottom: ${({ hide }) => (hide ? 0 : rowPaddingBottom)}px;
 	padding-left: ${rowPaddingLeft}px;
 	padding-right: ${rowPaddingRight}px;
 	position: relative;
@@ -123,9 +125,7 @@ interface QuoteButtonState {
 	selectedText: string
 }
 
-interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {
-	onVisibilityChange?: (visible: boolean) => void
-}
+interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
 
 export const ProgressIndicator = () => (
 	<div
@@ -172,7 +172,7 @@ const Markdown = memo(
 								contentHeight = contentRef.current.getBoundingClientRect().height
 							}
 							// Add a small threshold (1px) to account for rounding differences
-							const isOverflowing = textRef.current.scrollHeight > contentHeight + 1
+							const isOverflowing = textRef.current.scrollHeight > contentHeight + 10
 
 							setIsTruncated(isOverflowing)
 						}
@@ -269,12 +269,47 @@ const ChatRow = memo(
 		// Store the previous height to compare with the current height
 		// This allows us to detect changes without causing re-renders
 		const prevHeightRef = useRef(0)
-		const [isVisible, setIsVisible] = useState(true)
+
+		// Hide rows based on message type and settings
+		const hideRow = useMemo(() => {
+			const type = message.type === "ask" ? message.ask : message.say
+			switch (type) {
+				case "api_req_started":
+					const messageText = message.text || "{}"
+					let cost: number | undefined
+					let apiReqCancelReason: string | undefined
+					let apiRequestFailedMessage: string | undefined
+					let retryStatus: any | undefined
+
+					try {
+						const info = JSON.parse(messageText)
+						cost = info.cost
+						apiReqCancelReason = info.cancelReason
+						retryStatus = info.retryStatus
+					} catch {
+						// Invalid JSON, default visibility
+					}
+
+					// If completed (has cost), hide API request completed row based on setting
+					if (cost != null && apiReqCancelReason == null && !apiRequestFailedMessage && !retryStatus) {
+						return hideApiRequestCompletedRow
+					}
+					return false
+				case "reasoning":
+					return hideReasoningRow
+				case "text":
+					return hideResponseRow
+				default:
+					return false
+			}
+		}, [message.type, message.ask, message.say, message.text])
 
 		const [chatrow, { height }] = useSize(
-			<ChatRowContainer $isHidden={!isVisible}>
-				<ChatRowContent {...props} onVisibilityChange={setIsVisible} />
-			</ChatRowContainer>,
+			<RowVisibility hide={hideRow}>
+				<ChatRowContainer hide={hideRow}>
+					<ChatRowContent {...props} />
+				</ChatRowContainer>
+			</RowVisibility>,
 		)
 
 		useEffect(() => {
@@ -309,7 +344,6 @@ export const ChatRowContent = memo(
 		inputValue,
 		sendMessageFromChatRow,
 		onSetQuote,
-		onVisibilityChange,
 	}: ChatRowContentProps) => {
 		const {
 			mcpServers,
@@ -469,7 +503,7 @@ export const ChatRowContent = memo(
 			}, 0) // Delay of 0ms pushes execution after current event cycle
 		}, []) // Dependencies remain empty
 
-		const [icon, title, visible = true] = useMemo(() => {
+		const [icon, title] = useMemo(() => {
 			switch (type) {
 				case "error":
 					return [
@@ -529,11 +563,17 @@ export const ChatRowContent = memo(
 						isReasoning ? (
 							<RowIcon
 								className="codicon codicon-sparkle-filled"
+								color={normalColor}
 								isLast={isLast}
 								style={{ fontSize: rowIconFontSize + 3 }}
 							/>
 						) : (
-							<RowIcon className="codicon codicon-sparkle" isLast={isLast} style={{ fontSize: rowIconFontSize }} />
+							<RowIcon
+								className="codicon codicon-sparkle"
+								color={normalColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
 						),
 						<RowTitle isExpanded={isExpanded} isLast={isLast}>
 							{isReasoning ? "Thinking" : "Thought"}
@@ -597,12 +637,11 @@ export const ChatRowContent = memo(
 						</RowTitle>,
 					]
 				case "api_req_started":
-					const [icon, title, visible] = ErrorBlockTitle({
+					const [icon, title] = ErrorBlockTitle({
 						cost,
 						apiReqCancelReason,
 						apiRequestFailedMessage,
 						retryStatus,
-						apiRequestCompletedVisible: apiRequestCompletedVisible,
 					})
 					return [
 						<RowIcon isLast={isLast} style={{ fontSize: rowIconFontSize }}>
@@ -611,7 +650,6 @@ export const ChatRowContent = memo(
 						<RowTitle isExpanded={isExpanded} isLast={isLast}>
 							{title}
 						</RowTitle>,
-						visible,
 					]
 				case "followup":
 					return [
@@ -644,11 +682,6 @@ export const ChatRowContent = memo(
 			isLast,
 			message.text,
 		])
-
-		// Notify parent of visibility changes
-		useEffect(() => {
-			onVisibilityChange?.(visible)
-		}, [visible, onVisibilityChange])
 
 		const _pStyle: React.CSSProperties = {
 			margin: 0,
@@ -1354,8 +1387,13 @@ export const ChatRowContent = memo(
 
 		if (message.ask === "use_mcp_server" || message.say === "use_mcp_server") {
 			const useMcpServer = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
+
+			// Find the server (this is used throughout the component for descriptions and resources)
 			const server = mcpServers.find((server) => server.name === useMcpServer.serverName)
-			const autoApprove = server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove
+
+			// Get the autoApprove value - default to false (require approval) to prevent flickering
+			// ApprovalContainer treats undefined as true, so we must always pass a boolean
+			const autoApprove = server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove ?? false
 
 			return (
 				<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
@@ -1451,78 +1489,74 @@ export const ChatRowContent = memo(
 				switch (message.say) {
 					case "api_req_started":
 						return (
-							<RowVisibility visible={visible}>
-								<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
-									<RowHeader
-										className={`group`}
-										onClick={handleToggle}
+							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+								<RowHeader
+									className={`group`}
+									onClick={handleToggle}
+									style={{
+										marginBottom:
+											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : "",
+										justifyContent: "space-between",
+										cursor: "pointer",
+										userSelect: "none",
+										WebkitUserSelect: "none",
+										MozUserSelect: "none",
+										msUserSelect: "none",
+									}}>
+									<div
 										style={{
-											marginBottom:
-												(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage
-													? 10
-													: "",
-											justifyContent: "space-between",
-											cursor: "pointer",
-											userSelect: "none",
-											WebkitUserSelect: "none",
-											MozUserSelect: "none",
-											msUserSelect: "none",
+											marginTop: 2,
+											marginBottom: 2,
+											display: "flex",
+											alignItems: "center",
+											gap: rowHeaderGap,
 										}}>
-										<div
-											style={{
-												marginTop: 2,
-												marginBottom: 2,
-												display: "flex",
-												alignItems: "center",
-												gap: rowHeaderGap,
-											}}>
-											{icon}
-											{title}
-											{cost != null && cost > 0 && (
-												<span
-													style={{
-														position: "relative",
-														display: "flex",
-														alignItems: "center",
-														marginLeft: 5,
-														fontSize: primaryFontSize - 2,
-														border: "1px solid var(--vscode-editorGroup-border)",
-														padding: "0px 3px",
-														marginBottom: -1.5,
-														borderRadius: defaultBorderRadius,
-														fontFamily: "var(--vscode-editor-font-family)",
-														backgroundColor: "var(--vscode-editor-background)",
-														opacity: cost != null && cost >= 0 ? 1 : 0,
-													}}>
-													${Number(cost || 0)?.toFixed(4)}
-												</span>
-											)}
+										{icon}
+										{title}
+										{cost != null && cost > 0 && (
 											<span
-												className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
-												style={{ fontSize: "inherit" }}></span>
-										</div>
-									</RowHeader>
-									{((cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage) && (
-										<ErrorRow
-											apiReqStreamingFailedMessage={apiReqStreamingFailedMessage}
-											apiRequestFailedMessage={apiRequestFailedMessage}
-											errorType="error"
-											message={message}
+												style={{
+													position: "relative",
+													display: "flex",
+													alignItems: "center",
+													marginLeft: 5,
+													fontSize: primaryFontSize - 2,
+													border: "1px solid var(--vscode-editorGroup-border)",
+													padding: "0px 3px",
+													marginBottom: -1.5,
+													borderRadius: defaultBorderRadius,
+													fontFamily: "var(--vscode-editor-font-family)",
+													backgroundColor: "var(--vscode-editor-background)",
+													opacity: cost != null && cost >= 0 ? 1 : 0,
+												}}>
+												${Number(cost || 0)?.toFixed(4)}
+											</span>
+										)}
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}></span>
+									</div>
+								</RowHeader>
+								{((cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage) && (
+									<ErrorRow
+										apiReqStreamingFailedMessage={apiReqStreamingFailedMessage}
+										apiRequestFailedMessage={apiRequestFailedMessage}
+										errorType="error"
+										message={message}
+									/>
+								)}
+								{isExpanded && (
+									<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+										<CodeAccordian
+											code={JSON.parse(message.text || "{}").request}
+											isExpanded={isExpanded}
+											language="markdown"
+											maxHeight={rowItemExpandedMaxHeight}
+											onToggleExpand={handleToggle}
 										/>
-									)}
-									{isExpanded && (
-										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
-											<CodeAccordian
-												code={JSON.parse(message.text || "{}").request}
-												isExpanded={isExpanded}
-												language="markdown"
-												maxHeight={rowItemExpandedMaxHeight}
-												onToggleExpand={handleToggle}
-											/>
-										</RowItemExpandable>
-									)}
-								</SecondaryRowStyle>
-							</RowVisibility>
+									</RowItemExpandable>
+								)}
+							</SecondaryRowStyle>
 						)
 					case "api_req_finished":
 						return null // we should never see this message type

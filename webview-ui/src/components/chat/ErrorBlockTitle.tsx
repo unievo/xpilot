@@ -53,15 +53,12 @@ export const ErrorBlockTitle = ({
 	apiReqCancelReason,
 	apiRequestFailedMessage,
 	retryStatus,
-	apiRequestCompletedVisible = true,
-}: ErrorBlockTitleProps): [React.ReactElement, React.ReactElement, boolean] => {
+}: ErrorBlockTitleProps): [React.ReactElement, React.ReactElement] => {
 	const getIconSpan = (iconName: string, colorClass: string) => (
 		<div className="flex items-center justify-center">
 			<span className={`codicon codicon-${iconName} text-base ${colorClass}`} style={{ fontSize: rowIconFontSize }}></span>
 		</div>
 	)
-
-	let rowVisible = true
 
 	const icon =
 		apiReqCancelReason != null ? (
@@ -92,7 +89,6 @@ export const ErrorBlockTitle = ({
 			// Handle completed request
 			details.title = "Completed"
 			// details.classNames.push("text-[var(--vscode-foreground)]")
-			rowVisible = apiRequestCompletedVisible
 		} else if (apiRequestFailedMessage) {
 			// Handle failed request
 			const clineError = ClineError.parse(apiRequestFailedMessage)
@@ -108,5 +104,5 @@ export const ErrorBlockTitle = ({
 		return <span className={details.classNames.join(" ")}>{details.title}</span>
 	})()
 
-	return [icon, title, rowVisible]
+	return [icon, title]
 }
