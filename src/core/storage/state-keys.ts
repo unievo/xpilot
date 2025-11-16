@@ -32,7 +32,6 @@ export interface GlobalState {
 	favoritedModelIds: string[]
 	mcpMarketplaceEnabled: boolean
 	mcpResponsesCollapsed: boolean
-	textResponsesCollapsed: boolean
 	terminalReuseEnabled: boolean
 	isNewUser: boolean
 	welcomeViewCompleted: boolean | undefined

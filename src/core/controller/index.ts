@@ -784,7 +784,6 @@ export class Controller {
 		)
 		const customPrompt = this.stateManager.getGlobalSettingsKey("customPrompt")
 		const mcpResponsesCollapsed = this.stateManager.getGlobalStateKey("mcpResponsesCollapsed")
-		const textResponsesCollapsed = this.stateManager.getGlobalStateKey("textResponsesCollapsed")
 		const terminalOutputLineLimit = this.stateManager.getGlobalSettingsKey("terminalOutputLineLimit")
 		const favoritedModelIds = this.stateManager.getGlobalStateKey("favoritedModelIds")
 		const lastDismissedInfoBannerVersion = this.stateManager.getGlobalStateKey("lastDismissedInfoBannerVersion") || 0
@@ -853,7 +852,6 @@ export class Controller {
 			isNewUser,
 			welcomeViewCompleted: welcomeViewCompleted as boolean, // Can be undefined but is set to either true or false by the migration that runs on extension launch in extension.ts
 			mcpResponsesCollapsed,
-			textResponsesCollapsed,
 			terminalOutputLineLimit,
 			customPrompt,
 			taskHistory: processedTaskHistory,

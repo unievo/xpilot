@@ -345,12 +345,7 @@ export const ChatRowContent = memo(
 		sendMessageFromChatRow,
 		onSetQuote,
 	}: ChatRowContentProps) => {
-		const {
-			mcpServers,
-			mcpMarketplaceCatalog,
-			onRelinquishControl,
-			textResponsesCollapsed: defaultTextResponsesCollapsed,
-		} = useExtensionState()
+		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl } = useExtensionState()
 		const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 		const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
 			visible: false,
@@ -358,7 +353,6 @@ export const ChatRowContent = memo(
 			left: 0,
 			selectedText: "",
 		})
-		const [textResponseCollapsed, setTextResponseCollapsed] = useState(defaultTextResponsesCollapsed ?? true)
 		const contentRef = useRef<HTMLDivElement>(null)
 		const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, retryStatus] = useMemo(() => {
 			if (message.text != null && message.say === "api_req_started") {
@@ -393,11 +387,6 @@ export const ChatRowContent = memo(
 				console.warn("Failed to save mcpArgumentsCollapsed to localStorage:", error)
 			}
 		}, [mcpArgumentsCollapsed])
-
-		// Effect to update textCollapsed if textResponsesCollapsed changes from context
-		useEffect(() => {
-			setTextResponseCollapsed(defaultTextResponsesCollapsed ?? true)
-		}, [defaultTextResponsesCollapsed])
 
 		// when resuming task last won't be api_req_failed but a resume_task message so api_req_started will show loading spinner. that's why we just remove the last api_req_started that failed without streaming anything
 		const apiRequestFailedMessage =

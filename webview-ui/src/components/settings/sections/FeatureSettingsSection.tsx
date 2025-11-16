@@ -19,7 +19,6 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		mcpMarketplaceEnabled,
 		mcpDisplayMode,
 		mcpResponsesCollapsed,
-		textResponsesCollapsed,
 		openaiReasoningEffort,
 		strictPlanModeEnabled,
 		yoloModeToggled,
@@ -93,19 +92,6 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						</VSCodeCheckbox>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
 							Sets the default display mode for MCP response panels
-						</p>
-					</div>
-					<div style={{ marginTop: 10 }}>
-						<VSCodeCheckbox
-							checked={textResponsesCollapsed}
-							onChange={(e: any) => {
-								const checked = e.target.checked === true
-								updateSetting("textResponsesCollapsed", checked)
-							}}>
-							Collapse Text Responses
-						</VSCodeCheckbox>
-						<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-							Sets the default display mode for LLM text response messages
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>
@@ -281,19 +267,19 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 					)}
 					{enableYoloMode && (
 						<div style={{ marginTop: 10 }}>
-						<VSCodeCheckbox
-							checked={yoloModeToggled}
-							onChange={(e: any) => {
-								const checked = e.target.checked === true
-								updateSetting("yoloModeToggled", checked)
-							}}>
-							Enable YOLO Mode
-						</VSCodeCheckbox>
-						<p className="text-xs text-[var(--vscode-errorForeground)]">
-							EXPERIMENTAL & DANGEROUS: This mode disables safety checks and user confirmations. {agentName} will
-							automatically approve all actions without asking. Use with extreme caution.
-						</p>
-					</div>
+							<VSCodeCheckbox
+								checked={yoloModeToggled}
+								onChange={(e: any) => {
+									const checked = e.target.checked === true
+									updateSetting("yoloModeToggled", checked)
+								}}>
+								Enable YOLO Mode
+							</VSCodeCheckbox>
+							<p className="text-xs text-[var(--vscode-errorForeground)]">
+								EXPERIMENTAL & DANGEROUS: This mode disables safety checks and user confirmations. {agentName}{" "}
+								will automatically approve all actions without asking. Use with extreme caution.
+							</p>
+						</div>
 					)}
 				</div>
 			</Section>

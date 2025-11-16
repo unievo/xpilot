@@ -213,8 +213,6 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 		const mcpDisplayMode = context.globalState.get<GlobalStateAndSettings["mcpDisplayMode"]>("mcpDisplayMode")
 		const mcpResponsesCollapsedRaw =
 			context.globalState.get<GlobalStateAndSettings["mcpResponsesCollapsed"]>("mcpResponsesCollapsed")
-		const textResponsesCollapsedRaw =
-			context.globalState.get<GlobalStateAndSettings["textResponsesCollapsed"]>("textResponsesCollapsed")
 		const globalWorkflowToggles =
 			context.globalState.get<GlobalStateAndSettings["globalWorkflowToggles"]>("globalWorkflowToggles")
 		const terminalReuseEnabled =
@@ -395,7 +393,6 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 		}
 
 		const mcpResponsesCollapsed = mcpResponsesCollapsedRaw ?? true
-		const textResponsesCollapsed = textResponsesCollapsedRaw ?? true
 
 		// Plan/Act separate models setting is a boolean indicating whether the user wants to use different models for plan and act. Existing users expect this to be enabled, while we want new users to opt in to this being disabled by default.
 		// On win11 state sometimes initializes as empty string instead of undefined
@@ -551,7 +548,6 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			mcpMarketplaceEnabled: mcpMarketplaceEnabledRaw ?? true,
 			mcpDisplayMode: mcpDisplayMode ?? DEFAULT_MCP_DISPLAY_MODE,
 			mcpResponsesCollapsed: mcpResponsesCollapsed,
-			textResponsesCollapsed: textResponsesCollapsed,
 			telemetrySetting: enableTelemetrySettings ? telemetrySetting || "unset" : "disabled",
 			planActSeparateModelsSetting: planActSeparateModelsSetting ?? false,
 			enableCheckpointsSetting: enableCheckpointsSettingRaw ?? true,
