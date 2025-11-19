@@ -409,17 +409,32 @@ const ServerRow = ({
 						{server.error}
 					</div>
 					<div style={{ display: "flex" }}>
+						{server.oauthRequired && server.oauthAuthStatus === "unauthenticated" ? (
 						<VSCodeButton
-							appearance="secondary"
-							disabled={server.status === "connecting"}
-							onClick={handleRestart}
+							appearance="primary"
+							onClick={(e) => {
+								e.stopPropagation()
+								McpServiceClient.authenticateMcpServer(StringRequest.create({ value: server.name }))
+							}}
 							style={{
 								width: "calc(100% - 20px)",
 								margin: "0 10px 10px 10px",
-								scale: "0.9",
 							}}>
-							{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
+							Authenticate
 						</VSCodeButton>
+					) : (
+						<VSCodeButton
+								appearance="secondary"
+								disabled={server.status === "connecting"}
+								onClick={handleRestart}
+								style={{
+									width: "calc(100% - 20px)",
+									margin: "0 10px 10px 10px",
+								scale: "0.9",
+								}}>
+								{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
+							</VSCodeButton>
+					)}
 
 						{!showConfirmDelete ? (
 							<DangerButton
@@ -550,6 +565,7 @@ const ServerRow = ({
 											flexDirection: "column",
 											gap: "8px",
 											width: "100%",
+											paddingTop: "8px",
 										}}>
 										{server.name &&
 											autoApprovalSettings.enabled &&
@@ -586,6 +602,7 @@ const ServerRow = ({
 											flexDirection: "column",
 											gap: "8px",
 											width: "100%",
+											paddingTop: "8px",
 										}}>
 										{filteredResources.map((item) => (
 											<McpResourceRow

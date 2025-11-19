@@ -3,6 +3,7 @@ import { StringRequest } from "@shared/proto/cline/common"
 import { RuleFileRequest } from "@shared/proto/index.cline"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileServiceClient } from "@/services/grpc-client"
 
 const RuleRow: React.FC<{
@@ -11,7 +12,9 @@ const RuleRow: React.FC<{
 	isGlobal: boolean
 	ruleType: string
 	toggleRule: (rulePath: string, enabled: boolean) => void
-}> = ({ rulePath, enabled, isGlobal, toggleRule, ruleType }) => {
+	isRemote?: boolean
+	alwaysEnabled?: boolean
+}> = ({ rulePath, enabled, isGlobal, toggleRule, ruleType, isRemote = false, alwaysEnabled = false }) => {
 	const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
 	// Check if the path type is Windows
@@ -24,6 +27,10 @@ const RuleRow: React.FC<{
 		return dotIndex > 0 ? filename.substring(0, dotIndex) : filename
 		//return filename
 	})()
+
+	// For remote rules, the rulePath is already the display name
+	const finalDisplayName = isRemote ? rulePath : displayName
+	const isDisabled = isRemote && alwaysEnabled
 
 	// Get the directory name from the path for display
 	const directoryName = (() => {
@@ -70,6 +77,20 @@ const RuleRow: React.FC<{
 						</g>
 					</svg>
 				)
+			case "agents":
+				return (
+					<svg
+						height="16"
+						style={{ verticalAlign: "middle" }}
+						viewBox="0 0 24 24"
+						width="16"
+						xmlns="http://www.w3.org/2000/svg">
+						<g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+							<circle cx="12" cy="8" r="3" />
+							<path d="M12 14c-4 0-6 2-6 4v2h12v-2c0-2-2-4-6-4z" />
+						</g>
+					</svg>
+				)
 			default:
 				return <span className="codicon codicon-markdown" style={{ fontSize: "14px", verticalAlign: "-18%" }}></span>
 		}
@@ -111,7 +132,7 @@ const RuleRow: React.FC<{
 					padding: "1px 1px 1px 2.5px",
 					background: enabled ? menuRowBackground : menuRowDisabledBackground,
 					borderRadius: "4px",
-					opacity: enabled ? 1 : 0.8,
+					opacity: isDisabled ? 0.5 : enabled ? 1 : 0.8,
 					cursor: "default",
 				}}>
 				<span
@@ -131,7 +152,7 @@ const RuleRow: React.FC<{
 						</span>
 					)}
 					<span style={{ marginLeft: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-						{displayName}{" "}
+						{finalDisplayName}{" "}
 						<span
 							style={{
 								fontSize: "10px",
@@ -143,90 +164,117 @@ const RuleRow: React.FC<{
 							/{directoryName}
 						</span>
 					</span>
+					{ruleType === "agents" && (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className="mt-1 ml-1.5 cursor-help">
+									<i className="codicon codicon-info" style={{ fontSize: "12px", opacity: 0.7 }} />
+								</span>
+							</TooltipTrigger>
+							<TooltipContent>
+								Searches recursively for all AGENTS.md files in the workspace when a top-level AGENTS.md exists
+							</TooltipContent>
+						</Tooltip>
+					)}
 				</span>
 
 				{/* Toggle Switch */}
 				<div style={{ display: "flex", alignItems: "center", marginTop: "0px", marginLeft: "4px", gap: "0px" }}>
 					<div
 						aria-checked={enabled}
-						onClick={() => toggleRule(rulePath, !enabled)}
+						className={`w-[20px] h-[10px] rounded-[5px] relative transition-colors duration-200 outline-none focus:outline-none ${
+							isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+						} ${
+							enabled
+								? "bg-(--vscode-testing-iconPassed) opacity-90"
+								: "bg-(--vscode-titleBar-inactiveForeground) opacity-50"
+						}`}
+						onClick={() => !isDisabled && toggleRule(rulePath, !enabled)}
 						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") {
+							if (!isDisabled && (e.key === "Enter" || e.key === " ")) {
 								e.preventDefault()
 								toggleRule(rulePath, !enabled)
 							}
 						}}
 						role="switch"
-						style={{
-							width: "20px",
-							height: "11px",
-							marginRight: "2px",
-							borderRadius: "5px",
-							position: "relative",
-							cursor: "pointer",
-							transition: "background-color 0.2s",
-							backgroundColor: enabled
-								? "var(--vscode-testing-iconPassed)"
-								: "var(--vscode-titleBar-inactiveForeground)",
-							opacity: enabled ? 0.9 : 0.5,
-						}}
-						tabIndex={0}>
+						// style={{
+						// 	width: "20px",
+						// 	height: "11px",
+						// 	marginRight: "2px",
+						// 	borderRadius: "5px",
+						// 	position: "relative",
+						// 	cursor: "pointer",
+						// 	transition: "background-color 0.2s",
+						// 	backgroundColor: enabled
+						// 		? "var(--vscode-testing-iconPassed)"
+						// 		: "var(--vscode-titleBar-inactiveForeground)",
+						// 	opacity: enabled ? 0.9 : 0.5,
+						// }}
+						tabIndex={isDisabled ? -1 : 0}
+						title={isDisabled ? "This rule is required and cannot be disabled" : undefined}>
 						<div
-							style={{
-								width: "8px",
-								height: "8px",
-								backgroundColor: "white",
-								border: "1px solid color-mix(in srgb, #666666 65%, transparent)",
-								borderRadius: "50%",
-								position: "absolute",
-								top: "0.5px",
-								left: enabled ? "10px" : "1px",
-								transition: "left 0.2s",
-							}}
+							className={`w-[8px] h-[8px] bg-white border border-[#66666699] rounded-full absolute top-[1px] transition-all duration-200 pointer-events-none ${
+								enabled ? "left-[11px]" : "left-[1px]"
+							}`}
+							// style={{
+							// 	width: "8px",
+							// 	height: "8px",
+							// 	backgroundColor: "white",
+							// 	border: "1px solid color-mix(in srgb, #666666 65%, transparent)",
+							// 	borderRadius: "50%",
+							// 	position: "absolute",
+							// 	top: "0.5px",
+							// 	left: enabled ? "10px" : "1px",
+							// 	transition: "left 0.2s",
+							// }}
 						/>
 					</div>
-					<VSCodeButton
-						appearance="icon"
-						aria-label="Open file"
-						onClick={handleEditClick}
-						style={{ height: "20px" }}
-						title="Open file">
-						<span
-							className="codicon codicon-go-to-file"
-							style={{ fontSize: "15px", opacity: 0.8, marginTop: "2px", marginRight: "-2px" }}
-						/>
-					</VSCodeButton>
-					{!showConfirmDelete ? (
-						<VSCodeButton
-							appearance="icon"
-							aria-label="Delete file"
-							onClick={handleDeleteClick}
-							style={{ height: "20px" }}
-							title="Delete file">
-							<span
-								className="codicon codicon-trash"
-								style={{ fontSize: "15px", opacity: 0.8, marginTop: "3px" }}
-							/>
-						</VSCodeButton>
-					) : (
-						<div style={{ display: "flex", gap: "2px", overflow: "hidden", marginRight: "2px" }}>
+					{!isRemote && (
+						<>
 							<VSCodeButton
-								appearance="secondary"
-								aria-label="Confirm delete"
-								onClick={handleConfirmDelete}
-								style={{ width: "25px", height: "20px" }}
-								title="Confirm delete">
-								✓
+								appearance="icon"
+								aria-label="Open file"
+								onClick={handleEditClick}
+								style={{ height: "20px" }}
+								title="Open file">
+								<span
+									className="codicon codicon-go-to-file"
+									style={{ fontSize: "15px", opacity: 0.8, marginTop: "2px", marginRight: "-2px" }}
+								/>
 							</VSCodeButton>
-							<VSCodeButton
-								appearance="secondary"
-								aria-label="Cancel delete"
-								onClick={handleCancelDelete}
-								style={{ width: "25px", height: "20px" }}
-								title="Cancel delete">
-								✗
-							</VSCodeButton>
-						</div>
+							{!showConfirmDelete ? (
+								<VSCodeButton
+									appearance="icon"
+									aria-label="Delete file"
+									onClick={handleDeleteClick}
+									style={{ height: "20px" }}
+									title="Delete file">
+									<span
+										className="codicon codicon-trash"
+										style={{ fontSize: "15px", opacity: 0.8, marginTop: "3px" }}
+									/>
+								</VSCodeButton>
+							) : (
+								<div style={{ display: "flex", gap: "2px", overflow: "hidden", marginRight: "2px" }}>
+									<VSCodeButton
+										appearance="secondary"
+										aria-label="Confirm delete"
+										onClick={handleConfirmDelete}
+										style={{ width: "25px", height: "20px" }}
+										title="Confirm delete">
+										✓
+									</VSCodeButton>
+									<VSCodeButton
+										appearance="secondary"
+										aria-label="Cancel delete"
+										onClick={handleCancelDelete}
+										style={{ width: "25px", height: "20px" }}
+										title="Cancel delete">
+										✗
+									</VSCodeButton>
+								</div>
+							)}
+						</>
 					)}
 				</div>
 			</div>

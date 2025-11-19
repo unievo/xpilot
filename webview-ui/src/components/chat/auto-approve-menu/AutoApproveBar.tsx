@@ -1,45 +1,40 @@
-import { useMemo, useRef, useState } from "react"
+import { StringRequest } from "@shared/proto/cline/common"
+import { useRef, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
-import AutoApproveMenuItem from "./AutoApproveMenuItem"
+import { UiServiceClient } from "@/services/grpc-client"
+import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
 import AutoApproveModal from "./AutoApproveModal"
-import { ACTION_METADATA, NOTIFICATIONS_SETTING } from "./constants"
+import { ACTION_METADATA } from "./constants"
 
 interface AutoApproveBarProps {
 	style?: React.CSSProperties
 }
 
 const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
-	const { autoApprovalSettings } = useExtensionState()
-	const { isChecked, isFavorited, updateAction } = useAutoApproveActions()
+	const { autoApprovalSettings, yoloModeToggled, navigateToSettings } = useExtensionState()
 
 	const [isModalVisible, setIsModalVisible] = useState(false)
 	const buttonRef = useRef<HTMLDivElement>(null)
 
-	const favorites = useMemo(() => autoApprovalSettings.favorites || [], [autoApprovalSettings.favorites])
+	const handleNavigateToFeatures = async (e: React.MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
 
-	// Render a favorited item with a checkbox
-	const renderFavoritedItem = (favId: string) => {
-		const actions = [...ACTION_METADATA.flatMap((a) => [a, a.subAction]), NOTIFICATIONS_SETTING]
-		const action = actions.find((a) => a?.id === favId)
-		if (!action) {
-			return null
-		}
+		navigateToSettings()
 
-		return (
-			<AutoApproveMenuItem
-				action={action}
-				condensed={true}
-				isChecked={isChecked}
-				isFavorited={isFavorited}
-				onToggle={updateAction}
-				showIcon={false}
-			/>
-		)
+		setTimeout(async () => {
+			try {
+				await UiServiceClient.scrollToSettings(StringRequest.create({ value: "features" }))
+			} catch (error) {
+				console.error("Error scrolling to features settings:", error)
+			}
+		}, 300)
 	}
 
-	const getQuickAccessItems = () => {
-		const notificationsEnabled = autoApprovalSettings.enableNotifications
+	const getEnabledActionsText = () => {
+		const baseClasses = isModalVisible
+			? "text-foreground truncate"
+			: "text-muted-foreground group-hover:text-foreground truncate"
 		const enabledActionsNames = Object.keys(autoApprovalSettings.actions).filter(
 			(key) => autoApprovalSettings.actions[key as keyof typeof autoApprovalSettings.actions],
 		)
@@ -47,26 +42,85 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 			return ACTION_METADATA.flatMap((a) => [a, a.subAction]).find((a) => a?.id === action)
 		})
 
-		const minusFavorites = enabledActions.filter((action) => !favorites.includes(action?.id ?? "") && action?.shortName)
+		// Filter out parent actions if their subaction is also enabled (show only subaction)
+		const actionsToShow = enabledActions.filter((action) => {
+			if (!action?.shortName) {
+				return false
+			}
 
-		if (notificationsEnabled) {
-			minusFavorites.push(NOTIFICATIONS_SETTING)
+			// If this is a parent action and its subaction is enabled, skip it
+			if (action.subAction?.id && enabledActionsNames.includes(action.subAction.id)) {
+				return false
+			}
+
+			return true
+		})
+
+		if (actionsToShow.length === 0) {
+			return <span className={baseClasses}>None</span>
 		}
 
-		return [
-			...favorites.map((favId) => renderFavoritedItem(favId)),
-			// minusFavorites.length > 0 ? (
-			// 	<span className="text-[color:var(--vscode-foreground-muted)] pl-[1px] opacity-70" key="separator">
-			// 		-
-			// 	</span>
-			// ) : null,
-			...minusFavorites.map((action, index) => (
-				<span className="text-[color:var(--vscode-foreground-muted)] opacity-70" key={action?.id}>
-					{action?.shortName}
-					{index < minusFavorites.length - 1 && ""}
-				</span>
-			)),
-		]
+		return (
+			<span className={baseClasses}>
+				{actionsToShow.map((action, index) => (
+					<span key={action?.id}>
+						{action?.shortName}
+						{index < actionsToShow.length - 1 && ", "}
+					</span>
+				))}
+			</span>
+		)
+	}
+
+	const borderColor = `color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`
+	const borderGradient = `linear-gradient(to bottom, ${borderColor} 0%, transparent 50%)`
+	const bgGradient = `linear-gradient(to bottom, color-mix(in srgb, var(--vscode-sideBar-background) 96%, white) 0%, transparent 80%)`
+
+	// If YOLO mode is enabled, show disabled message
+	if (yoloModeToggled) {
+		return (
+			<div
+				className="mx-3.5 select-none break-words relative"
+				style={{
+					borderTop: `0.5px solid ${borderColor}`,
+					borderRadius: "4px 4px 0 0",
+					background: bgGradient,
+					opacity: 0.5,
+					...style,
+				}}>
+				{/* Left border gradient */}
+				<div
+					className="absolute left-0 pointer-events-none"
+					style={{
+						width: 0.5,
+						top: 3,
+						height: "100%",
+						background: borderGradient,
+					}}
+				/>
+				{/* Right border gradient */}
+				<div
+					className="absolute right-0 top-0 pointer-events-none"
+					style={{
+						width: 0.5,
+						top: 3,
+						height: "100%",
+						background: borderGradient,
+					}}
+				/>
+
+				<div className="pt-4 pb-3.5 px-3.5">
+					<div className="text-sm mb-1">Auto-approve: YOLO</div>
+					<div className="text-muted-foreground text-xs">
+						YOLO mode is enabled.{" "}
+						<span className="underline cursor-pointer hover:text-foreground" onClick={handleNavigateToFeatures}>
+							Disable it in Settings
+						</span>
+						.
+					</div>
+				</div>
+			</div>
+		)
 	}
 
 	return (
@@ -92,8 +146,7 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 						if (!autoApprovalSettings.enabled) {
 							return " off"
 						}
-						const items = getQuickAccessItems()
-						return items.length > 0 ? items : " none"
+						getEnabledActionsText()
 					})()}
 				</div>
 				<div>
@@ -110,7 +163,6 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 				ACTION_METADATA={ACTION_METADATA}
 				buttonRef={buttonRef}
 				isVisible={isModalVisible}
-				NOTIFICATIONS_SETTING={NOTIFICATIONS_SETTING}
 				setIsVisible={setIsModalVisible}
 			/>
 		</div>

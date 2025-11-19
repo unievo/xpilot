@@ -34,6 +34,7 @@ export const mcpServerIncludeToolInputSchema_MaxLength = 100
 export const agentWorkspaceDirectory = `.${productName}`
 export const instructionsDirectory = `instructions`
 export const workflowsDirectory = `workflows`
+export const hooksDirectory = `hooks`
 export const instructionsFilesExtension = `.md`
 export const instructionsExcludedDirectories = [".*", "content"]
 export const instructionsExcludedFiles = ["README.md"]
@@ -47,6 +48,7 @@ export const extensionIconLightPath = `assets/icons/icon_light.png`
 export const extensionIconDarkPath = `assets/icons/icon_dark.png`
 export const workspaceInstructionsDirectoryPath = `${agentWorkspaceDirectory}/${instructionsDirectory}`
 export const workspaceWorkflowsDirectoryPath = `${agentWorkspaceDirectory}/${workflowsDirectory}`
+export const workspaceHooksDirectoryPath = `${agentWorkspaceDirectory}/${hooksDirectory}`
 export const ignoreWorkspaceDirectories = [
 	agentWorkspaceDirectory,
 	".git",

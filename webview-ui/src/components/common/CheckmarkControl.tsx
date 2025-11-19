@@ -331,7 +331,7 @@ const Container = styled.div<{ isMenuOpen?: boolean; $isCheckedOut?: boolean }>`
 	margin-top: -10px;
 	margin-bottom: -10px;
 	opacity: ${(props) => (props.$isCheckedOut ? 1 : props.isMenuOpen ? checkPointContainerHoverOpacity : checkPointContainerNormalOpacity)};
-
+	// height: 0.5rem;
 	&:hover {
 		opacity: 1;
 	}
@@ -361,7 +361,7 @@ const Container = styled.div<{ isMenuOpen?: boolean; $isCheckedOut?: boolean }>`
 const Label = styled.span<{ $isCheckedOut?: boolean }>`
 	color: ${(props) => (props.$isCheckedOut ? "var(--vscode-textLink-foreground)" : "var(--vscode-descriptionForeground)")};
 	font-size: 9px;
-	flex-shrink: 0;
+	shrink: 0;
 `
 
 const DottedLine = styled.div<{ small?: boolean; $isCheckedOut?: boolean }>`
@@ -381,7 +381,7 @@ const ButtonGroup = styled.div`
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	flex-shrink: 0;
+	shrink: 0;
 `
 
 const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $isCheckedOut?: boolean }>`

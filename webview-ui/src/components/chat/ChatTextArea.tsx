@@ -132,7 +132,7 @@ const SwitchOption = styled.div.withConfig({
 const SwitchContainer = styled.div<{ disabled: boolean }>`
 	display: flex;
 	align-items: center;
-	background-color: var(--vscode-editor-background);
+	background-color: transparent;
 	border: 0.5px solid var(--vscode-charts-lines);
 	border-radius: 5px;
 	overflow: hidden;
@@ -140,7 +140,7 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 	opacity: ${(props) => (props.disabled ? 0.5 : 1)};
 	transform: scale(0.9);
 	transform-origin: right center;
-	margin-left: -10px; // compensate for the transform so flex spacing works
+	margin-left: 0;
 	user-select: none; // Prevent text selection
 `
 
@@ -307,6 +307,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			platform,
 			localWorkflowToggles,
 			globalWorkflowToggles,
+			remoteWorkflowToggles,
+			remoteConfigSettings,
 			showChatModelSelector: showModelSelector,
 			setShowChatModelSelector: setShowModelSelector,
 			dictationSettings,
@@ -610,6 +612,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								slashCommandsQuery,
 								localWorkflowToggles,
 								globalWorkflowToggles,
+								remoteWorkflowToggles,
+								remoteConfigSettings?.remoteGlobalWorkflows,
 							)
 
 							if (allCommands.length === 0) {
@@ -628,7 +632,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 					if ((event.key === "Enter" || event.key === "Tab") && selectedSlashCommandsIndex !== -1) {
 						event.preventDefault()
-						const commands = getMatchingSlashCommands(slashCommandsQuery, localWorkflowToggles, globalWorkflowToggles)
+						const commands = getMatchingSlashCommands(
+							slashCommandsQuery,
+							localWorkflowToggles,
+							globalWorkflowToggles,
+							remoteWorkflowToggles,
+							remoteConfigSettings?.remoteGlobalWorkflows,
+						)
 						if (commands.length > 0) {
 							handleSlashCommandsSelect(commands[selectedSlashCommandsIndex])
 						}
@@ -686,7 +696,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							selectedOption.type !== ContextMenuOptionType.URL &&
 							selectedOption.type !== ContextMenuOptionType.NoResults
 						) {
-							handleMentionSelect(selectedOption.type, selectedOption.value)
+							// Use label if it contains workspace prefix, otherwise use value
+							const mentionValue = selectedOption.label?.includes(":") ? selectedOption.label : selectedOption.value
+							handleMentionSelect(selectedOption.type, mentionValue)
 						}
 						return
 					}
@@ -917,13 +929,23 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									? FileSearchType.FOLDER
 									: undefined
 
+						// Parse workspace hint from query (e.g., "@frontend:/filename")
+						let workspaceHint: string | undefined
+						let searchQuery = query
+						const workspaceHintMatch = query.match(/^([\w-]+):\/(.*)$/)
+						if (workspaceHintMatch) {
+							workspaceHint = workspaceHintMatch[1]
+							searchQuery = workspaceHintMatch[2]
+						}
+
 						// Set a timeout to debounce the search requests
 						searchTimeoutRef.current = setTimeout(() => {
 							FileServiceClient.searchFiles(
 								FileSearchRequest.create({
-									query: query,
+									query: searchQuery,
 									mentionsRequestId: query,
 									selectedType: searchType,
+									workspaceHint: workspaceHint,
 								}),
 							)
 								.then((results) => {
@@ -1124,7 +1146,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				const textAfterSlash = processedText.substring(slashIndex + 1)
 
 				// Get all available commands for matching
-				const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
+				const workflowCommands = getWorkflowCommands(
+					localWorkflowToggles,
+					globalWorkflowToggles,
+					remoteWorkflowToggles,
+					remoteConfigSettings?.remoteGlobalWorkflows,
+				)
 				const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
 				// Find the longest matching valid command that is complete
@@ -1692,6 +1719,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								onMouseDown={handleMenuMouseDown}
 								onSelect={handleSlashCommandsSelect}
 								query={slashCommandsQuery}
+								remoteWorkflows={remoteConfigSettings?.remoteGlobalWorkflows}
+								remoteWorkflowToggles={remoteWorkflowToggles}
 								selectedIndex={selectedSlashCommandsIndex}
 								setSelectedIndex={setSelectedSlashCommandsIndex}
 							/>

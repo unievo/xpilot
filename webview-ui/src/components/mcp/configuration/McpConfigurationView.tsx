@@ -21,7 +21,7 @@ type McpViewProps = {
 type LocalMcpViewTab = McpViewTab | "install"
 
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
-	const { mcpMarketplaceEnabled, setMcpServers, setMcpTab } = useExtensionState()
+	const { mcpMarketplaceEnabled, setMcpServers, setMcpTab, environment } = useExtensionState()
 	const [activeTab, setActiveTab] = useState<LocalMcpViewTab>(initialTab || "configure")
 	const [installSubTab, setInstallSubTab] = useState<McpViewTab>("library")
 

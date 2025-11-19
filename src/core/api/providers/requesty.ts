@@ -3,7 +3,8 @@ import { ModelInfo, requestyDefaultModelId, requestyDefaultModelInfo } from "@sh
 import { agentName, homePageUrl } from "@shared/Configuration"
 import { calculateApiCostOpenAI } from "@utils/cost"
 import OpenAI from "openai"
-import { toRequestyServiceStringUrl } from "@/shared/providers/requesty"
+import { toRequestyServiceStringUrl } from "@/shared/clients/requesty"
+import { fetch } from "@/shared/net"
 import { ApiHandler, CommonApiHandlerOptions } from "../index"
 import { withRetry } from "../retry"
 import { convertToOpenAiMessages } from "../transform/openai-format"
@@ -49,6 +50,7 @@ export class RequestyHandler implements ApiHandler {
 						"HTTP-Referer": `${homePageUrl}`,
 						"X-Title": `${agentName}`,
 					},
+					fetch, // Use configured fetch with proxy support
 				})
 			} catch (error: any) {
 				throw new Error(`Error creating Requesty client: ${error.message}`)

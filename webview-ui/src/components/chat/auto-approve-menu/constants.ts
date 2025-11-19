@@ -1,21 +1,6 @@
-import { agentName } from "@shared/Configuration"
 import { ActionMetadata } from "./types"
 
 export const ACTION_METADATA: ActionMetadata[] = [
-	{
-		id: "enableAutoApprove",
-		label: "Enable actions",
-		shortName: "Enabled",
-		description: "Toggle the auto-approve feature on or off.",
-		icon: "codicon-play-circle",
-	},
-	{
-		id: "enableAll",
-		label: "Toggle all",
-		shortName: "All",
-		description: "Toggle all actions on or off.",
-		icon: "codicon-checklist",
-	},
 	{
 		id: "readFiles",
 		label: "Read project files",
@@ -65,7 +50,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		id: "useMcp",
 		label: "Use MCP servers",
 		shortName: "MCP",
-		description: `Allows ${agentName} to use configured MCP servers.`,
+		description: `Use configured MCP servers.`,
 		icon: "codicon-server",
 	},
 	{
@@ -81,6 +66,6 @@ export const NOTIFICATIONS_SETTING: ActionMetadata = {
 	id: "enableNotifications",
 	label: "Enable notifications",
 	shortName: "Notify",
-	description: `Receive system notifications when ${agentName} requires approval to proceed or when a task is completed.`,
+	description: `Receive system notifications when approval is required to proceed or when a task is completed.`,
 	icon: "codicon-bell",
 }

@@ -13,7 +13,9 @@ interface HomeHeaderProps {
 }
 
 const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
-	const _handleTakeATour = async () => {
+	const { environment } = useExtensionState()
+
+	const handleTakeATour = async () => {
 		try {
 			await UiServiceClient.openWalkthrough(EmptyRequest.create())
 		} catch (error) {
@@ -239,6 +241,21 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 					<AgentLogo size={40} />
 				</div>
 			)}
+			
+			{/* Quick Wins Section */}
+			{/* {shouldShowQuickWins && (
+				<div className="mt-4">
+					<button
+						className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-panel bg-white/2 hover:bg-list-background-hover transition-colors duration-150 ease-in-out text-code-foreground text-sm font-medium cursor-pointer"
+						onClick={handleTakeATour}
+						type="button">
+						Take a Tour
+						<span className="codicon codicon-play scale-90"></span>
+					</button>
+				</div>
+			)} */}
+
+			{/* Overview Section */}
 
 			<div
 				aria-expanded={isOverviewExpanded}

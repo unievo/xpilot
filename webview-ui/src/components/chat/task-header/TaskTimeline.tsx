@@ -1,5 +1,6 @@
 import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
+import { combineHookSequences } from "@shared/combineHookSequences"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { Virtuoso } from "react-virtuoso"
@@ -16,7 +17,6 @@ import { getColor } from "./util"
 const TIMELINE_HEIGHT = taskHeaderTimelineHeight
 const BLOCK_WIDTH = taskHeaderTimelineBlockWidth
 const BLOCK_GAP = taskHeaderTimelineBlockGap
-const _TOOLTIP_MARGIN = 32 // 32px margin on each side
 
 interface TaskTimelineProps {
 	messages: ClineMessage[]
@@ -32,7 +32,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 			return { taskTimelinePropsMessages: [], messageIndexMap: [] }
 		}
 
-		const processed = combineApiRequests(combineCommandSequences(messages.slice(1)))
+		const processed = combineApiRequests(combineCommandSequences(combineHookSequences(messages.slice(1))))
 		const indexMap: number[] = []
 
 		const filtered = processed.filter((msg, _processedIndex) => {
@@ -114,7 +114,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 			return (
 				<TaskTimelineTooltip message={message}>
 					<div
-						className="hover:brightness-120"
+						className="rounded-xs hover:brightness-120"
 						onClick={handleClick}
 						style={{
 							width: BLOCK_WIDTH,

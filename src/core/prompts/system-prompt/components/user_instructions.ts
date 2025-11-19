@@ -60,6 +60,7 @@ export async function getUserInstructions(variant: PromptVariant, context: Syste
 		context.localCursorRulesDirInstructions,
 		context.localWindsurfRulesFileInstructions,
 		context.localWindsurfRulesDirInstructions,
+		context.localAgentsRulesFileInstructions,
 		context.clineIgnoreInstructions,
 		context.preferredLanguageInstructions,
 	)
@@ -84,6 +85,7 @@ function buildUserInstructions(
 	localCursorRulesDirInstructions?: string,
 	localWindsurfRulesFileInstructions?: string,
 	localWindsurfRulesDirInstructions?: string,
+	localAgentsRulesFileInstructions?: string,
 	clineIgnoreInstructions?: string,
 	preferredLanguageInstructions?: string,
 ): string | undefined {
@@ -108,6 +110,9 @@ function buildUserInstructions(
 	}
 	if (localWindsurfRulesDirInstructions) {
 		customInstructions.push(localWindsurfRulesDirInstructions)
+	}
+	if (localAgentsRulesFileInstructions) {
+		customInstructions.push(localAgentsRulesFileInstructions)
 	}
 	if (clineIgnoreInstructions) {
 		customInstructions.push(clineIgnoreInstructions)

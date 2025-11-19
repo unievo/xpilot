@@ -1,7 +1,7 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { StringRequest } from "@shared/proto/cline/common"
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
 import HeroTooltip from "@/components/common/HeroTooltip"
 import Thumbnails from "@/components/common/Thumbnails"
@@ -64,13 +64,39 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		checkpointManagerErrorMessage,
 		clineMessages,
 		navigateToSettings,
-		useAutoCondense,
 		mode,
 		localWorkflowToggles,
 		globalWorkflowToggles,
 		expandTaskHeader: isTaskExpanded,
 		setExpandTaskHeader: setIsTaskExpanded,
+		environment,
 	} = useExtensionState()
+
+	const [isHighlightedTextExpanded, setIsHighlightedTextExpanded] = useState(false)
+	const highlightedTextRef = React.useRef<HTMLDivElement>(null)
+
+	const { highlightedText, displayTextExpandable } = useMemo(() => {
+		const taskTextLines = task.text?.split("\n") || []
+		const highlightedText = highlightText(task.text, false)
+
+		return { highlightedText, displayTextExpandable: taskTextLines.length > 3 }
+	}, [task.text])
+
+	// Handle click outside to collapse
+	React.useEffect(() => {
+		if (!isHighlightedTextExpanded) {
+			return
+		}
+
+		const handleClickOutside = (event: MouseEvent) => {
+			if (highlightedTextRef.current && !highlightedTextRef.current.contains(event.target as Node)) {
+				setIsHighlightedTextExpanded(false)
+			}
+		}
+
+		document.addEventListener("mousedown", handleClickOutside)
+		return () => document.removeEventListener("mousedown", handleClickOutside)
+	}, [isHighlightedTextExpanded])
 
 	// Simplified computed values
 	const { selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, mode)
@@ -232,7 +258,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							)}
 						</div>
 					</div>
-					<div className="inline-flex items-center justify-end select-none flex-shrink-0">
+					<div className="inline-flex items-center justify-end select-none shrink-0">
 						{isCostAvailable && (
 							<div
 								className="mr-1 px-1 py-0.25 rounded-full inline-flex shrink-0 text-badge-foreground bg-badge-background/70 items-center"

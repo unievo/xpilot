@@ -1,4 +1,4 @@
-import { cn } from "@heroui/react"
+import { Button } from "@heroui/react"
 import { StringRequest } from "@shared/proto/cline/common"
 import { ArrowDownToLineIcon } from "lucide-react"
 import HeroTooltip from "@/components/common/HeroTooltip"
@@ -20,17 +20,20 @@ const OpenDiskConversationHistoryButton: React.FC<{
 
 	return (
 		<HeroTooltip content="Open Conversation History File" placement="right">
-			<ArrowDownToLineIcon
+			<Button
 				aria-label="Open Disk Conversation History"
-				className={cn(
-					"flex items-center border-0 opacity-50 hover:opacity-100 p-1 text-[var(--vscode-icon-foreground)]",
-					className,
-				)}
-				onClick={handleOpenDiskConversationHistory}
-				size="13"
-			/>
+				onClick={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					handleOpenDiskConversationHistory()
+				}}
+				size="icon"
+				variant="icon">
+				<ArrowDownToLineIcon />
+			</Button>
 		</HeroTooltip>
 	)
 }
 
+OpenDiskConversationHistoryButton.displayName = "OpenDiskConversationHistoryButton"
 export default OpenDiskConversationHistoryButton

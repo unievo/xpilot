@@ -13,7 +13,7 @@ const PreferredLanguageSetting: React.FC = () => {
 
 	return (
 		<div style={{}}>
-			<label className="block mb-1 text-sm font-medium" htmlFor="preferred-language-dropdown">
+			<label className="block mb-1 text-base font-medium" htmlFor="preferred-language-dropdown">
 				Preferred Language
 			</label>
 			<VSCodeDropdown

@@ -30,7 +30,7 @@ const ContentRow = styled.div`
 `
 
 const TextContainer = styled.div`
-	flex-grow: 1;
+	grow: 1;
 	margin: 0 2px; /* Further reduced space around text */
 	white-space: pre-wrap;
 	word-break: break-word;
@@ -47,7 +47,7 @@ const TextContainer = styled.div`
 
 const DismissButton = styled(VSCodeButton)`
 	/* margin-left: auto; */ /* Removed as ContentRow handles spacing */
-	flex-shrink: 0; /* Prevent button from shrinking */
+	shrink: 0; /* Prevent button from shrinking */
 	min-width: 22px;
 	height: 22px;
 	padding: 0;
@@ -60,7 +60,7 @@ const DismissButton = styled(VSCodeButton)`
 const ReplyIcon = styled.span`
 	color: var(--vscode-descriptionForeground);
 	margin-right: 2px; /* Further reduced space between icon and text */
-	flex-shrink: 0;
+	shrink: 0;
 	font-size: 13px; /* Make icon even smaller */
 	/* transform: translateY(-1px); */ /* Removed vertical transform */
 `

@@ -1,7 +1,7 @@
 import { geminiModels, ModelInfo } from "@shared/api"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { Fragment, useState } from "react"
-import { ModelDescriptionMarkdown } from "../OpenRouterModelPicker"
+import { Fragment } from "react"
+import { ModelDescriptionMarkdown } from "../ModelDescriptionMarkdown"
 import {
 	formatPrice,
 	formatTokenLimit,
@@ -98,10 +98,7 @@ interface ModelInfoViewProps {
  * This component manages its own description expansion state
  */
 export const ModelInfoView = ({ selectedModelId, modelInfo, isPopup }: ModelInfoViewProps) => {
-	// Internal state management for description expansion
-	const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
-
-	const isGeminiProvider = Object.keys(geminiModels).includes(selectedModelId)
+	const isGemini = Object.keys(geminiModels).includes(selectedModelId)
 	const hasThinkingConfig = hasThinkingBudget(modelInfo)
 	const hasTiers = !!modelInfo.tiers && modelInfo.tiers.length > 0
 
@@ -152,13 +149,7 @@ export const ModelInfoView = ({ selectedModelId, modelInfo, isPopup }: ModelInfo
 
 	const infoItems = [
 		modelInfo.description && (
-			<ModelDescriptionMarkdown
-				isExpanded={isDescriptionExpanded}
-				isPopup={isPopup}
-				key="description"
-				markdown={modelInfo.description}
-				setIsExpanded={setIsDescriptionExpanded}
-			/>
+			<ModelDescriptionMarkdown isPopup={isPopup} key="description" markdown={modelInfo.description} />
 		),
 		<ModelInfoSupportsItem
 			doesNotSupportLabel="Does not support images"
@@ -172,7 +163,7 @@ export const ModelInfoView = ({ selectedModelId, modelInfo, isPopup }: ModelInfo
 			key="supportsBrowserUse"
 			supportsLabel="Supports browser use"
 		/>,
-		!isGeminiProvider && (
+		!isGemini && (
 			<ModelInfoSupportsItem
 				doesNotSupportLabel="Does not support prompt caching"
 				isSupported={supportsPromptCache(modelInfo)}
@@ -197,7 +188,7 @@ export const ModelInfoView = ({ selectedModelId, modelInfo, isPopup }: ModelInfo
 			</span>
 		),
 		outputPriceElement, // Add the generated output price block
-		isGeminiProvider && (
+		isGemini && (
 			<span key="geminiPricing" style={{ fontStyle: "italic" }}>
 				<VSCodeLink href="https://ai.google.dev/pricing" style={{ display: "inline", fontSize: "inherit" }}>
 					For more info, see pricing details.

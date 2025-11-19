@@ -105,7 +105,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 				{isExpanded ? (
 					<form className="flex flex-1 items-center" onSubmit={handleSubmit}>
 						<input
-							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent"
+							className="flex-1 bg-input-background text-(--vscode-input-foreground) border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent"
 							onChange={(e) => setFilename(e.target.value)}
 							onKeyDown={handleKeyDown}
 							placeholder={"filename(.md)"}

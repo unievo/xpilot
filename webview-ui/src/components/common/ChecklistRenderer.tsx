@@ -2,6 +2,7 @@ import { cn } from "@heroui/react"
 import { parseFocusChainItem } from "@shared/focus-chain-utils"
 import { CheckIcon, CircleIcon } from "lucide-react"
 import React, { useCallback, useEffect, useRef, useState } from "react"
+import LightMarkdown from "./LightMarkdown"
 
 interface ChecklistRendererProps {
 	text: string
@@ -92,13 +93,10 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 
 	return (
 		<div
+			className={cn("text-sm flex flex-col gap-0.5", items.length >= 10 ? "max-h-52 overflow-y-auto" : "h-auto visible")}
 			onScroll={handleScroll}
 			ref={containerRef}
 			style={{
-				display: "flex",
-				flexDirection: "column",
-				gap: "2px",
-				fontSize: "12px",
 				lineHeight: "1.3",
 				maxHeight: items.length >= 5 ? "95px" : "auto",
 				overflowY: items.length >= 5 ? "auto" : "visible",
@@ -121,7 +119,7 @@ const ChecklistRenderer: React.FC<ChecklistRendererProps> = ({ text }) => {
 							lineHeight: "1.3",
 							marginRight: "5px",
 						}}>
-						{item.text}
+						<LightMarkdown compact text={item.text} />
 					</span>
 				</div>
 			))}

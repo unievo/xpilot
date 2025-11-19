@@ -9,7 +9,7 @@ type AddLocalServerFormProps = {
 	onServerAdded: () => void
 }
 
-const AddLocalServerForm = ({ onServerAdded }: AddLocalServerFormProps) => {
+const AddLocalServerForm = ({}: AddLocalServerFormProps) => {
 	return (
 		<FormContainer>
 			<div className="text-[var(--vscode-foreground)]">

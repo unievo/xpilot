@@ -17,6 +17,8 @@ interface SlashCommandMenuProps {
 	query: string
 	localWorkflowToggles?: Record<string, boolean>
 	globalWorkflowToggles?: Record<string, boolean>
+	remoteWorkflowToggles?: Record<string, boolean>
+	remoteWorkflows?: any[]
 }
 
 const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
@@ -27,6 +29,8 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	query,
 	localWorkflowToggles = {},
 	globalWorkflowToggles = {},
+	remoteWorkflowToggles,
+	remoteWorkflows,
 }) => {
 	const menuRef = useRef<HTMLDivElement>(null)
 
@@ -54,7 +58,13 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	}, [selectedIndex])
 
 	// Filter commands based on query
-	const filteredCommands = getMatchingSlashCommands(query, localWorkflowToggles, globalWorkflowToggles)
+	const filteredCommands = getMatchingSlashCommands(
+		query,
+		localWorkflowToggles,
+		globalWorkflowToggles,
+		remoteWorkflowToggles,
+		remoteWorkflows,
+	)
 	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "task" || !cmd.section)
 	const instructionsCommands = filteredCommands.filter((cmd) => cmd.section === "instructions")
 	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "workflows")
@@ -78,7 +88,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 										? "underline bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-sash-hoverBorder)]"
 										: "bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-quickInputList-focusForeground)]"
 									: ""
-							} hover:bg-[var(--vscode-list-hoverBackground)]`}
+							} hover:bg-(--vscode-list-hoverBackground)`}
 							id={`slash-command-menu-item-${itemIndex}`}
 							key={command.name}
 							onClick={() => handleClick(command)}
@@ -108,7 +118,8 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 	return (
 		<div
-			className="absolute bottom-[calc(100%-7px)] left-[0px] right-[0px] overflow-x-hidden z-[1000]"
+			className="absolute bottom-[calc(100%-7px)] left-[0px] right-[0px] overflow-x-hidden z-1000"
+			data-testid="slash-commands-menu"
 			onMouseDown={onMouseDown}
 			style={{ fontSize: menuFontSize }}>
 			<div

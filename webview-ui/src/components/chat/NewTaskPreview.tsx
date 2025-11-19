@@ -19,7 +19,7 @@ const NewTaskPreview: React.FC<NewTaskPreviewProps> = ({ context }) => {
 				wordBreak: "break-word",
 				padding: "0 5px",
 			}}>
-			{/* <span style={{ fontWeight: "bold" }}>New Task Context:</span> */}
+			{/* <span style={{ fontWeight: "bold" }}>Task</span> */}
 			<MarkdownBlock markdown={context} />
 		</div>
 	)
