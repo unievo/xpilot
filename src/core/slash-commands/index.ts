@@ -41,65 +41,44 @@ export async function parseSlashCommands(
 	providerInfo?: ApiProviderInfo,
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
 	const SUPPORTED_DEFAULT_COMMANDS = [
-		"New Task",
-		"Compact Task",
-		"Deep Planning", "Subagent",
-		"Generate Instructions",
-		"Git Instructions",
-		"Git Workflows",
-	] //, "Report Bug"
+		"newtask",
+		"smol",
+		"compact",
+		"new-instructions",
+		"git-instructions",
+		"git-workflows",
+		"deep-planning",
+		"subagent",
+		//reportbug,
+	]
 
 	const commandReplacements: Record<string, string> = {
-		"New Task": newTaskToolResponse(),
-		"Compact Task": condenseToolResponse(focusChainSettings),
-		"Generate Instructions": newRuleToolResponse(),
-		"Git Instructions": gitInstructionsToolResponse(),
-		"Git Workflows": gitWorkflowsToolResponse(),
-		//"Report Bug": reportBugToolResponse(),
-		"Deep Planning": deepPlanningToolResponse(focusChainSettings, providerInfo),
-		"Subagent": subagentToolResponse(),
+		newtask: newTaskToolResponse(),
+		smol: condenseToolResponse(focusChainSettings),
+		compact: condenseToolResponse(focusChainSettings),
+		"new-instructions": newRuleToolResponse(),
+		"git-instructions": gitInstructionsToolResponse(),
+		"git-workflows": gitWorkflowsToolResponse(),
+		"deep-planning": deepPlanningToolResponse(focusChainSettings, providerInfo),
+		subagent: subagentToolResponse(),
+		//reportbug: reportBugToolResponse(),
 	}
 
-	// Get all available workflow commands (without file extensions)
-	const globalWorkflows = Object.entries(globalWorkflowToggles)
-		.filter(([_, enabled]) => enabled)
-		.map(([filePath, _]) => {
-			const fileName = filePath.replace(/^.*[/\\]/, "")
-			const commandName = fileName.replace(/\.[^/.]+$/, "")
-			return {
-				fullPath: filePath,
-				fileName: fileName,
-				commandName: commandName,
-			}
-		})
-
-	const localWorkflows = Object.entries(localWorkflowToggles)
-		.filter(([_, enabled]) => enabled)
-		.map(([filePath, _]) => {
-			const fileName = filePath.replace(/^.*[/\\]/, "")
-			const commandName = fileName.replace(/\.[^/.]+$/, "")
-			return {
-				fullPath: filePath,
-				fileName: fileName,
-				commandName: commandName,
-			}
-		})
-
-	// local workflows have precedence over global workflows
-	const enabledWorkflows = [...localWorkflows, ...globalWorkflows]
-
-	// Build a list of all available commands (default + workflow)
-	const allCommands = [...SUPPORTED_DEFAULT_COMMANDS, ...enabledWorkflows.map((w) => w.commandName)]
-
-	// Sort by length (longest first) to ensure we match the longest command first
-	const sortedCommands = allCommands.sort((a, b) => b.length - a.length)
-
-	// Updated patterns to capture everything after the slash until the closing tag
+	// this currently allows matching prepended whitespace prior to /slash-command
 	const tagPatterns = [
-		{ tag: "task", regex: /<task>\s*\/([^<]*?)\s*<\/task>/is },
-		{ tag: "feedback", regex: /<feedback>\s*\/([^<]*?)\s*<\/feedback>/is },
-		{ tag: "answer", regex: /<answer>\s*\/([^<]*?)\s*<\/answer>/is },
-		{ tag: "user_message", regex: /<user_message>\s*\/([^<]*?)\s*<\/user_message>/is },
+		{ tag: "task", regex: /<task>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/task>/is },
+		{
+			tag: "feedback",
+			regex: /<feedback>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/feedback>/is,
+		},
+		{
+			tag: "answer",
+			regex: /<answer>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/answer>/is,
+		},
+		{
+			tag: "user_message",
+			regex: /<user_message>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/user_message>/is,
+		},
 	]
 
 	// if we find a valid match, we will return inside that block
@@ -108,51 +87,31 @@ export async function parseSlashCommands(
 		const match = regexObj.exec(text)
 
 		if (match) {
-			// match[1] is the complete command text after the slash
-			const potentialCommand = match[1].trim()
+			// match[1] is the command with any leading whitespace (e.g. " /newtask")
+			// match[2] is just the command name (e.g. "newtask")
 
-			// Find the longest matching command that starts the potential command text
-			let matchedCommand = null
-			for (const cmd of sortedCommands) {
-				if (potentialCommand.toLowerCase().startsWith(cmd.toLowerCase())) {
-					// Ensure the match is complete (followed by space/end or nothing)
-					const nextChar = potentialCommand[cmd.length]
-					if (!nextChar || /\s/.test(nextChar)) {
-						matchedCommand = cmd
-						break
-					}
-				}
-			}
-
-			if (!matchedCommand) {
-				continue // No valid command found in this tag
-			}
+			const commandName = match[2] // casing matters
 
 			// we give preference to the default commands if the user has a file with the same name
-			if (SUPPORTED_DEFAULT_COMMANDS.includes(matchedCommand)) {
+			if (SUPPORTED_DEFAULT_COMMANDS.includes(commandName)) {
 				const fullMatchStartIndex = match.index
 
 				// find position of slash command within the full match
 				const fullMatch = match[0]
-				const commandWithSlash = "/" + matchedCommand
-				const commandIndex = fullMatch.indexOf(commandWithSlash)
-
-				if (commandIndex === -1) {
-					continue // Safety check
-				}
+				const relativeStartIndex = fullMatch.indexOf(match[1])
 
 				// calculate absolute indices in the original string
-				const slashCommandStartIndex = fullMatchStartIndex + commandIndex
-				const slashCommandEndIndex = slashCommandStartIndex + commandWithSlash.length
+				const slashCommandStartIndex = fullMatchStartIndex + relativeStartIndex
+				const slashCommandEndIndex = slashCommandStartIndex + match[1].length
 
 				// remove the slash command and add custom instructions at the top of this message
 				const textWithoutSlashCommand = text.substring(0, slashCommandStartIndex) + text.substring(slashCommandEndIndex)
-				const processedText = commandReplacements[matchedCommand] + textWithoutSlashCommand
+				const processedText = commandReplacements[commandName] + textWithoutSlashCommand
 
 				// Track telemetry for builtin slash command usage
-				telemetryService.captureSlashCommandUsed(ulid, matchedCommand, "builtin")
+				telemetryService.captureSlashCommandUsed(ulid, commandName, "builtin")
 
-				return { processedText: processedText, needsClinerulesFileCheck: matchedCommand === "newrule" }
+				return { processedText: processedText, needsClinerulesFileCheck: commandName === "newrule" }
 			}
 
 			const globalWorkflows: Workflow[] = Object.entries(globalWorkflowToggles)
@@ -192,8 +151,12 @@ export async function parseSlashCommands(
 			// local workflows have precedence over global workflows, which have precedence over remote workflows
 			const enabledWorkflows: Workflow[] = [...localWorkflows, ...globalWorkflows, ...enabledRemoteWorkflows]
 
-			// Then check if the command matches any enabled workflow command name
-			const matchingWorkflow = enabledWorkflows.find((workflow) => workflow.fileName === matchedCommand)
+			// Then check if the command matches case insensitive any enabled workflow filename or filename without extension
+			const matchingWorkflow = enabledWorkflows.find(
+				(workflow) =>
+					workflow.fileName.toLowerCase() === commandName.toLowerCase() ||
+					workflow.fileName.replace(/\.[^/.]+$/, "").toLowerCase() === commandName.toLowerCase(),
+			)
 
 			if (matchingWorkflow) {
 				try {
@@ -208,16 +171,11 @@ export async function parseSlashCommands(
 					// find position of slash command within the full match
 					const fullMatchStartIndex = match.index
 					const fullMatch = match[0]
-					const commandWithSlash = "/" + matchedCommand
-					const commandIndex = fullMatch.indexOf(commandWithSlash)
-
-					if (commandIndex === -1) {
-						continue // Safety check
-					}
+					const relativeStartIndex = fullMatch.indexOf(match[1])
 
 					// calculate absolute indices in the original string
-					const slashCommandStartIndex = fullMatchStartIndex + commandIndex
-					const slashCommandEndIndex = slashCommandStartIndex + commandWithSlash.length
+					const slashCommandStartIndex = fullMatchStartIndex + relativeStartIndex
+					const slashCommandEndIndex = slashCommandStartIndex + match[1].length
 
 					// remove the slash command and add custom instructions at the top of this message
 					const textWithoutSlashCommand =
@@ -227,7 +185,7 @@ export async function parseSlashCommands(
 						textWithoutSlashCommand
 
 					// Track telemetry for workflow command usage
-					telemetryService.captureSlashCommandUsed(ulid, matchedCommand, "workflow")
+					telemetryService.captureSlashCommandUsed(ulid, commandName, "workflow")
 
 					return { processedText, needsClinerulesFileCheck: false }
 				} catch (error) {

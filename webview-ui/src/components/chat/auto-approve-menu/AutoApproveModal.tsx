@@ -178,12 +178,12 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({ isVisible, setIsVis
 				<div className="flex justify-between items-center mb-3">
 					{/* <div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div> */}
 					<HeroTooltip
-						content="Auto-approve allows performing the following actions without asking for permission. AI can make mistakes, use with caution."
+						content="Perform the following actions without asking for permission. AI can make mistakes, use with caution."
 						placement="top">
 						<div className="mt-0">
-							<div className="text-[color:var(--vscode-foreground)] text-sm font-medium">
-								Auto-approve settings{" "}
-								<span className="codicon codicon-info" style={{ opacity: 0.6, fontSize: "12px" }}></span>
+							<div className="text-[color:var(--vscode-foreground)] font-medium">
+								Auto-approve{" "}
+								<span className="codicon codicon-info" style={{ cursor: "pointer", opacity: 0.6, fontSize: "12px" }}></span>
 							</div>
 						</div>
 					</HeroTooltip>

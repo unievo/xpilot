@@ -109,7 +109,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 		(e: React.MouseEvent) => {
 			e.preventDefault()
 			e.stopPropagation()
-			onSendMessage?.("/Compact Task", [], [])
+			onSendMessage?.("/compact", [], [])
 			setConfirmationNeeded(false)
 		},
 		[onSendMessage],
@@ -214,7 +214,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 					</span>
 					<div className="flex relative items-center gap-1 flex-1 w-full h-full" onMouseEnter={() => setIsOpened(true)}>
 						<HoverCard>
-							<HoverCardContent className="bg-menu rounded-xs shadow-sm">
+							<HoverCardContent className="bg-menu rounded-lg shadow-sm">
 								<ContextWindowSummary
 									autoCompactThreshold={useAutoCondense ? threshold : undefined}
 									cacheReads={cacheReads}

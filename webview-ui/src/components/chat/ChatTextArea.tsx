@@ -59,7 +59,6 @@ import {
 	inactiveModeTextColor,
 	menuBackground,
 	planModeTextColor,
-	primaryFontSize,
 	useTheme,
 } from "@components/config"
 import { ignoreWorkspaceDirectories } from "@shared/Configuration"
@@ -116,7 +115,7 @@ interface GitCommit {
 const SwitchOption = styled.div.withConfig({
 	shouldForwardProp: (prop) => !["isActive", "mode"].includes(prop),
 })<{ isActive: boolean; mode: Mode }>`
-	padding: 2px 8px;
+	padding: 0px 8px;
 	color: ${(props) => (props.isActive ? (props.mode === "plan" ? planModeTextColor : actModeTextColor) : inactiveModeTextColor)};
 	z-index: 1;
 	transition: color 0.2s ease;
@@ -178,7 +177,7 @@ const ControlsContainer = styled.div`
 	align-items: center;
 	justify-content: space-between;
 	margin-top: 5px;
-	padding: 0px 5px 5px 10px;
+	padding: 0px 5px 5px 0px;
 	overflow: hidden;
 `
 
@@ -279,6 +278,7 @@ const ModelButtonContent = styled.div`
 	white-space: nowrap;
 	direction: rtl;
 	text-align: left;
+	font-size: 12px;
 `
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
@@ -1768,7 +1768,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							color: "transparent",
 							overflow: "hidden",
 							fontFamily: "var(--vscode-font-family)",
-							fontSize: primaryFontSize, // "var(--vscode-editor-font-size)",
+							fontSize: "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
 							borderRadius: 5,
 							borderLeft: 0,
@@ -1776,7 +1776,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							borderTop: 0,
 							borderColor: "transparent",
 							borderBottom: `${thumbnailsHeight + 6}px solid transparent`,
-							padding: "10px 0px 0px 5px",
+							padding: "7px 0px 0px 5px",
+							margin: "0px 32px 0px 0px",
 							opacity: 0.6,
 						}}
 					/>
@@ -1823,7 +1824,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							border: "0px solid var(--vscode-input-border)",
 							borderRadius: 5,
 							fontFamily: "var(--vscode-font-family)",
-							fontSize: primaryFontSize, // "var(--vscode-editor-font-size)",
+							fontSize: "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
 							resize: "none",
 							overflowX: "hidden",
@@ -1840,7 +1841,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							// borderLeft: "9px solid transparent", // NOTE: react-textarea-autosize doesn't calculate correct height when using borderLeft/borderRight so we need to use horizontal padding instead
 							// Instead of using boxShadow, we use a div with a border to better replicate the behavior when the textarea is focused
 							// boxShadow: "0px 0px 0px 1px var(--vscode-input-border)",
-							padding: "7px 32px 6px 5px",
+							padding: "4px 32px 5px 5px",
 							cursor: "text",
 							flex: 1,
 							zIndex: 1,
@@ -1848,7 +1849,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								isDraggingOver && !showUnsupportedFileError // Only show drag outline if not showing error
 									? "2px dashed var(--vscode-focusBorder)"
 									: isTextAreaFocused
-										? `0px dotted ${mode === "plan" ? getPlanModeColor() : getActModeColor()}`
+										? "none" //`1px dotted ${mode === "plan" ? getPlanModeColor() : getActModeColor()}`
 										: "none",
 							outlineOffset: isDraggingOver && !showUnsupportedFileError ? "1px" : "0px", // Add offset for drag-over outline
 						}}
@@ -1915,7 +1916,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								}}
 								style={{
 									fontSize: 24,
-									marginBottom: -6,
+									marginBottom: -4,
 									marginRight: -11,
 									color: inputValue
 										? `${
@@ -1936,7 +1937,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						data-testid="mode-switch"
 						disabled={false}
 						onClick={onModeToggle}
-						style={{ marginTop: "1px", opacity: 0.8 }}>
+						style={{ marginTop: "2px", opacity: 0.8 }}>
 						<Slider isAct={mode === "act"} isPlan={mode === "plan"} />
 						<HeroTooltip content="Switch to Plan Mode" delay={1000}>
 							<SwitchOption
@@ -1965,7 +1966,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								aria-label="Add Context"
 								data-testid="context-button"
 								onClick={handleContextButtonClick}
-								style={{ marginLeft: "2px", paddingTop: "0px", height: "20px" }}>
+								style={{ marginLeft: "2px", paddingTop: "1px", height: "20px" }}>
 								<ButtonContainer style={{ opacity: 0.7 }}>
 									<span className="flex items-center" style={{ fontSize: "16px", marginBottom: 1 }}>
 										@
@@ -1984,15 +1985,16 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								<ButtonContainer>
 									<span
 										className="codicon codicon-diff-ignored flex items-center"
-										style={{ fontSize: "15px", marginTop: "2px" }}
+										style={{ fontSize: "15px", marginBottom: -3 }}
 									/>
 								</ButtonContainer>
 							</VSCodeButton>
 						</HeroTooltip>
 
-						<ClineRulesToggleModal textAreaRef={textAreaRef} />
-
 						<ServersToggleModal textAreaRef={textAreaRef} />
+
+						<ClineRulesToggleModal textAreaRef={textAreaRef} />
+			
 
 						<HeroTooltip content="Select Model / API Provider" delay={1000}>
 							<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
@@ -2015,7 +2017,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										isActive={showModelSelector}
 										onClick={handleModelButtonClick}
 										role="button"
-										style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
+										style={{ marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
 										tabIndex={0}>
 										<ModelButtonContent>{modelDisplayName}</ModelButtonContent>
 									</ModelDisplayButton>

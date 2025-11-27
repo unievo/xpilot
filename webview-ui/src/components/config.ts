@@ -8,6 +8,7 @@ export const defaultExpandedMessageTypes: (ClineSay | ClineAsk)[] = [
 	"plan_mode_respond",
 	"mcp_notification",
 	"text",
+	// "reasoning",
 	"completion_result",
 ]
 
@@ -57,20 +58,20 @@ export const chatInputSectionBackground =
 	"color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-editor-foreground))"
 export const chatInputSectionQuoteBackground = `color-mix(in srgb, ${chatInputSectionBackground} 93%, var(--vscode-editor-foreground))`
 export const chatInputSectionBorder =
-	"0.5px solid color-mix(in srgb, var(--vscode-editorWidget-border) 70%, var(--vscode-editor-background))"
+	"1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 70%, var(--vscode-editor-background))"
 
 // Task header
 export const taskHeaderTextLineClamp = 2
 export const taskHeaderTokenUsageVisible = true
 export const taskHeaderTaskTimelineVisible = true
-export const taskHeaderTimelineHeight = 10
+export const taskHeaderTimelineHeight = 12
 export const taskHeaderTimelineBlockWidth = 8
 export const taskHeaderTimelineBlockGap = 1
 export const taskHeaderTimelineBlockBorderRadius = 2
 export const taskHeaderBackground = chatInputSectionBackground
 
 // Checkpoints
-export const checkPointContainerMinHeight = 17
+export const checkPointContainerMinHeight = 30
 export const checkPointContainerMargin = "0px 5px 0px 0px"
 export const checkPointContainerNormalOpacity = rowIconOpacity - 0.3
 export const checkPointContainerHoverOpacity = rowIconOpacity
@@ -79,7 +80,7 @@ export const checkPointLineNormalOpacity = 0.2
 
 // Tools
 export const toolBorder = "0.5px solid var(--vscode-editorWidget-border)"
-export const toolBackground = `color-mix(in srgb, ${chatInputSectionBackground} 95%, var(--vscode-editor-background))`
+export const toolBackground = `color-mix(in srgb, var(--vscode-editor-foreground) 15%, var(--vscode-editor-background))`
 
 // Chat row
 export const rowPaddingTop = 4
@@ -91,12 +92,12 @@ export const spacingContainerMarginTop = 5
 export const spacingContainerMarginBottom = 2
 
 // Row Item
+export const rowItemBorder = `0.5px solid ${toolBackground}`
 export const rowItemExpandedBackground = `color-mix(in srgb, ${toolBackground} 60%, var(--vscode-editor-background))`
 export const rowItemHoverBackground = toolBackground
 export const rowItemPadding = "0px 3px"
 export const rowItemExpandedPadding = "3px 3px"
-export const rowItemBorder = toolBorder
-export const rowItemExpandedTopMargin = 5
+export const rowItemExpandedTopMargin = 1
 export const rowItemExpandedMaxHeight = 250
 export const rowItemMultilineMargin = 8
 export const rowItemPrimaryOpacity = primaryOpacity
@@ -132,20 +133,16 @@ export const responseContainerExpandedMargin = "5px 0px 4px 0px"
 export const responseTextFontSize = primaryFontSize
 export const responseTextCollapsedOpacity = rowItemBackgroundOpacity
 
-// Text clamp ellipsis
-export const ellipsisTextColor = `color-mix(in srgb, var(--vscode-input-foreground) 50%, var(--vscode-editor-background))`
-export const ellipsisText = "..."
-
 // Completion message
-export const completionRowMargin = "10px 0px"
-export const completionTextMargin = "20px 0px 10px 0px"
+export const completionRowMargin = "20px 0px 10px 0px"
+export const completionTextMargin = "20px 0px 0px 0px"
 
 // User message
-export const userMessageBackground = "color-mix(in srgb, var(--vscode-button-background) 50%, var(--vscode-editor-background))"
+export const userMessageBackground = "color-mix(in srgb, var(--vscode-button-background) 70%, var(--vscode-editor-background))"
 export const userMessageHoverBackground =
-	"color-mix(in srgb, var(--vscode-button-background) 80%, var(--vscode-editor-background))"
+	"color-mix(in srgb, var(--vscode-button-background) 90%, var(--vscode-editor-background))"
 export const userMessagePadding = "10px 10px"
-export const userMessageMargin = "20px 0px 20px 0px"
+export const userMessageMargin = "10px 0px 10px 0px"
 
 // Mcp Sections
 export const mcpSectionsPadding = 5
@@ -169,13 +166,13 @@ export const pulsate = keyframes`
 
 // Plan/Act Mode background colors
 const actModeColor = "var(--vscode-button-background)"
-const planModeColor = "var(--vscode-button-secondaryBackground)"
+const planModeColor = "var(--vscode-charts-yellow)"
 // One high contrast color for both modes
 const highContrastModeColor = "var(--vscode-settings-checkboxBorder)"
 
 // Plan/Act Mode text colors
 export const actModeTextColor = "var(--vscode-button-foreground)"
-export const planModeTextColor = "var(--vscode-button-secondaryForeground)"
+export const planModeTextColor = "var(--vscode-editor-background)"
 export const inactiveModeTextColor = "var(--vscode-foreground)"
 
 // Reactive theme detection
@@ -193,7 +190,7 @@ export const getActModeColor = (): string => {
 }
 
 export const getPlanModeColor = (): string => {
-	return isHighContrastTheme() ? highContrastModeColor : planModeColor
+	return planModeColor
 }
 
 // React hook for theme changes

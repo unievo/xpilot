@@ -10,7 +10,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		subAction: {
 			id: "readFilesExternally",
 			label: "Read all files",
-			shortName: "all",
+			shortName: "Read all",
 			description: `Read files outside your workspace.`,
 			icon: "codicon-folder-opened",
 			parentActionId: "readFiles",
@@ -25,7 +25,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		subAction: {
 			id: "editFilesExternally",
 			label: "Edit all files",
-			shortName: "all",
+			shortName: "Edit all",
 			description: `Modify files outside your workspace.`,
 			icon: "codicon-files",
 			parentActionId: "editFiles",
@@ -40,11 +40,18 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		subAction: {
 			id: "executeAllCommands",
 			label: "Execute all commands",
-			shortName: "all",
+			shortName: "Exec all",
 			description: `Execute all terminal commands without approval. Use at your own risk!`,
 			icon: "codicon-terminal-bash",
 			parentActionId: "executeSafeCommands",
 		},
+	},
+	{
+		id: "useBrowser",
+		label: "Use the browser",
+		shortName: "Browse",
+		description: `Use the fetch web content tool and launch and interact with any website in a browser.`,
+		icon: "codicon-globe",
 	},
 	{
 		id: "useMcp",
@@ -52,13 +59,6 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		shortName: "MCP",
 		description: `Use configured MCP servers.`,
 		icon: "codicon-server",
-	},
-	{
-		id: "useBrowser",
-		label: "Fetch web content and use the browser",
-		shortName: "Browse",
-		description: `Use the fetch web content tool and launch and interact with any website in a browser.`,
-		icon: "codicon-globe",
 	},
 ]
 

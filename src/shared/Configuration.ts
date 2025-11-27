@@ -21,7 +21,7 @@ export const gitWorkflowsRepo = ""
 
 // Settings
 export const enableDictation = false
-export const enableYoloMode = false
+export const enableYoloMode = true
 export const enableTelemetrySettings = false
 export const maxHistoryPreviewItems = 10
 export const mcpLibraryEnabled = false

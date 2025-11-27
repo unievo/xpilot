@@ -26,6 +26,16 @@
 		margin-inline-start: 0px;
 		margin-inline-end: 0px;
 		unicode-bidi: isolate;
+		font-size: inherit;
+	}
+	strong {
+		font-size: inherit;
+	}
+	code {
+		font-size: inherit;
+	}
+	div {
+		font-size: inherit;
 	}
 	span {
 		@apply leading-5;
@@ -50,15 +60,35 @@
 	}
 	a {
 		@apply text-link hover:text-link-hover;
+		font-size: inherit;
 	}
 	ol {
 		@apply list-decimal pl-3;
+		font-size: inherit;
 	}
 	ul {
 		@apply list-disc pl-3;
+		font-size: inherit;
+	}
+	li {
+		font-size: inherit;
 	}
 	[role="radio"],
 	[role="checkbox"] {
 		margin: calc(var(--design-unit) * 1px) 0;
 	}
+}
+
+/* Markdown wrapper styles - reduce top and bottom margins for better display usage */
+.markdown-reduce-margins p {
+	margin-block-start: 0.25em;
+	margin-block-end: 0.25em;
+}
+
+.markdown-reduce-margins p:first-child {
+	margin-block-start: 0;
+}
+
+.markdown-reduce-margins p:last-child {
+	margin-block-end: 0;
 }

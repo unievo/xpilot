@@ -41,20 +41,9 @@ const WelcomeView = memo(() => {
 				</div>
 				<h2 className="flex mb-10 justify-center">Welcome to {agentName}!</h2>
 				<p>
-					{agentName} can use VS Code as an AI model provider by{" "}
-					<a href="https://code.visualstudio.com/docs/copilot/setup">
-						setting up
-					</a>{" "}
-					the <a href="https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat">GitHub Copilot</a> extension
-					and{" "}
-					<a href="https://github.com/settings/copilot">
-						enabling
-					</a>{" "}
-					the Copilot models.
-				</p>
-				<p>
-					You can also bring your own API keys, or you can sign up below with Cline or OpenRouter, for a variety of model
-					options.
+					{agentName} can use the IDE as an AI model provider, or
+					you can sign up below with Cline or OpenRouter, for a variety of model
+					options. You can also bring your own provider API keys.
 				</p>
 				{/* <p className="text-(--vscode-descriptionForeground)">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude
@@ -78,7 +67,7 @@ const WelcomeView = memo(() => {
 					{showApiOptions && (
 						<div>
 							<ApiOptions currentMode={mode} showModelOptions={false} />
-							<VSCodeButton className="mt-0.75" disabled={disableLetsGoButton} onClick={handleSubmit}>
+							<VSCodeButton className="mt-3" disabled={disableLetsGoButton} onClick={handleSubmit}>
 								Let's go!
 							</VSCodeButton>
 						</div>

@@ -6,37 +6,37 @@ export interface SlashCommand {
 
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	{
-		name: "New Task",
+		name: "newtask",
 		description: "Start task with current context",
 		section: "task",
 	},
 	{
-		name: "Compact Task",
+		name: "compact",
 		description: "Summarize current task context",
 		section: "task",
 	},
 	{
-		name: "Deep Planning",
+		name: "deep-planning",
 		description: "Create a comprehensive implementation plan before coding",
 		section: "task",
 	},
 	{
-		name: "Subagent",
+		name: "subagent",
 		description: "Invoke a Cline CLI subagent for focused research tasks",
 		section: "task",
 	},
 	{
-		name: "Generate Instructions",
+		name: "new-instructions",
 		description: "Create task based instructions",
 		section: "instructions",
 	},
 	{
-		name: "Git Instructions",
+		name: "git-instructions",
 		description: "Get instructions from git",
 		section: "instructions",
 	},
 	{
-		name: "Git Workflows",
+		name: "git-workflows",
 		description: "Get workflows from git",
 		section: "workflows",
 	},
@@ -110,6 +110,7 @@ export function getWorkflowCommands(
 				remoteWorkflowCommands.push({
 					name: workflow.name,
 					section: "workflows",
+					description: "Remote",
 				})
 			}
 		}

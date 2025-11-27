@@ -34,38 +34,38 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 						Enable notifications
 					</VSCodeCheckbox>
 
-					<p className="text-sm mt-[5px] text-description">
-						Receive system notifications when ${agentName} requires approval to proceed or when a task is completed.
+					<p className="text-xs mt-[5px] text-description">
+						Receive system notifications when {agentName} requires approval to proceed or when a task is completed.
 					</p>
 				</div>
 				{enableTelemetrySettings && (
-				<div className="mb-[5px]">
-					<Tooltip>
-						<TooltipContent hidden={remoteConfigSettings?.telemetrySetting === undefined}>
-							This setting is managed by your organization's remote configuration
-						</TooltipContent>
-						<TooltipTrigger asChild>
-							<div className="flex items-center gap-2 mb-[5px]">
-								<VSCodeCheckbox
-									checked={telemetrySetting === "enabled"}
-									disabled={remoteConfigSettings?.telemetrySetting === "disabled"}
-									onChange={(e: any) => {
-										const checked = e.target.checked === true
-										updateSetting("telemetrySetting", checked ? "enabled" : "disabled")
-									}}>
-									Allow error and usage reporting
-								</VSCodeCheckbox>
-								{!!remoteConfigSettings?.telemetrySetting && (
-									<i className="codicon codicon-lock text-description text-sm" />
-								)}
-							</div>
-						</TooltipTrigger>
-					</Tooltip>
+					<div className="mb-[5px]">
+						<Tooltip>
+							<TooltipContent hidden={remoteConfigSettings?.telemetrySetting === undefined}>
+								This setting is managed by your organization's remote configuration
+							</TooltipContent>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-2 mb-[5px]">
+									<VSCodeCheckbox
+										checked={telemetrySetting === "enabled"}
+										disabled={remoteConfigSettings?.telemetrySetting === "disabled"}
+										onChange={(e: any) => {
+											const checked = e.target.checked === true
+											updateSetting("telemetrySetting", checked ? "enabled" : "disabled")
+										}}>
+										Allow error and usage reporting
+									</VSCodeCheckbox>
+									{!!remoteConfigSettings?.telemetrySetting && (
+										<i className="codicon codicon-lock text-description text-sm" />
+									)}
+								</div>
+							</TooltipTrigger>
+						</Tooltip>
 
-					<p className="text-sm mt-[5px] text-description">
-						Help improve ${agentName} by sending usage data and error reports. No code, prompts, or personal information are
-						ever sent. 
-						{/* See our{" "}
+						<p className="text-xs mt-[5px] text-description">
+							Help improve {agentName} by sending usage data and error reports. No code, prompts, or personal
+							information are ever sent.
+							{/* See our{" "}
 						<VSCodeLink
 							className="text-inherit"
 							href="https://docs.cline.bot/more-info/telemetry"

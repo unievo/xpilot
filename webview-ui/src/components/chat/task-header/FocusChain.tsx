@@ -5,7 +5,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
 import ChecklistRenderer from "@/components/common/ChecklistRenderer"
 import LightMarkdown from "@/components/common/LightMarkdown"
-import { chatInputSectionBorder, defaultBorderRadius, toolBackground } from "@/components/config"
+import { chatInputSectionBorder, defaultBorderRadius } from "@/components/config"
 import { FileServiceClient } from "@/services/grpc-client"
 
 // Optimized interface with readonly properties to prevent accidental mutations
@@ -27,7 +27,7 @@ const COMPLETED_MESSAGE = "All steps have been completed!"
 const TODO_LIST_LABEL = "To-Do list"
 const NEW_STEPS_MESSAGE = "New steps will be generated if you continue the task"
 const CLICK_TO_EDIT_TITLE = "Click to edit to-do list in file"
-const COLLAPSED_PLACEHOLDER_HEIGHT = 30
+const COLLAPSED_PLACEHOLDER_HEIGHT = 32
 const EXPANDED_MAX_HEIGHT = 200
 const SHOW_DURATION_MS = 300
 
@@ -59,10 +59,10 @@ const ToDoListHeader = memo<{
 				}}
 			/>
 			<div className="flex items-center justify-between gap-2 z-10 py-2 px-1.5">
-				<div className="flex items-center gap-1.5 flex-1 min-w-0 text-sm">
+				<div className="mb-1 flex items-center gap-1.5 flex-1 min-w-0 text-sm">
 					<span
 						className={cn(
-							"rounded-lg px-2 py-0.25 inline-block shrink-0 bg-badge-foreground/20 text-foreground text-sm",
+							"rounded-lg px-1 py-0.15 inline-block shrink-0 bg-badge-foreground/20 text-foreground text-xs",
 							{
 								"bg-success text-background": isCompleted,
 							},
@@ -205,12 +205,12 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 				})}
 				style={{
 					maxHeight: hasTodoContent ? EXPANDED_MAX_HEIGHT : COLLAPSED_PLACEHOLDER_HEIGHT,
-					minHeight: COLLAPSED_PLACEHOLDER_HEIGHT,
+					// minHeight: COLLAPSED_PLACEHOLDER_HEIGHT,
 				}}>
 				<div
-					className="relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
+					className="bg-focuschain-background relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
 					onClick={handleToggle}
-					style={{ backgroundColor: toolBackground, borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
+					style={{ borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
 					title={CLICK_TO_EDIT_TITLE}>
 					{todoInfo && <ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />}
 					{todoInfo && isExpanded && (

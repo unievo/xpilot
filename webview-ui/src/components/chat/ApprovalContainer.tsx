@@ -4,7 +4,6 @@ import {
 	approvalMessageFontSize,
 	approvalMessageMargin,
 	defaultBorderRadius,
-	defaultDuration,
 	pulsate,
 	pulseDuration,
 	rowHeaderGap,
@@ -21,7 +20,6 @@ const ApprovalContainerStyled = styled.div<{ $showApproval: boolean }>`
 	border: ${({ $showApproval }) => ($showApproval ? approvalContainerBorder : "")};
 	animation: ${({ $showApproval }) => ($showApproval ? css`${pulsate} ${pulseDuration} infinite` : "none")};
 	border-radius: ${defaultBorderRadius}px;
-	transition: all ${defaultDuration}ms;
 	min-width: 0;
 	margin: ${({ $showApproval }) => ($showApproval ? -approvalBorderPadding : 0)}px;
 	margin: ${approvalMessageMargin};
@@ -104,7 +102,9 @@ const ApprovalContainerComponent: React.FC<ApprovalContainerProps> = ({
 						color: approvalMessageColor,
 					}}>
 					<i className="codicon codicon-lock" style={{ fontSize: approvalMessageFontSize }}></i>
-					<span style={{ marginTop: 1 }}>Requires approval</span>
+					<span style={{ marginTop: 1 }}>
+						{approvalRequested ? "Explicit approval requested by the model" : "Requires approval"}
+					</span>
 				</div>
 			)}
 		</ApprovalContainerStyled>

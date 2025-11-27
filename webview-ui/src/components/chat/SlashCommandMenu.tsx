@@ -95,10 +95,10 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 							onMouseEnter={() => setSelectedIndex(itemIndex)}>
 							<div
 								className="font-normal whitespace-nowrap overflow-hidden text-ellipsis flex items-end"
-								style={{ paddingTop: "1px", paddingBottom: "2px" }}>
+								style={{ fontSize: menuFontSize, paddingTop: "1px", paddingBottom: "2px" }}>
 								<span
 									className="codicon codicon-sparkle"
-									style={{ color: iconHighlightColor, opacity: 0.9, fontSize: "13px", marginRight: 4 }}
+									style={{ color: iconHighlightColor, opacity: 0.9, fontSize: "14px", marginRight: 4 }}
 								/>
 								<span>{command.name}</span>
 								{showDescriptions && ( //command.description && (

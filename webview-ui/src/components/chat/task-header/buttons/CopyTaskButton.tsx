@@ -29,7 +29,7 @@ const CopyTaskButton: React.FC<{
 					e.stopPropagation()
 					handleCopy()
 				}}
-				size="icon"
+				size="xs"
 				variant="icon">
 				{copied ? <CheckIcon /> : <CopyIcon />}
 			</Button>

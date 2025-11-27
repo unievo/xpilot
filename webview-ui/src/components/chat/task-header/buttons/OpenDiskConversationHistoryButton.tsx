@@ -1,7 +1,7 @@
-import { Button } from "@heroui/react"
 import { StringRequest } from "@shared/proto/cline/common"
 import { ArrowDownToLineIcon } from "lucide-react"
 import HeroTooltip from "@/components/common/HeroTooltip"
+import { Button } from "@/components/ui/button"
 import { FileServiceClient } from "@/services/grpc-client"
 
 const OpenDiskConversationHistoryButton: React.FC<{
@@ -27,7 +27,7 @@ const OpenDiskConversationHistoryButton: React.FC<{
 					e.stopPropagation()
 					handleOpenDiskConversationHistory()
 				}}
-				size="icon"
+				size="xs"
 				variant="icon">
 				<ArrowDownToLineIcon />
 			</Button>

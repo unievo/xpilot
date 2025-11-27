@@ -181,7 +181,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 		<div
 			onMouseDown={onMouseDown}
 			style={{
-				fontSize: menuFontSize,
+				// fontSize: menuFontSize,
 				position: "absolute",
 				bottom: "calc(100% - 7px)",
 				left: 0,
@@ -238,13 +238,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 								padding: "4px 3px",
 								cursor: isOptionSelectable(option) ? "pointer" : "default",
 								borderRadius: 6,
-							textDecoration:
-								index === selectedIndex && isOptionSelectable(option) && isHighContrastTheme() ? "underline" : "",
-							color:
+								textDecoration:
+									index === selectedIndex && isOptionSelectable(option) && isHighContrastTheme()
+										? "underline"
+										: "",
+								color:
 									index === selectedIndex && isOptionSelectable(option)
 										? isHighContrastTheme()
-										? "var(--vscode-sash-hoverBorder)"
-										: "var(--vscode-quickInputList-focusForeground)"
+											? "var(--vscode-sash-hoverBorder)"
+											: "var(--vscode-quickInputList-focusForeground)"
 										: "",
 								// borderBottom: "1px solid var(--vscode-editorGroup-border)",
 								display: "flex",
@@ -257,6 +259,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							}}>
 							<div
 								style={{
+									fontSize: menuFontSize,
 									display: "flex",
 									alignItems: "center",
 									flex: 1,
@@ -267,9 +270,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 									className={`codicon codicon-${getIconForOption(option)}`}
 									style={{
 										color: iconHighlightColor,
-									marginRight: "5px",
+										marginRight: "5px",
 										flexShrink: 0,
-										fontSize: "13px",
+										fontSize: "14px",
 									}}
 								/>
 								{renderOptionContent(option)}
@@ -282,7 +285,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 										className="codicon codicon-chevron-right"
 										style={{
 											opacity: 0.5,
-										fontSize: menuFontSize,
+											fontSize: menuFontSize,
 											flexShrink: 0,
 											marginLeft: 8,
 										}}
@@ -298,7 +301,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 									className="codicon codicon-add"
 									style={{
 										opacity: 0.5,
-									fontSize: menuFontSize,
+										fontSize: menuFontSize,
 										flexShrink: 0,
 										marginLeft: 8,
 									}}

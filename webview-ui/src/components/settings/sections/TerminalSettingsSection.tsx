@@ -159,16 +159,16 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 								<VSCodeOption value="backgroundExec">Background Exec</VSCodeOption>
 							</VSCodeDropdown>
 							<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-								Choose whether Cline runs commands in the VS Code terminal or a background process.
+								Choose whether {agentName} runs commands in the VS Code terminal or a background process.
 							</p>
 						</div>
 					)}
 					<TerminalOutputLineLimitSlider />
 					<div className="mt-5 p-3 bg-(--vscode-textBlockQuote-background) rounded border border-(--vscode-textBlockQuote-border)">
-						<p className="text-[13px] m-0">
+						<p className="m-0">
 							<strong>Having terminal issues?</strong> Check the{" "}
 							<a
-								className="text-(--vscode-textLink-foreground) underline hover:no-underline"
+								className="text-(--vscode-textLink-foreground) hover:underline"
 								href="https://docs.cline.bot/troubleshooting/terminal-quick-fixes"
 								rel="noopener noreferrer"
 								target="_blank">
@@ -176,7 +176,7 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 							</a>{" "}
 							or the{" "}
 							<a
-								className="text-(--vscode-textLink-foreground) underline hover:no-underline"
+								className="text-(--vscode-textLink-foreground) hover:underline"
 								href="https://docs.cline.bot/troubleshooting/terminal-integration-guide"
 								rel="noopener noreferrer"
 								target="_blank">

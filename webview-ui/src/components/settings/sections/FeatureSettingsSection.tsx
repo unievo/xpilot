@@ -4,6 +4,7 @@ import { EmptyRequest } from "@shared/proto/index.cline"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
 import { VSCodeButton, VSCodeCheckbox, VSCodeDropdown, VSCodeOption, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { memo, useEffect, useState } from "react"
+import { iconHighlightColor } from "@/components/config"
 import McpDisplayModeDropdown from "@/components/mcp/chat-display/McpDisplayModeDropdown"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
@@ -78,15 +79,15 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								border: "1px solid var(--vscode-widget-border)",
 								backgroundColor: "var(--vscode-list-hoverBackground)",
 							}}>
-							<div
+							{/* <div
 								className="absolute -top-2 -right-2 px-2 py-0.5 rounded text-xs font-semibold"
 								style={{
 									backgroundColor: "var(--vscode-button-secondaryBackground)",
 									color: "var(--vscode-button-secondaryForeground)",
 								}}>
 								NEW
-							</div>
-
+							</div> */}
+							Subagents
 							<div
 								className="mt-1.5 mb-2 px-2 pt-0.5 pb-1.5 rounded"
 								style={{
@@ -96,30 +97,36 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 									className="text-xs mb-2 flex items-start"
 									style={{ color: "var(--vscode-inputValidation-warningForeground)" }}>
 									<span
-										className="codicon codicon-warning mr-1"
-										style={{ fontSize: "12px", marginTop: "1px", flexShrink: 0 }}></span>
+										className="codicon codicon-info mr-1"
+										style={{
+											color: iconHighlightColor,
+											fontSize: "12px",
+											marginTop: "1px",
+											flexShrink: 0,
+										}}></span>
 									<span>
-										Cline for CLI is required for subagents. Install it with:
-										<code
-											className="ml-1 px-1 rounded"
-											style={{
-												backgroundColor: "var(--vscode-editor-background)",
-												color: "var(--vscode-foreground)",
-												opacity: 0.9,
-											}}>
+										Cline CLI is required for subagents. Install it with:{" "}
+										<code>
+											{/* // className="ml-1 px-1 rounded"
+										// style={{
+										// 	backgroundColor: "var(--vscode-editor-background)",
+										// 	color: "var(--vscode-foreground)",
+										// 	opacity: 0.9,
+										// }} */}
 											npm install -g cline
 										</code>
 										, then run
 										<code
 											className="ml-1 px-1 rounded"
-											style={{
-												backgroundColor: "var(--vscode-editor-background)",
-												color: "var(--vscode-foreground)",
-												opacity: 0.9,
-											}}>
+											// style={{
+											// 	backgroundColor: "var(--vscode-editor-background)",
+											// 	color: "var(--vscode-foreground)",
+											// 	opacity: 0.9,
+											// }}
+										>
 											cline auth
 										</code>
-										To authenticate with Cline or configure an API provider.
+										to authenticate, or configure an API provider.
 									</span>
 								</p>
 								{!isClineCliInstalled && (
@@ -153,10 +160,10 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								</span>
 							</VSCodeCheckbox>
 							<p className="text-xs mt-1 mb-0">
-								<span className="text-[var(--vscode-errorForeground)]">Experimental: </span>{" "}
+								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
 								<span className="text-description">
-									Allows Cline to spawn subprocesses to handle focused tasks like exploring large codebases,
-									keeping your main context clean.
+									Allows spawning subprocesses to handle focused tasks like exploring large codebases, keeping
+									your main context clean.
 								</span>
 							</p>
 							{subagentsEnabled && (
@@ -209,6 +216,19 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>
+						<VSCodeCheckbox
+							checked={mcpResponsesCollapsed}
+							onChange={(e: any) => {
+								const checked = e.target.checked === true
+								updateSetting("mcpResponsesCollapsed", checked)
+							}}>
+							Collapse MCP Responses
+						</VSCodeCheckbox>
+						<p className="text-xs text-(--vscode-descriptionForeground)">
+							Sets the default display mode for MCP response panels
+						</p>
+					</div>
+					<div style={{ marginTop: 10 }}>
 						<label
 							className="block text-sm font-medium text-(--vscode-foreground) mb-1"
 							htmlFor="mcp-display-mode-dropdown">
@@ -223,19 +243,6 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						<p className="text-xs mt-[5px] text-(--vscode-descriptionForeground)">
 							Controls how MCP responses are displayed: plain text, rich formatting with links/images, or markdown
 							rendering.
-						</p>
-					</div>
-					<div style={{ marginTop: 10 }}>
-						<VSCodeCheckbox
-							checked={mcpResponsesCollapsed}
-							onChange={(e: any) => {
-								const checked = e.target.checked === true
-								updateSetting("mcpResponsesCollapsed", checked)
-							}}>
-							Collapse MCP Responses
-						</VSCodeCheckbox>
-						<p className="text-xs text-(--vscode-descriptionForeground)">
-							Sets the default display mode for MCP response panels
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>
@@ -312,8 +319,8 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								value={String(focusChainSettings?.remindClineInterval || 6)}
 							/>
 							<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-								Interval (in messages) for model reminders about the focus chain checklist (1-100). Lower values provide
-								more frequent reminders.
+								Interval (in messages) for model reminders about the focus chain checklist (1-100). Lower values
+								provide more frequent reminders.
 							</p>
 						</div>
 					)}
@@ -349,7 +356,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						<p className="text-xs text-(--vscode-descriptionForeground)">
 							Enables advanced context management system which uses LLM based condensing for next-gen models.{" "}
 							<a
-								className="text-(--vscode-textLink-foreground) hover:text-(--vscode-textLink-activeForeground)"
+								className="text-xs text-(--vscode-textLink-foreground) hover:text-(--vscode-textLink-activeForeground)"
 								href="https://docs.cline.bot/features/auto-compact"
 								rel="noopener noreferrer"
 								target="_blank">
@@ -368,32 +375,32 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								Enable Multi-Root Workspace
 							</VSCodeCheckbox>
 							<p className="text-xs">
-								<span className="text-(--vscode-errorForeground)">Experimental: </span>{" "}
+								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
 								<span className="text-description">Allows working across multiple workspaces.</span>
 							</p>
 						</div>
 					)}
-					
-						<div className="mt-2.5">
-							<VSCodeCheckbox
-								checked={hooksEnabled?.user}
+
+					<div className="mt-2.5">
+						<VSCodeCheckbox
+							checked={hooksEnabled?.user}
 							disabled={!isMacOSOrLinux()}
-								onChange={(e: any) => {
-									const checked = e.target.checked === true
-									updateSetting("hooksEnabled", checked)
-								}}>
-								Enable Hooks
-							</VSCodeCheckbox>
-							{!isMacOSOrLinux() ? (
+							onChange={(e: any) => {
+								const checked = e.target.checked === true
+								updateSetting("hooksEnabled", checked)
+							}}>
+							Enable Hooks
+						</VSCodeCheckbox>
+						{!isMacOSOrLinux() ? (
 							<p className="text-xs mt-1" style={{ color: "var(--vscode-inputValidation-warningForeground)" }}>
 								Hooks are not yet supported on Windows. This feature is currently available on macOS and Linux
 								only.
 							</p>
 						) : (
 							<p className="text-xs">
-								<span className="text-(--vscode-errorForeground)">Experimental: </span>{" "}
+								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
 								<span className="text-description">
-									Allows execution of hooks from ${workspaceHooksDirectoryPath} directory.
+									Allows execution of hooks from the <code>{workspaceHooksDirectoryPath}</code> directory.
 								</span>
 							</p>
 						)}
@@ -409,39 +416,39 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								Enable Native Tool Call
 							</VSCodeCheckbox>
 							<p className="text-xs">
-								<span className="text-[var(--vscode-errorForeground)]">Experimental: </span>{" "}
-								<span className="text-description">Allows Cline to call tools through the native API.</span>
+								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
+								<span className="text-description">Allows tool calls through the native API.</span>
 							</p>
 						</div>
 					)}
 					{enableYoloMode && (
-					<div style={{ marginTop: 10 }}>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="flex items-center gap-2">
-									<VSCodeCheckbox
-										checked={yoloModeToggled}
-										disabled={remoteConfigSettings?.yoloModeToggled !== undefined}
-										onChange={(e: any) => {
-											const checked = e.target.checked === true
-											updateSetting("yoloModeToggled", checked)
-										}}>
-										Enable YOLO Mode
-									</VSCodeCheckbox>
-									{remoteConfigSettings?.yoloModeToggled !== undefined && (
-										<i className="codicon codicon-lock text-description text-sm" />
-									)}
-								</div>
-							</TooltipTrigger>
-							<TooltipContent
-								className="max-w-xs"
-								hidden={remoteConfigSettings?.yoloModeToggled === undefined}
-								side="top">
-								This setting is managed by your organization's remote configuration
-							</TooltipContent>
-						</Tooltip>
+						<div style={{ marginTop: 10 }}>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="flex items-center gap-2">
+										<VSCodeCheckbox
+											checked={yoloModeToggled}
+											disabled={remoteConfigSettings?.yoloModeToggled !== undefined}
+											onChange={(e: any) => {
+												const checked = e.target.checked === true
+												updateSetting("yoloModeToggled", checked)
+											}}>
+											Enable YOLO Mode
+										</VSCodeCheckbox>
+										{remoteConfigSettings?.yoloModeToggled !== undefined && (
+											<i className="codicon codicon-lock text-description text-sm" />
+										)}
+									</div>
+								</TooltipTrigger>
+								<TooltipContent
+									className="max-w-xs"
+									hidden={remoteConfigSettings?.yoloModeToggled === undefined}
+									side="top">
+									This setting is managed by your organization's remote configuration
+								</TooltipContent>
+							</Tooltip>
 
-						<p className="text-xs text-(--vscode-errorForeground)">
+							<p className="text-xs text-(--vscode-editorWarning-foreground)">
 								EXPERIMENTAL & DANGEROUS: This mode disables safety checks and user confirmations. {agentName}{" "}
 								will automatically approve all actions without asking. Use with extreme caution.
 							</p>

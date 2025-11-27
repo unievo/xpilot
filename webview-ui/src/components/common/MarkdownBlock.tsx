@@ -1,4 +1,4 @@
-import { textLineHeight } from "@components/config"
+import { codeBlockFontSize, textLineHeight } from "@components/config"
 import { StringRequest } from "@shared/proto/cline/common"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/cline/state"
 import type { ComponentProps } from "react"
@@ -45,6 +45,7 @@ const ActModeHighlight: React.FC = () => {
 interface MarkdownBlockProps {
 	markdown?: string
 	compact?: boolean
+	fontSize?: number
 }
 
 /**
@@ -207,7 +208,7 @@ const remarkPreventBoldFilenames = () => {
 	}
 }
 
-const StyledMarkdown = styled.div<{ compact?: boolean }>`
+const StyledMarkdown = styled.div<{ compact?: boolean; fontSize?: number }>`
 	pre {
 		background-color: ${CODE_BLOCK_BG_COLOR};
 		border-radius: 3px;
@@ -240,6 +241,7 @@ const StyledMarkdown = styled.div<{ compact?: boolean }>`
 		border-radius: 3px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
 		font-family: var(--vscode-editor-font-family);
+		font-size: ${({ fontSize }) => (fontSize ? `${fontSize}px` : `${codeBlockFontSize}px`)};
 	}
 
 	code:not(pre > code) {
@@ -354,7 +356,7 @@ const remarkFilePathDetection = () => {
 	}
 }
 
-const MarkdownBlock = memo(({ markdown, compact }: MarkdownBlockProps) => {
+const MarkdownBlock = memo(({ markdown, compact, fontSize }: MarkdownBlockProps) => {
 	const [reactContent, setMarkdown] = useRemark({
 		remarkPlugins: [
 			remarkPreventBoldFilenames,
@@ -455,7 +457,7 @@ const MarkdownBlock = memo(({ markdown, compact }: MarkdownBlockProps) => {
 
 	return (
 		<div>
-			<StyledMarkdown className="ph-no-capture" compact={compact}>
+			<StyledMarkdown className="ph-no-capture" compact={compact} fontSize={fontSize}>
 				{reactContent}
 			</StyledMarkdown>
 		</div>

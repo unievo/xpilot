@@ -1,8 +1,7 @@
 import {
+	codeBlockFontSize,
 	defaultBorderRadius,
 	defaultDuration,
-	ellipsisText,
-	ellipsisTextColor,
 	errorColor,
 	hideApiRequestCompletedRow,
 	hideReasoningRow,
@@ -25,8 +24,9 @@ import {
 	rowPaddingRight,
 	rowPaddingTop,
 	secondaryColor,
+	secondaryFontSize,
 	showTextResponseHeader,
-	successColor
+	successColor,
 } from "@components/config"
 import { agentName } from "@shared/Configuration"
 import { COMMAND_OUTPUT_STRING, COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
@@ -45,12 +45,11 @@ import deepEqual from "fast-deep-equal"
 import React, { MouseEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSize } from "react-use"
 import styled from "styled-components"
+import AgentLogo from "@/assets/AgentLogo"
 import { OptionsButtons } from "@/components/chat/OptionsButtons"
 import { CheckmarkControl } from "@/components/common/CheckmarkControl"
 import { CheckpointControls } from "@/components/common/CheckpointControls"
-import CodeBlock, {
-	CHAT_ROW_EXPANDED_BG_COLOR, TERMINAL_CODE_BLOCK_BG_COLOR
-} from "@/components/common/CodeBlock"
+import CodeBlock, { CHAT_ROW_EXPANDED_BG_COLOR, TERMINAL_CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { WithCopyButton } from "@/components/common/CopyButton"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import SuccessButton from "@/components/common/SuccessButton"
@@ -65,6 +64,7 @@ import HeroTooltip from "../common/HeroTooltip"
 import McpResponseDisplay from "../mcp/chat-display/McpResponseDisplay"
 import { ApprovalContainer } from "./ApprovalContainer"
 import {
+	CommandRow,
 	CompletionRow,
 	CompletionRowContainer,
 	HighlightRowContainer,
@@ -82,7 +82,7 @@ import {
 	RowTitle,
 	RowVisibility,
 	SecondaryRowStyle,
-	SpacingRowContainer
+	SpacingRowContainer,
 } from "./ChatRowStyles"
 import { ErrorBlockTitle } from "./ErrorBlockTitle"
 import ErrorRow from "./ErrorRow"
@@ -163,23 +163,35 @@ export const ProgressIndicator = () => (
 const Markdown = memo(
 	({
 		markdown,
-		maxLines,
 		opacity,
 		fontSize,
-		customEllipsis,
+		maxHeight,
+		lineClamp,
 	}: {
 		markdown?: string
-		maxLines?: number
 		opacity?: number
 		fontSize?: string | number
-		customEllipsis?: string
+		maxHeight?: number
+		lineClamp?: number
 	}) => {
 		const contentRef = useRef<HTMLDivElement>(null)
 		const textRef = useRef<HTMLDivElement>(null)
 		const [isTruncated, setIsTruncated] = useState(false)
+		const [canOverflow, setCanOverflow] = useState(false)
+		const [isOverflowing, setIsOverflowing] = useState(false)
+		const [textLineClamp, setTextLineClamp] = useState<number | undefined>(lineClamp)
+		const [textMaxHeight, setTextMaxHeight] = useState<number | undefined>(maxHeight)
 
 		useEffect(() => {
-			if (maxLines && textRef.current && contentRef.current) {
+			setTextLineClamp(lineClamp)
+		}, [lineClamp])
+
+		useEffect(() => {
+			setTextMaxHeight(maxHeight)
+		}, [maxHeight])
+
+		useEffect(() => {
+			if (textRef.current && contentRef.current) {
 				const checkTruncation = () => {
 					// Use requestAnimationFrame to ensure DOM is fully updated
 					requestAnimationFrame(() => {
@@ -189,10 +201,11 @@ const Markdown = memo(
 							if (!contentHeight) {
 								contentHeight = contentRef.current.getBoundingClientRect().height
 							}
-							// Add a small threshold (1px) to account for rounding differences
-							const isOverflowing = textRef.current.scrollHeight > contentHeight + 10
-
-							setIsTruncated(isOverflowing)
+							// Add a small threshold to account for rounding differences
+							const isOverflowing = textRef.current.scrollHeight > contentHeight + 1
+							setIsOverflowing(isOverflowing)
+							isOverflowing && setCanOverflow(true)
+							setIsTruncated(lineClamp ? isOverflowing : false)
 						}
 					})
 				}
@@ -216,7 +229,7 @@ const Markdown = memo(
 					}
 				}
 			}
-		}, [maxLines, markdown])
+		}, [lineClamp, textLineClamp, maxHeight, textMaxHeight, isOverflowing, isTruncated, markdown])
 
 		return (
 			<div
@@ -225,56 +238,65 @@ const Markdown = memo(
 					wordBreak: "break-word",
 					overflowWrap: "anywhere",
 					overflow: "hidden", // contain child margins so that parent diff matches height of children
-					position: maxLines ? "relative" : undefined,
 					fontSize: fontSize || "inherit",
 					opacity: opacity || 1,
 				}}>
-				<div
+				<MarkdownContainer
 					ref={textRef}
 					style={{
-						...(maxLines && {
-							display: "-webkit-box",
-							WebkitLineClamp: maxLines,
-							WebkitBoxOrient: "vertical",
-							overflow: "hidden",
-						}),
+						maxHeight: textMaxHeight,
+						overflow: "auto",
+						...(lineClamp &&
+							textLineClamp && {
+								display: "-webkit-box",
+								WebkitLineClamp: textLineClamp,
+								WebkitBoxOrient: "vertical",
+								overflow: "hidden",
+							}),
 					}}>
-					<MarkdownContainer>
-						<MarkdownBlock markdown={markdown} />
-					</MarkdownContainer>
-				</div>
-				{maxLines && customEllipsis && isTruncated && (
-					<div
-						style={{
-							position: "absolute",
-							right: 0,
-							bottom: 0,
-							display: "flex",
-							alignItems: "center",
-						}}>
-						<span
-							style={{
-								width: 50,
-								height: "1.2em",
-								background: "linear-gradient(to right, transparent 0%, var(--vscode-sideBar-background) 60%)",
+					<MarkdownBlock markdown={markdown} />
+				</MarkdownContainer>
+
+				{(isOverflowing || canOverflow) && (
+					<>
+						<div style={{ height: "4px" }} />
+						<div
+							// onClick={() => setTextLineClamp((prev) => (prev === lineClamp ? undefined : lineClamp))}
+							onClick={() => {
+								setTextLineClamp((prev) => (prev === lineClamp ? undefined : lineClamp))
+								setTextMaxHeight((prev) => (prev === maxHeight ? undefined : maxHeight))
 							}}
-						/>
-						<span
+							onMouseEnter={(e) => {
+								e.currentTarget.style.opacity = "1"
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.opacity = "0.5"
+							}}
 							style={{
-								position: "absolute",
-								right: 0,
-								bottom: 0,
-								padding: "0 2px",
-								background: "var(--vscode-sideBar-background)",
-								border: "0px solid var(--vscode-editorWidget-border)",
-								// borderRadius: "50%",
-								color: ellipsisTextColor,
-								fontSize: fontSize || "inherit",
-								opacity: 1,
+								// position: "absolute",
+								// bottom: "0px",
+								// left: "50%",
+								// transform: "translateX(-50%)",
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
+								padding: "0px calc(50% - 10px)",
+								cursor: "pointer",
+								opacity: 0.5,
+								borderBottom: "0.5px dashed var(--vscode-descriptionForeground)",
+								borderRadius: "0px 0px 8px 8px",
+								transition: "opacity 0.1s ease",
+								// border: "1px solid rgba(0, 0, 0, 0.1)",
 							}}>
-							{customEllipsis}
-						</span>
-					</div>
+							<span
+								className={`codicon codicon-triangle-${(maxHeight && !textMaxHeight) || (lineClamp && !textLineClamp) ? "up" : "down"}`}
+								style={{
+									fontSize: "13px",
+									color: "var(--vscode-editor-foreground)",
+								}}
+							/>
+						</div>
+					</>
 				)}
 			</div>
 		)
@@ -325,10 +347,11 @@ const CommandOutput = memo(
 					position: "relative",
 					paddingBottom: lineCount > 5 ? "16px" : "0",
 					overflow: "visible",
-					borderTop: "1px solid rgba(255,255,255,.07)",
+					// borderTop: "1px solid rgba(255,255,255,.07)",
 					backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR,
-					borderBottomLeftRadius: "6px",
-					borderBottomRightRadius: "6px",
+					borderRadius: defaultBorderRadius,
+					borderBottomLeftRadius: defaultBorderRadius,
+					borderBottomRightRadius: defaultBorderRadius,
 				}}>
 				<div
 					ref={outputRef}
@@ -338,9 +361,10 @@ const CommandOutput = memo(
 						overflowY: shouldAutoShow ? "visible" : "auto",
 						scrollBehavior: "smooth",
 						backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR,
+						borderRadius: defaultBorderRadius,
 					}}>
 					<div style={{ backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR }}>
-						<CodeBlock forceWrap={true} source={`${"```"}shell\n${output}\n${"```"}`} />
+						<CodeBlock fontSize={codeBlockFontSize} forceWrap={true} source={`${"```"}shell\n${output}\n${"```"}`} />
 					</div>
 				</div>
 				{/* Show notch only if there's more than 5 lines */}
@@ -355,18 +379,18 @@ const CommandOutput = memo(
 						}}
 						style={{
 							position: "absolute",
-							bottom: "-10px",
+							bottom: "-4px",
 							left: "50%",
 							transform: "translateX(-50%)",
 							display: "flex",
 							justifyContent: "center",
 							alignItems: "center",
-							padding: "1px 14px",
+							padding: "0px 14px",
 							cursor: "pointer",
 							backgroundColor: "var(--vscode-descriptionForeground)",
-							borderRadius: "3px 3px 6px 6px",
+							borderRadius: isOutputFullyExpanded ? "6px 6px 3px 3px" : "3px 3px 6px 6px",
 							transition: "opacity 0.1s ease",
-							border: "1px solid rgba(0, 0, 0, 0.1)",
+							// border: "1px solid rgba(0, 0, 0, 0.1)",
 						}}>
 						<span
 							className={`codicon codicon-triangle-${isOutputFullyExpanded ? "up" : "down"}`}
@@ -501,7 +525,7 @@ export const ChatRowContent = memo(
 		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(getMcpArgumentsCollapsedState())
 
 		// Add state for toggling maxLines between maxLines and undefined
-		const [maxLines, setMaxLines] = useState<number | undefined>(responseTextLineClamp)
+		// const [maxLines, setMaxLines] = useState<number | undefined>(responseTextLineClamp)
 
 		// Update the saved state when the collapsed state changes
 		useEffect(() => {
@@ -522,7 +546,7 @@ export const ChatRowContent = memo(
 		// Check if command has output to determine if it's actually executing
 		const commandHasOutput = message.text?.includes(COMMAND_OUTPUT_STRING) ?? false
 		// A command is executing if it has output but hasn't completed yet
-		const isCommandExecuting = isCommandMessage && !message.commandCompleted && commandHasOutput
+		const isCommandExecuting = isCommandMessage && isLast && !message.commandCompleted && commandHasOutput
 		// A command is pending if it hasn't started (no output) and hasn't completed
 		const isCommandPending = isCommandMessage && isLast && !message.commandCompleted && !commandHasOutput
 		const isCommandCompleted = isCommandMessage && message.commandCompleted === true
@@ -726,7 +750,6 @@ export const ChatRowContent = memo(
 							<code style={{ wordBreak: "break-all" }}>
 								{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
 							</code>
-							{":"}
 						</RowTitle>,
 					]
 				case "completion_result":
@@ -891,11 +914,7 @@ export const ChatRowContent = memo(
 										{isLastProcessing ? (
 											<ProgressIndicator />
 										) : (
-											rowIconVisible && (
-												<RowIcon isLast={isLast}>
-								{toolIcon("diff-removed")}
-								</RowIcon>
-											)
+											rowIconVisible && <RowIcon isLast={isLast}>{toolIcon("diff-removed")}</RowIcon>
 										)}
 										<RowTitle isExpanded={isExpanded} isLast={isLast}>
 											Delete
@@ -1487,6 +1506,7 @@ export const ChatRowContent = memo(
 			const requestsApproval = rawCommand.endsWith(COMMAND_REQ_APP_STRING)
 			const command = requestsApproval ? rawCommand.slice(0, -COMMAND_REQ_APP_STRING.length) : rawCommand
 			const showCancelButton =
+				isLastProcessing &&
 				(isCommandExecuting || isCommandPending) &&
 				typeof onCancelCommand === "function" &&
 				vscodeTerminalExecutionMode === "backgroundExec"
@@ -1520,190 +1540,235 @@ export const ChatRowContent = memo(
 
 			// Customize icon and title for subagent commands
 			const displayIcon = isSubagentCommand ? (
-				<span style={{ color: normalColor }}>
-					<ClineIcon />
-				</span>
+				isLastProcessing ? (
+					<ProgressIndicator />
+				) : (
+					<RowIcon isLast={isLast}>
+						<AgentLogo color="currentColor" size={rowIconFontSize} />
+						{/* <ClineIcon /> */}
+					</RowIcon>
+				)
 			) : (
 				icon
 			)
 
-			const displayTitle = isSubagentCommand ? (
-				<span style={{ color: normalColor, fontWeight: "bold" }}>Cline wants to use a subagent:</span>
-			) : (
-				title
-			)
+			const displayTitle = isSubagentCommand ? <RowTitle isLast={isLast}>Use subagent</RowTitle> : title
 
-			const commandHeader = (
-				<div style={headerStyle}>
-					{displayIcon}
-					{displayTitle}
-				</div>
-			)
+			// const commandHeader = (
+			// 	<div style={headerStyle}>
+			// 		{displayIcon}
+			// 		{displayTitle}
+			// 	</div>
+			// )
 
 			return (
-				<>
-					{commandHeader}
-					<div
-						style={{
-							borderRadius: 6,
-							border: "1px solid var(--vscode-editorGroup-border)",
-							overflow: "visible",
-							backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
-							transition: "all 0.3s ease-in-out",
-						}}>
-						{command && (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "space-between",
-									padding: "8px 10px",
-									backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
-									borderBottom: "1px solid var(--vscode-editorGroup-border)",
-									borderTopLeftRadius: "6px",
-									borderTopRightRadius: "6px",
-									borderBottomLeftRadius: 0,
-									borderBottomRightRadius: 0,
-								}}>
+				<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+					<SpacingRowContainer>
+						<RowHeader>
+							{rowIconVisible && displayIcon}
+							{displayTitle}
+						</RowHeader>
+						<CommandRow isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								approvalRequested={requestsApproval}
+								autoApproveSetting={autoApprovalSettings.actions.executeSafeCommands}
+								isExecuting={isCommandExecuting}
+								isLastProcessing={isLastProcessing}>
 								<div
 									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: "8px",
-										flex: 1,
-										minWidth: 0,
+										padding: "1px 4px 4px 4px",
+										// borderRadius: defaultBorderRadius,
+										// border: "1px solid var(--vscode-editorGroup-border)",
+										overflow: "visible",
+										// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+										transition: "all 0.3s ease-in-out",
 									}}>
-									<div
-										style={{
-											width: "8px",
-											height: "8px",
-											borderRadius: "50%",
-											backgroundColor: isCommandExecuting
-												? successColor
-												: isCommandPending
-													? "var(--vscode-editorWarning-foreground)"
-													: "var(--vscode-descriptionForeground)",
-											animation: isCommandExecuting ? "pulse 2s ease-in-out infinite" : "none",
-											flexShrink: 0,
-										}}
-									/>
-									<span
-										style={{
-											color: isCommandExecuting
-												? successColor
-												: isCommandPending
-													? "var(--vscode-editorWarning-foreground)"
-													: "var(--vscode-descriptionForeground)",
-											fontWeight: 500,
-											fontSize: "13px",
-											flexShrink: 0,
-										}}>
-										{isCommandExecuting
-											? "Running"
-											: isCommandPending
-												? "Pending"
-												: isCommandCompleted
-													? "Completed"
-													: "Not Executed"}
-									</span>
-								</div>
-								<div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-									{showCancelButton && (
-										<button
-											onClick={(e) => {
-												e.stopPropagation()
-												if (vscodeTerminalExecutionMode === "backgroundExec") {
-													onCancelCommand?.()
-												} else {
-													// For regular terminal mode, show a message
-													alert(
-														"This command is running in the VSCode terminal. You can manually stop it using Ctrl+C in the terminal, or switch to Background Execution mode in settings for cancellable commands.",
-													)
-												}
-											}}
-											onMouseEnter={(e) => {
-												e.currentTarget.style.background = "var(--vscode-button-secondaryHoverBackground)"
-											}}
-											onMouseLeave={(e) => {
-												e.currentTarget.style.background = "var(--vscode-button-secondaryBackground)"
-											}}
+									{command && (
+										<div
 											style={{
-												background: "var(--vscode-button-secondaryBackground)",
-												color: "var(--vscode-button-secondaryForeground)",
-												border: "none",
-												borderRadius: "2px",
-												padding: "4px 10px",
-												fontSize: "12px",
-												cursor: "pointer",
-												fontFamily: "inherit",
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "space-between",
+												padding: "4px 4px",
+												// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+												// borderBottom: "1px solid var(--vscode-editorGroup-border)",
+												borderTopLeftRadius: defaultBorderRadius,
+												borderTopRightRadius: defaultBorderRadius,
+												borderBottomLeftRadius: 0,
+												borderBottomRightRadius: 0,
 											}}>
-											{vscodeTerminalExecutionMode === "backgroundExec" ? "cancel" : "stop"}
-										</button>
+											<div
+												style={{
+													display: "flex",
+													alignItems: "center",
+													gap: "8px",
+													flex: 1,
+													minWidth: 0,
+												}}>
+												<div
+													style={{
+														width: "8px",
+														height: "8px",
+														borderRadius: "50%",
+														backgroundColor: isCommandExecuting
+															? successColor
+															: isCommandPending
+																? "var(--vscode-editorWarning-foreground)"
+																: "var(--vscode-descriptionForeground)",
+														animation: isCommandExecuting ? "pulse 2s ease-in-out infinite" : "none",
+														flexShrink: 0,
+													}}
+												/>
+												<span
+													style={{
+														color: isCommandExecuting
+															? successColor
+															: isCommandPending
+																? "var(--vscode-editorWarning-foreground)"
+																: "var(--vscode-descriptionForeground)",
+														// fontWeight: 500,
+														fontSize: secondaryFontSize,
+														flexShrink: 0,
+													}}>
+													{isCommandExecuting
+														? "Running"
+														: isCommandPending && isLastProcessing
+															? "Pending"
+															: isCommandCompleted
+																? "Completed"
+																: "Not Completed"}
+												</span>
+											</div>
+											<div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+												{showCancelButton && (
+													<button
+														onClick={(e) => {
+															e.stopPropagation()
+															if (vscodeTerminalExecutionMode === "backgroundExec") {
+																onCancelCommand?.()
+															} else {
+																// For regular terminal mode, show a message
+																alert(
+																	"This command is running in the VSCode terminal. You can manually stop it using Ctrl+C in the terminal, or switch to Background Execution mode in settings for cancellable commands.",
+																)
+															}
+														}}
+														onMouseEnter={(e) => {
+															e.currentTarget.style.background =
+																"var(--vscode-button-secondaryHoverBackground)"
+														}}
+														onMouseLeave={(e) => {
+															e.currentTarget.style.background =
+																"var(--vscode-button-secondaryBackground)"
+														}}
+														style={{
+															background: "var(--vscode-button-secondaryBackground)",
+															color: "var(--vscode-button-secondaryForeground)",
+															border: "none",
+															borderRadius: defaultBorderRadius,
+															padding: "0px 10px",
+															fontSize: secondaryFontSize,
+															cursor: "pointer",
+															fontFamily: "inherit",
+														}}>
+														{vscodeTerminalExecutionMode === "backgroundExec" ? "cancel" : "stop"}
+													</button>
+												)}
+											</div>
+										</div>
+									)}
+									{isSubagentCommand && subagentPrompt && (
+										<div
+											style={{
+												padding: "2px",
+												// borderBottom: "1px solid var(--vscode-editorGroup-border)",
+											}}>
+											<div style={{ fontSize: secondaryFontSize }}>
+												<strong>Prompt:</strong>{" "}
+												<span
+													className="ph-no-capture"
+													style={{ fontFamily: "var(--vscode-editor-font-family)" }}>
+													{subagentPrompt}
+												</span>
+											</div>
+										</div>
+									)}
+									{/* {output.length > 0 && (
+											<div style={{ width: "100%" }}>
+												<div
+													onClick={handleToggle}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: "4px",
+														width: "100%",
+														justifyContent: "flex-start",
+														cursor: "pointer",
+														padding: `2px 8px ${isExpanded ? 0 : 8}px 8px`,
+													}}>
+													<span
+														className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
+													<span style={{ fontSize: "0.8em" }}>
+														{isSubagentCommand ? "Subagent Output" : "Command Output"}
+													</span>
+												</div>
+											</div>
+										)} */}
+									<WithCopyButton
+										onMouseUp={handleMouseUp}
+										position="top-right"
+										ref={contentRef}
+										textToCopy={command}>
+										{!isSubagentCommand && (
+											<div
+												style={{
+													// opacity: 0.8,
+													backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+													borderRadius: defaultBorderRadius,
+												}}>
+												<div
+													style={{
+														backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+														borderRadius: defaultBorderRadius,
+													}}>
+													<CodeBlock
+														fontSize={secondaryFontSize}
+														forceWrap={true}
+														source={`${"```"}shell\n${command}\n${"```"}`}
+													/>
+												</div>
+											</div>
+										)}
+									</WithCopyButton>
+									{output.length > 0 && (
+										<div style={{ marginTop: "8px" }}>
+											<CommandOutput
+												isContainerExpanded={true}
+												isOutputFullyExpanded={isOutputFullyExpanded}
+												onToggle={() => setIsOutputFullyExpanded(!isOutputFullyExpanded)}
+												output={output}
+											/>
+										</div>
 									)}
 								</div>
-							</div>
-						)}
-						{isSubagentCommand && subagentPrompt && (
-							<div style={{ padding: "10px", borderBottom: "1px solid var(--vscode-editorGroup-border)" }}>
-								<div style={{ marginBottom: 0 }}>
-									<strong>Prompt:</strong>{" "}
-									<span className="ph-no-capture" style={{ fontFamily: "var(--vscode-editor-font-family)" }}>
-										{subagentPrompt}
-									</span>
-								</div>
-							</div>
-						)}
-						{/* {output.length > 0 && (
-							<div style={{ width: "100%" }}>
-								<div
-									onClick={handleToggle}
-									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: "4px",
-										width: "100%",
-										justifyContent: "flex-start",
-										cursor: "pointer",
-										padding: `2px 8px ${isExpanded ? 0 : 8}px 8px`,
-									}}>
-									<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
-									<span style={{ fontSize: "0.8em" }}>
-										{isSubagentCommand ? "Subagent Output" : "Command Output"}
-									</span>
-								</div>
-							</div>
-						)} */}
-						{!isSubagentCommand && (
-							<div style={{ opacity: 0.6, backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR }}>
-								<div style={{ backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR }}>
-									<CodeBlock forceWrap={true} source={`${"```"}shell\n${command}\n${"```"}`} />
-								</div>
-							</div>
-						)}
-						{output.length > 0 && (
-							<CommandOutput
-								isContainerExpanded={true}
-								isOutputFullyExpanded={isOutputFullyExpanded}
-								onToggle={() => setIsOutputFullyExpanded(!isOutputFullyExpanded)}
-								output={output}
-							/>
-						)}
-					</div>
-					{requestsApproval && (
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 10,
-								padding: 8,
-								fontSize: "12px",
-								color: "var(--vscode-editorWarning-foreground)",
-							}}>
-							<i className="codicon codicon-warning"></i>
-							<span>The model has determined this command requires explicit approval.</span>
-						</div>
-					)}
-				</>
+								{/* {requestsApproval && (
+										<div
+											style={{
+												display: "flex",
+												alignItems: "center",
+												gap: 10,
+												padding: 8,
+												fontSize: "12px",
+												color: "var(--vscode-editorWarning-foreground)",
+											}}>
+											<i className="codicon codicon-warning"></i>
+											<span>The model has determined this command requires explicit approval.</span>
+										</div>
+									)} */}
+							</ApprovalContainer>
+						</CommandRow>
+					</SpacingRowContainer>
+				</PrimaryRowStyle>
 			)
 		}
 
@@ -1912,17 +1977,12 @@ export const ChatRowContent = memo(
 										/>
 									</RowHeader>
 									{isExpanded && (
-										<RowItemText
-											className="ph-no-capture"
-											isExpanded={isExpanded}
-											isLast={isLast}
-											onClick={() =>
-												setMaxLines((prev) =>
-													prev === responseTextLineClamp ? undefined : responseTextLineClamp,
-												)
-											}
-											style={{ cursor: "pointer" }}>
-											<Markdown customEllipsis={ellipsisText} markdown={message.text} maxLines={maxLines} />
+										<RowItemText className="ph-no-capture" isExpanded={isExpanded} isLast={isLast}>
+											<Markdown
+												// lineClamp={responseTextLineClamp}
+												markdown={message.text}
+												maxHeight={rowItemExpandedMaxHeight}
+											/>
 										</RowItemText>
 									)}
 								</HighlightRowContainer>
@@ -1931,7 +1991,7 @@ export const ChatRowContent = memo(
 					case "text":
 						return (
 							<>
-								{message.text && (
+								{message.text?.trim() && (
 									<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
 										<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
 											<RowHeader
@@ -1972,22 +2032,15 @@ export const ChatRowContent = memo(
 											</RowHeader>
 
 											{isExpanded && (
-												<RowItemText
-													className="ph-no-capture"
-													isExpanded={isExpanded}
-													isLast={isLast}
-													onClick={() =>
-														setMaxLines((prev) =>
-															prev === responseTextLineClamp ? undefined : responseTextLineClamp,
-														)
-													}
-													style={{ cursor: "pointer" }}>
-													<Markdown
-														customEllipsis={ellipsisText}
-														fontSize={responseTextFontSize}
-														markdown={message.text}
-														maxLines={maxLines}
-													/>
+												<RowItemText className="ph-no-capture" isExpanded={isExpanded} isLast={isLast}>
+													<MarkdownContainer>
+														<Markdown
+															fontSize={responseTextFontSize}
+															// lineClamp={responseTextLineClamp}
+															markdown={message.text}
+															// maxHeight={rowItemExpandedMaxHeight}
+														/>
+													</MarkdownContainer>
 												</RowItemText>
 											)}
 										</ResponseRowContainer>
@@ -1998,54 +2051,45 @@ export const ChatRowContent = memo(
 					case "reasoning":
 						return (
 							<>
-								{message.text && (
+								{message.text?.trim() && (
 									<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
-										<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
-											<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
-												{rowIconVisible && icon}
-												{title}
-												{isReasoning && !isExpanded && (
-													<RowItemText
-														className={`ph-no-capture`}
-														isExpanded={isExpanded}
-														isLast={isLast}
-														opacity={rowItemBackgroundOpacity}
-														style={{
-															whiteSpace: "nowrap",
-															overflow: "hidden",
-															textOverflow: "ellipsis",
-															direction: "rtl",
-															textAlign: "left",
-															flex: 1,
-														}}>
-														{message.text + "\u200E"}
-													</RowItemText>
-												)}
-												<span
-													className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
-													style={{ fontSize: "inherit" }}
-												/>
-											</RowHeader>
-
-											{isExpanded && (
+										{/* <ResponseRowContainer isExpanded={isExpanded} isLast={isLast}> */}
+										<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+											{rowIconVisible && icon}
+											{title}
+											{isReasoning && !isExpanded && (
 												<RowItemText
-													className="ph-no-capture"
+													className={`ph-no-capture`}
 													isExpanded={isExpanded}
 													isLast={isLast}
-													onClick={() =>
-														setMaxLines((prev) =>
-															prev === responseTextLineClamp ? undefined : responseTextLineClamp,
-														)
-													}
-													style={{ cursor: "pointer" }}>
-													<Markdown
-														customEllipsis={ellipsisText}
-														markdown={message.text}
-														maxLines={maxLines}
-													/>
+													opacity={rowItemBackgroundOpacity}
+													style={{
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														direction: "rtl",
+														textAlign: "left",
+														flex: 1,
+													}}>
+													{message.text + "\u200E"}
 												</RowItemText>
 											)}
-										</ResponseRowContainer>
+											<span
+												className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+												style={{ fontSize: "inherit" }}
+											/>
+										</RowHeader>
+
+										{isExpanded && (
+											<RowItemText className="ph-no-capture" isExpanded={isExpanded} isLast={isLast}>
+												<Markdown
+													// lineClamp={responseTextLineClamp}
+													markdown={message.text}
+													maxHeight={rowItemExpandedMaxHeight}
+												/>
+											</RowItemText>
+										)}
+										{/* </ResponseRowContainer> */}
 									</SecondaryRowStyle>
 								)}
 							</>
@@ -2103,8 +2147,9 @@ export const ChatRowContent = memo(
 							</SecondaryRowStyle>
 						)
 					case "get_mcp_tool_input_schema":
-						const toolName = message.text?.split("///")[0] || "tool"
-						const serverName = message.text?.split("///")[1] || "MCP Server"
+						const toolMessage = message.text?.split("///")
+						const toolName = toolMessage?.[0] || "tool"
+						const serverName = toolMessage?.[1] || "MCP Server"
 						return (
 							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
 								<RowHeader style={{ flexWrap: "nowrap" }}>
@@ -2134,7 +2179,11 @@ export const ChatRowContent = memo(
 									</RowHeader>
 									{isExpanded && (
 										<CompletionRow className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
-											<Markdown markdown={text} />
+											<Markdown
+												lineClamp={isLast ? undefined : responseTextLineClamp}
+												markdown={text}
+												// maxHeight={isLast ? undefined : rowItemExpandedMaxHeight}
+											/>
 										</CompletionRow>
 									)}
 									{message.partial === false && hasChanges && (
@@ -2226,9 +2275,9 @@ export const ChatRowContent = memo(
 										display: "flex",
 										flexDirection: "column",
 										backgroundColor: "var(--vscode-textBlockQuote-background)",
-										padding: 8,
-										borderRadius: 3,
-										fontSize: 12,
+										padding: "6px 10px",
+										borderRadius: defaultBorderRadius,
+										fontSize: secondaryFontSize,
 									}}>
 									<div
 										style={{
@@ -2563,7 +2612,6 @@ export const ChatRowContent = memo(
 											// 		prev === responseTextLineClamp ? undefined : responseTextLineClamp,
 											// 	)
 											// }}
-											// style={{ cursor: "pointer" }}
 										>
 											<WithCopyButton
 												onMouseUp={(e) => {
@@ -2574,9 +2622,8 @@ export const ChatRowContent = memo(
 												ref={contentRef}
 												textToCopy={response}>
 												<Markdown
-													// customEllipsis={ellipsisText}
+													lineClamp={isLast ? undefined : responseTextLineClamp}
 													markdown={response}
-													// maxLines={isLast ? undefined : maxLines}
 												/>
 												<OptionsButtons
 													inputValue={inputValue}

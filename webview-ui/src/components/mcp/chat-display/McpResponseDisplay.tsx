@@ -3,6 +3,7 @@ import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import React, { useCallback, useEffect, useState } from "react"
 import styled from "styled-components"
 import ChatErrorBoundary from "@/components/chat/ChatErrorBoundary"
+import { MarkdownContainer } from "@/components/chat/ChatRowStyles"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import {
@@ -68,7 +69,7 @@ const ResponseContainer = styled.div`
 		max-width: 100%;
 		max-height: ${rowItemExpandedMaxHeight}px;
 		padding: 8px;
-		// margin: 0px 8px 8px 8px;
+		// margin: 4px 0px 0px 0px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
 		border-radius: ${defaultBorderRadius}px;
 		font-size: ${codeBlockFontSize}px;
@@ -76,19 +77,20 @@ const ResponseContainer = styled.div`
 `
 
 // Style for URL text to ensure proper wrapping
-const UrlText = styled.div`
+const UrlText = styled.div<{ fontSize: number }>`
 	white-space: pre-wrap;
 	word-break: break-all;
 	overflow-wrap: break-word;
 	font-family: var(--vscode-editor-font-family, monospace);
-	// font-size: var(--vscode-editor-font-size, 12px);
+	font-size: ${({ fontSize }) => `${fontSize}px`};
 `
 
 interface McpResponseDisplayProps {
 	responseText: string
+	fontSize?: number
 }
 
-const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText }) => {
+const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText, fontSize = codeBlockFontSize }) => {
 	const { mcpResponsesCollapsed, mcpDisplayMode } = useExtensionState() // Get setting from context
 	const [isExpanded, setIsExpanded] = useState(!mcpResponsesCollapsed) // Initialize with context setting
 	const [isLoading, setIsLoading] = useState(false) // Initial loading state for rich content
@@ -149,7 +151,11 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 		switch (segment.type) {
 			case "text":
 			case "url":
-				return <UrlText key={segment.key}>{segment.content}</UrlText>
+				return (
+					<UrlText fontSize={fontSize} key={segment.key}>
+						{segment.content}
+					</UrlText>
+				)
 
 			case "image":
 				return (
@@ -202,25 +208,29 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 		}
 
 		if (mcpDisplayMode === "plain") {
-			return <UrlText>{responseText}</UrlText>
+			return <UrlText fontSize={fontSize}>{responseText}</UrlText>
 		}
 
 		if (mcpDisplayMode === "markdown") {
-			return <MarkdownBlock markdown={responseText} />
+			return (
+				<MarkdownContainer>
+					<MarkdownBlock fontSize={fontSize} markdown={responseText} />
+				</MarkdownContainer>
+			)
 		}
 
 		if (error) {
 			return (
 				<>
 					<div style={{ color: "var(--vscode-errorForeground)", marginBottom: "10px" }}>{error}</div>
-					<UrlText>{responseText}</UrlText>
+					<UrlText fontSize={fontSize}>{responseText}</UrlText>
 				</>
 			)
 		}
 
 		if (mcpDisplayMode === "rich") {
 			const segments = buildDisplaySegments(responseText, urlMatches)
-			return <>{segments.map(renderSegment)}</>
+			return <span style={{ fontSize: `${fontSize}px` }}>{segments.map(renderSegment)}</span>
 		}
 
 		return null
@@ -275,9 +285,11 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 					</div>
 				</ResponseHeader>
 				{isExpanded && (
-					<div className="response-content">
-						<div style={{ color: "var(--vscode-errorForeground)" }}>Error parsing response:</div>
-						<UrlText>{responseText}</UrlText>
+					<div className="response-content" style={{ marginTop: 4 }}>
+						<div style={{ fontSize: fontSize, paddingBottom: 4, color: "var(--vscode-errorForeground)" }}>
+							Error parsing response:
+						</div>
+						<UrlText fontSize={fontSize}>{responseText}</UrlText>
 					</div>
 				)}
 			</ResponseContainer>

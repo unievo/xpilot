@@ -4,7 +4,7 @@ import rehypeHighlight, { Options } from "rehype-highlight"
 import styled from "styled-components"
 import { visit } from "unist-util-visit"
 import "./codeblock-parser.css"
-import { defaultBorderRadius } from "@components/config"
+import { codeBlockFontSize, defaultBorderRadius } from "@components/config"
 
 export const CODE_BLOCK_BG_COLOR = "var(--vscode-editor-background, --vscode-sideBar-background, rgb(30 30 30))"
 
@@ -29,7 +29,8 @@ interface CodeBlockProps {
 	fontSize?: number
 }
 
-const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
+const StyledMarkdown = styled.div<{ forceWrap: boolean; fontSize: number }>`
+
 	${({ forceWrap }) =>
 		forceWrap &&
 		`
@@ -70,7 +71,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		word-wrap: break-word;
 		border-radius: 5px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		// font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+		font-size: ${({ fontSize }) => `${fontSize}px`}; // "var(--vscode-editor-font-size, var(--vscode-font-size, 12px))"};
 		font-family: var(--vscode-editor-font-family);
 	}
 
@@ -93,7 +94,8 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		"Open Sans",
 		"Helvetica Neue",
 		sans-serif;
-	// font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+
+	font-size: ${({ fontSize }) => `${fontSize}px`}; // var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
 	color: var(--vscode-editor-foreground, #fff);
 
 	p,
@@ -121,7 +123,7 @@ const StyledPre = styled.pre<{ theme: any }>`
 			.join("")}
 `
 
-const CodeBlock = memo(({ source, forceWrap = false, maxHeight, fontSize = 11 }: CodeBlockProps) => {
+const CodeBlock = memo(({ source, forceWrap = false, maxHeight, fontSize = codeBlockFontSize }: CodeBlockProps) => {
 	const [reactContent, setMarkdownSource] = useRemark({
 		remarkPlugins: [
 			() => {
@@ -163,7 +165,7 @@ const CodeBlock = memo(({ source, forceWrap = false, maxHeight, fontSize = 11 }:
 				borderRadius: defaultBorderRadius,
 				fontSize: fontSize,
 			}}>
-			<StyledMarkdown className="ph-no-capture markdown" forceWrap={forceWrap}>
+			<StyledMarkdown className="markdown" fontSize={fontSize} forceWrap={forceWrap}>
 				{reactContent}
 			</StyledMarkdown>
 		</div>

@@ -16,6 +16,7 @@ import {
 	rowIconFontSize,
 	rowIconOpacity,
 	rowIconVisible,
+	rowItemBorder,
 	rowItemDisabledOpacity,
 	rowItemExpandedBackground,
 	rowItemExpandedOpacity,
@@ -40,14 +41,13 @@ import {
 	userMessageHoverBackground,
 	userMessageMargin,
 	userMessagePadding,
-} from "@components/config"
-import styled from "styled-components"
+} from "@components/config";
+import styled from "styled-components";
 
 // Styled components
 
 // Markdown container to adjust default markdown styles
-export const MarkdownContainer = styled.div`
-	margin: -1.2em 0px; // Remove markdown default paragraph padding top and bottom
+export const MarkdownContainer = styled.div.attrs({ className: 'markdown-reduce-margins' })`
 `
 
 // Primary rows - primary visibility
@@ -94,6 +94,12 @@ export const CompletionRowContainer = styled.div<{ isLast: boolean; isExpanded: 
 	overflow: hidden;
 `
 
+// Completion row - completion messages
+export const CompletionRow = styled.div<{ isExpanded?: boolean; isLast?: boolean }>`
+	margin: ${completionTextMargin};
+	line-height: ${textLineHeight};
+`
+
 // Row visibility wrapper - handles show/hide with animation
 export const RowVisibility = styled.div<{ hide: boolean }>`
 	display: grid;
@@ -104,9 +110,9 @@ export const RowVisibility = styled.div<{ hide: boolean }>`
 	overflow: hidden;
 	transition: grid-template-rows ${rowHideDuration}ms ease-in-out, opacity ${rowHideDuration}ms ease-in-out;
 
-	// Keep the minimum non-zero height for virtuoso not to complain about zero-height items
+	// Keep the minimum non-zero height for size calculations
 	& > * {
-		min-height: 0.5px;
+		min-height: 1px;
 		overflow: hidden;
 	}
 `
@@ -152,7 +158,7 @@ export const RowItem = styled.div<{
 	isLast: boolean
 	linkOnHover?: boolean
 }>`
-	border: ${`1px solid ${toolBackground}`};
+	border: ${rowItemBorder};
 	border-radius: ${defaultBorderRadius}px;
 	padding: ${rowItemPadding};
 	overflow: hidden;
@@ -249,12 +255,6 @@ export const McpResponseRow = styled.div<{ isLast: boolean }>`
 	&:hover {
 		opacity: 1;
 	}
-`
-
-// Completion row - row for completion messages
-export const CompletionRow = styled.div<{ isExpanded?: boolean; isLast?: boolean }>`
-	margin: ${completionTextMargin};
-	line-height: ${textLineHeight};
 `
 
 // User message container

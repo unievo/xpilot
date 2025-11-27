@@ -15,7 +15,7 @@ const NewTaskButton: React.FC<{
 					e.stopPropagation()
 					onClick()
 				}}
-				size="icon"
+				size="xs"
 				variant="icon">
 				<XIcon />
 			</Button>

@@ -399,7 +399,7 @@ const CustomButton = styled.button<{ disabled?: boolean; isActive?: boolean; $is
 			: props.$isCheckedOut
 				? "var(--vscode-textLink-foreground)"
 				: "var(--vscode-descriptionForeground)"};
-	padding: 2px 6px;
+	padding: 0px 6px;
 	font-size: 9px;
 	cursor: pointer;
 	position: relative;

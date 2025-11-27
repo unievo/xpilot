@@ -322,7 +322,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						appearance="icon"
 						aria-label={isVisible ? `Hide Instructions and Workflows` : `Manage Instructions and Workflows`}
 						onClick={() => setIsVisible(!isVisible)}
-						style={{ marginLeft: "-2px", height: "20px" }}>
+						style={{ marginLeft: "-1px", height: "20px" }}>
 						<div className="flex items-center gap-1 text-xs whitespace-nowrap min-w-0 w-full">
 							<span
 								className="codicon codicon-folder-active flex items-center"
@@ -410,23 +410,11 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						</div>
 					</div>
 
-					{/* Remote config banner */}
-					{((currentView === "rules" && hasRemoteRules) || (currentView === "workflows" && hasRemoteWorkflows)) && (
-						<div className="flex items-center gap-2 px-5 py-3 mb-4 bg-vscode-textBlockQuote-background border-l-[3px] border-vscode-textLink-foreground">
-							<i className="codicon codicon-lock text-sm" />
-							<span className="text-[13px]">
-								{currentView === "rules"
-									? "Your organization manages some rules"
-									: "Your organization manages some workflows"}
-							</span>
-						</div>
-					)}
-
 					{/* Description text (chevron collapsible) */}
 					<div
 						style={{
 							color: descCollapsed ? "var(--vscode-descriptionForeground)" : "",
-							paddingBottom: 3,
+							marginBottom: 8,
 						}}>
 						<div
 							aria-expanded={!descCollapsed}
@@ -443,12 +431,11 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							</span>
 						</div>
 						{!descCollapsed && (
-							<div className="mt-1">
+							<div className="text-sm mt-1 mb-6">
 								{currentView === "rules" ? (
 									<p>
 										Use instruction files for rules, specifications, documentation, or any information that is
 										relevant for the AI model to achieve optimal task completion.
-										<br />
 										<br />
 										Add new instructions or use the <strong>/Git Instructions</strong> command to get existing
 										instructions from a git repository.
@@ -465,10 +452,9 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 									</p>
 								) : (
 									<p>
-										Use workflow files to define a sequence of executable steps that can be triggered as a
+										Use workflow files to define an executable sequence of steps that can be triggered as a
 										command, by typing <strong>/Workflow name</strong> in chat. Workflows can be used to
 										automate complex or repetitive tasks.
-										<br />
 										<br />
 										Add new workflows or use the <strong>/Git Workflows</strong> command to get existing
 										workflows from a git repository.
@@ -486,12 +472,24 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						)}
 					</div>
 
+					{/* Remote config banner */}
+					{((currentView === "rules" && hasRemoteRules) || (currentView === "workflows" && hasRemoteWorkflows)) && (
+						<div className="flex items-center gap-2 px-2 py-3 mb-2 bg-vscode-textBlockQuote-background border-l-[3px] border-vscode-textLink-foreground">
+							<i className="codicon codicon-lock text-sm" />
+							<span className="text-[13px]">
+								{currentView === "rules"
+									? "Your organization manages some rules"
+									: "Your organization manages some workflows"}
+							</span>
+						</div>
+					)}
+
 					{currentView === "rules" ? (
 						<>
 							{/* Remote Rules Section */}
 							{hasRemoteRules && (
 								<div className="mb-3">
-									<div className="text-sm font-normal mb-2">Enterprise Rules</div>
+									<div className="font-normal mb-2">Remote</div>
 									<div className="flex flex-col gap-0">
 										{remoteGlobalRules.map((rule) => {
 											const enabled = rule.alwaysEnabled || remoteRulesToggles[rule.name] === true

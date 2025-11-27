@@ -1,4 +1,4 @@
-import { menuRowBackground, menuRowDisabledBackground } from "@components/config"
+import { menuFontSize, menuRowBackground, menuRowDisabledBackground } from "@components/config"
 import { StringRequest } from "@shared/proto/cline/common"
 import { RuleFileRequest } from "@shared/proto/index.cline"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
@@ -126,6 +126,7 @@ const RuleRow: React.FC<{
 			{/* Rule Row */}
 			<div
 				style={{
+					fontSize: menuFontSize,
 					display: "flex",
 					alignItems: "center",
 					overflow: "hidden",
@@ -161,7 +162,7 @@ const RuleRow: React.FC<{
 								textOverflow: "ellipsis",
 								whiteSpace: "nowrap",
 							}}>
-							/{directoryName}
+							{directoryName && `/${directoryName}`}
 						</span>
 					</span>
 					{ruleType === "agents" && (
@@ -182,7 +183,7 @@ const RuleRow: React.FC<{
 				<div style={{ display: "flex", alignItems: "center", marginTop: "0px", marginLeft: "4px", gap: "0px" }}>
 					<div
 						aria-checked={enabled}
-						className={`w-[20px] h-[10px] rounded-[5px] relative transition-colors duration-200 outline-none focus:outline-none ${
+						className={`w-[20px] h-[10px] mr-1 rounded-[5px] relative transition-colors duration-200 outline-none focus:outline-none ${
 							isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
 						} ${
 							enabled
@@ -239,7 +240,7 @@ const RuleRow: React.FC<{
 								title="Open file">
 								<span
 									className="codicon codicon-go-to-file"
-									style={{ fontSize: "15px", opacity: 0.8, marginTop: "2px", marginRight: "-2px" }}
+									style={{ fontSize: "15px", opacity: 0.8, marginTop: "2px", marginLeft: "-2px", marginRight: "0px" }}
 								/>
 							</VSCodeButton>
 							{!showConfirmDelete ? (
@@ -251,7 +252,7 @@ const RuleRow: React.FC<{
 									title="Delete file">
 									<span
 										className="codicon codicon-trash"
-										style={{ fontSize: "15px", opacity: 0.8, marginTop: "3px" }}
+										style={{ fontSize: "15px", opacity: 0.8, marginTop: "3px", marginLeft: "-2px" }}
 									/>
 								</VSCodeButton>
 							) : (

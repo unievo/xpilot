@@ -70,6 +70,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		expandTaskHeader: isTaskExpanded,
 		setExpandTaskHeader: setIsTaskExpanded,
 		environment,
+		focusChainSettings,
 	} = useExtensionState()
 
 	const [isHighlightedTextExpanded, setIsHighlightedTextExpanded] = useState(false)
@@ -77,7 +78,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 	const { highlightedText, displayTextExpandable } = useMemo(() => {
 		const taskTextLines = task.text?.split("\n") || []
-		const highlightedText = highlightText(task.text, false)
+		const highlightedText = highlightText(task.text, true, localWorkflowToggles, globalWorkflowToggles)
 
 		return { highlightedText, displayTextExpandable: taskTextLines.length > 3 }
 	}, [task.text])
@@ -132,7 +133,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 				}
 			})
 		}
-	}, [task.text, windowWidth, isTaskExpanded])
+	}, [task.text, windowWidth, windowHeight, isTaskExpanded, isTextExpanded])
 
 	const isCostAvailable =
 		(totalCost &&
@@ -188,10 +189,14 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 				}}>
 				<div
 					style={{
-						height: isTaskExpanded ? "auto" : "45px",
+						height: isTaskExpanded ? "auto" : "40px",
 						display: "flex",
 						justifyContent: "space-between",
 						alignItems: "center",
+						backgroundColor: isTaskExpanded ? "var(--vscode-editor-background)" : "transparent",
+						borderRadius: defaultBorderRadius,
+						padding: isTaskExpanded ? "3px 5px" : 0,
+						margin: isTaskExpanded ? "-2px -2px 4px -4px" : "-2px 0 2px 0",
 					}}>
 					<div
 						onClick={() => setIsTaskExpanded(!isTaskExpanded)}
@@ -199,8 +204,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							display: "flex",
 							alignItems: "center",
 							cursor: "pointer",
-							marginTop: -3,
-							marginLeft: isTaskExpanded ? -2 : -6,
 							userSelect: "none",
 							WebkitUserSelect: "none",
 							MozUserSelect: "none",
@@ -214,188 +217,40 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 								alignItems: "center",
 								flexShrink: 0,
 							}}>
-							<span className={`codicon codicon-chevron-${isTaskExpanded ? "down" : "right"}`}></span>
+							<span className={`codicon codicon-chevron-${isTaskExpanded ? "down" : ""}`}></span>
 						</div>
 						<div
 							style={{
-								marginLeft: 2,
 								whiteSpace: "nowrap",
 								overflow: "hidden",
 								textOverflow: "ellipsis",
 								flexGrow: 1,
 								minWidth: 0, // This allows the div to shrink below its content size
 							}}>
-							{!isTaskExpanded && (
-								<>
-									<span
-										className="ph-no-capture"
-										style={{
-											marginRight: 5,
-											marginBottom: 5,
-											overflow: "hidden",
-											display: "-webkit-box",
-											WebkitLineClamp: 1,
-											WebkitBoxOrient: "vertical",
-											whiteSpace: "normal",
-											height: "auto",
-										}}>
-										{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
-									</span>
-									<div style={{ marginRight: 8 }}>
-										<ContextWindow
-											cacheReads={cacheReads}
-											cacheWrites={cacheWrites}
-											contextWindow={selectedModelInfo?.contextWindow}
-											lastApiReqTotalTokens={lastApiReqTotalTokens}
-											onSendMessage={onSendMessage}
-											showCondenseButton={false}
-											tokensIn={tokensIn}
-											tokensOut={tokensOut}
-											useAutoCondense={false} // Disable auto-condense configuration in UI for now
-										/>
-									</div>
-								</>
-							)}
-						</div>
-					</div>
-					<div className="inline-flex items-center justify-end select-none shrink-0">
-						{isCostAvailable && (
-							<div
-								className="mr-1 px-1 py-0.25 rounded-full inline-flex shrink-0 text-badge-foreground bg-badge-background/70 items-center"
-								id="price-tag">
-								<span className="text-xs" style={{ fontFamily: "var(--vscode-editor-font-family)" }}>
-									${totalCost?.toFixed(3)}
-								</span>
-							</div>
-						)}
-						{isTaskExpanded && (
-							<div className="flex -mb-2.5 -mt-2.5 items-center flex-wrap" style={{ justifyContent: "flex-end" }}>
-								{IS_DEV === true && <OpenDiskConversationHistoryButton taskId={currentTaskItem?.id} />}
-								<CopyTaskButton taskText={task.text} />
-								<DeleteTaskButton taskId={currentTaskItem?.id} taskSize={currentTaskItem?.size} />
-							</div>
-						)}
-						<NewTaskButton className={BUTTON_CLASS} onClick={onClose} />
-					</div>
-				</div>
-
-				{/* Expand/Collapse Task Details */}
-				{isTaskExpanded && (
-					<>
-						<div
-							onClick={() => setIsTextExpanded(!isTextExpanded)}
-							ref={textContainerRef}
-							style={{
-								cursor: showSeeMore ? "pointer" : "default",
-								marginTop: 4,
-								fontSize: "var(--vscode-font-size)",
-								overflowY: isTextExpanded ? "auto" : "hidden",
-								wordBreak: "break-word",
-								overflowWrap: "anywhere",
-								position: "relative",
-							}}>
-							<div
-								ref={textRef}
-								style={{
-									display: "-webkit-box",
-									WebkitLineClamp: isTextExpanded ? "unset" : taskHeaderTextLineClamp,
-									WebkitBoxOrient: "vertical",
-									overflow: "hidden",
-									whiteSpace: "pre-wrap",
-									wordBreak: "break-word",
-									overflowWrap: "anywhere",
-									marginRight: isTextExpanded ? 4 : 20,
-								}}>
-								<span className="ph-no-capture">
-									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
-								</span>
-							</div>
-							{!isTextExpanded && showSeeMore && (
+							{isTaskExpanded && taskHeaderTokenUsageVisible && (
 								<div
 									style={{
-										position: "absolute",
-										right: 0,
-										bottom: 0,
-										display: "flex",
-										alignItems: "center",
-									}}>
-									<div
-										style={{
-											width: 30,
-											height: "1.2em",
-											background: `linear-gradient(to right, transparent, ${taskHeaderBackground}  )`,
-										}}
-									/>
-									<HeroTooltip content="Expand text">
-										<div
-											onClick={() => setIsTextExpanded(!isTextExpanded)}
-											style={{
-												cursor: "pointer",
-												backgroundColor: taskHeaderBackground,
-												// color: "var(--vscode-textLink-foreground)",
-												paddingRight: 5,
-												paddingLeft: 3,
-												marginBottom: -4,
-												fontSize: 12,
-												opacity: 0.7,
-											}}>
-											<ChevronsUpDown size={14} />
-										</div>
-									</HeroTooltip>
-								</div>
-							)}
-						</div>
-						{isTextExpanded && showSeeMore && (
-							<HeroTooltip content="Collapse text">
-								<div
-									onClick={() => setIsTextExpanded(!isTextExpanded)}
-									style={{
-										cursor: "pointer",
-										// color: "var(--vscode-textLink-foreground)",
-										marginLeft: "auto",
-										marginTop: 4,
-										textAlign: "right",
-										fontSize: 11,
-										paddingRight: 5,
-									}}>
-									<ChevronsDownUp size={14} />
-								</div>
-							</HeroTooltip>
-						)}
-						{((task.images && task.images.length > 0) || (task.files && task.files.length > 0)) && (
-							<Thumbnails files={task.files ?? []} images={task.images ?? []} style={{ marginTop: "5px" }} />
-						)}
-
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								gap: "2px",
-								fontSize: "0.88em",
-							}}>
-							{taskHeaderTokenUsageVisible && (
-								<div
-									style={{
+										fontSize: "12px",
 										opacity: 0.9,
 										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										flexWrap: "wrap",
-										overflow: "hidden",
-										textOverflow: "ellipsis",
 									}}>
 									<div
 										style={{
 											display: "flex",
+											minWidth: 0,
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+											whiteSpace: "nowrap",
+											textAlign: "left",
 											alignItems: "center",
-											gap: "4px",
-											marginTop: 6,
-											marginBottom: 0,
-											// flexWrap: "wrap",
+											gap: "2px",
+											marginLeft: "2px",
+											justifyContent: "space-between",
+											flexWrap: "nowrap",
 										}}>
-										<div style={{ display: "flex", alignItems: "center" }}>
+										{/* <div style={{ display: "flex", alignItems: "center" }}>
 											<span style={{ fontWeight: "normal" }}>Tokens:</span>
-										</div>
+										</div> */}
 										<HeroTooltip content="Input Tokens">
 											<span className=" flex items-center gap-[0px] cursor-pointer">
 												<span
@@ -430,7 +285,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 													display: "flex",
 													justifyContent: "space-between",
 													alignItems: "center",
-													flexWrap: "wrap",
+													flexWrap: "nowrap",
 												}}>
 												<div
 													style={{
@@ -479,6 +334,186 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									</div>
 								</div>
 							)}
+							{!isTaskExpanded && (
+								<>
+									<div className="flex flex-1 items-center">
+										<span
+											className="ph-no-capture"
+											style={{
+												margin: "0 5px 5px 0",
+												overflow: "hidden",
+												display: "-webkit-box",
+												WebkitLineClamp: 1,
+												WebkitBoxOrient: "vertical",
+												whiteSpace: "normal",
+												height: "auto",
+											}}>
+											{highlightText(task.text, true, localWorkflowToggles, globalWorkflowToggles)}
+										</span>
+										{isCostAvailable && (
+											<span
+												className="ml-auto mr-2 mb-1 px-1 py-0.25 rounded-md inline-flex shrink-0 text-badge-foreground bg-badge-background/60 items-center"
+												id="price-tag">
+												<span
+													className="text-xs"
+													style={{ fontFamily: "var(--vscode-editor-font-family)" }}>
+													${totalCost?.toFixed(3)}
+												</span>
+											</span>
+										)}
+									</div>
+									<div style={{ marginRight: 8 }}>
+										<ContextWindow
+											cacheReads={cacheReads}
+											cacheWrites={cacheWrites}
+											contextWindow={selectedModelInfo?.contextWindow}
+											lastApiReqTotalTokens={lastApiReqTotalTokens}
+											onSendMessage={onSendMessage}
+											showCondenseButton={false}
+											tokensIn={tokensIn}
+											tokensOut={tokensOut}
+											useAutoCondense={false} // Disable auto-condense configuration in UI for now
+										/>
+									</div>
+								</>
+							)}
+						</div>
+					</div>
+
+					<div className="inline-flex items-center justify-end select-none shrink-0">
+						{isTaskExpanded && (
+							<>
+								{isCostAvailable && (
+									<span
+										className="ml-2 mr-2 px-1 py-0.125 rounded-md inline-flex shrink-0 text-badge-foreground bg-badge-background/60 items-center"
+										id="price-tag">
+										<span className="text-xs" style={{ fontFamily: "var(--vscode-editor-font-family)" }}>
+											${totalCost?.toFixed(3)}
+										</span>
+									</span>
+								)}
+								<div
+									className="flex -mb-2.5 -mt-2.5 -mr-1 items-center flex-wrap"
+									style={{ justifyContent: "flex-end" }}>
+									{IS_DEV === true && <OpenDiskConversationHistoryButton taskId={currentTaskItem?.id} />}
+									<CopyTaskButton taskText={task.text} />
+									<DeleteTaskButton taskId={currentTaskItem?.id} taskSize={currentTaskItem?.size} />
+									<NewTaskButton className={BUTTON_CLASS} onClick={onClose} />
+								</div>
+							</>
+						)}
+						{!isTaskExpanded && <NewTaskButton className={BUTTON_CLASS} onClick={onClose} />}
+					</div>
+				</div>
+
+				{/* Expand/Collapse Task Details */}
+				{isTaskExpanded && (
+					<>
+						<div
+							onClick={() => setIsTextExpanded(!isTextExpanded)}
+							ref={textContainerRef}
+							style={{
+								cursor: showSeeMore ? "pointer" : "default",
+								marginTop: 6,
+								margin: "2px 0 6px 0",
+								fontSize: "var(--vscode-font-size)",
+								overflowY: isTextExpanded ? "auto" : "hidden",
+								wordBreak: "break-word",
+								overflowWrap: "anywhere",
+								position: "relative",
+								display: "flex",
+								alignItems: isTextExpanded ? "flex-start" : "center",
+							}}>
+							<div
+								ref={textRef}
+								style={{
+									// backgroundColor: "var(--vscode-editor-background)",
+									// borderRadius: defaultBorderRadius,
+									padding: "0px 3px",
+									display: "-webkit-box",
+									WebkitLineClamp: isTextExpanded ? "unset" : taskHeaderTextLineClamp,
+									WebkitBoxOrient: "vertical",
+									overflow: "hidden",
+									whiteSpace: "pre-wrap",
+									wordBreak: "break-word",
+									overflowWrap: "anywhere",
+									marginRight: isTextExpanded ? 4 : 6,
+									lineHeight: 1.4,
+								}}>
+								<span className="ph-no-capture">
+									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
+								</span>
+							</div>
+							{!isTextExpanded && showSeeMore && (
+								<div
+									style={{
+										// position: "absolute",
+										// right: 0,
+										// bottom: 0,
+										display: "flex",
+										alignItems: "center",
+									}}>
+									{/* <div
+										style={{
+											width: 30,
+											height: "1.2em",
+											background: `linear-gradient(to right, transparent, ${taskHeaderBackground}  )`,
+										}}
+									/> */}
+									<HeroTooltip content="Expand text">
+										<div
+											onClick={() => setIsTextExpanded(!isTextExpanded)}
+											style={{
+												cursor: "pointer",
+												// backgroundColor:"var(--vscode-editor-background)",
+												// color: "var(--vscode-textLink-foreground)",
+												paddingRight: 3,
+												paddingLeft: 3,
+												// marginBottom: -4,
+												verticalAlign: "middle",
+												fontSize: 12,
+												opacity: 0.9,
+											}}>
+											<ChevronsUpDown size={14} />
+										</div>
+									</HeroTooltip>
+								</div>
+							)}
+						</div>
+						{isTextExpanded && showSeeMore && (
+							<HeroTooltip content="Collapse text">
+								<div
+									onClick={() => setIsTextExpanded(!isTextExpanded)}
+									style={{
+										cursor: "pointer",
+										// color: "var(--vscode-textLink-foreground)",
+										marginLeft: "auto",
+										marginBottom: 8,
+										textAlign: "right",
+										verticalAlign: "middle",
+										fontSize: 11,
+										marginRight: -2,
+									}}>
+									<ChevronsDownUp size={14} />
+								</div>
+							</HeroTooltip>
+						)}
+						{((task.images && task.images.length > 0) || (task.files && task.files.length > 0)) && (
+							<Thumbnails files={task.files ?? []} images={task.images ?? []} style={{ margin: "-2px 0 4px 0" }} />
+						)}
+
+						{taskHeaderTaskTimelineVisible && (
+							<div className="flex flex-col">
+								<TaskTimeline messages={clineMessages} onBlockClick={onScrollToMessage} />
+							</div>
+						)}
+
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								margin: "2px 0",
+							}}>
 							<div>
 								<ContextWindow
 									cacheReads={cacheReads}
@@ -491,18 +526,15 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									useAutoCondense={false} // Disable auto-condense configuration in UI for now
 								/>
 							</div>
-							{taskHeaderTaskTimelineVisible && (
-								<div className="flex flex-col">
-									<TaskTimeline messages={clineMessages} onBlockClick={onScrollToMessage} />
-								</div>
-							)}
 						</div>
 					</>
 				)}
 			</div>
 
 			{/* Display Focus Chain To-Do List */}
-			<FocusChain currentTaskItemId={currentTaskItem?.id} lastProgressMessageText={lastProgressMessageText} />
+			{focusChainSettings.enabled && (
+				<FocusChain currentTaskItemId={currentTaskItem?.id} lastProgressMessageText={lastProgressMessageText} />
+			)}
 		</div>
 	)
 }

@@ -1,5 +1,7 @@
+
 /* Editor theme mapping */
 @theme {
+	--color-focuschain-background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-editor-foreground));
 	--color-background: var(--vscode-sideBar-background);
 	--color-border: var(--vscode-focusBorder);
 	--color-border-panel: var(--vscode-panel-border);

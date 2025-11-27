@@ -54,7 +54,7 @@ const AutoApproveMenuItem = ({ action, isChecked, onToggle, showIcon = true, dis
 							variant="icon">
 							<VSCodeCheckbox checked={checked} disabled={disabled} />
 							{showIcon && <span className={`codicon ${action.icon} icon`}></span>}
-							<span className="label">{action.label}</span>
+							<span className="label" style={{ overflowWrap: 'break-word', whiteSpace: 'normal', textAlign: 'left' }}>{action.label}</span>
 						</Button>
 					</TooltipTrigger>
 				</Tooltip>

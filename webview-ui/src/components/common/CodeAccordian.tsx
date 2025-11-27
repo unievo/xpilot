@@ -138,8 +138,8 @@ const CodeAccordian = ({
 										: onToggleExpand
 								}
 								style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-								{path?.startsWith(".") && <span>.</span>}
-								{rowItemLeadingPathSeparator && path && !path.startsWith(".") && <span>/</span>}
+								{rowItemFullFilePath && path?.startsWith(".") && <span>.</span>}
+								{rowItemLeadingPathSeparator && path &&  !path.startsWith(".") && <span>/</span>}
 								<span
 									style={{
 										whiteSpace: "nowrap",

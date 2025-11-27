@@ -209,7 +209,7 @@ const ServerRow = ({
 	})
 
 	return (
-		<div style={{ marginBottom: "0px" }}>
+		<div>
 			<div
 				onClick={handleRowClick}
 				style={{
@@ -295,7 +295,7 @@ const ServerRow = ({
 						role="switch"
 						style={{
 							width: "20px",
-							height: "11px",
+							height: "10px",
 							backgroundColor: server.disabled
 								? "var(--vscode-titleBar-inactiveForeground)"
 								: "var(--vscode-testing-iconPassed)",
@@ -410,31 +410,31 @@ const ServerRow = ({
 					</div>
 					<div style={{ display: "flex" }}>
 						{server.oauthRequired && server.oauthAuthStatus === "unauthenticated" ? (
-						<VSCodeButton
-							appearance="primary"
-							onClick={(e) => {
-								e.stopPropagation()
-								McpServiceClient.authenticateMcpServer(StringRequest.create({ value: server.name }))
-							}}
-							style={{
-								width: "calc(100% - 20px)",
-								margin: "0 10px 10px 10px",
-							}}>
-							Authenticate
-						</VSCodeButton>
-					) : (
-						<VSCodeButton
+							<VSCodeButton
+								appearance="primary"
+								onClick={(e) => {
+									e.stopPropagation()
+									McpServiceClient.authenticateMcpServer(StringRequest.create({ value: server.name }))
+								}}
+								style={{
+									width: "calc(100% - 20px)",
+									margin: "0 10px 10px 10px",
+								}}>
+								Authenticate
+							</VSCodeButton>
+						) : (
+							<VSCodeButton
 								appearance="secondary"
 								disabled={server.status === "connecting"}
 								onClick={handleRestart}
 								style={{
 									width: "calc(100% - 20px)",
 									margin: "0 10px 10px 10px",
-								scale: "0.9",
+									scale: "0.9",
 								}}>
 								{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
 							</VSCodeButton>
-					)}
+						)}
 
 						{!showConfirmDelete ? (
 							<DangerButton

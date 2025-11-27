@@ -1,3 +1,4 @@
+import { menuBackground } from "@components/config"
 import { memo, useEffect, useRef, useState } from "react"
 import { useRemark } from "react-remark"
 import { Button } from "@/components/ui/button"
@@ -44,12 +45,16 @@ export const ModelDescriptionMarkdown = memo(({ markdown, key, isPopup }: ModelD
 				</div>
 				{isTruncated && (
 					<div className="absolute bottom-0 right-0 flex items-center">
-						<div className="w-10 h-5 bg-linear-to-r from-transparent to-sidebar-background" />
+						<div
+							className="w-15 h-5"
+							style={{
+								background: `linear-gradient(to right, transparent,  ${isPopup ? menuBackground : "var(--color-code-block-background)"})`,
+							}}
+						/>
 						<Button
-							className={cn("bg-sidebar-background p-0 m-0 text-sm", {
-								"bg-code-block-background": isPopup,
-							})}
+							className={cn("p-0 m-0 -mb-0.5 text-sm")}
 							onClick={() => setIsExpanded(!isExpanded)}
+							style={{ backgroundColor: isPopup ? menuBackground : "var(--color-code-block-background)" }}
 							variant="link">
 							{isExpanded ? "See less" : "See more"}
 						</Button>
