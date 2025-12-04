@@ -2,6 +2,7 @@ import type { ApiProviderInfo } from "@core/api"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import fs from "fs/promises"
 import { telemetryService } from "@/services/telemetry"
+import { isNativeToolCallingConfig } from "@/utils/model-utils"
 import {
 	condenseToolResponse,
 	deepPlanningToolResponse,
@@ -38,6 +39,7 @@ export async function parseSlashCommands(
 	globalWorkflowToggles: ClineRulesToggles,
 	ulid: string,
 	focusChainSettings?: { enabled: boolean },
+	enableNativeToolCalls?: boolean,
 	providerInfo?: ApiProviderInfo,
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
 	const SUPPORTED_DEFAULT_COMMANDS = [
@@ -52,6 +54,9 @@ export async function parseSlashCommands(
 		//reportbug,
 	]
 
+	// Determine if the current provider/model/setting actually uses native tool calling
+	const willUseNativeTools = isNativeToolCallingConfig(providerInfo!, enableNativeToolCalls || false)
+
 	const commandReplacements: Record<string, string> = {
 		newtask: newTaskToolResponse(),
 		smol: condenseToolResponse(focusChainSettings),
@@ -59,26 +64,17 @@ export async function parseSlashCommands(
 		"new-instructions": newRuleToolResponse(),
 		"git-instructions": gitInstructionsToolResponse(),
 		"git-workflows": gitWorkflowsToolResponse(),
-		"deep-planning": deepPlanningToolResponse(focusChainSettings, providerInfo),
+		"deep-planning": deepPlanningToolResponse(focusChainSettings, providerInfo, willUseNativeTools),
 		subagent: subagentToolResponse(),
 		//reportbug: reportBugToolResponse(),
 	}
 
 	// this currently allows matching prepended whitespace prior to /slash-command
 	const tagPatterns = [
-		{ tag: "task", regex: /<task>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/task>/is },
-		{
-			tag: "feedback",
-			regex: /<feedback>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/feedback>/is,
-		},
-		{
-			tag: "answer",
-			regex: /<answer>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/answer>/is,
-		},
-		{
-			tag: "user_message",
-			regex: /<user_message>((?:\s|\\\\n|\\n)*\/([a-zA-Z0-9_. -]+))((?:\s|\\\\n|\\n)+.+?)?(?:\s|\\\\n|\\n)*<\/user_message>/is,
-		},
+		{ tag: "task", regex: /<task>(\s*\/([a-zA-Z0-9_.-]+))(\s+.+?)?\s*<\/task>/is },
+		{ tag: "feedback", regex: /<feedback>(\s*\/([a-zA-Z0-9_.-]+))(\s+.+?)?\s*<\/feedback>/is },
+		{ tag: "answer", regex: /<answer>(\s*\/([a-zA-Z0-9_.-]+))(\s+.+?)?\s*<\/answer>/is },
+		{ tag: "user_message", regex: /<user_message>(\s*\/([a-zA-Z0-9_.-]+))(\s+.+?)?\s*<\/user_message>/is },
 	]
 
 	// if we find a valid match, we will return inside that block

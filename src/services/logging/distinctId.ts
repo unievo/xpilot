@@ -1,6 +1,7 @@
 import { machineId } from "node-machine-id"
 import { v4 as uuidv4 } from "uuid"
 import { ExtensionContext } from "vscode"
+import { productName } from "@/shared/Configuration"
 
 /*
  * Unique identifier for the current installation.
@@ -11,7 +12,7 @@ let _distinctId: string = ""
  * Some environments don't return a value for the machine ID. For these situations we generated
  * a unique ID and store it locally.
  */
-export const _GENERATED_MACHINE_ID_KEY = "cline.generatedMachineId"
+export const _GENERATED_MACHINE_ID_KEY = `${productName}.generatedMachineId`
 
 export async function initializeDistinctId(context: ExtensionContext, uuid: () => string = uuidv4) {
 	// Try to read the ID from storage.

@@ -26,6 +26,7 @@ import { addToCline } from "./core/controller/commands/addToCline"
 import { explainWithCline } from "./core/controller/commands/explainWithCline"
 import { fixWithCline } from "./core/controller/commands/fixWithCline"
 import { improveWithCline } from "./core/controller/commands/improveWithCline"
+import { clearOnboardingModelsCache } from "./core/controller/models/getClineOnboardingModels"
 import { sendAddToInputEvent } from "./core/controller/ui/subscribeToAddToInput"
 import { sendFocusChatInputEvent } from "./core/controller/ui/subscribeToFocusChatInput"
 import { HookDiscoveryCache } from "./core/hooks/HookDiscoveryCache"
@@ -492,11 +493,7 @@ export async function deactivate() {
 	// Clean up hook discovery cache
 	HookDiscoveryCache.getInstance().dispose()
 
-	// Kill any running hook processes to prevent zombies
-	await HookProcessRegistry.terminateAll()
-
-	// Clean up hook discovery cache
-	HookDiscoveryCache.getInstance().dispose()
+	clearOnboardingModelsCache()
 
 	Logger.log(`${agentName} extension deactivated`)
 }

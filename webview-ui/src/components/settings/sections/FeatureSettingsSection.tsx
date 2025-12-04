@@ -405,22 +405,20 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							</p>
 						)}
 					</div>
-					{nativeToolCallSetting?.featureFlag && (
-						<div className="mt-2.5">
-							<VSCodeCheckbox
-								checked={nativeToolCallSetting?.user}
-								onChange={(e) => {
-									const enabled = (e?.target as HTMLInputElement).checked
-									updateSetting("nativeToolCallEnabled", enabled)
-								}}>
-								Enable Native Tool Call
-							</VSCodeCheckbox>
-							<p className="text-xs">
-								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
-								<span className="text-description">Allows tool calls through the native API.</span>
-							</p>
-						</div>
-					)}
+					<div className="mt-2.5">
+						<VSCodeCheckbox
+							checked={nativeToolCallSetting}
+							onChange={(e) => {
+								const enabled = (e?.target as HTMLInputElement).checked
+								updateSetting("nativeToolCallEnabled", enabled)
+							}}>
+							Enable Native Tool Call
+						</VSCodeCheckbox>
+						<p className="text-xs">
+							<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
+							<span className="text-description">Allows tool calls through the native API.</span>
+						</p>
+					</div>
 					{enableYoloMode && (
 						<div style={{ marginTop: 10 }}>
 							<Tooltip>

@@ -2,6 +2,7 @@ import React from "react"
 import Announcement from "@/components/chat/Announcement"
 import { CURRENT_CLI_BANNER_VERSION } from "@/components/common/CliInstallBanner"
 import { CURRENT_INFO_BANNER_VERSION } from "@/components/common/InfoBanner"
+import { CURRENT_MODEL_BANNER_VERSION } from "@/components/common/NewModelBanner"
 import HistoryPreview from "@/components/history/HistoryPreview"
 import HomeHeader from "@/components/welcome/HomeHeader"
 import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
@@ -21,10 +22,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	taskHistory,
 	shouldShowQuickWins,
 }) => {
-	const { lastDismissedInfoBannerVersion, lastDismissedCliBannerVersion } = useExtensionState()
+	const { lastDismissedInfoBannerVersion, lastDismissedCliBannerVersion, lastDismissedModelBannerVersion } = useExtensionState()
 
 	const shouldShowInfoBanner = lastDismissedInfoBannerVersion < CURRENT_INFO_BANNER_VERSION
-	// const shouldShowNewModelBanner = lastDismissedModelBannerVersion < CURRENT_MODEL_BANNER_VERSION
+	const shouldShowNewModelBanner = lastDismissedModelBannerVersion < CURRENT_MODEL_BANNER_VERSION
 
 	// Show CLI banner if not dismissed and platform is VSCode (not JetBrains/standalone)
 	const shouldShowCliBanner =

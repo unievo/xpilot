@@ -25,7 +25,6 @@ import { CheckpointError } from "./CheckpointError"
 import ContextWindow from "./ContextWindow"
 import { FocusChain } from "./FocusChain"
 import { highlightText } from "./Highlights"
-import TaskTimeline from "./TaskTimeline"
 
 const IS_DEV = process.env.IS_DEV === '"true"'
 interface TaskHeaderProps {
@@ -74,6 +73,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	} = useExtensionState()
 
 	const [isHighlightedTextExpanded, setIsHighlightedTextExpanded] = useState(false)
+	const [isTextOverflowing, setIsTextOverflowing] = useState(false)
 	const highlightedTextRef = React.useRef<HTMLDivElement>(null)
 
 	const { highlightedText, displayTextExpandable } = useMemo(() => {
@@ -82,6 +82,17 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 		return { highlightedText, displayTextExpandable: taskTextLines.length > 3 }
 	}, [task.text])
+
+	// const highlightedText = useMemo(() => highlightText(task.text, false), [task.text])
+
+	// // Check if text overflows the container (i.e., needs clamping)
+	// useLayoutEffect(() => {
+	// 	const el = highlightedTextRef.current
+	// 	if (el && isTaskExpanded && !isHighlightedTextExpanded) {
+	// 		// Check if content height exceeds the max-height
+	// 		setIsTextOverflowing(el.scrollHeight > el.clientHeight)
+	// 	}
+	// }, [task.text, isTaskExpanded, isHighlightedTextExpanded])
 
 	// Handle click outside to collapse
 	React.useEffect(() => {

@@ -173,6 +173,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			context.globalState.get<GlobalStateAndSettings["strictPlanModeEnabled"]>("strictPlanModeEnabled")
 		const yoloModeToggled = context.globalState.get<GlobalStateAndSettings["yoloModeToggled"]>("yoloModeToggled")
 		const useAutoCondense = context.globalState.get<GlobalStateAndSettings["useAutoCondense"]>("useAutoCondense")
+		const clineWebToolsEnabled =
+			context.globalState.get<GlobalStateAndSettings["clineWebToolsEnabled"]>("clineWebToolsEnabled")
 		const isNewUser = context.globalState.get<GlobalStateAndSettings["isNewUser"]>("isNewUser")
 		const welcomeViewCompleted =
 			context.globalState.get<GlobalStateAndSettings["welcomeViewCompleted"]>("welcomeViewCompleted")
@@ -324,6 +326,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 		const planModeApiModelId = context.globalState.get<GlobalStateAndSettings["planModeApiModelId"]>("planModeApiModelId")
 		const planModeThinkingBudgetTokens =
 			context.globalState.get<GlobalStateAndSettings["planModeThinkingBudgetTokens"]>("planModeThinkingBudgetTokens")
+		const geminiPlanModeThinkingLevel =
+			context.globalState.get<GlobalStateAndSettings["geminiPlanModeThinkingLevel"]>("geminiPlanModeThinkingLevel")
 		const planModeReasoningEffort =
 			context.globalState.get<GlobalStateAndSettings["planModeReasoningEffort"]>("planModeReasoningEffort")
 		const planModeVsCodeLmModelSelector =
@@ -395,6 +399,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 		const actModeApiModelId = context.globalState.get<GlobalStateAndSettings["actModeApiModelId"]>("actModeApiModelId")
 		const actModeThinkingBudgetTokens =
 			context.globalState.get<GlobalStateAndSettings["actModeThinkingBudgetTokens"]>("actModeThinkingBudgetTokens")
+		const geminiActModeThinkingLevel =
+			context.globalState.get<GlobalStateAndSettings["geminiActModeThinkingLevel"]>("geminiActModeThinkingLevel")
 		const actModeReasoningEffort =
 			context.globalState.get<GlobalStateAndSettings["actModeReasoningEffort"]>("actModeReasoningEffort")
 		const actModeVsCodeLmModelSelector =
@@ -586,6 +592,7 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			planModeAihubmixModelId,
 			planModeAihubmixModelInfo,
 			planModeNousResearchModelId,
+			geminiPlanModeThinkingLevel,
 			// Act mode configurations
 			actModeApiProvider: actModeApiProvider || apiProvider,
 			actModeApiModelId,
@@ -623,6 +630,7 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			actModeAihubmixModelId,
 			actModeAihubmixModelInfo,
 			actModeNousResearchModelId,
+			geminiActModeThinkingLevel,
 
 			// Other global fields
 			focusChainSettings: focusChainSettings || DEFAULT_FOCUS_CHAIN_SETTINGS,
@@ -630,6 +638,7 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			strictPlanModeEnabled: strictPlanModeEnabled ?? true,
 			yoloModeToggled: yoloModeToggled ?? false,
 			useAutoCondense: useAutoCondense ?? false,
+			clineWebToolsEnabled: clineWebToolsEnabled ?? true,
 			isNewUser: isNewUser ?? true,
 			welcomeViewCompleted,
 			lastShownAnnouncementId,

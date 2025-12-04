@@ -126,10 +126,6 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 
 				{error && <div className="mb-3 text-(--vscode-errorForeground)">{error}</div>}
 
-				<VSCodeButton className="w-full" disabled={isSubmitting} type="submit">
-					{isSubmitting ? "Connecting..." : "Add Server"}
-				</VSCodeButton>
-
 				{/* <VSCodeButton
 					appearance="secondary"
 					onClick={() => {
