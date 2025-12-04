@@ -3,6 +3,7 @@ import fs from "fs/promises"
 import os from "os"
 import path from "path"
 import { HostProvider } from "@/hosts/host-provider"
+import { agentWorkspaceDirectory, homeRootDirectory, hooksDirectory, productName } from "@/shared/Configuration"
 import { VALID_HOOK_TYPES } from "../../hooks/utils"
 import { Controller } from ".."
 
@@ -11,7 +12,7 @@ export async function refreshHooks(
 	_request?: any,
 	globalHooksDirOverride?: string,
 ): Promise<HooksToggles> {
-	const globalHooksDir = globalHooksDirOverride || path.join(os.homedir(), "Documents", "Cline", "Hooks")
+	const globalHooksDir = globalHooksDirOverride || path.join(os.homedir(), homeRootDirectory, productName, hooksDirectory)
 	const isWindows = process.platform === "win32"
 
 	// Collect global hooks
@@ -39,7 +40,7 @@ export async function refreshHooks(
 	const workspaceHooksList: WorkspaceHooks[] = []
 
 	for (const workspacePath of workspacePaths.paths) {
-		const workspaceHooksDir = path.join(workspacePath, ".clinerules", "hooks")
+		const workspaceHooksDir = path.join(workspacePath, agentWorkspaceDirectory, hooksDirectory)
 		const hooks: HookInfo[] = []
 
 		for (const hookName of VALID_HOOK_TYPES) {

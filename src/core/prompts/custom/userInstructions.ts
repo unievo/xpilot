@@ -1,5 +1,4 @@
-import { workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
-import { getGlobalInstructionsDirectoryPath } from "../../storage/disk"
+import { GlobalFileNames, getGlobalInstructionsDirectoryPath } from "../../storage/disk"
 
 export async function addUserInstructions(
 	settingsCustomInstructions?: string,
@@ -62,7 +61,7 @@ ${customInstructions.trim()}
 - Instruction files can reference other instruction detail files in a "./content/" subfolder.
 - The "./" part represents the root directory in which the main instruction file is located.
 - For example:
-	- for the file "./${workspaceInstructionsDirectoryPath}/{library}/{topic}/instruction-file.md", "./" represents "./${workspaceInstructionsDirectoryPath}/{library}/{topic}/".
+	- for the file "./${GlobalFileNames.clineRules}/{library}/{topic}/instruction-file.md", "./" represents "./${GlobalFileNames.clineRules}/{library}/{topic}/".
 	- for the file "${globalInstructionsDirectoryPath}/{library}/{topic}/instruction-file.md", "./" represents "${globalInstructionsDirectoryPath}/{library}/{topic}/".
 - Make sure to use the correct path when referencing files in the "./content/" subfolder, for example "{instructionDirectory}/{library}/{topic}/content/{subtopic}/related-instruction-file.md".
 - Instruction detail files can also reference other instruction detail files. Always read their content as needed.

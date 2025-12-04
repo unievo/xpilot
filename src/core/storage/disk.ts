@@ -2,7 +2,10 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import { EnvironmentMetadataEntry, TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
 import { execa } from "@packages/execa"
 import {
+	agentWorkspaceDirectory,
 	authorName,
+	homeRootDirectory,
+	hooksDirectory,
 	instructionsDirectory,
 	mcpDirectory,
 	mcpServersDirectory,
@@ -10,9 +13,6 @@ import {
 	productName,
 	settingsDirectory,
 	workflowsDirectory,
-	workspaceHooksDirectoryPath,
-	workspaceInstructionsDirectoryPath,
-	workspaceWorkflowsDirectoryPath,
 } from "@shared/Configuration"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
@@ -37,12 +37,12 @@ export const GlobalFileNames = {
 	basetenModels: "baseten_models.json",
 	hicapModels: "hicap_models.json",
 	mcpSettings: mcpSettingsFile,
-	clineRules: workspaceInstructionsDirectoryPath,
-	workflows: workspaceWorkflowsDirectoryPath,
-	hooksDir: workspaceHooksDirectoryPath,
-	cursorRulesDir: ".cursor/rules",
+	clineRules: path.join(agentWorkspaceDirectory, instructionsDirectory),
+	workflows: path.join(agentWorkspaceDirectory, workflowsDirectory),
+	hooksDir: path.join(agentWorkspaceDirectory, hooksDirectory),
+	cursorRulesDir: path.join(".cursor", "rules"),
 	cursorRulesFile: ".cursorrules",
-	windsurfRulesDir: ".windsurf/rules",
+	windsurfRulesDir: path.join(".windsurf", "rules"),
 	windsurfRulesFile: ".windsurfrules",
 	agentsRulesFile: "AGENTS.md",
 	taskMetadata: "task_metadata.json",
@@ -87,7 +87,7 @@ export async function getDocumentsPath(): Promise<string> {
 }
 
 export function getUserProductDirectoryPath(): string {
-	const userProductPath = path.join(os.homedir(), `.${authorName}`, productName)
+	const userProductPath = path.join(os.homedir(), homeRootDirectory, productName)
 	return userProductPath
 }
 
@@ -144,12 +144,11 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 }
 
 export async function ensureHooksDirectoryExists(): Promise<string> {
-	const userDocumentsPath = await getDocumentsPath()
-	const clineHooksDir = path.join(userDocumentsPath, "Cline", "Hooks")
+	const clineHooksDir = path.join(homeRootDirectory, productName, hooksDirectory)
 	try {
 		await fs.mkdir(clineHooksDir, { recursive: true })
 	} catch (_error) {
-		return path.join(os.homedir(), "Documents", "Cline", "Hooks") // in case creating a directory in documents fails for whatever reason (e.g. permissions) - this is fine because we will fail gracefully with a path that does not exist
+		return path.join(os.homedir(), homeRootDirectory, productName, hooksDirectory)
 	}
 	return clineHooksDir
 }
@@ -213,7 +212,7 @@ export async function saveClineMessages(taskId: string, uiMessages: ClineMessage
 export async function collectEnvironmentMetadata(): Promise<Omit<EnvironmentMetadataEntry, "ts">> {
 	try {
 		const hostVersion = await HostProvider.env.getHostVersion({})
-		
+
 		return {
 			os_name: os.platform(),
 			os_version: os.release(),

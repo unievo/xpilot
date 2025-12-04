@@ -1,9 +1,11 @@
 import { StringRequest } from "@shared/proto/cline/common"
 import { DeleteHookRequest, HooksToggles } from "@shared/proto/cline/file"
-import { PenIcon, Trash2Icon } from "lucide-react"
+import { FilePen, Trash2Icon } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { FileServiceClient } from "@/services/grpc-client"
+import { iconHighlightColor, menuFontSize, menuRowBackground, menuRowDisabledBackground } from "../config"
 
 interface HookRowProps {
 	hookName: string
@@ -31,8 +33,13 @@ const HookRow: React.FC<HookRowProps> = ({
 			console.error("Failed to open file:", err),
 		)
 	}
+	const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
 	const handleDeleteClick = () => {
+		setShowConfirmDelete(true)
+	}
+
+	const handleConfirmDelete = () => {
 		FileServiceClient.deleteHook(
 			DeleteHookRequest.create({
 				hookName,
@@ -48,15 +55,32 @@ const HookRow: React.FC<HookRowProps> = ({
 			.catch((err) => console.error("Failed to delete hook:", err))
 	}
 
+	const handleCancelDelete = () => {
+		setShowConfirmDelete(false)
+	}
+
 	return (
-		<div className="mb-2.5">
-			<div className="flex items-center px-2 py-4 rounded bg-text-block-background max-h-4">
+		<div className="mb-0.5">
+			<div
+				// className="flex items-center px-2 py-3 rounded bg-text-block-background max-h-4"
+				style={{
+					fontSize: menuFontSize,
+					display: "flex",
+					alignItems: "center",
+					overflow: "hidden",
+					padding: "1px 1px 1px 2.5px",
+					background: enabled ? menuRowBackground : menuRowDisabledBackground,
+					borderRadius: "4px",
+					opacity: enabled ? 1 : 0.8,
+					cursor: "default",
+				}}>
 				<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center mr-1">
+					<span className="codicon codicon-terminal mr-1" style={{ color: iconHighlightColor, fontSize: "inherit" }} />
 					<span className="ph-no-capture">{hookName}</span>
 				</span>
 
 				{/* Toggle Switch */}
-				<div className="flex items-center space-x-2 gap-2">
+				<div className="flex items-center space-x-0 gap-0.5">
 					<div
 						title={
 							isWindows
@@ -73,16 +97,30 @@ const HookRow: React.FC<HookRowProps> = ({
 						/>
 					</div>
 					<Button aria-label="Edit hook file" onClick={handleEditClick} size="xs" title="Edit hook file" variant="icon">
-						<PenIcon />
+						<FilePen />
 					</Button>
-					<Button
-						aria-label="Delete hook file"
-						onClick={handleDeleteClick}
-						size="xs"
-						title="Delete hook file"
-						variant="icon">
-						<Trash2Icon />
-					</Button>
+					{!showConfirmDelete ? (
+						<Button aria-label="Delete file" onClick={handleDeleteClick} size="xs" title="Delete file" variant="icon">
+							<Trash2Icon />
+						</Button>
+					) : (
+						<>
+							<Button
+								aria-label="Confirm delete"
+								onClick={handleConfirmDelete}
+								style={{ width: "18px", height: "18px" }}
+								title="Confirm delete">
+								✓
+							</Button>
+							<Button
+								aria-label="Cancel delete"
+								onClick={handleCancelDelete}
+								style={{ width: "18px", height: "18px" }}
+								title="Cancel delete">
+								✗
+							</Button>
+						</>
+					)}
 				</div>
 			</div>
 		</div>

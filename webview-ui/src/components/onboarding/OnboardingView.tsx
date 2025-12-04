@@ -1,37 +1,49 @@
 import type { ModelInfo } from "@shared/api"
+import type { OnboardingModel, OnboardingModelGroup, OpenRouterModelInfo } from "@shared/proto/index.cline"
 import { AlertCircleIcon, CircleCheckIcon, CircleIcon, ListIcon, LoaderCircleIcon, StarIcon, ZapIcon } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import ClineLogoWhite from "@/assets/ClineLogoWhite"
+import AgentLogo from "@/assets/AgentLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Item, ItemContent, ItemDescription, ItemHeader, ItemMedia, ItemTitle } from "@/components/ui/item"
+import { PlatformType } from "@/config/platform.config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { usePlatform } from "@/context/PlatformContext"
 import { cn } from "@/lib/utils"
 import { AccountServiceClient, StateServiceClient } from "@/services/grpc-client"
 import ApiConfigurationSection from "../settings/sections/ApiConfigurationSection"
 import { useApiConfigurationHandlers } from "../settings/utils/useApiConfigurationHandlers"
 import {
 	getCapabilities,
+	getClineUIOnboardingGroups,
 	getOverviewLabel,
 	getPriceRange,
 	getSpeedLabel,
-	ONBOARDING_MODEL_SELECTIONS,
-	type OnboardingModelOption,
+	type OnboardingModelsByGroup,
 } from "./data-models"
-import { NEW_USER_TYPE, STEP_CONFIG, USER_TYPE_SELECTIONS } from "./data-steps"
+import { getUserTypeSelections, NEW_USER_TYPE, STEP_CONFIG } from "./data-steps"
 
 type ModelSelectionProps = {
 	userType: NEW_USER_TYPE.FREE | NEW_USER_TYPE.POWER
 	selectedModelId: string
 	onSelectModel: (modelId: string) => void
+	onboardingModels: OnboardingModelsByGroup
 	models?: Record<string, ModelInfo>
 	searchTerm: string
 	setSearchTerm: (term: string) => void
 }
 
-const ModelSelection = ({ userType, selectedModelId, onSelectModel, models, searchTerm, setSearchTerm }: ModelSelectionProps) => {
-	const modelGroups = ONBOARDING_MODEL_SELECTIONS[userType === NEW_USER_TYPE.FREE ? "free" : "power"]
+const ModelSelection = ({
+	userType,
+	selectedModelId,
+	onSelectModel,
+	models,
+	searchTerm,
+	setSearchTerm,
+	onboardingModels,
+}: ModelSelectionProps) => {
+	const modelGroups = onboardingModels[userType === NEW_USER_TYPE.FREE ? "free" : "power"]
 
 	const searchedModels = useMemo(() => {
 		if (!models || !searchTerm) {
@@ -46,7 +58,7 @@ const ModelSelection = ({ userType, selectedModelId, onSelectModel, models, sear
 	}, [models, modelGroups, searchTerm])
 
 	// Model Item Component
-	const ModelItem = ({ id, model, isSelected }: { id: string; model: OnboardingModelOption; isSelected: boolean }) => {
+	const ModelItem = ({ id, model, isSelected }: { id: string; model: OnboardingModel; isSelected: boolean }) => {
 		return (
 			<Item
 				className={cn("cursor-pointer hover:cursor-pointer", {
@@ -58,12 +70,16 @@ const ModelSelection = ({ userType, selectedModelId, onSelectModel, models, sear
 				<ItemHeader className="flex flex-col w-full align-baseline">
 					<ItemTitle className="flex w-full justify-between">
 						<span className="font-semibold">{model.name || id}</span>
-						{model.badge ? <Badge variant="info">{model.badge}</Badge> : <Badge>{getPriceRange(model)}</Badge>}
+						{model.badge ? (
+							<Badge variant="info">{model.badge}</Badge>
+						) : model.info ? (
+							<Badge>{getPriceRange(model.info)}</Badge>
+						) : null}
 					</ItemTitle>
-					{isSelected && (
+					{isSelected && model.info && (
 						<ItemDescription>
 							<span className="text-foreground/70 text-sm">Support: </span>
-							<span className="text-foreground text-sm">{getCapabilities(model).join(", ")}</span>
+							<span className="text-foreground text-sm">{getCapabilities(model.info).join(", ")}</span>
 						</ItemDescription>
 					)}
 				</ItemHeader>
@@ -83,14 +99,16 @@ const ModelSelection = ({ userType, selectedModelId, onSelectModel, models, sear
 								<span>Speed: </span>
 								<span className="text-foreground/70">{getSpeedLabel(model.latency)}</span>
 							</div>
-							<div className="flex w-full justify-between">
-								<div className="inline-flex gap-1 [&_svg]:stroke-foreground [&_svg]:size-3 items-center text-sm">
-									<ListIcon />
-									<span>Context: </span>
-									<span className="text-foreground/70">{(model?.contextWindow || 0) / 1000}k</span>
+							{model.info && (
+								<div className="flex w-full justify-between">
+									<div className="inline-flex gap-1 [&_svg]:stroke-foreground [&_svg]:size-3 items-center text-sm">
+										<ListIcon />
+										<span>Context: </span>
+										<span className="text-foreground/70">{(model?.info.contextWindow || 0) / 1000}k</span>
+									</div>
+									<Badge>{getPriceRange(model.info)}</Badge>
 								</div>
-								<Badge>{getPriceRange(model)}</Badge>
-							</div>
+							)}
 						</div>
 					</ItemContent>
 				)}
@@ -133,14 +151,38 @@ const ModelSelection = ({ userType, selectedModelId, onSelectModel, models, sear
 						{searchTerm &&
 							searchedModels.map(([id, info]) => {
 								const isSelected = selectedModelId === id
-								return (
-									<ModelItem
-										id={id}
-										isSelected={isSelected}
-										key={id}
-										model={{ id, name: info.name, ...info }}
-									/>
-								)
+								// Convert ModelInfo to OpenRouterModelInfo for OnboardingModel
+								const modelInfo: OpenRouterModelInfo = {
+									name: info.name,
+									maxTokens: info.maxTokens,
+									contextWindow: info.contextWindow,
+									supportsImages: info.supportsImages,
+									supportsPromptCache: info.supportsPromptCache,
+									inputPrice: info.inputPrice,
+									outputPrice: info.outputPrice,
+									cacheWritesPrice: info.cacheWritesPrice,
+									cacheReadsPrice: info.cacheReadsPrice,
+									description: info.description,
+									supportsGlobalEndpoint: info.supportsGlobalEndpoint,
+									thinkingConfig: info.thinkingConfig
+										? {
+												maxBudget: info.thinkingConfig.maxBudget,
+												outputPrice: info.thinkingConfig.outputPrice,
+												outputPriceTiers: info.thinkingConfig.outputPriceTiers || [],
+											}
+										: undefined,
+									tiers: info.tiers || [],
+								}
+								const onboardingModel: OnboardingModel = {
+									id,
+									name: info.name || id,
+									info: modelInfo,
+									score: 0,
+									latency: 0,
+									badge: "",
+									group: "",
+								}
+								return <ModelItem id={id} isSelected={isSelected} key={id} model={onboardingModel} />
 							})}
 						{searchTerm.length > 0 && searchedModels.length === 0 && (
 							<p className="px-1 mt-1 text-sm text-foreground/70">No result found for "{searchTerm}"</p>
@@ -157,33 +199,38 @@ type UserTypeSelectionProps = {
 	onSelectUserType: (type: NEW_USER_TYPE) => void
 }
 
-const UserTypeSelectionStep = ({ userType, onSelectUserType }: UserTypeSelectionProps) => (
-	<div className="flex flex-col w-full items-center">
-		<div className="flex w-full max-w-lg flex-col gap-6 my-4">
-			<h3 className="text-base text-left self-start font-semibold">LETS GET STARTED</h3>
-			{USER_TYPE_SELECTIONS.map((option) => {
-				const isSelected = userType === option.type
+const UserTypeSelectionStep = ({ userType, onSelectUserType }: UserTypeSelectionProps) => {
+	const platformConfig = usePlatform()
+	const isVsCodePlatform = platformConfig.type === PlatformType.VSCODE
+	const userTypeSelections = getUserTypeSelections(isVsCodePlatform)
 
-				return (
-					<Item
-						className={cn("cursor-pointer hover:cursor-pointer w-full", {
-							"bg-input-background/50 border border-input-foreground/30": isSelected,
-						})}
-						key={option.type}
-						onClick={() => onSelectUserType(option.type)}>
-						<ItemMedia className="[&_svg]:stroke-button-background" variant="icon">
-							{isSelected ? <CircleCheckIcon className="stroke-1.5" /> : <CircleIcon className="stroke-1" />}
-						</ItemMedia>
-						<ItemContent className="w-full">
-							<ItemTitle>{option.title}</ItemTitle>
-							<ItemDescription>{option.description}</ItemDescription>
-						</ItemContent>
-					</Item>
-				)
-			})}
+	return (
+		<div className="flex flex-col w-full items-center">
+			<div className="flex w-full max-w-lg flex-col gap-3 my-2">
+				{userTypeSelections.map((option) => {
+					const isSelected = userType === option.type
+
+					return (
+						<Item
+							className={cn("cursor-pointer hover:cursor-pointer w-full rounded-2xl", {
+								"bg-input-background/50 border border-input-foreground/30": isSelected,
+							})}
+							key={option.type}
+							onClick={() => onSelectUserType(option.type)}>
+							<ItemMedia className="[&_svg]:stroke-button-background" variant="icon">
+								{isSelected ? <CircleCheckIcon className="stroke-1.5" /> : <CircleIcon className="stroke-1" />}
+							</ItemMedia>
+							<ItemContent className="w-full">
+								<ItemTitle>{option.title}</ItemTitle>
+								<ItemDescription>{option.description}</ItemDescription>
+							</ItemContent>
+						</Item>
+					)
+				})}
+			</div>
 		</div>
-	</div>
-)
+	)
+}
 
 type OnboardingStepContentProps = {
 	step: number
@@ -194,6 +241,7 @@ type OnboardingStepContentProps = {
 	searchTerm: string
 	setSearchTerm: (term: string) => void
 	models?: Record<string, ModelInfo>
+	onboardingModels: OnboardingModelsByGroup
 }
 
 const OnboardingStepContent = ({
@@ -205,6 +253,7 @@ const OnboardingStepContent = ({
 	searchTerm,
 	setSearchTerm,
 	models,
+	onboardingModels,
 }: OnboardingStepContentProps) => {
 	if (step === 0) {
 		return <UserTypeSelectionStep onSelectUserType={onSelectUserType} userType={userType} />
@@ -216,6 +265,7 @@ const OnboardingStepContent = ({
 		return (
 			<ModelSelection
 				models={models}
+				onboardingModels={onboardingModels}
 				onSelectModel={onSelectModel}
 				searchTerm={searchTerm}
 				selectedModelId={selectedModelId}
@@ -228,7 +278,7 @@ const OnboardingStepContent = ({
 	return <ApiConfigurationSection />
 }
 
-const OnboardingView = () => {
+const OnboardingView = ({ onboardingModels }: { onboardingModels: OnboardingModelGroup }) => {
 	const { handleFieldsChange } = useApiConfigurationHandlers()
 	const { openRouterModels, hideSettings, hideAccount, setShowWelcome } = useExtensionState()
 
@@ -238,13 +288,15 @@ const OnboardingView = () => {
 	const [selectedModelId, setSelectedModelId] = useState("")
 	const [searchTerm, setSearchTerm] = useState("")
 
+	const models = useMemo(() => getClineUIOnboardingGroups(onboardingModels), [onboardingModels])
+
 	useEffect(() => {
 		setSearchTerm("")
 		const userGroup = userType === NEW_USER_TYPE.POWER ? NEW_USER_TYPE.POWER : NEW_USER_TYPE.FREE
-		const modelGroup = ONBOARDING_MODEL_SELECTIONS[userGroup][0]
+		const modelGroup = models[userGroup][0]
 		const userGroupInitModel = modelGroup.models[0]
 		setSelectedModelId(userGroupInitModel.id)
-	}, [userType])
+	}, [userType, models])
 
 	const onUserTypeClick = useCallback((userType: NEW_USER_TYPE) => {
 		setUserType(userType)
@@ -324,22 +376,26 @@ const OnboardingView = () => {
 	}, [stepNumber, userType])
 
 	return (
-		<div className="fixed inset-0 p-0 flex flex-col w-full">
-			<div className="h-full px-5 xs:mx-10 overflow-auto flex flex-col gap-7 items-center justify-center mt-10">
-				<ClineLogoWhite className="size-16" />
-				<h2 className="text-lg font-semibold p-0">{stepDisplayInfo.title}</h2>
+		<div className="fixed inset-0 p-0 flex flex-col w-full mt-8">
+			<div className="h-full px-5 xs:mx-10 overflow-auto flex flex-col gap-4 items-center justify-center">
+				{/* <ClineLogoWhite className="size-16 flex-shrink-0" /> */}
+				<AgentLogo className="flex-shrink-0 mb-4" size={48} />
+				<h2 className="text-lg font-semibold p-0 flex-shrink-0">{stepDisplayInfo.title}</h2>
 				{stepNumber === 2 && (
 					<div className="flex w-full max-w-lg flex-col gap-6 my-4 items-center ">
 						<LoaderCircleIcon className="animate-spin" />
 					</div>
 				)}
 				{stepDisplayInfo.description && (
-					<p className="text-foreground text-sm text-center m-0 p-0">{stepDisplayInfo.description}</p>
+					<p className="text-foreground text-base text-center m-0 p-1 flex-shrink-0 mb-4">
+						{stepDisplayInfo.description}
+					</p>
 				)}
 
-				<div className="flex-1 w-full flex max-w-lg overflow-y-scroll">
+				<div className="flex-1 w-full flex max-w-lg overflow-y-auto min-h-0">
 					<OnboardingStepContent
 						models={openRouterModels}
+						onboardingModels={models}
 						onSelectModel={onModelClick}
 						onSelectUserType={onUserTypeClick}
 						searchTerm={searchTerm}
@@ -350,7 +406,7 @@ const OnboardingView = () => {
 					/>
 				</div>
 
-				<footer className="flex w-full max-w-lg flex-col gap-3 my-2 px-2 overflow-hidden">
+				<footer className="flex w-full max-w-lg flex-col gap-3 my-2 px-2 overflow-hidden flex-shrink-0">
 					{stepDisplayInfo.buttons.map((btn) => (
 						<Button
 							className="w-full rounded-xs"

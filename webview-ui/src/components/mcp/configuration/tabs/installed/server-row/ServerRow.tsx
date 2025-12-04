@@ -17,6 +17,7 @@ import {
 	VSCodePanelView,
 	VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react"
+import { Trash2Icon } from "lucide-react"
 import { useCallback, useState } from "react"
 import DangerButton from "@/components/common/DangerButton"
 import {
@@ -24,9 +25,12 @@ import {
 	iconHighlightColor,
 	menuRowBackground,
 	menuRowDetailsBackground,
-	menuRowDisabledBackground,
+	menuRowDisabledBackground, secondaryFontSize
 } from "@/components/config"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { cn } from "@/lib/utils"
 import { McpServiceClient } from "@/services/grpc-client"
 import { getMcpServerDisplayName } from "@/utils/mcp"
 import McpResourceRow from "./McpResourceRow"
@@ -280,47 +284,21 @@ const ServerRow = ({
 					</div>
 				)} */}
 				{/* Toggle Switch */}
-				<div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", marginLeft: "3px" }}>
-					<div
-						aria-checked={!server.disabled}
-						onClick={() => {
-							handleToggleMcpServer()
-						}}
-						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") {
-								e.preventDefault()
-								handleToggleMcpServer()
-							}
-						}}
-						role="switch"
-						style={{
-							width: "20px",
-							height: "10px",
-							backgroundColor: server.disabled
-								? "var(--vscode-titleBar-inactiveForeground)"
-								: "var(--vscode-testing-iconPassed)",
-							borderRadius: "5px",
-							position: "relative",
-							cursor: "pointer",
-							transition: "background-color 0.2s",
-							opacity: server.disabled ? 0.5 : 0.9,
-						}}
-						tabIndex={0}>
-						<div
-							style={{
-								width: "8px",
-								height: "8px",
-								backgroundColor: "white",
-								border: "1px solid color-mix(in srgb, #666666 65%, transparent)",
-								borderRadius: "50%",
-								position: "absolute",
-								top: "0.5px",
-								left: server.disabled ? "1px" : "10px",
-								transition: "left 0.2s",
-							}}
-						/>
-					</div>
-				</div>
+				<Switch
+					checked={!server.disabled}
+					key={server.name}
+					onClick={(e) => {
+						e.stopPropagation()
+						handleToggleMcpServer()
+					}}
+				/>
+				{/* <div
+					className={cn("h-2 w-2 ml-0.5 rounded-full", {
+						"bg-success": server.status === "connected",
+						"bg-warning": server.status === "connecting",
+						"bg-error": server.status === "disconnected",
+					})}
+				/> */}
 				{
 					<div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "3px", marginRight: "-4px" }}>
 						<VSCodeButton
@@ -336,6 +314,13 @@ const ServerRow = ({
 					</div>
 				}
 				<div
+					className={cn("h-2 w-2 ml-2 rounded-full", {
+						"bg-success": server.status === "connected",
+						"bg-warning": server.status === "connecting",
+						"bg-error": server.status === "disconnected",
+					})}
+				/>
+				{/* <div
 					style={{
 						width: "8px",
 						height: "8px",
@@ -344,46 +329,44 @@ const ServerRow = ({
 						marginLeft: "7px",
 						marginRight: "-2px",
 					}}
-				/>
+				/> */}
 				{hasTrashIcon && (
 					<div style={{ marginLeft: "3px", marginRight: "-6px" }}>
 						{!showConfirmDelete ? (
-							<VSCodeButton
-								appearance="icon"
+							<Button
+								aria-label="Delete file"
 								disabled={isDeleting}
 								onClick={(e) => {
 									e.stopPropagation()
 									handleDelete()
 								}}
-								title="Delete Server">
-								<span
-									className="codicon codicon-trash"
-									style={{ fontSize: "inherit", marginBottom: "-1px" }}></span>
-							</VSCodeButton>
+								size="xs"
+								title="Delete Server"
+								variant="icon">
+								<Trash2Icon />
+							</Button>
 						) : (
-							<div style={{ display: "flex", gap: "2px", marginRight: "3px", padding: 2, overflow: "hidden" }}>
-								<VSCodeButton
-									appearance="secondary"
+							<div style={{ display: "flex", gap: "2px", padding: 2, overflow: "hidden" }}>
+								<Button
 									aria-label="Confirm delete"
 									onClick={(e) => {
 										e.stopPropagation()
 										handleConfirmDelete()
 									}}
-									style={{ width: "25px", height: "20px" }}
+									style={{ width: "18px", height: "18px" }}
 									title="Confirm delete">
 									✓
-								</VSCodeButton>
-								<VSCodeButton
-									appearance="secondary"
+								</Button>
+								<Button
 									aria-label="Cancel delete"
 									onClick={(e) => {
 										e.stopPropagation()
 										handleCancelDelete()
 									}}
-									style={{ width: "25px", height: "20px" }}
+									style={{ width: "18px", height: "18px" }}
 									title="Cancel delete">
 									✗
-								</VSCodeButton>
+								</Button>
 							</div>
 						)}
 					</div>
@@ -410,30 +393,31 @@ const ServerRow = ({
 					</div>
 					<div style={{ display: "flex" }}>
 						{server.oauthRequired && server.oauthAuthStatus === "unauthenticated" ? (
-							<VSCodeButton
-								appearance="primary"
+							<Button
 								onClick={(e) => {
 									e.stopPropagation()
 									McpServiceClient.authenticateMcpServer(StringRequest.create({ value: server.name }))
 								}}
 								style={{
 									width: "calc(100% - 20px)",
+									height: "24px",
 									margin: "0 10px 10px 10px",
+									fontSize: secondaryFontSize,
 								}}>
 								Authenticate
-							</VSCodeButton>
+							</Button>
 						) : (
-							<VSCodeButton
-								appearance="secondary"
+							<Button
 								disabled={server.status === "connecting"}
 								onClick={handleRestart}
 								style={{
 									width: "calc(100% - 20px)",
+									height: "24px",
 									margin: "0 10px 10px 10px",
-									scale: "0.9",
+									fontSize: secondaryFontSize,
 								}}>
-								{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
-							</VSCodeButton>
+								{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry"}
+							</Button>
 						)}
 
 						{!showConfirmDelete ? (
@@ -442,23 +426,36 @@ const ServerRow = ({
 								onClick={() => {
 									setShowConfirmDelete(true)
 								}}
-								style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}>
+								style={{
+									width: "calc(100% - 20px)",
+									margin: "0 10px 10px 10px",
+									height: "24px",
+									fontSize: secondaryFontSize,
+								}}>
 								{isDeleting ? "Deleting..." : "Delete Server"}
 							</DangerButton>
 						) : (
 							<div style={{ display: "flex", gap: "5px", width: "calc(100% - 20px)", margin: "0 10px 10px 10px" }}>
-								<VSCodeButton
-									appearance="secondary"
+								<Button
 									onClick={handleConfirmDelete}
-									style={{ flex: 1, scale: "0.9" }}>
-									✓ Confirm
-								</VSCodeButton>
-								<VSCodeButton
-									appearance="secondary"
+									style={{
+										width: "calc(100% - 20px)",
+										// margin: "0 10px 10px 10px",
+										height: "24px",
+										fontSize: secondaryFontSize,
+									}}>
+									Confirm
+								</Button>
+								<Button
 									onClick={handleCancelDelete}
-									style={{ flex: 1, scale: "0.9" }}>
-									✗ Cancel
-								</VSCodeButton>
+									style={{
+										width: "calc(100% - 20px)",
+										// margin: "0 10px 10px 10px",
+										height: "24px",
+										fontSize: secondaryFontSize,
+									}}>
+									Cancel
+								</Button>
 							</div>
 						)}
 					</div>
@@ -472,13 +469,14 @@ const ServerRow = ({
 							borderRadius: "0 0 4px 4px",
 							border: chatInputSectionBorder,
 							borderTop: "none",
+							overflow: "hidden",
 						}}>
 						<div style={{ margin: "7px 5px 0", display: "flex", gap: "15px", alignItems: "end" }}>
 							<div style={{ flex: 1 }}>
 								<label
 									style={{
 										display: "block",
-										marginBottom: "8px",
+										margin: "0 0 4px 8px",
 										fontSize: "0.95em",
 										fontWeight: "bold",
 										color: "var(--vscode-foreground)",
@@ -520,7 +518,7 @@ const ServerRow = ({
 								<label
 									style={{
 										display: "block",
-										marginBottom: "8px",
+										margin: "0 0 4px 8px",
 										fontSize: "0.95em",
 										fontWeight: "bold",
 										color: "var(--vscode-foreground)",

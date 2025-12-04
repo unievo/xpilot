@@ -1,4 +1,5 @@
 import { nousResearchModels } from "@shared/api"
+import { agentName } from "@shared/Configuration"
 import { Mode } from "@shared/storage/types"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ApiKeyField } from "../common/ApiKeyField"
@@ -58,8 +59,8 @@ export const NousResearchProvider = ({ showModelOptions, isPopup, currentMode }:
 							color: "var(--vscode-descriptionForeground)",
 						}}>
 						<span style={{ color: "var(--vscode-errorForeground)" }}>
-							(<span style={{ fontWeight: 500 }}>Note:</span> Cline uses complex prompts and works best with Claude
-							models. Less capable models may not work as expected.)
+							(<span style={{ fontWeight: 500 }}>Note:</span> {agentName} uses complex prompts and works best with
+							Claude models. Less capable models may not work as expected.)
 						</span>
 					</p>
 				</>

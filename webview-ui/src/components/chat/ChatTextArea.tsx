@@ -2028,7 +2028,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										menuPosition={menuPosition}
 										style={{
 											bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-											minHeight: "300px",
+											minHeight: "350px",
 										}}>
 										<div className="relative">
 											<div

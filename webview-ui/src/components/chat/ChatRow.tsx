@@ -363,7 +363,7 @@ const CommandOutput = memo(
 						backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR,
 						borderRadius: defaultBorderRadius,
 					}}>
-					<div style={{ backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR }}>
+					<div style={{ backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR, borderRadius: defaultBorderRadius }}>
 						<CodeBlock fontSize={codeBlockFontSize} forceWrap={true} source={`${"```"}shell\n${output}\n${"```"}`} />
 					</div>
 				</div>
@@ -685,7 +685,7 @@ export const ChatRowContent = memo(
 								style={{ fontSize: rowIconFontSize }}
 							/>
 						),
-						<RowTitle isLast={isLast}>Execute command:</RowTitle>,
+						<RowTitle isLast={isLast}>Execute command</RowTitle>,
 					]
 				case "reasoning":
 					return [
@@ -1576,7 +1576,7 @@ export const ChatRowContent = memo(
 								isLastProcessing={isLastProcessing}>
 								<div
 									style={{
-										padding: "1px 4px 4px 4px",
+										padding: "0px 3px 3px 3px",
 										// borderRadius: defaultBorderRadius,
 										// border: "1px solid var(--vscode-editorGroup-border)",
 										overflow: "visible",
@@ -1589,7 +1589,7 @@ export const ChatRowContent = memo(
 												display: "flex",
 												alignItems: "center",
 												justifyContent: "space-between",
-												padding: "4px 4px",
+												padding: "4px 6px",
 												// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
 												// borderBottom: "1px solid var(--vscode-editorGroup-border)",
 												borderTopLeftRadius: defaultBorderRadius,
@@ -1665,7 +1665,7 @@ export const ChatRowContent = memo(
 															background: "var(--vscode-button-secondaryBackground)",
 															color: "var(--vscode-button-secondaryForeground)",
 															border: "none",
-															borderRadius: defaultBorderRadius,
+															borderRadius: "2px",
 															padding: "0px 10px",
 															fontSize: secondaryFontSize,
 															cursor: "pointer",
@@ -2186,7 +2186,7 @@ export const ChatRowContent = memo(
 											/>
 										</CompletionRow>
 									)}
-									{message.partial === false && hasChanges && (
+									{message.partial !== true && hasChanges && (
 										<div style={{ paddingTop: 10, paddingBottom: 10 }}>
 											<SuccessButton
 												disabled={seeNewChangesDisabled}
@@ -2204,7 +2204,8 @@ export const ChatRowContent = memo(
 													cursor: seeNewChangesDisabled ? "wait" : "pointer",
 													marginLeft: "2px",
 													marginRight: "2px",
-													display: "block",
+													// display: "block",
+													width: "100%",
 													textAlign: "center",
 												}}>
 												<i className="codicon codicon-diff-single" style={{ marginRight: 6 }} />
@@ -2324,7 +2325,7 @@ export const ChatRowContent = memo(
 							)
 						}
 					case "hook":
-						return <HookMessage CommandOutput={CommandOutput} message={message} />
+						return <HookMessage CommandOutput={CommandOutput} isLast={isLast} message={message} />
 					case "hook_output":
 						// hook_output messages are combined with hook messages, so we don't render them separately
 						return null
@@ -2453,7 +2454,7 @@ export const ChatRowContent = memo(
 												<Markdown markdown={text} />
 											</CompletionRow>
 										)}
-										{message.partial === false && hasChanges && (
+										{message.partial !== true && hasChanges && (
 											<div style={{ paddingTop: 10, paddingBottom: 10 }}>
 												<SuccessButton
 													disabled={seeNewChangesDisabled}

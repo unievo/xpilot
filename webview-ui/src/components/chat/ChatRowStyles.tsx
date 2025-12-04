@@ -143,14 +143,16 @@ export const RowIcon = styled.span<{
 // Row title - title element in the row header
 export const RowTitle = styled.div<{
 	isExpanded?: boolean
-	isLast: boolean
+	isLast?: boolean
 	color?: string
 	fontWeight?: number | string
 	wordBreak?: string
 }>`
+	// display: flex;
+	// align-items: center;
 	color: ${({ color }) => color || ""};
-	font-weight: ${({ fontWeight }) => fontWeight || "normal"};
-	word-break: ${({ wordBreak }) => wordBreak || "normal"};
+	font-weight: ${({ fontWeight }) => fontWeight || ""};
+	word-break: ${({ wordBreak }) => wordBreak || ""};
 `
 
 // Row item - generic row item container

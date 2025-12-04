@@ -45,7 +45,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean; fontSize: number }>`
 
 	pre {
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		border-radius: 5px;
+		border-radius: ${defaultBorderRadius}px;
 		margin: 0;
 		min-width: ${({ forceWrap }) => (forceWrap ? "auto" : "max-content")};
 		padding: 5px 5px;

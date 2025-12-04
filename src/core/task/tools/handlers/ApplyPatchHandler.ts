@@ -6,6 +6,7 @@ import type { ClineSayTool } from "@shared/ExtensionMessage"
 import { fileExistsAtPath } from "@utils/fs"
 import { getReadablePath, isLocatedInWorkspace } from "@utils/path"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { BASH_WRAPPERS, DiffError, PATCH_MARKERS, type Patch, PatchActionType, type PatchChunk } from "@/shared/Patch"
 import { preserveEscaping } from "@/shared/string"
 import { ClineDefaultTool } from "@/shared/tools"
@@ -712,7 +713,10 @@ export class ApplyPatchHandler implements IFullyManagedTool {
 			return true
 		}
 
-		showNotificationForApproval(`Cline wants to edit '${message.path}'`, config.autoApprovalSettings.enableNotifications)
+		showNotificationForApproval(
+			`${agentName} wants to edit '${message.path}'`,
+			config.autoApprovalSettings.enableNotifications,
+		)
 
 		await config.callbacks.removeLastPartialMessageIfExistsWithType("say", "tool")
 		const { response, text, images, files } = await config.callbacks.ask("tool", completeMessage, false)

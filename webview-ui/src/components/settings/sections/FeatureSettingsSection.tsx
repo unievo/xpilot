@@ -1,4 +1,4 @@
-import { agentName, enableDictation, enableYoloMode, workspaceHooksDirectoryPath } from "@shared/Configuration"
+import { agentName, agentWorkspaceDirectory, enableDictation, enableYoloMode, hooksDirectory } from "@shared/Configuration"
 import { McpDisplayMode } from "@shared/McpDisplayMode"
 import { EmptyRequest } from "@shared/proto/index.cline"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
@@ -400,7 +400,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							<p className="text-xs">
 								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
 								<span className="text-description">
-									Allows execution of hooks from the <code>{workspaceHooksDirectoryPath}</code> directory.
+									Allows execution of hooks from the <code>{agentWorkspaceDirectory}/{hooksDirectory}</code> directory.
 								</span>
 							</p>
 						)}

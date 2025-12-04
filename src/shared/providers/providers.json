@@ -1,6 +1,10 @@
 {
 	"list": [
 		{
+			"value": "vscode-lm",
+			"label": "VS Code"
+		},
+		{
 			"value": "cline",
 			"label": "Cline"
 		},
@@ -9,32 +13,40 @@
 			"label": "OpenRouter"
 		},
 		{
+			"value": "anthropic",
+			"label": "Anthropic"
+		},
+		{
+			"value": "claude-code",
+			"label": "Claude Code CLI"
+		},
+		{
 			"value": "gemini",
 			"label": "Google Gemini"
+		},
+		{
+			"value": "gemini-cli",
+			"label": "Google Gemini CLI"
+		},
+		{
+			"value": "openai-native",
+			"label": "OpenAI"
 		},
 		{
 			"value": "openai",
 			"label": "OpenAI Compatible"
 		},
 		{
-			"value": "anthropic",
-			"label": "Anthropic"
+			"value": "xai",
+			"label": "xAI"
 		},
 		{
 			"value": "bedrock",
 			"label": "Amazon Bedrock"
 		},
 		{
-			"value": "vscode-lm",
-			"label": "VS Code LM API"
-		},
-		{
 			"value": "deepseek",
 			"label": "DeepSeek"
-		},
-		{
-			"value": "openai-native",
-			"label": "OpenAI"
 		},
 		{
 			"value": "ollama",
@@ -47,10 +59,6 @@
 		{
 			"value": "litellm",
 			"label": "LiteLLM"
-		},
-		{
-			"value": "claude-code",
-			"label": "Claude Code"
 		},
 		{
 			"value": "sapaicore",
@@ -123,10 +131,6 @@
 		{
 			"value": "asksage",
 			"label": "AskSage"
-		},
-		{
-			"value": "xai",
-			"label": "xAI"
 		},
 		{
 			"value": "sambanova",

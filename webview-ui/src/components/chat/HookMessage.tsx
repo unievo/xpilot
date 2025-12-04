@@ -2,7 +2,8 @@ import { ClineMessage } from "@shared/ExtensionMessage"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { memo, useMemo, useState } from "react"
 import { TaskServiceClient } from "@/services/grpc-client"
-import { CHAT_ROW_EXPANDED_BG_COLOR } from "../common/CodeBlock"
+import { defaultBorderRadius, iconHighlightColor, rowIconVisible, secondaryFontSize } from "../config"
+import { CommandRow, PrimaryRowStyle, RowHeader, RowIcon, RowTitle, SpacingRowContainer } from "./ChatRowStyles"
 import { HOOK_OUTPUT_STRING } from "./constants"
 
 const normalColor = "var(--vscode-foreground)"
@@ -43,6 +44,7 @@ interface HookMessageProps {
 		onToggle: () => void
 		isContainerExpanded: boolean
 	}>
+	isLast: boolean
 }
 
 interface HookMetadata {
@@ -80,7 +82,7 @@ interface HookMetadata {
  * - Successful hooks: Collapsed by default (minimize clutter)
  * - Running hooks: Always shows pending tool info
  */
-const HookMessage = memo(({ message, CommandOutput }: HookMessageProps) => {
+const HookMessage = memo(({ message, CommandOutput, isLast}: HookMessageProps) => {
 	// Parse hook metadata and output
 	const { metadata, output } = useMemo(() => {
 		const splitMessage = (text: string) => {
@@ -135,156 +137,179 @@ const HookMessage = memo(({ message, CommandOutput }: HookMessageProps) => {
 	const headerStyle: React.CSSProperties = {
 		display: "flex",
 		alignItems: "center",
-		gap: "10px",
-		marginBottom: "12px",
+		gap: "5px",
+		// marginBottom: "12px",
 	}
 
 	return (
-		<>
-			<div style={headerStyle}>
-				<span
-					className="codicon codicon-symbol-event"
+		<PrimaryRowStyle isExpanded={true} isLast={isLast}>
+			<SpacingRowContainer>
+				<RowHeader>
+					{rowIconVisible && (
+						<RowIcon isLast={isLast}>
+							<span
+								className="codicon codicon-symbol-event"
+								style={{
+									color: iconHighlightColor,
+									fontSize: "inherit",
+									marginBottom: "-1.5px",
+								}}></span>
+						</RowIcon>
+					)}
+					<RowTitle>
+						<div style={headerStyle}>
+						<span>Hook:</span>
+						<span>{metadata.hookName}</span>
+						{metadata.toolName && (
+							<span style={{ color: "var(--vscode-descriptionForeground)", fontSize: "0.9em" }}>
+								({metadata.toolName})
+							</span>
+						)}
+						</div>
+					</RowTitle>
+				</RowHeader>
+				<CommandRow
+					isExpanded={true}
+					isLast={isLast}
 					style={{
-						color: normalColor,
-						marginBottom: "-1.5px",
-					}}></span>
-				<span style={{ color: normalColor, fontWeight: "bold" }}>Hook:</span>
-				<span style={{ color: normalColor }}>{metadata.hookName}</span>
-				{metadata.toolName && (
-					<span style={{ color: "var(--vscode-descriptionForeground)", fontSize: "0.9em" }}>({metadata.toolName})</span>
-				)}
-			</div>
-			<div
-				style={{
-					borderRadius: 6,
-					border: "1px solid var(--vscode-editorGroup-border)",
-					overflow: "visible",
-					backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
-					transition: "all 0.3s ease-in-out",
-				}}>
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						padding: "8px 10px",
-						backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
-						borderBottom:
-							metadata.pendingToolInfo || output.length > 0 ? "1px solid var(--vscode-editorGroup-border)" : "none",
-						borderTopLeftRadius: "6px",
-						borderTopRightRadius: "6px",
+						borderRadius: defaultBorderRadius,
+						border: "1px solid var(--vscode-editorGroup-border)",
+						overflow: "visible",
+						// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+						transition: "all 0.3s ease-in-out",
 					}}>
 					<div
 						style={{
 							display: "flex",
 							alignItems: "center",
-							gap: "8px",
-							flex: 1,
-							minWidth: 0,
+							justifyContent: "space-between",
+							padding: "4px 8px",
+							// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+							// borderBottom:
+							// 	metadata.pendingToolInfo || output.length > 0
+							// 		? "1px solid var(--vscode-editorGroup-border)"
+							// 		: "none",
+							borderTopLeftRadius: defaultBorderRadius,
+							borderTopRightRadius: defaultBorderRadius,
 						}}>
 						<div
 							style={{
-								width: "8px",
-								height: "8px",
-								borderRadius: "50%",
-								backgroundColor: isRunning ? successColor : isFailed || isCancelled ? errorColor : completedColor,
-								animation: isRunning ? "pulse 2s ease-in-out infinite" : "none",
-								flexShrink: 0,
-							}}
-						/>
-						<span
-							style={{
-								color: isRunning ? successColor : isFailed || isCancelled ? errorColor : completedColor,
-								fontWeight: 500,
-								fontSize: "13px",
-								flexShrink: 0,
+								display: "flex",
+								alignItems: "center",
+								gap: "8px",
+								flex: 1,
+								minWidth: 0,
 							}}>
-							{isRunning
-								? "Running"
-								: isFailed
-									? "Failed"
-									: isCancelled
-										? "Aborted"
-										: isCompleted
-											? "Completed"
-											: "Unknown"}
-						</span>
-						{metadata.exitCode !== undefined && metadata.exitCode !== 0 && (
+							<div
+								style={{
+									width: "8px",
+									height: "8px",
+									borderRadius: "50%",
+									backgroundColor: isRunning
+										? successColor
+										: isFailed || isCancelled
+											? errorColor
+											: completedColor,
+									animation: isRunning ? "pulse 2s ease-in-out infinite" : "none",
+									flexShrink: 0,
+								}}
+							/>
 							<span
 								style={{
-									color: "var(--vscode-descriptionForeground)",
-									fontSize: "12px",
+									color: isRunning ? successColor : isFailed || isCancelled ? errorColor : completedColor,
+									// fontWeight: 500,
+									fontSize: secondaryFontSize,
+									flexShrink: 0,
 								}}>
-								(exit: {metadata.exitCode})
+								{isRunning
+									? "Running"
+									: isFailed
+										? "Failed"
+										: isCancelled
+											? "Aborted"
+											: isCompleted
+												? "Completed"
+												: "Unknown"}
 							</span>
+							{metadata.exitCode !== undefined && metadata.exitCode !== 0 && (
+								<span
+									style={{
+										color: "var(--vscode-descriptionForeground)",
+										fontSize: secondaryFontSize,
+									}}>
+									(exit: {metadata.exitCode})
+								</span>
+							)}
+						</div>
+						{isRunning && metadata.hookName !== "TaskCancel" && metadata.hookName !== "TaskComplete" && (
+							<button
+								onClick={(e) => {
+									e.stopPropagation()
+									// Cancel the task - cancelling a hook always cancels the entire task
+									TaskServiceClient.cancelTask(EmptyRequest.create({})).catch((err) =>
+										console.error("Failed to cancel task:", err),
+									)
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.background = "var(--vscode-button-secondaryHoverBackground)"
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.background = "var(--vscode-button-secondaryBackground)"
+								}}
+								style={{
+									background: "var(--vscode-button-secondaryBackground)",
+									color: "var(--vscode-button-secondaryForeground)",
+									border: "none",
+									borderRadius: "4px",
+									padding: "0px 10px",
+									fontSize: secondaryFontSize,
+									cursor: "pointer",
+									fontFamily: "inherit",
+								}}>
+								Abort
+							</button>
 						)}
 					</div>
-					{isRunning && metadata.hookName !== "TaskCancel" && metadata.hookName !== "TaskComplete" && (
-						<button
-							onClick={(e) => {
-								e.stopPropagation()
-								// Cancel the task - cancelling a hook always cancels the entire task
-								TaskServiceClient.cancelTask(EmptyRequest.create({})).catch((err) =>
-									console.error("Failed to cancel task:", err),
-								)
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.background = "var(--vscode-button-secondaryHoverBackground)"
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.background = "var(--vscode-button-secondaryBackground)"
-							}}
+
+					{/* Show concise error message for specific error types */}
+					{isFailed && metadata.error && metadata.error.type === "timeout" && (
+						<div
 							style={{
-								background: "var(--vscode-button-secondaryBackground)",
-								color: "var(--vscode-button-secondaryForeground)",
-								border: "none",
-								borderRadius: "2px",
-								padding: "4px 10px",
-								fontSize: "12px",
-								cursor: "pointer",
-								fontFamily: "inherit",
+								padding: "0 8px 5px 8px",
+								// borderBottom: output.length > 0 ? "1px solid var(--vscode-editorGroup-border)" : "none",
+								fontSize: secondaryFontSize,
+								color: "var(--vscode-descriptionForeground)",
 							}}>
-							Abort
-						</button>
+							Took longer than 30 seconds. Check for infinite loops or add timeouts to network requests.
+						</div>
 					)}
-				</div>
 
-				{/* Show concise error message for specific error types */}
-				{isFailed && metadata.error && metadata.error.type === "timeout" && (
-					<div
-						style={{
-							padding: "12px",
-							borderBottom: output.length > 0 ? "1px solid var(--vscode-editorGroup-border)" : "none",
-							fontSize: "13px",
-							color: "var(--vscode-descriptionForeground)",
-						}}>
-						Took longer than 30 seconds. Check for infinite loops or add timeouts to network requests.
-					</div>
-				)}
+					{isFailed && metadata.error && metadata.error.type === "validation" && (
+						<div
+							style={{
+								padding: "0 8px 5px 8px",
+								// borderBottom: output.length > 0 ? "1px solid var(--vscode-editorGroup-border)" : "none",
+								fontSize: secondaryFontSize,
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							Hook returned invalid JSON. See error details below for more information.
+						</div>
+					)}
 
-				{isFailed && metadata.error && metadata.error.type === "validation" && (
-					<div
-						style={{
-							padding: "12px",
-							borderBottom: output.length > 0 ? "1px solid var(--vscode-editorGroup-border)" : "none",
-							fontSize: "13px",
-							color: "var(--vscode-descriptionForeground)",
-						}}>
-						Hook returned invalid JSON. See error details below for more information.
-					</div>
-				)}
-
-				{/* Show hook output if present */}
-				{output.length > 0 && (
-					<CommandOutput
-						isContainerExpanded={true}
-						isOutputFullyExpanded={isHookOutputExpanded}
-						onToggle={() => setIsHookOutputExpanded(!isHookOutputExpanded)}
-						output={output}
-					/>
-				)}
-			</div>
-		</>
+					{/* Show hook output if present */}
+					{output.length > 0 && (
+						<div style={{ padding: "0 3px 3px 3px" }}>
+							<CommandOutput
+								isContainerExpanded={true}
+								isOutputFullyExpanded={isHookOutputExpanded}
+								onToggle={() => setIsHookOutputExpanded(!isHookOutputExpanded)}
+								output={output}
+							/>
+						</div>
+					)}
+				</CommandRow>
+			</SpacingRowContainer>
+		</PrimaryRowStyle>
 	)
 })
 

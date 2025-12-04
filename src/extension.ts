@@ -480,7 +480,7 @@ async function getBinaryLocation(name: string): Promise<string> {
 
 // This method is called when your extension is deactivated
 export async function deactivate() {
-	Logger.log("Cline extension deactivating, cleaning up resources...")
+	Logger.log(`${agentName} extension deactivating, cleaning up resources...`)
 
 	tearDown()
 

@@ -104,7 +104,7 @@ function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
 	return (
 		<p
 			className={cn(
-				"w-full text-muted-foreground line-clamp-2 text-pretty text-sm font-normal leading-normal p-0 m-0",
+				"w-full text-muted-foreground line-clamp-5 text-pretty text-sm font-normal leading-normal p-0 m-0",
 				"[&>a:hover]:text-foreground [&>a]:underline [&>a]:underline-offset-4",
 				className,
 			)}

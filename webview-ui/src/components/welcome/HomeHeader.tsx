@@ -472,12 +472,12 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											specific to the same scope, so you can reuse its context later if necessary.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Use the <b>/New Task</b> command in a current task, to create a new task with the
+											Use the <b>/newtask</b> command in a current task, to create a new task with the
 											summarized context from the current task. This is useful to continue work on a new
 											scope with existing context information.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
-											Use the <b>/Compact Task</b> command in a task with a large context window, to
+											Use the <b>/compact</b> command in a task with a large context window, to
 											summarize the context window and reduce its size.
 										</li>
 										<li style={{ marginBottom: "5px" }}>
@@ -518,17 +518,17 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										</p>
 										<p>
 											Use workflow files to define a sequence of executable steps that can be triggered as a
-											command, by starting a chat message with <b>/Workflow name</b>{" "}
+											command, by starting a chat message with <b>/workflow-name</b>{" "}
 											<i>followed by any optional info</i>. Workflows can be used to automate complex or
 											repetitive tasks.
 										</p>
 										<p>
-											Use <b>/Generate Instructions</b> <i>followed by a short description of purpose</i>,
+											Use <b>/new-instructions</b> <i>followed by a short description of purpose</i>,
 											to create a new instruction file based on the current task context. This is useful to
 											create reusable instructions for similar tasks in the future.
 										</p>
 										<p>
-											Use the <b>/Git Instructions</b> and <b>/Git Workflows</b> commands to get instruction
+											Use the <b>/git-instructions</b> and <b>/git-workflows</b> commands to get instruction
 											and workflow files from a dedicated git repository. You can specify as arguments any
 											repository source, and the location (global/workspace). The repository will be cloned
 											into the specified location. If the repository already exists, it will pull any
@@ -599,15 +599,15 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 												- execute commands and workflows
 											</li>
 											<li style={{ marginBottom: "5px" }}>
+												<span className="codicon codicon-server" style={{ verticalAlign: "middle" }} /> -
+												manage MCP servers
+											</li>
+											<li style={{ marginBottom: "5px" }}>
 												<span
 													className="codicon codicon-folder-active"
 													style={{ verticalAlign: "middle" }}
 												/>{" "}
-												- manage instructions and workflows
-											</li>
-											<li style={{ marginBottom: "5px" }}>
-												<span className="codicon codicon-server" style={{ verticalAlign: "middle" }} /> -
-												manage MCP servers
+												- manage instructions, workflows and hooks
 											</li>
 											<li style={{ marginBottom: "5px" }}>
 												<span

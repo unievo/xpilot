@@ -31,6 +31,7 @@ export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
 export const mcpServerIncludeToolInputSchema_MaxLength = 100
 
 // Files & Folders
+export const homeRootDirectory = `.${authorName}`
 export const agentWorkspaceDirectory = `.${productName}`
 export const instructionsDirectory = `instructions`
 export const workflowsDirectory = `workflows`
@@ -43,12 +44,8 @@ export const mcpDirectory = `mcp`
 export const mcpServersDirectory = `servers`
 export const mcpSettingsFile = `mcp_settings.json`
 export const ignoreFile = `.${productName}ignore`
-export const pathSeparator = "/"
-export const extensionIconLightPath = `assets/icons/icon_light.png`
-export const extensionIconDarkPath = `assets/icons/icon_dark.png`
-export const workspaceInstructionsDirectoryPath = `${agentWorkspaceDirectory}/${instructionsDirectory}`
-export const workspaceWorkflowsDirectoryPath = `${agentWorkspaceDirectory}/${workflowsDirectory}`
-export const workspaceHooksDirectoryPath = `${agentWorkspaceDirectory}/${hooksDirectory}`
+export const extensionIconLightPath = ["assets","icons","icon_light.png"]
+export const extensionIconDarkPath = ["assets","icons","icon_dark.png"]
 export const ignoreWorkspaceDirectories = [
 	agentWorkspaceDirectory,
 	".git",

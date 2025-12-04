@@ -37,7 +37,7 @@ export async function initialize(context: vscode.ExtensionContext): Promise<Webv
 		console.error("[Controller] CRITICAL: Failed to initialize StateManager - extension may not function properly:", error)
 		HostProvider.window.showMessage({
 			type: ShowMessageType.ERROR,
-			message: "Failed to initialize Cline's application state. Please restart the extension.",
+			message: `Failed to initialize ${agentName}'s application state. Please restart the extension.`,
 		})
 	}
 

@@ -5,6 +5,7 @@ import { useClickAway } from "react-use"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { FileServiceClient } from "@/services/grpc-client"
+import { menuFontSize } from "../config"
 
 interface NewRuleRowProps {
 	isGlobal: boolean
@@ -122,10 +123,13 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 
 	return (
 		<div
-			className={cn("mb-0 overflow-hidden transition-all duration-200 ease-in-out", {
-				"opacity-100": isExpanded,
-				"opacity-50 hover:opacity-80": !isExpanded,
-			})}
+			className={cn(
+				"mt-1 mb-1 h-6 border-1 border-menu-border rounded overflow-hidden transition-all duration-200 ease-in-out",
+				{
+					"opacity-100": isExpanded,
+					"opacity-50 hover:opacity-80": !isExpanded,
+				},
+			)}
 			onClick={() => !isExpanded && ruleType !== "hook" && setIsExpanded(true)}
 			ref={componentRef}>
 			<div
@@ -155,7 +159,8 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 								}
 							}}
 							style={{
-								fontStyle: "italic",
+								// fontStyle: "italic",
+								marginTop: "6px",
 								appearance: "none",
 								backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23cccccc' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
 								backgroundRepeat: "no-repeat",
@@ -174,12 +179,12 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 						</select>
 					</>
 				) : (
-					<form className="flex flex-1 items-center" onSubmit={handleSubmit}>
+					<form className="mt-2 ml-1 flex flex-1 items-center" onSubmit={handleSubmit}>
 						<input
 							className={cn(
 								"flex-1 bg-input-background text-input-foreground border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent",
 								{
-									italic: !isExpanded,
+									// italic: !isExpanded,
 								},
 							)}
 							onChange={(e) => setFilename(e.target.value)}
@@ -193,6 +198,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 										: "New rule file..."
 							}
 							ref={inputRef}
+							style={{ fontSize: menuFontSize }}
 							type="text"
 							value={isExpanded ? filename : ""}
 						/>

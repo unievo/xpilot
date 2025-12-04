@@ -1,4 +1,5 @@
 import { chatInputSectionBorder, iconHighlightColor, menuBackground, menuFontSize, menuTopBorder } from "@components/config"
+import { agentWorkspaceDirectory, hooksDirectory } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import {
 	ClineRulesToggles,
@@ -10,7 +11,7 @@ import {
 	ToggleWindsurfRuleRequest,
 	ToggleWorkflowRequest,
 } from "@shared/proto/cline/file"
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useRef, useState } from "react"
 import { useClickAway, useWindowSize } from "react-use"
 import styled from "styled-components"
@@ -399,7 +400,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 	return (
 		<div ref={modalRef}>
 			<div className="opacity-70 inline-flex min-w-0 max-w-full" ref={buttonRef}>
-				<HeroTooltip content="Manage Instructions and Workflows" delay={1000}>
+				<HeroTooltip content= "Instructions, Workflows and Hooks" delay={1000}>
 					<VSCodeButton
 						appearance="icon"
 						aria-label={isVisible ? `Hide Instructions and Workflows` : `Manage Instructions and Workflows`}
@@ -424,6 +425,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						borderTop: menuTopBorder,
 						background: menuBackground,
 						maxHeight: "calc(100vh - 70px)",
+						minHeight: "400px",
 						overscrollBehavior: "contain",
 						paddingBottom: "10px",
 						fontSize: menuFontSize,
@@ -447,7 +449,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						<div
 							style={{
 								display: "flex",
-								gap: "1px",
+								// gap: "1px",
 								borderBottom: "1px solid var(--vscode-panel-border)",
 							}}>
 							<TabButton isActive={currentView === "rules"} onClick={() => setCurrentView("rules")}>
@@ -480,23 +482,21 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 							</TabButton>
 							{hooksEnabled?.user && (
 								<TabButton isActive={currentView === "hooks"} onClick={() => setCurrentView("hooks")}>
+									<span
+										className="codicon codicon-symbol-event flex items-center"
+										style={{
+											color: iconHighlightColor,
+											fontSize: "16px",
+											paddingRight: 5,
+											verticalAlign: "-20%",
+										}}
+									/>
 									Hooks
 								</TabButton>
 							)}
 						</div>
 						<div
-							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto"
-							onMouseDown={() => {
-								setIsVisible(false)
-								// Focus the textarea after closing the modal
-								setTimeout(() => {
-									textAreaRef?.current?.focus()
-								}, 0)
-							}}>
-							<span className="codicon codicon-close" />
-						</div>
-						<div
-							className="cursor-pointer p-1.5 z-[9999] pointer-events-auto"
+							className="cursor-pointer pt-1.5 z-[9999] pointer-events-auto"
 							onMouseDown={() => {
 								setIsVisible(false)
 								// Focus the textarea after closing the modal
@@ -525,108 +525,54 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 								style={{ marginLeft: -3, fontSize: 10 }}
 							/>
 							<span style={{ fontWeight: descCollapsed ? "normal" : "bold" }}>
-								{currentView === "rules" ? "Instructions Overview" : "Workflows Overview"}
+								{currentView === "rules"
+									? "Instructions Overview"
+									: currentView === "workflows"
+										? "Workflows Overview"
+										: "Hooks Overview"}
 							</span>
 						</div>
 						{!descCollapsed && (
 							<div className="text-sm mt-1 mb-6">
-								{currentView === "rules" ? (
+								{currentView === "rules" && (
 									<p>
 										Use instruction files for rules, specifications, documentation, or any information that is
 										relevant for the AI model to achieve optimal task completion.
 										<br />
-										Add new instructions or use the <strong>/Git Instructions</strong> command to get existing
-										instructions from a git repository.
 										<br />
-										<br />
-										<strong>Global</strong> instructions are available for all workspaces.
-										<br />
-										<strong>Workspace</strong> instructions are available only in the current workspace.
+										Add new instruction files or use the <strong>/git-instructions</strong> command to get
+										existing instructions from a git repository.
 										<br />
 										<br />
 										Enable relevant instructions for the task. Enabled instructions are always included in the
 										task context.
 										<br />
 									</p>
-								) : (
+								)}
+								{currentView === "workflows" && (
 									<p>
-										Use workflow files to define an executable sequence of steps that can be triggered as a
-										command, by typing <strong>/Workflow name</strong> in chat. Workflows can be used to
-										automate complex or repetitive tasks.
-										<br />
-										Add new workflows or use the <strong>/Git Workflows</strong> command to get existing
-										workflows from a git repository.
+										Use workflow files to define a sequence of steps that can be triggered as a command, by
+										starting a chat message with <strong>/workflow-name</strong>.
 										<br />
 										<br />
-										<strong>Global</strong> workflows are available for all workspaces.
-										<br />
-										<strong>Workspace</strong> workflows are available only in the current workspace.
+										Workflows can be used to automate complex or repetitive tasks. Add new workflow files or
+										use the <strong>/git-workflows</strong> command to get existing workflows from a git
+										repository.
 										<br />
 										<br />
 										Enable relevant workflows to be available in the commands list.
 									</p>
 								)}
-							</div>
-						)}
-					</div>
-
-					{/* Description text (chevron collapsible) */}
-					<div
-						style={{
-							color: descCollapsed ? "var(--vscode-descriptionForeground)" : "",
-							marginBottom: 8,
-						}}>
-						<div
-							aria-expanded={!descCollapsed}
-							onClick={() => setDescCollapsed((v) => !v)}
-							role="button"
-							style={{ display: "flex", alignItems: "center", gap: 2, cursor: "pointer", userSelect: "none" }}
-							tabIndex={0}>
-							<span
-								className={`codicon codicon-chevron-${descCollapsed ? "right" : "down"}`}
-								style={{ marginLeft: -3, fontSize: 10 }}
-							/>
-							<span style={{ fontWeight: descCollapsed ? "normal" : "bold" }}>
-								{currentView === "rules" ? "Instructions Overview" : "Workflows Overview"}
-							</span>
-						</div>
-						{!descCollapsed && (
-							<div className="text-sm mt-1 mb-6">
-								{currentView === "rules" ? (
-									<p>
-										Use instruction files for rules, specifications, documentation, or any information that is
-										relevant for the AI model to achieve optimal task completion.
-										<br />
-										Add new instructions or use the <strong>/Git Instructions</strong> command to get existing
-										instructions from a git repository.
-										<br />
-										<br />
-										<strong>Global</strong> instructions are available for all workspaces.
-										<br />
-										<strong>Workspace</strong> instructions are available only in the current workspace.
-										<br />
-										<br />
-										Enable relevant instructions for the task. Enabled instructions are always included in the
-										task context.
-										<br />
-									</p>
-								) : (
-									<p>
-										Use workflow files to define an executable sequence of steps that can be triggered as a
-										command, by typing <strong>/Workflow name</strong> in chat. Workflows can be used to
-										automate complex or repetitive tasks.
-										<br />
-										Add new workflows or use the <strong>/Git Workflows</strong> command to get existing
-										workflows from a git repository.
-										<br />
-										<br />
-										<strong>Global</strong> workflows are available for all workspaces.
-										<br />
-										<strong>Workspace</strong> workflows are available only in the current workspace.
-										<br />
-										<br />
-										Enable relevant workflows to be available in the commands list.
-									</p>
+								{currentView === "hooks" && (
+									<div>
+										<p>
+											Hooks allow you to execute custom scripts at specific points in the task execution
+											lifecycle, enabling automation and integration with external tools.
+											<br />
+											<br />
+											Toggle to enable/disable (chmod +x/-x).
+										</p>
+									</div>
 								)}
 							</div>
 						)}
@@ -635,17 +581,17 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 					{/* Remote config banner */}
 					{((currentView === "rules" && hasRemoteRules) || (currentView === "workflows" && hasRemoteWorkflows)) && (
 						<div className="flex items-center gap-2 px-2 py-3 mb-2 bg-vscode-textBlockQuote-background border-l-[3px] border-vscode-textLink-foreground">
-							<i className="codicon codicon-lock text-sm" />
-							<span className="text-[13px]">
+							{/* <i className="codicon codicon-lock text-xs" /> */}
+							<span className="text-sm">
 								{currentView === "rules"
-									? "Your organization manages some rules"
-									: "Your organization manages some workflows"}
+									? "Your organization manages remote instructions"
+									: "Your organization manages remote workflows"}
 							</span>
 						</div>
 					)}
 
 					{/* Description text */}
-					<div className="text-xs text-description mb-4">
+					{/* <div className="text-xs text-description mb-4">
 						{currentView === "rules" ? (
 							<p>
 								Rules allow you to provide Cline with system-level guidance. Think of them as a persistent way to
@@ -674,7 +620,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 								enabling automation and integration with external tools.
 							</p>
 						)}
-					</div>
+					</div> */}
 
 					{currentView === "rules" ? (
 						<>
@@ -818,7 +764,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						</>
 					) : (
 						<>
-							<div className="text-xs text-description mb-4">
+							{/* <div className="text-xs text-description mb-4">
 								<p>
 									Toggle to enable/disable (chmod +x/-x).{" "}
 									<VSCodeLink
@@ -828,7 +774,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 										Docs
 									</VSCodeLink>
 								</p>
-							</div>
+							</div> */}
 							{/* Hooks Tab */}
 							{/* Windows warning banner */}
 							{isWindows && (
@@ -843,7 +789,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 
 							{/* Global Hooks */}
 							<div className="mb-3">
-								<div className="text-sm font-normal mb-2">Global Hooks</div>
+								<div className="text-sm font-normal mb-2">Global</div>
 								<div className="flex flex-col gap-0">
 									{globalHooks
 										.sort((a, b) => a.name.localeCompare(b.name))
@@ -874,7 +820,9 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 								<div
 									key={workspace.workspaceName}
 									style={{ marginBottom: index === workspaceHooks.length - 1 ? -10 : 12 }}>
-									<div className="text-sm font-normal mb-2">{workspace.workspaceName}/.clinerules/hooks/</div>
+									<div className="text-sm font-normal mb-2">
+										{workspace.workspaceName}/{agentWorkspaceDirectory}/{hooksDirectory}
+									</div>
 									<div className="flex flex-col gap-0">
 										{workspace.hooks
 											.sort((a, b) => a.name.localeCompare(b.name))

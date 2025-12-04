@@ -1,3 +1,5 @@
+import { agentName } from "@shared/Configuration"
+
 export enum NEW_USER_TYPE {
 	FREE = "free",
 	POWER = "power",
@@ -12,24 +14,24 @@ type UserTypeSelection = {
 
 export const STEP_CONFIG = {
 	0: {
-		title: "How will you use Cline?",
-		description: "Select an option below to get started.",
+		title: `Welcome to ${agentName}`,
+		description: "Get started by selecting an AI provider option:",
 		buttons: [
 			{ text: "Continue", action: "next", variant: "default" },
-			{ text: "Login to Cline", action: "signin", variant: "secondary" },
+			// { text: "Login to Cline account", action: "signin", variant: "secondary" },
 		],
 	},
 	[NEW_USER_TYPE.FREE]: {
 		title: "Select a free model",
 		buttons: [
-			{ text: "Create my Account", action: "signup", variant: "default" },
+			{ text: "Sign up with Cline", action: "signup", variant: "default" },
 			{ text: "Back", action: "back", variant: "secondary" },
 		],
 	},
 	[NEW_USER_TYPE.POWER]: {
 		title: "Select your model",
 		buttons: [
-			{ text: "Create my Account", action: "signup", variant: "default" },
+			{ text: "Sign up with Cline", action: "signup", variant: "default" },
 			{ text: "Back", action: "back", variant: "secondary" },
 		],
 	},
@@ -47,8 +49,12 @@ export const STEP_CONFIG = {
 	},
 } as const
 
-export const USER_TYPE_SELECTIONS: UserTypeSelection[] = [
-	{ title: "Absolutely Free", description: "Get started at no cost", type: NEW_USER_TYPE.FREE },
-	{ title: "Frontier Model", description: "Claude 4.5, GPT-5 Codex, etc", type: NEW_USER_TYPE.POWER },
-	{ title: "Bring my own API key", description: "Use Cline with your provider of choice", type: NEW_USER_TYPE.BYOK },
+export const getUserTypeSelections = (isVsCodePlatform: boolean): UserTypeSelection[] => [
+	{ title: "Free Models using the Cline API", description: "Get started at no cost using the Cline API provider", type: NEW_USER_TYPE.FREE },
+	{ title: "Frontier Models using the Cline API", description: "Claude 4.5, Gemini 3, GPT-5, etc. using the Cline API provider", type: NEW_USER_TYPE.POWER },
+	{
+		title:  isVsCodePlatform ? "GitHub Copilot Models, or bring your own API key" : "Bring your own API key",
+		description: isVsCodePlatform ? `Use the GitHub Copilot extension models, or use your own API keys for the supported providers` : `Use your own API key and settings for the supported providers`,
+		type: NEW_USER_TYPE.BYOK,
+	},
 ]

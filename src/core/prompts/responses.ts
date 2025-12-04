@@ -2,8 +2,9 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { Mode } from "@/shared/storage/types"
-import { ignoreFile, workspaceInstructionsDirectoryPath } from "../../shared/Configuration"
+import { ignoreFile } from "../../shared/Configuration"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
+import { GlobalFileNames } from "../storage/disk"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
@@ -230,13 +231,13 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`Tool [${toolName}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
 
 	clineIgnoreInstructions: (content: string) =>
-		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${workspaceInstructionsDirectoryPath}`,
+		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
 		`# Global instructions - (${globalClineRulesFilePath.toPosix()}/)\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions - (${workspaceInstructionsDirectoryPath})\n\nThe following content is from instruction files applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions - (${GlobalFileNames.clineRules})\n\nThe following content is from instruction files applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
 		`# The following content is provided by an instruction file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,

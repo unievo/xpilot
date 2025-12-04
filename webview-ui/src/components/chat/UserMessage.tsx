@@ -155,7 +155,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 				</>
 			) : (
 				<span className="ph-no-capture" style={{ display: "block" }}>
-					{highlightText(editedText || text, true, localWorkflowToggles, globalWorkflowToggles)}
+					{highlightText(editedText || text, false)}
 				</span>
 			)}
 			{((images && images.length > 0) || (files && files.length > 0)) && (

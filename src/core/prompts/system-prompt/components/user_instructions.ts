@@ -1,5 +1,4 @@
-import { getGlobalInstructionsDirectoryPath } from "@/core/storage/disk"
-import { workspaceInstructionsDirectoryPath } from "@/shared/Configuration"
+import { GlobalFileNames, getGlobalInstructionsDirectoryPath } from "@/core/storage/disk"
 import { SystemPromptSection } from "../templates/placeholders"
 import { TemplateEngine } from "../templates/TemplateEngine"
 import type { PromptVariant, SystemPromptContext } from "../types"
@@ -26,14 +25,14 @@ ${
 
 The user has included instruction files that provide additional context or rules for you to follow. These files are located in:
 ${hasGlobalInstructions ? `- Global Instructions Directory: ${globalInstructionsDirectoryPath.toPosix()}` : ``}
-${hasLocalInstructions ? `- Workspace Instructions Directory: ${workspaceInstructionsDirectoryPath.toPosix()}` : ``}
+${hasLocalInstructions ? `- Workspace Instructions Directory: ${GlobalFileNames.clineRules.toPosix()}` : ``}
 
 Instruction files can be:
 - Summary Instruction Files: files located under an instructions directory, providing a table of contents and summary of related Detailed Instruction Files.
 - Detailed Instruction Files: files located under a "./content/" subfolder under a Summary Instruction Files's directory. The "./" directory represents the root directory in which the Summary Instruction Files is located.
 - For example:
 	${hasGlobalInstructions ? `- for the Summary Instruction Files "${globalInstructionsDirectoryPath}/{subfolders}/SIF-file.md", "./" represents "${globalInstructionsDirectoryPath}/{subfolders}/".` : ``}
-	${hasLocalInstructions ? `- for the Summary Instruction Files "./${workspaceInstructionsDirectoryPath}/{subfolders}/SIF-file.md", "./" represents "./${workspaceInstructionsDirectoryPath}/{subfolders}/".` : ``}
+	${hasLocalInstructions ? `- for the Summary Instruction Files "./${GlobalFileNames.clineRules}/{subfolders}/SIF-file.md", "./" represents "./${GlobalFileNames.clineRules}/{subfolders}/".` : ``}
 
 - A Summary Instruction Files can reference Detailed Instruction Files using relative paths under the "./content/" subfolder.
 - Make sure to use the correct path when reading a Detailed Instruction Files under the "./content/" subfolder, for example "[{instructionDirectory}/{subfolders}]/content/[{subfolders}/DIF-file.md]".

@@ -25,6 +25,7 @@ import { CheckpointError } from "./CheckpointError"
 import ContextWindow from "./ContextWindow"
 import { FocusChain } from "./FocusChain"
 import { highlightText } from "./Highlights"
+import TaskTimeline from "./TaskTimeline"
 
 const IS_DEV = process.env.IS_DEV === '"true"'
 interface TaskHeaderProps {
@@ -73,12 +74,12 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	} = useExtensionState()
 
 	const [isHighlightedTextExpanded, setIsHighlightedTextExpanded] = useState(false)
-	const [isTextOverflowing, setIsTextOverflowing] = useState(false)
+	// const [isTextOverflowing, setIsTextOverflowing] = useState(false)
 	const highlightedTextRef = React.useRef<HTMLDivElement>(null)
 
 	const { highlightedText, displayTextExpandable } = useMemo(() => {
 		const taskTextLines = task.text?.split("\n") || []
-		const highlightedText = highlightText(task.text, true, localWorkflowToggles, globalWorkflowToggles)
+		const highlightedText = highlightText(task.text, true)
 
 		return { highlightedText, displayTextExpandable: taskTextLines.length > 3 }
 	}, [task.text])
@@ -359,7 +360,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 												whiteSpace: "normal",
 												height: "auto",
 											}}>
-											{highlightText(task.text, true, localWorkflowToggles, globalWorkflowToggles)}
+											{highlightText(task.text, false)}
 										</span>
 										{isCostAvailable && (
 											<span
@@ -452,7 +453,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									lineHeight: 1.4,
 								}}>
 								<span className="ph-no-capture">
-									{highlightText(task.text, false, localWorkflowToggles, globalWorkflowToggles)}
+									{highlightText(task.text, false)}
 								</span>
 							</div>
 							{!isTextExpanded && showSeeMore && (

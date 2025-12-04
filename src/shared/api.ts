@@ -260,6 +260,7 @@ export interface ModelInfo {
 		cacheWritesPrice?: number
 		cacheReadsPrice?: number
 	}[]
+	temperature?: number
 }
 
 export interface OpenAiCompatibleModelInfo extends ModelInfo {
@@ -861,7 +862,7 @@ export const OPENROUTER_PROVIDER_PREFERENCES: Record<string, { order: string[]; 
 // https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-claude
 // https://cloud.google.com/vertex-ai/generative-ai/pricing#partner-models
 export type VertexModelId = keyof typeof vertexModels
-export const vertexDefaultModelId: VertexModelId = "claude-sonnet-4@20250514" // TODO: update to 4-5
+export const vertexDefaultModelId: VertexModelId = "gemini-3-pro-preview"
 export const vertexModels = {
 	"gemini-3-pro-preview": {
 		maxTokens: 8192,
@@ -1236,7 +1237,7 @@ export const openAiModelInfoSaneDefaults: OpenAiCompatibleModelInfo = {
 // Gemini
 // https://ai.google.dev/gemini-api/docs/models/gemini
 export type GeminiModelId = keyof typeof geminiModels
-export const geminiDefaultModelId: GeminiModelId = "gemini-2.5-pro"
+export const geminiDefaultModelId: GeminiModelId = "gemini-3-pro-preview"
 export const geminiModels = {
 	"gemini-3-pro-preview": {
 		maxTokens: 65536,
@@ -1440,6 +1441,15 @@ export const geminiModels = {
 export type GeminiCliModelId = keyof typeof geminiCliModels
 export const geminiCliDefaultModelId: GeminiCliModelId = "gemini-2.5-pro"
 export const geminiCliModels = {
+	"gemini-3-pro-preview": {
+		maxTokens: 65536,
+		contextWindow: 1_048_576,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0, // Free tier via OAuth
+		outputPrice: 0, // Free tier via OAuth
+		description: "Google's Gemini 3.0 Pro Preview model via OAuth",
+	},
 	"gemini-2.5-pro": {
 		maxTokens: 65536,
 		contextWindow: 1_048_576,

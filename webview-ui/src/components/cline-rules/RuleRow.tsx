@@ -1,4 +1,4 @@
-import { menuFontSize, menuRowBackground, menuRowDisabledBackground } from "@components/config"
+import { iconHighlightColor, menuFontSize, menuRowBackground, menuRowDisabledBackground } from "@components/config"
 import { StringRequest } from "@shared/proto/cline/common"
 import { RuleFileRequest } from "@shared/proto/index.cline"
 import { FilePen, Trash2Icon } from "lucide-react"
@@ -148,11 +148,7 @@ const RuleRow: React.FC<{
 						marginRight: "4px",
 					}}
 					title={rulePath}>
-					{getRuleTypeIcon() && (
-						<span style={{ color: "var(--vscode-textLink-activeForeground)", opacity: 0.7 }}>
-							{getRuleTypeIcon()}
-						</span>
-					)}
+					<span style={{ color: iconHighlightColor }}>{getRuleTypeIcon()}</span>
 					<span
 						className="ph-no-capture"
 						style={{ marginLeft: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -183,7 +179,7 @@ const RuleRow: React.FC<{
 				</span>
 
 				{/* Toggle Switch */}
-				<div className="flex items-center space-x-2 gap-2">
+				<div className="flex items-center space-x-0 gap-0.5">
 					<Switch
 						checked={enabled}
 						className="mx-1"
@@ -216,14 +212,14 @@ const RuleRow: React.FC<{
 							<Button
 								aria-label="Confirm delete"
 								onClick={handleConfirmDelete}
-								// style={{ width: "25px", height: "20px" }}
+								style={{ width: "18px", height: "18px" }}
 								title="Confirm delete">
 								✓
 							</Button>
 							<Button
 								aria-label="Cancel delete"
 								onClick={handleCancelDelete}
-								// style={{ width: "25px", height: "20px" }}
+								style={{ width: "18px", height: "18px" }}
 								title="Cancel delete">
 								✗
 							</Button>

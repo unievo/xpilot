@@ -58,8 +58,8 @@ const ToDoListHeader = memo<{
 					width: `${progressPercentage}%`,
 				}}
 			/>
-			<div className="flex items-center justify-between gap-2 z-10 py-2 px-1.5">
-				<div className="mb-1 flex items-center gap-1.5 flex-1 min-w-0 text-sm">
+			<div className="flex items-center justify-between gap-2 z-10 py-1.5 px-1.5">
+				<div className="mb-0.5 flex items-center gap-1.5 flex-1 min-w-0 text-sm">
 					<span
 						className={cn(
 							"rounded-lg px-1 py-0.15 inline-block shrink-0 bg-badge-foreground/20 text-foreground text-xs",

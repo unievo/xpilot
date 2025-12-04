@@ -3,6 +3,7 @@ import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js"
 import type { OAuthClientInformationFull, OAuthClientMetadata, OAuthTokens } from "@modelcontextprotocol/sdk/shared/auth.js"
 import crypto from "crypto"
 import { HostProvider } from "@/hosts/host-provider"
+import { agentName, homePageUrl, productName } from "@/shared/Configuration"
 import { openExternal } from "@/utils/env"
 import { getMcpServerCallbackPath, getServerAuthHash } from "@/utils/mcpAuth"
 
@@ -82,9 +83,9 @@ class ClineOAuthClientProvider implements OAuthClientProvider {
 			token_endpoint_auth_method: "none",
 			grant_types: ["authorization_code", "refresh_token"],
 			response_types: ["code"],
-			client_name: "Cline",
-			client_uri: "https://cline.bot",
-			software_id: "cline",
+			client_name: agentName,
+			client_uri: homePageUrl,
+			software_id: productName,
 		}
 	}
 

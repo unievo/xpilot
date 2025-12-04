@@ -4,6 +4,7 @@ import * as path from "path"
 import simpleGit from "simple-git"
 import type { FolderLockWithRetryResult } from "@/core/locks/types"
 import { telemetryService } from "@/services/telemetry"
+import { agentName } from "@/shared/Configuration"
 import { GitOperations } from "./CheckpointGitOperations"
 import { releaseCheckpointLock, tryAcquireCheckpointLockWithRetry } from "./CheckpointLockUtils"
 import { getShadowGitPath, hashWorkingDir } from "./CheckpointUtils"
@@ -220,7 +221,7 @@ class CheckpointTracker {
 			// Locking failed due to conflicting lock
 			if (!lockResult.acquired && !lockResult.skipped) {
 				throw new Error(
-					"Failed to acquire checkpoint folder lock - another Cline instance may be performing checkpoint operations",
+					`Failed to acquire checkpoint folder lock - another ${agentName} instance may be performing checkpoint operations`,
 				)
 			}
 
@@ -343,7 +344,7 @@ class CheckpointTracker {
 			// Locking failed due to conflicting lock
 			if (!lockResult.acquired && !lockResult.skipped) {
 				throw new Error(
-					"Failed to acquire checkpoint folder lock - another Cline instance may be performing checkpoint operations",
+					`Failed to acquire checkpoint folder lock - another ${agentName} instance may be performing checkpoint operations`,
 				)
 			}
 
