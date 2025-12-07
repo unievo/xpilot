@@ -1,7 +1,7 @@
 import { defaultBorderRadius, userMessagePadding } from "@components/config"
 import { CheckpointRestoreRequest } from "@shared/proto/cline/checkpoints"
 import { ClineCheckpointRestore } from "@shared/WebviewMessage"
-import React, { forwardRef, useRef, useState } from "react"
+import React, { forwardRef, useMemo, useRef, useState } from "react"
 import DynamicTextArea from "react-textarea-autosize"
 import Thumbnails from "@/components/common/Thumbnails"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -21,7 +21,9 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 	const [isEditing, setIsEditing] = useState(false)
 	const [editedText, setEditedText] = useState(text || "")
 	const textAreaRef = useRef<HTMLTextAreaElement>(null)
-	const { checkpointManagerErrorMessage, localWorkflowToggles, globalWorkflowToggles } = useExtensionState()
+	const { checkpointManagerErrorMessage } = useExtensionState()
+
+	const highlightedText = useMemo(() => highlightText(editedText || text), [editedText, text])
 
 	// Create refs for the buttons to check in the blur handler
 	const restoreAllButtonRef = useRef<HTMLButtonElement>(null)
@@ -155,7 +157,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 				</>
 			) : (
 				<span className="ph-no-capture" style={{ display: "block" }}>
-					{highlightText(editedText || text, false)}
+					{highlightedText}
 				</span>
 			)}
 			{((images && images.length > 0) || (files && files.length > 0)) && (

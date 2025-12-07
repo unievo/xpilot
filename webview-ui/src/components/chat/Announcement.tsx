@@ -40,9 +40,40 @@ Patch releases (3.19.1 → 3.19.2) will not trigger new announcements.
 */
 const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
-	const { refreshOpenRouterModels } = useExtensionState()
+	const { clineUser } = useClineAuth()
+	const { openRouterModels, setShowChatModelSelector, refreshOpenRouterModels } = useExtensionState()
+	const user = clineUser || undefined
+	const { handleFieldsChange } = useApiConfigurationHandlers()
+
+	const [didClickMicrowaveButton, setDidClickMicrowaveButton] = useState(false)
 	// Need to get latest model list in case user hits shortcut button to set model
 	useMount(refreshOpenRouterModels)
+
+	const setMicrowave = () => {
+		const modelId = "stealth/microwave"
+		// set both plan and act modes to use code-supernova-1-million
+		handleFieldsChange({
+			planModeOpenRouterModelId: modelId,
+			actModeOpenRouterModelId: modelId,
+			planModeOpenRouterModelInfo: openRouterModels[modelId],
+			actModeOpenRouterModelInfo: openRouterModels[modelId],
+			planModeApiProvider: "cline",
+			actModeApiProvider: "cline",
+		})
+
+		setTimeout(() => {
+			setDidClickMicrowaveButton(true)
+			setShowChatModelSelector(true)
+		}, 10)
+	}
+
+	const handleShowAccount = () => {
+		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
+			console.error("Failed to get login URL:", err),
+		)
+	}
+
+	const isVscode = PLATFORM_CONFIG.type === PlatformType.VSCODE
 
 	return (
 		<div style={containerStyle}>

@@ -1,5 +1,4 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
-import { StringRequest } from "@shared/proto/cline/common"
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
@@ -15,7 +14,6 @@ import {
 } from "@/components/config"
 import { getModeSpecificFields, normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { UiServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber } from "@/utils/format"
 import CopyTaskButton from "./buttons/CopyTaskButton"
 import DeleteTaskButton from "./buttons/DeleteTaskButton"
@@ -65,8 +63,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 		clineMessages,
 		navigateToSettings,
 		mode,
-		localWorkflowToggles,
-		globalWorkflowToggles,
 		expandTaskHeader: isTaskExpanded,
 		setExpandTaskHeader: setIsTaskExpanded,
 		environment,
@@ -158,14 +154,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	const toggleTaskExpanded = useCallback(() => setIsTaskExpanded(!isTaskExpanded), [setIsTaskExpanded, isTaskExpanded])
 
 	const handleCheckpointSettingsClick = useCallback(() => {
-		navigateToSettings()
-		setTimeout(async () => {
-			try {
-				await UiServiceClient.scrollToSettings(StringRequest.create({ value: "features" }))
-			} catch (error) {
-				console.error("Error scrolling to checkpoint settings:", error)
-			}
-		}, 300)
+		navigateToSettings("features")
 	}, [navigateToSettings])
 
 	// const highlightedText = useMemo(() => highlightText(task.text, false), [task.text])
@@ -453,7 +442,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									lineHeight: 1.4,
 								}}>
 								<span className="ph-no-capture">
-									{highlightText(task.text, false)}
+									{highlightedText}
 								</span>
 							</div>
 							{!isTextExpanded && showSeeMore && (

@@ -1,10 +1,12 @@
+import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
+
 export interface SlashCommand {
 	name: string
 	description?: string
 	section?: "task" | "instructions" | "workflows" //| "default"
 }
 
-export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
+const BASE_SLASH_COMMANDS: SlashCommand[] = [
 	{
 		name: "newtask",
 		description: "Start task with current context",
@@ -47,6 +49,18 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 	// 	section: "default",
 	// },
 ]
+
+// VS Code-only slash commands
+const VSCODE_ONLY_COMMANDS: SlashCommand[] = [
+	{
+		name: "explain-changes",
+		description: "Explain code changes between git refs (PRs, commits, branches, etc.)",
+		section: "task",
+	},
+]
+
+export const DEFAULT_SLASH_COMMANDS: SlashCommand[] =
+	PLATFORM_CONFIG.type === PlatformType.VSCODE ? [...BASE_SLASH_COMMANDS, ...VSCODE_ONLY_COMMANDS] : BASE_SLASH_COMMANDS
 
 export function getWorkflowCommands(
 	localWorkflowToggles: Record<string, boolean>,
@@ -121,10 +135,13 @@ export function getWorkflowCommands(
 }
 
 // Regex for detecting slash commands in text
-// Updated to allow whitespace inside command names
-export const slashCommandRegex = /\/([a-zA-Z0-9_.\s-]+?)(?=\s|$)/
+// Must be at start of string OR preceded by whitespace to avoid matching URLs/paths
+// e.g., matches "/newtask" or "text /newtask" but not "http://example.com/newtask"
+export const slashCommandRegex = /(^|\s)(\/[a-zA-Z0-9_.-]+)(?=\s|$)/
 export const slashCommandRegexGlobal = new RegExp(slashCommandRegex.source, "g")
-export const slashCommandDeleteRegex = /^\s*\/([a-zA-Z0-9_.\s-]+?)$/
+// Regex for detecting a slash command at the end of text (for deletion)
+// Must be at start OR preceded by whitespace, captures the whole command including slash
+export const slashCommandDeleteRegex = /(^|\s)(\/[a-zA-Z0-9_.-]+)$/
 
 /**
  * Removes a slash command at the cursor position
@@ -133,13 +150,15 @@ export function removeSlashCommand(text: string, position: number): { newText: s
 	const beforeCursor = text.slice(0, position)
 	const afterCursor = text.slice(position)
 
-	// Check if we're at the end of a slash command
+	// Check if we're at the end of a slash command (anywhere in text, not just at start)
 	const matchEnd = beforeCursor.match(slashCommandDeleteRegex)
 
 	if (matchEnd) {
-		// If we're at the end of a slash command, remove it
-		const newText = text.slice(0, position - matchEnd[0].length) + afterCursor.replace(/^\s/, "") // removes the first space after the command
-		const newPosition = position - matchEnd[0].length
+		// matchEnd[1] is the whitespace or empty string before the slash
+		// matchEnd[2] is the slash command (e.g., "/newtask")
+		const slashCommand = matchEnd[2]
+		const newText = text.slice(0, position - slashCommand.length) + afterCursor.replace(" ", "") // removes the first space after the command
+		const newPosition = position - slashCommand.length
 		return { newText, newPosition }
 	}
 
@@ -148,7 +167,9 @@ export function removeSlashCommand(text: string, position: number): { newText: s
 }
 
 /**
- * Determines whether the slash command menu should be displayed based on text input
+ * Determines whether the slash command menu should be displayed based on text input.
+ * Only shows for the FIRST valid slash command position in the message - subsequent
+ * slash commands won't trigger suggestions since only one is processed per message.
  */
 export function shouldShowSlashCommandsMenu(
 	text: string,
@@ -165,38 +186,54 @@ export function shouldShowSlashCommandsMenu(
 		return false
 	}
 
-	// check if slash is at the very beginning (with optional whitespace)
-	const textBeforeSlash = beforeCursor.slice(0, slashIndex)
-	if (!/^\s*$/.test(textBeforeSlash)) {
+	// Check if slash is preceded by whitespace or is at the beginning
+	// This allows slash commands anywhere in the message, similar to @ mentions
+	const charBeforeSlash = slashIndex > 0 ? beforeCursor[slashIndex - 1] : null
+	if (charBeforeSlash !== null && !/\s/.test(charBeforeSlash)) {
 		return false
 	}
 
 	// potential partial or full command
 	const textAfterSlash = beforeCursor.slice(slashIndex + 1)
 
-	// get all available commands including workflow commands
-	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
-	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
+	// // get all available commands including workflow commands
+	// const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
+	// const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-	// check if we have a complete valid command followed by a space
-	const hasCompleteCommand = allCommands.some((cmd) => {
-		const commandName = cmd.name.toLowerCase()
-		const textToCheck = textAfterSlash.toLowerCase()
+	// // check if we have a complete valid command followed by a space
+	// const hasCompleteCommand = allCommands.some((cmd) => {
+	// 	const commandName = cmd.name.toLowerCase()
+	// 	const textToCheck = textAfterSlash.toLowerCase()
 
-		// Check if the text starts with this command and is followed by a space
-		if (textToCheck.startsWith(commandName)) {
-			const nextChar = textAfterSlash[commandName.length]
-			// If there's a space after the command, this is a complete command
-			// We should not show the menu regardless of what comes after the space
-			const isComplete = nextChar === " "
+	// 	// Check if the text starts with this command and is followed by a space
+	// 	if (textToCheck.startsWith(commandName)) {
+	// 		const nextChar = textAfterSlash[commandName.length]
+	// 		// If there's a space after the command, this is a complete command
+	// 		// We should not show the menu regardless of what comes after the space
+	// 		const isComplete = nextChar === " "
 
-			return isComplete
-		}
+	// 		return isComplete
+	// 	}
+	// 	return false
+	// })
+
+	// // if we have a complete command followed by a space, don't show menu
+	// if (hasCompleteCommand) {
+	// 	return false
+	// }
+
+	// don't show menu if there's whitespace after the slash but before the cursor
+	if (/\s/.test(textAfterSlash)) {
 		return false
-	})
+	}
 
-	// if we have a complete command followed by a space, don't show menu
-	if (hasCompleteCommand) {
+	// Only show suggestions for the FIRST slash command in the message.
+	// Check if there's already a valid slash command earlier in the text.
+	// A valid earlier slash command is one that: starts at beginning or after whitespace,
+	// and is followed by whitespace (meaning it's complete).
+	const firstSlashCommandRegex = /(^|\s)\/[a-zA-Z0-9_.-]+\s/
+	const textBeforeCurrentSlash = text.slice(0, slashIndex)
+	if (firstSlashCommandRegex.test(textBeforeCurrentSlash)) {
 		return false
 	}
 
@@ -225,26 +262,30 @@ export function getMatchingSlashCommands(
 		return allCommands
 	}
 
-	// normalize query by trimming and lowercasing for matching
-	const normalizedQuery = query.trim().toLowerCase()
+	// // normalize query by trimming and lowercasing for matching
+	// const normalizedQuery = query.trim().toLowerCase()
 
-	// filter commands that start with the query or contain all words from the query
-	return allCommands.filter((cmd) => {
-		const normalizedCommandName = cmd.name.toLowerCase()
 
-		// exact prefix match (case insensitive)
-		if (normalizedCommandName.startsWith(normalizedQuery)) {
-			return true
-		}
+	// filter commands that start with the query (case sensitive)
+	return allCommands.filter((cmd) => cmd.name.startsWith(query))
 
-		// check if all words in the query are present in the command name
-		const queryWords = normalizedQuery.split(/\s+/).filter((word) => word.length > 0)
-		if (queryWords.length > 1) {
-			return queryWords.every((word) => normalizedCommandName.includes(word))
-		}
+	// // filter commands that start with the query or contain all words from the query
+	// return allCommands.filter((cmd) => {
+	// 	const normalizedCommandName = cmd.name.toLowerCase()
 
-		return false
-	})
+	// 	// exact prefix match (case insensitive)
+	// 	if (normalizedCommandName.startsWith(normalizedQuery)) {
+	// 		return true
+	// 	}
+
+	// 	// check if all words in the query are present in the command name
+	// 	const queryWords = normalizedQuery.split(/\s+/).filter((word) => word.length > 0)
+	// 	if (queryWords.length > 1) {
+	// 		return queryWords.every((word) => normalizedCommandName.includes(word))
+	// 	}
+
+	// 	return false
+	// })
 }
 
 /**
@@ -254,19 +295,31 @@ export function insertSlashCommand(
 	text: string,
 	commandName: string,
 	partialCommandLength: number,
+	cursorPosition: number,
 ): { newValue: string; commandIndex: number } {
-	const slashIndex = text.indexOf("/")
+	// Find the slash nearest to cursor (before cursor position)
+	const beforeCursor = text.slice(0, cursorPosition)
+	const slashIndex = beforeCursor.lastIndexOf("/")
 
-	// where the command ends, look for first space or end of text
-	let commandEndIndex = text.indexOf(" ", slashIndex)
-	if (commandEndIndex === -1) {
-		// if no space found, command goes to end of text
-		commandEndIndex = text.length
-	}
+	// const slashIndex = text.indexOf("/")
+
+	// // where the command ends, look for first space or end of text
+	// let commandEndIndex = text.indexOf(" ", slashIndex)
+	// if (commandEndIndex === -1) {
+	// 	// if no space found, command goes to end of text
+	// 	commandEndIndex = text.length
+	// }
+
+	const beforeSlash = text.substring(0, slashIndex + 1)
+	const afterPartialCommand = text.substring(slashIndex + 1 + partialCommandLength)
 
 	// replace the partial command with the full command
 	const newValue =
-		text.substring(0, slashIndex + 1) + commandName + (commandEndIndex < text.length ? text.substring(commandEndIndex) : " ") // add single space at the end if only slash command
+		beforeSlash + commandName + (afterPartialCommand.startsWith(" ") ? afterPartialCommand : " " + afterPartialCommand)
+
+	// replace the partial command with the full command
+	// const newValue =
+	// 	text.substring(0, slashIndex + 1) + commandName + (commandEndIndex < text.length ? text.substring(commandEndIndex) : " ") // add single space at the end if only slash command
 
 	return { newValue, commandIndex: slashIndex }
 }
@@ -294,33 +347,38 @@ export function validateSlashCommand(
 	)
 	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-	// normalize command for matching
-	const normalizedCommand = command.trim().toLowerCase()
+	// // normalize command for matching
+	// const normalizedCommand = command.trim().toLowerCase()
 
-	// case insensitive exact matching
-	const exactMatch = allCommands.some((cmd) => cmd.name.toLowerCase() === normalizedCommand)
+	// // case insensitive exact matching
+	// const exactMatch = allCommands.some((cmd) => cmd.name.toLowerCase() === normalizedCommand)
+
+	// case sensitive matching
+	const exactMatch = allCommands.some((cmd) => cmd.name === command)
 
 	if (exactMatch) {
 		return "full"
 	}
 
 	// check for partial matches - either prefix match or all words present
-	const partialMatch = allCommands.some((cmd) => {
-		const normalizedCmdName = cmd.name.toLowerCase()
+	// const partialMatch = allCommands.some((cmd) => {
+	// 	const normalizedCmdName = cmd.name.toLowerCase()
 
-		// prefix match
-		if (normalizedCmdName.startsWith(normalizedCommand)) {
-			return true
-		}
+	// 	// prefix match
+	// 	if (normalizedCmdName.startsWith(normalizedCommand)) {
+	// 		return true
+	// 	}
 
-		// check if all words in the command are present in a valid command
-		const commandWords = normalizedCommand.split(/\s+/).filter((word) => word.length > 0)
-		if (commandWords.length > 1) {
-			return commandWords.every((word) => normalizedCmdName.includes(word))
-		}
+	// 	// check if all words in the command are present in a valid command
+	// 	const commandWords = normalizedCommand.split(/\s+/).filter((word) => word.length > 0)
+	// 	if (commandWords.length > 1) {
+	// 		return commandWords.every((word) => normalizedCmdName.includes(word))
+	// 	}
 
-		return false
-	})
+	// 	return false
+	// })
+
+	const partialMatch = allCommands.some((cmd) => cmd.name.startsWith(command))
 
 	if (partialMatch) {
 		return "partial"

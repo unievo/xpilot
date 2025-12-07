@@ -400,7 +400,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 	return (
 		<div ref={modalRef}>
 			<div className="opacity-70 inline-flex min-w-0 max-w-full" ref={buttonRef}>
-				<HeroTooltip content= "Instructions, Workflows and Hooks" delay={1000}>
+				<HeroTooltip content="Instructions, Workflows and Hooks" delay={1000}>
 					<VSCodeButton
 						appearance="icon"
 						aria-label={isVisible ? `Hide Instructions and Workflows` : `Manage Instructions and Workflows`}
@@ -659,7 +659,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 									rules={globalRules}
 									ruleType={"cline"}
 									showNewRule={true}
-									showNoRules={true}
+									showNoRules={false}
 									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
 								/>
 							</div>

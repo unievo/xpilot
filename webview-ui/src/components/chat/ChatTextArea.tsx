@@ -42,6 +42,8 @@ import {
 	type SlashCommand,
 	shouldShowSlashCommandsMenu,
 	slashCommandDeleteRegex,
+	slashCommandRegexGlobal,
+	validateSlashCommand,
 } from "@/utils/slash-commands"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
@@ -577,7 +579,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setSlashCommandsQuery("")
 
 				if (textAreaRef.current) {
-					const { newValue, commandIndex } = insertSlashCommand(textAreaRef.current.value, command.name, queryLength)
+					const { newValue, commandIndex } = insertSlashCommand(
+						textAreaRef.current.value,
+						command.name,
+						queryLength,
+						cursorPosition,
+					)
 					const newCursorPosition = newValue.indexOf(" ", commandIndex + 1 + command.name.length) + 1
 
 					setInputValue(newValue)
@@ -592,7 +599,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					}, 0)
 				}
 			},
-			[setInputValue, slashCommandsQuery],
+			[setInputValue, slashCommandsQuery, cursorPosition],
 		)
 		const handleKeyDown = useCallback(
 			(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -897,7 +904,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setShowContextMenu(showMenu)
 
 				if (showSlashCommandsMenu) {
-					const slashIndex = newValue.indexOf("/")
+					// Find the slash nearest to cursor (before cursor position)
+					const beforeCursor = newValue.slice(0, newCursorPosition)
+					const slashIndex = beforeCursor.lastIndexOf("/")
 					const query = newValue.slice(slashIndex + 1, newCursorPosition)
 					setSlashCommandsQuery(query)
 					setSelectedSlashCommandsIndex(0)
@@ -1140,55 +1149,38 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				// highlight @mentions
 				.replace(mentionRegexGlobal, '<mark class="mention-context-textarea-highlight">$&</mark>')
 
-			// check for highlighting /slash-commands
-			if (/^\s*\//.test(processedText)) {
-				const slashIndex = processedText.indexOf("/")
-				const textAfterSlash = processedText.substring(slashIndex + 1)
+			// Highlight only the FIRST valid /slash-command in the text
+			// Only one slash command is processed per message, so we only highlight the first one
+			slashCommandRegexGlobal.lastIndex = 0
+			let hasHighlightedSlashCommand = false
+			processedText = processedText.replace(slashCommandRegexGlobal, (match, prefix, command) => {
+				// Only highlight the first valid slash command
+				if (hasHighlightedSlashCommand) {
+					return match
+				}
 
-				// Get all available commands for matching
-				const workflowCommands = getWorkflowCommands(
+				// Extract just the command name (without the slash)
+				const commandName = command.substring(1)
+				const isValidCommand = validateSlashCommand(
+					commandName,
 					localWorkflowToggles,
 					globalWorkflowToggles,
 					remoteWorkflowToggles,
 					remoteConfigSettings?.remoteGlobalWorkflows,
 				)
-				const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-				// Find the longest matching valid command that is complete
-				let longestMatch = ""
-				let longestMatchLength = 0
-
-				for (const command of allCommands) {
-					const commandName = command.name.toLowerCase()
-					const textToMatch = textAfterSlash.toLowerCase()
-
-					// Check if the command matches exactly at the start of the text
-					if (textToMatch.startsWith(commandName)) {
-						// Ensure the match is followed by a space or end of text (complete command)
-						const nextChar = textAfterSlash[commandName.length]
-						if (!nextChar || nextChar === " ") {
-							if (commandName.length > longestMatchLength) {
-								longestMatch = command.name
-								longestMatchLength = commandName.length
-							}
-						}
-					}
+				if (isValidCommand) {
+					hasHighlightedSlashCommand = true
+					// Keep the prefix (whitespace or empty) and wrap the command in highlight
+					return `${prefix}<mark class="mention-context-textarea-highlight">${command}</mark>`
 				}
-
-				// If we found a complete valid command match, highlight only that command
-				if (longestMatch) {
-					const endIndex = slashIndex + 1 + longestMatchLength
-					const fullCommand = processedText.substring(slashIndex, endIndex) // includes slash
-
-					const highlighted = `<mark class="mention-context-textarea-highlight">${fullCommand}</mark>`
-					processedText = processedText.substring(0, slashIndex) + highlighted + processedText.substring(endIndex)
-				}
-			}
+				return match
+			})
 
 			highlightLayerRef.current.innerHTML = processedText
 			highlightLayerRef.current.scrollTop = textAreaRef.current.scrollTop
 			highlightLayerRef.current.scrollLeft = textAreaRef.current.scrollLeft
-		}, [localWorkflowToggles, globalWorkflowToggles])
+		}, [localWorkflowToggles, globalWorkflowToggles, remoteWorkflowToggles, remoteConfigSettings])
 
 		useLayoutEffect(() => {
 			updateHighlights()

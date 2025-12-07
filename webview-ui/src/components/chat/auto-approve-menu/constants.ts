@@ -3,30 +3,26 @@ import { ActionMetadata } from "./types"
 export const ACTION_METADATA: ActionMetadata[] = [
 	{
 		id: "readFiles",
-		label: "Read project files",
+		label: "Read workspace files",
 		shortName: "Read",
-		description: `Read files within your workspace.`,
 		icon: "codicon-search",
 		subAction: {
 			id: "readFilesExternally",
 			label: "Read all files",
 			shortName: "Read all",
-			description: `Read files outside your workspace.`,
 			icon: "codicon-folder-opened",
 			parentActionId: "readFiles",
 		},
 	},
 	{
 		id: "editFiles",
-		label: "Edit project files",
+		label: "Edit workspace files",
 		shortName: "Edit",
-		description: `Modify files within your workspace.`,
 		icon: "codicon-edit",
 		subAction: {
 			id: "editFilesExternally",
 			label: "Edit all files",
 			shortName: "Edit all",
-			description: `Modify files outside your workspace.`,
 			icon: "codicon-files",
 			parentActionId: "editFiles",
 		},
@@ -34,14 +30,12 @@ export const ACTION_METADATA: ActionMetadata[] = [
 	{
 		id: "executeSafeCommands",
 		label: "Execute safe commands",
-		shortName: "Exec",
-		description: `Execute safe terminal commands. If the model determines a command can have impactful or potentially destructive effects, it will still require approval.`,
+		shortName: "Exec safe",
 		icon: "codicon-terminal",
 		subAction: {
 			id: "executeAllCommands",
 			label: "Execute all commands",
 			shortName: "Exec all",
-			description: `Execute all terminal commands without approval. Use at your own risk!`,
 			icon: "codicon-terminal-bash",
 			parentActionId: "executeSafeCommands",
 		},
@@ -50,14 +44,12 @@ export const ACTION_METADATA: ActionMetadata[] = [
 		id: "useBrowser",
 		label: "Use the browser",
 		shortName: "Browse",
-		description: `Use the fetch web content tool and launch and interact with any website in a browser.`,
 		icon: "codicon-globe",
 	},
 	{
 		id: "useMcp",
 		label: "Use MCP servers",
 		shortName: "MCP",
-		description: `Use configured MCP servers.`,
 		icon: "codicon-server",
 	},
 ]
@@ -66,6 +58,5 @@ export const NOTIFICATIONS_SETTING: ActionMetadata = {
 	id: "enableNotifications",
 	label: "Enable notifications",
 	shortName: "Notify",
-	description: `Receive system notifications when approval is required to proceed or when a task is completed.`,
 	icon: "codicon-bell",
 }

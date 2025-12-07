@@ -1,7 +1,8 @@
 import { iconHighlightColor, menuFontSize, menuRowBackground, menuRowDisabledBackground } from "@components/config"
 import { StringRequest } from "@shared/proto/cline/common"
 import { RuleFileRequest } from "@shared/proto/index.cline"
-import { FilePen, Trash2Icon } from "lucide-react"
+import { REMOTE_URI_SCHEME } from "@shared/remote-config/constants"
+import { EyeIcon, FilePen, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -99,7 +100,9 @@ const RuleRow: React.FC<{
 	}
 
 	const handleEditClick = () => {
-		FileServiceClient.openFile(StringRequest.create({ value: rulePath })).catch((err) =>
+		// For remote rules, use the special remote:// URI format
+		const filePath = isRemote ? `${REMOTE_URI_SCHEME}${ruleType === "workflow" ? "workflow" : "rule"}/${rulePath}` : rulePath
+		FileServiceClient.openFile(StringRequest.create({ value: filePath })).catch((err) =>
 			console.error("Failed to open file:", err),
 		)
 	}
@@ -189,13 +192,12 @@ const RuleRow: React.FC<{
 						title={isDisabled ? "This rule is required and cannot be disabled" : undefined}
 					/>
 					<Button
-						aria-label="Edit file"
-						disabled={isRemote}
+						aria-label={isRemote ? "View file" : "Edit file"}
 						onClick={handleEditClick}
 						size="xs"
-						title="Edit file"
+						title={isRemote ? "View file (read-only)" : "Edit file"}
 						variant="icon">
-						<FilePen />
+						{isRemote ? <EyeIcon /> : <FilePen />}
 					</Button>
 					{!showConfirmDelete ? (
 						<Button

@@ -143,9 +143,26 @@
 				"command": "astro.reconstructTaskHistory",
 				"title": "Reconstruct Task History",
 				"category": "Astro"
+			},
+			{
+				"command": "astro.reviewComment.reply",
+				"title": "Reply",
+				"category": "Astro",
+				"enablement": "!commentIsEmpty"
+			},
+			{
+				"command": "astro.reviewComment.addToChat",
+				"title": "Add to Astro Chat",
+				"category": "Astro",
+				"icon": "$(link-external)"
 			}
 		],
 		"keybindings": [
+			{
+				"command": "editor.action.submitComment",
+				"key": "enter",
+				"when": "commentEditorFocused && commentController == cline-ai-review && !commentIsEmpty"
+			},
 			{
 				"command": "astro.addToChat",
 				"key": "cmd+'",
@@ -223,6 +240,24 @@
 				{
 					"command": "astro.abortGitCommitMessage",
 					"when": "config.git.enabled && astro.isGeneratingCommit"
+				},
+				{
+					"command": "astro.reviewComment.reply",
+					"when": "false"
+				}
+			],
+			"comments/commentThread/context": [
+				{
+					"command": "astro.reviewComment.reply",
+					"group": "inline",
+					"when": "commentController == cline-ai-review"
+				}
+			],
+			"comments/commentThread/title": [
+				{
+					"command": "astro.reviewComment.addToChat",
+					"group": "inline",
+					"when": "commentController == cline-ai-review"
 				}
 			]
 		},
@@ -381,7 +416,6 @@
 		"@playwright/test": "^1.55.1",
 		"@sap-ai-sdk/ai-api": "^2.1.0",
 		"@sap-ai-sdk/orchestration": "^2.1.0",
-		"@sentry/browser": "^9.12.0",
 		"@streamparser/json": "^0.0.22",
 		"@tailwindcss/vite": "^4.1.14",
 		"@types/uuid": "^10.0.0",
