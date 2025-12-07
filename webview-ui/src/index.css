@@ -28,6 +28,9 @@
 		unicode-bidi: isolate;
 		font-size: inherit;
 	}
+	b{
+		font-size: inherit;
+	}
 	strong {
 		font-size: inherit;
 	}

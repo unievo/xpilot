@@ -16,6 +16,7 @@ export const xUrl = "https://x.com/unievo_ai"
 export const discordUrl = ""
 export const repoUrl = "https://github.com/unievo/astro"
 export const homePageUrl = "https://github.com/unievo/astro"
+export const avatarUrl = "https://raw.githubusercontent.com/unievo/astro/main/assets/icons/icon_neutral.png"
 export const gitInstructionsRepo = ""
 export const gitWorkflowsRepo = ""
 

@@ -1,5 +1,6 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
 import React, { memo, useCallback } from "react"
+import { defaultBorderRadius, userMessageBackground } from "@/components/config"
 import { cn } from "@/lib/utils"
 import { highlightText } from "./Highlights"
 
@@ -52,8 +53,9 @@ export const StickyUserMessage: React.FC<StickyUserMessageProps> = memo(
 				onKeyDown={handleKeyDown}
 				role="button"
 				style={{
-					backgroundColor: "var(--vscode-badge-background)",
-					borderRadius: "3px",
+					backgroundColor: userMessageBackground,
+					borderRadius: defaultBorderRadius,
+					margin: "0 -8px",
 				}}
 				tabIndex={0}
 				title="Click to scroll to your message">

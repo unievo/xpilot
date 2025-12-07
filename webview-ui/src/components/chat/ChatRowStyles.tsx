@@ -41,6 +41,7 @@ import {
 	userMessageHoverBackground,
 	userMessageMargin,
 	userMessagePadding,
+	userMessageTextColor,
 } from "@components/config";
 import styled from "styled-components";
 
@@ -261,12 +262,11 @@ export const McpResponseRow = styled.div<{ isLast: boolean }>`
 
 // User message container
 export const UserMessageContainer = styled.div<{ isEditing: boolean }>`
-	color: var(--vscode-button-foreground);
+	color: ${userMessageTextColor};
 	background: ${({ isEditing }) => (isEditing ? undefined : userMessageBackground)};
 	border-radius: ${defaultBorderRadius}px;
 	padding: ${userMessagePadding};
 	margin: ${userMessageMargin};
-	opacity: 0.9;
 
 	&:hover {
 		background: ${({ isEditing }) => (isEditing ? undefined : userMessageHoverBackground)};

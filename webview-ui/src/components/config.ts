@@ -63,7 +63,7 @@ export const chatInputSectionBorder =
 // Task header
 export const taskHeaderTextLineClamp = 2
 export const taskHeaderTokenUsageVisible = true
-export const taskHeaderTaskTimelineVisible = true
+export const taskHeaderTaskTimelineVisible = false
 export const taskHeaderTimelineHeight = 12
 export const taskHeaderTimelineBlockWidth = 8
 export const taskHeaderTimelineBlockGap = 1
@@ -138,9 +138,10 @@ export const completionRowMargin = "20px 0px 10px 0px"
 export const completionTextMargin = "20px 0px 0px 0px"
 
 // User message
-export const userMessageBackground = "color-mix(in srgb, var(--vscode-button-background) 70%, var(--vscode-editor-background))"
+export const userMessageTextColor = "var(--vscode-badge-foreground)"
+export const userMessageBackground = "color-mix(in srgb, var(--vscode-button-background) 30%, var(--vscode-editor-background))"
 export const userMessageHoverBackground =
-	"color-mix(in srgb, var(--vscode-button-background) 90%, var(--vscode-editor-background))"
+	"color-mix(in srgb, var(--vscode-button-background) 40%, var(--vscode-editor-background))"
 export const userMessagePadding = "10px 10px"
 export const userMessageMargin = "10px 0px 10px 0px"
 

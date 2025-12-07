@@ -7,7 +7,7 @@ import {
 	menuTopBorder,
 } from "@components/config"
 import React, { useCallback, useEffect, useRef } from "react"
-import { getMatchingSlashCommands, SlashCommand } from "@/utils/slash-commands"
+import { getMatchingSlashCommands, getSlashCommandSections, SlashCommand } from "@/utils/slash-commands"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -65,9 +65,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 		remoteWorkflowToggles,
 		remoteWorkflows,
 	)
-	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "task" || !cmd.section)
-	const instructionsCommands = filteredCommands.filter((cmd) => cmd.section === "instructions")
-	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "workflows")
+	const sections = getSlashCommandSections(filteredCommands)
 
 	// Create a reusable function for rendering a command section
 	const renderCommandSection = (commands: SlashCommand[], title: string, indexOffset: number, showDescriptions: boolean) => {
@@ -94,15 +92,15 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 							onClick={() => handleClick(command)}
 							onMouseEnter={() => setSelectedIndex(itemIndex)}>
 							<div
-								className="font-normal whitespace-nowrap overflow-hidden text-ellipsis flex items-end"
-								style={{ fontSize: menuFontSize, paddingTop: "1px", paddingBottom: "2px" }}>
+								className="font-normal whitespace-nowrap overflow-hidden text-ellipsis"
+								style={{ fontSize: menuFontSize, }}>
 								<span
 									className="codicon codicon-sparkle"
-									style={{ color: iconHighlightColor, opacity: 0.9, fontSize: "14px", marginRight: 4 }}
+									style={{ color: iconHighlightColor, opacity: 0.9, fontSize: "14px", marginRight: "4px" }}
 								/>
 								<span>{command.name}</span>
-								{showDescriptions && ( //command.description && (
-									<span className="text-[0.8em] text-[var(--vscode-descriptionForeground)] whitespace-nowrap overflow-hidden text-ellipsis">
+								{showDescriptions && command.description && (
+									<span className="text-xs text-[var(--vscode-descriptionForeground)] whitespace-nowrap overflow-hidden text-ellipsis">
 										<span className="ph-no-capture ml-1.5 opacity-80">
 											{command.description ?? "External"}
 										</span>
@@ -135,12 +133,6 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 				}}>
 				{filteredCommands.length > 0 ? (
 					(() => {
-						const sections = [
-							{ commands: defaultCommands, title: "Task", showDescriptions: true },
-							{ commands: instructionsCommands, title: "Instructions", showDescriptions: true },
-							{ commands: workflowCommands, title: "Workflows", showDescriptions: true },
-						]
-
 						let currentIndex = 0
 						return sections.map((section, _sectionIndex) => {
 							const sectionElement = renderCommandSection(

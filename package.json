@@ -161,7 +161,7 @@
 			{
 				"command": "editor.action.submitComment",
 				"key": "enter",
-				"when": "commentEditorFocused && commentController == cline-ai-review && !commentIsEmpty"
+				"when": "commentEditorFocused && commentController == astro-ai-review && !commentIsEmpty"
 			},
 			{
 				"command": "astro.addToChat",
@@ -250,14 +250,14 @@
 				{
 					"command": "astro.reviewComment.reply",
 					"group": "inline",
-					"when": "commentController == cline-ai-review"
+					"when": "commentController == astro-ai-review"
 				}
 			],
 			"comments/commentThread/title": [
 				{
 					"command": "astro.reviewComment.addToChat",
 					"group": "inline",
-					"when": "commentController == cline-ai-review"
+					"when": "commentController == astro-ai-review"
 				}
 			]
 		},

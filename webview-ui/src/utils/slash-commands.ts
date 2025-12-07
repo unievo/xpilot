@@ -81,7 +81,7 @@ export function getWorkflowCommands(
 				acc.workflows.push({
 					name: fileNameWithoutExtension,
 					section: "workflows",
-					description: "Local: /" + fileDirName,
+					description: "Workspace: /" + fileDirName,
 				} as SlashCommand)
 
 				// Add to set of names
@@ -174,8 +174,6 @@ export function removeSlashCommand(text: string, position: number): { newText: s
 export function shouldShowSlashCommandsMenu(
 	text: string,
 	cursorPosition: number,
-	localWorkflowToggles: Record<string, boolean> = {},
-	globalWorkflowToggles: Record<string, boolean> = {},
 ): boolean {
 	const beforeCursor = text.slice(0, cursorPosition)
 
@@ -195,32 +193,6 @@ export function shouldShowSlashCommandsMenu(
 
 	// potential partial or full command
 	const textAfterSlash = beforeCursor.slice(slashIndex + 1)
-
-	// // get all available commands including workflow commands
-	// const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
-	// const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
-
-	// // check if we have a complete valid command followed by a space
-	// const hasCompleteCommand = allCommands.some((cmd) => {
-	// 	const commandName = cmd.name.toLowerCase()
-	// 	const textToCheck = textAfterSlash.toLowerCase()
-
-	// 	// Check if the text starts with this command and is followed by a space
-	// 	if (textToCheck.startsWith(commandName)) {
-	// 		const nextChar = textAfterSlash[commandName.length]
-	// 		// If there's a space after the command, this is a complete command
-	// 		// We should not show the menu regardless of what comes after the space
-	// 		const isComplete = nextChar === " "
-
-	// 		return isComplete
-	// 	}
-	// 	return false
-	// })
-
-	// // if we have a complete command followed by a space, don't show menu
-	// if (hasCompleteCommand) {
-	// 	return false
-	// }
 
 	// don't show menu if there's whitespace after the slash but before the cursor
 	if (/\s/.test(textAfterSlash)) {
@@ -262,30 +234,63 @@ export function getMatchingSlashCommands(
 		return allCommands
 	}
 
-	// // normalize query by trimming and lowercasing for matching
-	// const normalizedQuery = query.trim().toLowerCase()
-
-
 	// filter commands that start with the query (case sensitive)
 	return allCommands.filter((cmd) => cmd.name.startsWith(query))
+}
 
-	// // filter commands that start with the query or contain all words from the query
-	// return allCommands.filter((cmd) => {
-	// 	const normalizedCommandName = cmd.name.toLowerCase()
+/**
+ * Represents a section of slash commands in the menu
+ */
+export interface SlashCommandSection {
+	commands: SlashCommand[]
+	title: string
+	showDescriptions: boolean
+}
 
-	// 	// exact prefix match (case insensitive)
-	// 	if (normalizedCommandName.startsWith(normalizedQuery)) {
-	// 		return true
-	// 	}
+/**
+ * Organizes filtered slash commands into menu sections.
+ * This ensures consistent organization across components.
+ * 
+ * @param filteredCommands The filtered list of commands
+ * @returns Array of sections with commands, titles, and display options
+ */
+export function getSlashCommandSections(filteredCommands: SlashCommand[]): SlashCommandSection[] {
+	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "task" || !cmd.section)
+	const instructionsCommands = filteredCommands.filter((cmd) => cmd.section === "instructions")
+	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "workflows")
 
-	// 	// check if all words in the query are present in the command name
-	// 	const queryWords = normalizedQuery.split(/\s+/).filter((word) => word.length > 0)
-	// 	if (queryWords.length > 1) {
-	// 		return queryWords.every((word) => normalizedCommandName.includes(word))
-	// 	}
+	return [
+		{ commands: defaultCommands, title: "Task", showDescriptions: true },
+		{ commands: instructionsCommands, title: "Instructions", showDescriptions: true },
+		{ commands: workflowCommands, title: "Workflows", showDescriptions: true },
+	]
+}
 
-	// 	return false
-	// })
+/**
+ * Maps a visual index from the menu (accounting for section organization) to the correct SlashCommand.
+ * The menu organizes commands into sections, so the visual index
+ * needs to be mapped through these sections to find the actual command.
+ * 
+ * @param menuIndex The index as displayed in the menu (accounting for sections)
+ * @param filteredCommands The filtered list of commands
+ * @returns The SlashCommand at the menu index, or undefined if out of bounds
+ */
+export function getSlashCommandAtMenuIndex(
+	menuIndex: number,
+	filteredCommands: SlashCommand[],
+): SlashCommand | undefined {
+	const sections = getSlashCommandSections(filteredCommands)
+	let commandIndex = menuIndex
+
+	// Map the visual index through sections
+	for (const section of sections) {
+		if (commandIndex < section.commands.length) {
+			return section.commands[commandIndex]
+		}
+		commandIndex -= section.commands.length
+	}
+
+	return undefined
 }
 
 /**
@@ -300,26 +305,12 @@ export function insertSlashCommand(
 	// Find the slash nearest to cursor (before cursor position)
 	const beforeCursor = text.slice(0, cursorPosition)
 	const slashIndex = beforeCursor.lastIndexOf("/")
-
-	// const slashIndex = text.indexOf("/")
-
-	// // where the command ends, look for first space or end of text
-	// let commandEndIndex = text.indexOf(" ", slashIndex)
-	// if (commandEndIndex === -1) {
-	// 	// if no space found, command goes to end of text
-	// 	commandEndIndex = text.length
-	// }
-
 	const beforeSlash = text.substring(0, slashIndex + 1)
 	const afterPartialCommand = text.substring(slashIndex + 1 + partialCommandLength)
 
 	// replace the partial command with the full command
 	const newValue =
 		beforeSlash + commandName + (afterPartialCommand.startsWith(" ") ? afterPartialCommand : " " + afterPartialCommand)
-
-	// replace the partial command with the full command
-	// const newValue =
-	// 	text.substring(0, slashIndex + 1) + commandName + (commandEndIndex < text.length ? text.substring(commandEndIndex) : " ") // add single space at the end if only slash command
 
 	return { newValue, commandIndex: slashIndex }
 }
@@ -347,36 +338,12 @@ export function validateSlashCommand(
 	)
 	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
 
-	// // normalize command for matching
-	// const normalizedCommand = command.trim().toLowerCase()
-
-	// // case insensitive exact matching
-	// const exactMatch = allCommands.some((cmd) => cmd.name.toLowerCase() === normalizedCommand)
-
 	// case sensitive matching
 	const exactMatch = allCommands.some((cmd) => cmd.name === command)
 
 	if (exactMatch) {
 		return "full"
 	}
-
-	// check for partial matches - either prefix match or all words present
-	// const partialMatch = allCommands.some((cmd) => {
-	// 	const normalizedCmdName = cmd.name.toLowerCase()
-
-	// 	// prefix match
-	// 	if (normalizedCmdName.startsWith(normalizedCommand)) {
-	// 		return true
-	// 	}
-
-	// 	// check if all words in the command are present in a valid command
-	// 	const commandWords = normalizedCommand.split(/\s+/).filter((word) => word.length > 0)
-	// 	if (commandWords.length > 1) {
-	// 		return commandWords.every((word) => normalizedCmdName.includes(word))
-	// 	}
-
-	// 	return false
-	// })
 
 	const partialMatch = allCommands.some((cmd) => cmd.name.startsWith(command))
 

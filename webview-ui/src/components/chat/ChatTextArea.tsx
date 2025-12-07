@@ -36,6 +36,7 @@ import { isSafari } from "@/utils/platformUtils"
 import {
 	DEFAULT_SLASH_COMMANDS,
 	getMatchingSlashCommands,
+	getSlashCommandAtMenuIndex,
 	getWorkflowCommands,
 	insertSlashCommand,
 	removeSlashCommand,
@@ -647,7 +648,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							remoteConfigSettings?.remoteGlobalWorkflows,
 						)
 						if (commands.length > 0) {
-							handleSlashCommandsSelect(commands[selectedSlashCommandsIndex])
+							const selectedCommand = getSlashCommandAtMenuIndex(selectedSlashCommandsIndex, commands)
+							if (selectedCommand) {
+								handleSlashCommandsSelect(selectedCommand)
+							}
 						}
 						return
 					}
@@ -889,9 +893,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
 				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(
 					newValue,
-					newCursorPosition,
-					localWorkflowToggles,
-					globalWorkflowToggles,
+					newCursorPosition
 				)
 
 				// we do not allow both menus to be shown at the same time

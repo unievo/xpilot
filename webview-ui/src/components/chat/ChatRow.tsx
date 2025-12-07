@@ -50,7 +50,7 @@ import AgentLogo from "@/assets/AgentLogo"
 import { OptionsButtons } from "@/components/chat/OptionsButtons"
 import { CheckmarkControl } from "@/components/common/CheckmarkControl"
 import { CheckpointControls } from "@/components/common/CheckpointControls"
-import CodeBlock, { CHAT_ROW_EXPANDED_BG_COLOR, TERMINAL_CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import CodeBlock, { CHAT_ROW_EXPANDED_BG_COLOR, CODE_BLOCK_BG_COLOR, TERMINAL_CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { WithCopyButton } from "@/components/common/CopyButton"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import SuccessButton from "@/components/common/SuccessButton"
@@ -2313,7 +2313,7 @@ export const ChatRowContent = memo(
 												paddingTop: 10,
 												paddingBottom: 10,
 												display: "flex",
-												flexDirection: "column",
+												flexDirection: "row",
 												gap: 8,
 											}}>
 											<SuccessButton
@@ -2330,9 +2330,6 @@ export const ChatRowContent = memo(
 												}}
 												style={{
 													cursor: seeNewChangesDisabled ? "wait" : "pointer",
-													marginLeft: "2px",
-													marginRight: "2px",
-													// display: "block",
 													width: "100%",
 													textAlign: "center",
 												}}>

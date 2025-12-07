@@ -1,8 +1,7 @@
+import { Accordion, AccordionItem } from "@heroui/react"
 import { baseVersion, baseVersionUrl, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
-import { useMount } from "react-use"
-import { useExtensionState } from "@/context/ExtensionStateContext"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INPUT_BACKGROUND } from "@/utils/vscStyles"
 
 interface AnnouncementProps {
@@ -19,15 +18,15 @@ const containerStyle: CSSProperties = {
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "16px", fontWeight: "bold" }
+const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "15px", fontWeight: "bold" }
 const h4TitleStyle: CSSProperties = { margin: "0 0 8px", fontWeight: "bold" }
-const ulStyle: CSSProperties = { listStyle: "disc", margin: "4px", marginBottom: "-10px", paddingLeft: "10px", fontSize: "12px" }
+const ulStyle: CSSProperties = { fontSize: "12px", listStyle: "disc", margin: "4px", marginBottom: "-10px", paddingLeft: "10px" }
 const _accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
 	background: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 	opacity: 0.1,
-	marginTop: "20px",
+	marginTop: "10px",
 	marginBottom: "5px",
 }
 const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "12px", textAlign: "right" }
@@ -40,40 +39,8 @@ Patch releases (3.19.1 → 3.19.2) will not trigger new announcements.
 */
 const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
-	const { clineUser } = useClineAuth()
-	const { openRouterModels, setShowChatModelSelector, refreshOpenRouterModels } = useExtensionState()
-	const user = clineUser || undefined
-	const { handleFieldsChange } = useApiConfigurationHandlers()
 
-	const [didClickMicrowaveButton, setDidClickMicrowaveButton] = useState(false)
-	// Need to get latest model list in case user hits shortcut button to set model
-	useMount(refreshOpenRouterModels)
-
-	const setMicrowave = () => {
-		const modelId = "stealth/microwave"
-		// set both plan and act modes to use code-supernova-1-million
-		handleFieldsChange({
-			planModeOpenRouterModelId: modelId,
-			actModeOpenRouterModelId: modelId,
-			planModeOpenRouterModelInfo: openRouterModels[modelId],
-			actModeOpenRouterModelInfo: openRouterModels[modelId],
-			planModeApiProvider: "cline",
-			actModeApiProvider: "cline",
-		})
-
-		setTimeout(() => {
-			setDidClickMicrowaveButton(true)
-			setShowChatModelSelector(true)
-		}, 10)
-	}
-
-	const handleShowAccount = () => {
-		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
-			console.error("Failed to get login URL:", err),
-		)
-	}
-
-	const isVscode = PLATFORM_CONFIG.type === PlatformType.VSCODE
+	// const isVscode = PLATFORM_CONFIG.type === PlatformType.VSCODE
 
 	return (
 		<div style={containerStyle}>
@@ -89,49 +56,44 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					<li>
 						<b>Task Header:</b> Design update for better usability
 					</li>
-					<div className="mt-3" />
-					<b>Base Features Update: </b>
-					<div className="mt-1.5" />
+					<div className="mt-4" />
+					<b style={{ fontSize: 13 }}>Base Features Update: </b>
+					<div className="mt-2" />
 
 					<li>
 						<b>Claude Sonnet 4.5:</b> Support for Sonnet 4.5 in multiple API providers -{" "}
 						<a href={`${baseVersionUrl}`}>{baseVersion}</a>
 					</li>
-					{/* <li>
-						<b>Deep Planning:</b> New "/Deep Planning" slash command for codebase exploration and implementation
-						planning, that integrates with Focus Chain for automatic progress tracking
-					</li>
-					<li>
-						<b>New API providers, models, enhancements and fixes: </b> <a href={`${baseVersionUrl}`}>{baseVersion}</a>
-					</li> */}
 				</ul>
 			}
 
-			{/* <Accordion isCompact className="pl-0">
+			<Accordion className="" isCompact>
 				<AccordionItem
 					aria-label="Previous Updates"
-					title="Previous Updates:"
-					style={{ padding: "0px 15px" }}
 					classNames={{
 						trigger: "bg-transparent border-0 pl-0 pb-0 w-fit",
-						title: "font-bold text-xs text-[var(--vscode-foreground)]",
+						title: "font-bold text-sm text-[var(--vscode-foreground)]",
 						indicator:
-							"text-[var(--vscode-foreground)] mb-0.5 -rotate-180 data-[open=true]:-rotate-90 rtl:rotate-0 rtl:data-[open=true]:-rotate-90",
+							"text-[var(--vscode-foreground)] -rotate-180 data-[open=true]:-rotate-90 rtl:rotate-0 rtl:data-[open=true]:-rotate-90",
 					}}
-					key="1">
+					key="1"
+					style={{ margin: "15px 8px 0" }}
+					title="Previous Updates:">
 					<ul style={ulStyle}>
 						<li>
 							<b>Overview section:</b> for quick access to main features and usage recommendations.
 						</li>
 						<li>
-							<b>Instructions and Workflows enhancements:</b> allowing for an expandable and collaborative knowledge bases using Git, with the "/Git Instructions" and "/Git Workflows" slash commands.
+							<b>Instructions and Workflows enhancements:</b> allowing for an expandable and collaborative knowledge
+							bases using Git, with the "/Git Instructions" and "/Git Workflows" slash commands.
 						</li>
 						<li>
-							<b>On demand MCP tools schema loading:</b> performance and cost optimization when using MCP servers with a large number of tools, reducing the system prompt size and token usage.
+							<b>On demand MCP tools schema loading:</b> performance and cost optimization when using MCP servers
+							with a large number of tools, reducing the system prompt size and token usage.
 						</li>
 					</ul>
 				</AccordionItem>
-			</Accordion> */}
+			</Accordion>
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
 				{xUrl && (
