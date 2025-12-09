@@ -72,7 +72,7 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 			</div>
 
 			<form onSubmit={handleSubmit}>
-				<div className="mb-2">
+				<div className="mt-4 mb-2">
 					<VSCodeTextField
 						className="w-full"
 						disabled={isSubmitting}

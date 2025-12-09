@@ -22,7 +22,6 @@ interface FeatureSettingsSectionProps {
 const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionProps) => {
 	const {
 		enableCheckpointsSetting,
-		mcpMarketplaceEnabled,
 		mcpDisplayMode,
 		mcpResponsesCollapsed,
 		openaiReasoningEffort,
@@ -189,46 +188,6 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>
-						<Tooltip>
-							<TooltipTrigger>
-								<div className="flex items-center gap-2">
-									<VSCodeCheckbox
-										checked={mcpMarketplaceEnabled}
-										disabled={remoteConfigSettings?.mcpMarketplaceEnabled !== undefined}
-										onChange={(e: any) => {
-											const checked = e.target.checked === true
-											updateSetting("mcpMarketplaceEnabled", checked)
-										}}>
-										Enable MCP Marketplace
-									</VSCodeCheckbox>
-									{remoteConfigSettings?.mcpMarketplaceEnabled !== undefined && (
-										<i className="codicon codicon-lock text-description text-sm" />
-									)}
-								</div>
-							</TooltipTrigger>
-							<TooltipContent hidden={remoteConfigSettings?.mcpMarketplaceEnabled === undefined}>
-								This setting is managed by your organization's remote configuration
-							</TooltipContent>
-						</Tooltip>
-
-						<p className="text-xs text-description">
-							Enables the MCP Marketplace tab provided by Cline, for discovering and installing MCP servers.
-						</p>
-					</div>
-					<div style={{ marginTop: 10 }}>
-						<VSCodeCheckbox
-							checked={mcpResponsesCollapsed}
-							onChange={(e: any) => {
-								const checked = e.target.checked === true
-								updateSetting("mcpResponsesCollapsed", checked)
-							}}>
-							Collapse MCP Responses
-						</VSCodeCheckbox>
-						<p className="text-xs text-(--vscode-descriptionForeground)">
-							Sets the default display mode for MCP response panels
-						</p>
-					</div>
-					<div style={{ marginTop: 10 }}>
 						<label
 							className="block text-sm font-medium text-(--vscode-foreground) mb-1"
 							htmlFor="mcp-display-mode-dropdown">
@@ -243,6 +202,19 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						<p className="text-xs mt-[5px] text-(--vscode-descriptionForeground)">
 							Controls how MCP responses are displayed: plain text, rich formatting with links/images, or markdown
 							rendering.
+						</p>
+					</div>
+					<div style={{ marginTop: 10 }}>
+						<VSCodeCheckbox
+							checked={mcpResponsesCollapsed}
+							onChange={(e: any) => {
+								const checked = e.target.checked === true
+								updateSetting("mcpResponsesCollapsed", checked)
+							}}>
+							Collapse MCP Responses
+						</VSCodeCheckbox>
+						<p className="text-xs text-(--vscode-descriptionForeground)">
+							Sets the default display mode for MCP response panels
 						</p>
 					</div>
 					<div style={{ marginTop: 10 }}>

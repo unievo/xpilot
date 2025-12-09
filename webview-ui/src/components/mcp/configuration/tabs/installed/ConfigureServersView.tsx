@@ -9,8 +9,10 @@ import AddRemoteServerForm from "../add-server/AddRemoteServerForm"
 import ServersToggleList from "./ServersToggleList"
 
 const ConfigureServersView = () => {
-	const { mcpServers: servers, navigateToSettings, mcpMarketplaceEnabled, navigateToMcp } = useExtensionState()
+	const { mcpServers: servers, navigateToSettings, remoteConfigSettings, navigateToMcp } = useExtensionState()
 	const [showAddServer, setShowAddServer] = useState(false)
+
+	const mcpMarketplaceEnabled = remoteConfigSettings?.mcpMarketplaceEnabled !== false
 
 	return (
 		<div style={{ padding: "5px 15px" }}>
@@ -24,7 +26,7 @@ const ConfigureServersView = () => {
 					color: "var(--vscode-descriptionForeground)",
 				}}>
 				<div style={{ fontSize: "12px", margin: 5, marginBottom: 5 }}>
-					Use <b>Settings</b> to edit the MCP configuration settings file. Use <b>Remote</b> to add a remote server.{" "}
+					Use <b>Settings</b> to edit the MCP configuration file. Use <b>Remote</b> to add a remote server.{" "}
 					{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
 						<div style={{ marginTop: "-10px" }}>
 							<br />

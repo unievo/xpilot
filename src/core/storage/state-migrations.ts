@@ -1,7 +1,7 @@
 import fs from "fs/promises"
 import path from "path"
 import * as vscode from "vscode"
-import { mcpMarketplaceEnabledDefaultSetting, productName } from "@/shared/Configuration"
+import { productName } from "@/shared/Configuration"
 import { HistoryItem } from "@/shared/HistoryItem"
 import { ensureGlobalInstructionsDirectoryExists, readTaskHistoryFromState, writeTaskHistoryToState } from "./disk"
 
@@ -130,7 +130,7 @@ export async function migrateMcpMarketplaceEnableSetting(mcpMarketplaceEnabledRa
 
 		return mcpMarketplaceEnabled
 	}
-	return mcpMarketplaceEnabledRaw ?? mcpMarketplaceEnabledDefaultSetting
+	return mcpMarketplaceEnabledRaw ?? true
 }
 
 export async function migrateEnableCheckpointsSetting(enableCheckpointsSettingRaw: boolean | undefined): Promise<boolean> {

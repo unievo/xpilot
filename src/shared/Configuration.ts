@@ -26,7 +26,6 @@ export const enableYoloMode = true
 export const enableTelemetrySettings = false
 export const maxHistoryPreviewItems = 10
 export const mcpLibraryEnabled = false
-export const mcpMarketplaceEnabledDefaultSetting = true
 export const enableNewInstructionsDefaultSetting = false
 export const mcpServerIncludeFullSchema_ToolsMaxCount = 5
 export const mcpServerIncludeToolInputSchema_MaxLength = 100

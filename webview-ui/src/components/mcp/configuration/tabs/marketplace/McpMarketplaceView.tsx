@@ -14,8 +14,9 @@ import { McpServiceClient } from "@/services/grpc-client"
 import McpMarketplaceCard from "./McpMarketplaceCard"
 
 const McpMarketplaceView = () => {
-	const { mcpServers, mcpMarketplaceCatalog, setMcpMarketplaceCatalog, mcpMarketplaceEnabled, remoteConfigSettings } =
-		useExtensionState()
+	const { mcpServers, mcpMarketplaceCatalog, setMcpMarketplaceCatalog, remoteConfigSettings } = useExtensionState()
+
+	const showMarketplace = remoteConfigSettings?.mcpMarketplaceEnabled !== false
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [isRefreshing, setIsRefreshing] = useState(false)
@@ -79,7 +80,7 @@ const McpMarketplaceView = () => {
 		}
 		setError(null)
 
-		if (mcpMarketplaceEnabled) {
+		if (showMarketplace) {
 			McpServiceClient.refreshMcpMarketplace(EmptyRequest.create({}))
 				.then((response) => {
 					setMcpMarketplaceCatalog(response)

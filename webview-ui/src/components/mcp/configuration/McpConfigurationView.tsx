@@ -21,7 +21,9 @@ type McpViewProps = {
 type LocalMcpViewTab = McpViewTab | "install"
 
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
-	const { mcpMarketplaceEnabled, setMcpServers, setMcpTab, environment } = useExtensionState()
+	const {remoteConfigSettings, setMcpServers, setMcpTab, environment } = useExtensionState()
+	// Show marketplace by default unless remote config explicitly disables it
+	const showMarketplace = remoteConfigSettings?.mcpMarketplaceEnabled !== false
 	const [activeTab, setActiveTab] = useState<LocalMcpViewTab>(initialTab || "configure")
 	const [installSubTab, setInstallSubTab] = useState<McpViewTab>("library")
 
@@ -53,16 +55,17 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	}, [initialTab])
 
 	useEffect(() => {
-		if (!mcpMarketplaceEnabled && installSubTab === "marketplace") {
-			setInstallSubTab("library")
+		if (!showMarketplace && installSubTab === "marketplace") {
+			// If marketplace is disabled by remote config and we're on marketplace tab, switch to configure
+			setActiveTab("configure")
 		}
-	}, [mcpMarketplaceEnabled, installSubTab])
+	}, [showMarketplace, installSubTab])
 
 	// Get setter for MCP marketplace catalog from context
 	const { setMcpMarketplaceCatalog } = useExtensionState()
 
 	useEffect(() => {
-		if (mcpMarketplaceEnabled) {
+		if (showMarketplace) {
 			McpServiceClient.refreshMcpMarketplace(EmptyRequest.create({}))
 				.then((response) => {
 					setMcpMarketplaceCatalog(response)
@@ -82,7 +85,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					console.error("Failed to fetch MCP servers:", error)
 				})
 		}
-	}, [mcpMarketplaceEnabled])
+	}, [showMarketplace])
 
 	return (
 		<div
@@ -123,7 +126,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 						style={{ flex: 1 }}>
 						<b>Configure</b>
 					</TabButton>
-					{(mcpLibraryEnabled || mcpMarketplaceEnabled) && (
+					{(mcpLibraryEnabled || showMarketplace) && (
 						<TabButton
 							isActive={activeTab === "install"}
 							onClick={() => handleTabChange("install")}
@@ -134,7 +137,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 				</div>
 
 				{/* Sub-tabs for Install */}
-				{activeTab === "install" && (mcpLibraryEnabled || mcpMarketplaceEnabled) && (
+				{activeTab === "install" && (mcpLibraryEnabled || showMarketplace) && (
 					<div
 						style={{
 							display: "flex",
@@ -151,7 +154,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 								Library
 							</TabButton>
 						)}
-						{mcpMarketplaceEnabled && (
+						{showMarketplace && (
 							<TabButton
 								isActive={installSubTab === "marketplace"}
 								onClick={() => handleInstallSubTabChange("marketplace")}
@@ -165,7 +168,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 				{/* Content container */}
 				<div style={{ width: "100%" }}>
 					{activeTab === "install" && installSubTab === "library" && mcpLibraryEnabled && <McpLibraryView />}
-					{activeTab === "install" && installSubTab === "marketplace" && mcpMarketplaceEnabled && (
+					{activeTab === "install" && installSubTab === "marketplace" && showMarketplace && (
 						<McpMarketplaceView />
 					)}
 					{activeTab === "configure" && <ConfigureServersView />}
