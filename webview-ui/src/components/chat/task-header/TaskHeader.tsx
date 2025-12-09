@@ -351,7 +351,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											}}>
 											{highlightText(task.text, false)}
 										</span>
-										{isCostAvailable && (
+										{isCostAvailable && totalCost > 0 && (
 											<span
 												className="ml-auto mr-2 mb-1 px-1 py-0.25 rounded-md inline-flex shrink-0 text-badge-foreground bg-badge-background/60 items-center"
 												id="price-tag">
@@ -384,7 +384,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 					<div className="inline-flex items-center justify-end select-none shrink-0">
 						{isTaskExpanded && (
 							<>
-								{isCostAvailable && (
+								{isCostAvailable && totalCost > 0 && (
 									<span
 										className="ml-2 mr-2 px-1 py-0.125 rounded-md inline-flex shrink-0 text-badge-foreground bg-badge-background/60 items-center"
 										id="price-tag">

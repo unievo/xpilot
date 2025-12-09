@@ -30,7 +30,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 	{
 		id: "executeSafeCommands",
 		label: "Execute safe commands",
-		shortName: "Exec safe",
+		shortName: "Exec",
 		icon: "codicon-terminal",
 		subAction: {
 			id: "executeAllCommands",
