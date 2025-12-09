@@ -11,11 +11,11 @@ It includes Cline's general functionality, with an enhanced UI and additional cu
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:0;">
     <tr style="border:0;">
-        <td width="300" valign="top" style="border:0;">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/home.png" alt="Astro Start" width="300" style="margin-right: 10px; margin-bottom: 10px; border:0px;">
+        <td width="auto" align="center" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/main/assets/img/home.png" alt="Astro Start" width="300" style="margin-right: 10px; margin-bottom: 10px; border:0px;">
         </td>
-        <td width="300" valign="top" style="border:0;">
-            <img src="https://raw.githubusercontent.com/unievo/astro/dev/assets/img/task.png" alt="Astro Task" width="300" style="margin-left: 10px; margin-bottom: 10px; border:0px;">
+        <td width="auto" align="center" valign="top" style="border:0;">
+            <img src="https://raw.githubusercontent.com/unievo/astro/main/assets/img/task.png" alt="Astro Task" width="300" style="margin-left: 10px; margin-bottom: 10px; border:0px;">
         </td>
     </tr>
 </table>

@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.0]
+
+- Extensive Chat Interface redesign for a more compact and streamlined UI/UX
+
+- Base Features Update: [v3.40.1](https://github.com/cline/cline/blob/main/CHANGELOG.md#3401) 
+
 ## [1.2.0]
 
 - Task header design update for better usability
@@ -13,10 +19,6 @@ Base Features Update:
 - Focus Chain: Automatically creates and maintains todo lists in tasks, breaking down tasks into steps with real-time progress tracking
 - Deep Planning: New "/Deep Planning" slash command for codebase exploration and implementation planning, that integrates with Focus Chain for automatic progress tracking
 - New API providers, models, enhancements and fixes. [v3.30.3](https://github.com/cline/cline/blob/main/CHANGELOG.md#3303)
-
-## [1.0.1]
-
-- Marketplace name configuration update.
 
 ## [1.0.0]
 
