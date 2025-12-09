@@ -551,8 +551,8 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 								)}
 								{currentView === "workflows" && (
 									<p>
-										Use workflow files to define a sequence of steps that can be triggered as a command, by
-										starting a chat message with <strong>/workflow-name</strong>.
+										Use workflow files to define a sequence of steps that can be triggered as a slash command
+										in a chat message using <strong>/workflow-name</strong>.
 										<br />
 										<br />
 										Workflows can be used to automate complex or repetitive tasks. Add new workflow files or
