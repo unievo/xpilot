@@ -32,6 +32,7 @@ export const config = createVariant(ModelFamily.GLM)
 		SystemPromptSection.MCP,
 		SystemPromptSection.SYSTEM_INFO,
 		SystemPromptSection.OBJECTIVE,
+		SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 		SystemPromptSection.USER_INSTRUCTIONS,
 	)
 	.tools(
@@ -45,6 +46,7 @@ export const config = createVariant(ModelFamily.GLM)
 		ClineDefaultTool.BROWSER,
 		ClineDefaultTool.MCP_USE,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ASK,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,

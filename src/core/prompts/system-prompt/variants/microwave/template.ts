@@ -46,4 +46,8 @@ export const baseTemplate = `{{${SystemPromptSection.AGENT_ROLE}}}
 
 ====
 
+{{${SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS}}}
+
+====
+
 {{${SystemPromptSection.USER_INSTRUCTIONS}}}`

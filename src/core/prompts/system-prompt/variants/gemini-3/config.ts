@@ -42,6 +42,7 @@ export const config = createVariant(ModelFamily.GEMINI_3)
 		SystemPromptSection.TASK_PROGRESS,
 		SystemPromptSection.SYSTEM_INFO,
 		SystemPromptSection.OBJECTIVE,
+		SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 		SystemPromptSection.USER_INSTRUCTIONS,
 	)
 	.tools(
@@ -56,6 +57,7 @@ export const config = createVariant(ModelFamily.GEMINI_3)
 		ClineDefaultTool.WEB_FETCH,
 		ClineDefaultTool.MCP_USE,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ASK,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,

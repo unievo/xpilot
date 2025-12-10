@@ -41,6 +41,10 @@ export const BASE = `{{${SystemPromptSection.AGENT_ROLE}}}
 
 ====
 
+{{${SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS}}}
+
+====
+
 {{${SystemPromptSection.USER_INSTRUCTIONS}}}`
 
 const RULES = (_context: SystemPromptContext) => `RULES

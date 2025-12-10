@@ -45,6 +45,7 @@ export const config = createVariant(ModelFamily.NATIVE_GPT_5)
 		SystemPromptSection.RULES,
 		SystemPromptSection.SYSTEM_INFO,
 		SystemPromptSection.OBJECTIVE,
+		SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 		SystemPromptSection.USER_INSTRUCTIONS,
 	)
 	.tools(
@@ -60,6 +61,7 @@ export const config = createVariant(ModelFamily.NATIVE_GPT_5)
 		ClineDefaultTool.BROWSER,
 		ClineDefaultTool.WEB_FETCH,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ASK,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,

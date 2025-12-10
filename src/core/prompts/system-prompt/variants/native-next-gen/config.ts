@@ -54,6 +54,7 @@ export const config = createVariant(ModelFamily.NATIVE_NEXT_GEN)
 		ClineDefaultTool.BROWSER,
 		ClineDefaultTool.WEB_FETCH,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,
 		ClineDefaultTool.PLAN_MODE,

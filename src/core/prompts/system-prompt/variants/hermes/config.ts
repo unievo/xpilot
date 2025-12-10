@@ -33,6 +33,7 @@ export const config = createVariant(ModelFamily.HERMES)
 		SystemPromptSection.TASK_PROGRESS,
 		SystemPromptSection.SYSTEM_INFO,
 		SystemPromptSection.OBJECTIVE,
+		SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 		SystemPromptSection.USER_INSTRUCTIONS,
 	)
 	.tools(
@@ -46,6 +47,7 @@ export const config = createVariant(ModelFamily.HERMES)
 		ClineDefaultTool.BROWSER,
 		ClineDefaultTool.MCP_USE,
 		ClineDefaultTool.MCP_ACCESS,
+		ClineDefaultTool.MCP_INPUT_SCHEMA,
 		ClineDefaultTool.ASK,
 		ClineDefaultTool.ATTEMPT,
 		ClineDefaultTool.NEW_TASK,
