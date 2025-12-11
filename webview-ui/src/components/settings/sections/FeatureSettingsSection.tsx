@@ -336,7 +336,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							</a>
 						</p>
 					</div>
-					{/* <div className="mt-2.5">
+					<div className="mt-2.5">
 						<VSCodeCheckbox
 							checked={nativeToolCallSetting}
 							onChange={(e) => {
@@ -349,7 +349,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							Uses the model's native tool calling API instead of XML-based tool parsing. This will improve
 							performance for supported models.
 						</p>
-					</div> */}
+					</div>
 					{multiRootSetting.featureFlag && (
 						<div className="mt-2.5">
 							<VSCodeCheckbox
@@ -385,24 +385,14 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							<p className="text-xs">
 								<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
 								<span className="text-description">
-									Allows execution of hooks from the <code>{agentWorkspaceDirectory}/{hooksDirectory}</code> directory.
+									Allows execution of hooks from the{" "}
+									<code>
+										{agentWorkspaceDirectory}/{hooksDirectory}
+									</code>{" "}
+									directory.
 								</span>
 							</p>
 						)}
-					</div>
-					<div className="mt-2.5">
-						<VSCodeCheckbox
-							checked={nativeToolCallSetting}
-							onChange={(e) => {
-								const enabled = (e?.target as HTMLInputElement).checked
-								updateSetting("nativeToolCallEnabled", enabled)
-							}}>
-							Enable Native Tool Call
-						</VSCodeCheckbox>
-						<p className="text-xs">
-							<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
-							<span className="text-description">Allows tool calls through the native API.</span>
-						</p>
 					</div>
 					{enableYoloMode && (
 						<div style={{ marginTop: 10 }}>
@@ -431,7 +421,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								</TooltipContent>
 							</Tooltip>
 
-							<p className="text-xs text-(--vscode-editorWarning-foreground)">
+							<p className="text-xs text-(--vscode-editorError-foreground)">
 								EXPERIMENTAL & DANGEROUS: This mode disables safety checks and user confirmations. {agentName}{" "}
 								will automatically approve all actions without asking. Use with extreme caution.
 							</p>

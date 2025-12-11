@@ -211,7 +211,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 											activeTab === tab.id,
 									},
 								)}>
-								<tab.icon className="w-4 h-4" />
+								<tab.icon className="w-5 h-5" />
 								<span className="hidden sm:block">{tab.name}</span>
 							</div>
 						</TooltipTrigger>
