@@ -85,9 +85,10 @@ You accomplish a given task iteratively, breaking it down into clear steps and w
 4. Once you've completed the user's task, you must use the attempt_completion tool to present the result of the task to the user. You may also provide a CLI command to showcase the result of your task; this can be particularly useful for web development tasks, where you can run e.g. \`open index.html\` to show the website you've built.
 5. If the task is not actionable, you may use the attempt_completion tool to explain to the user why the task cannot be completed, or provide a simple answer if that is what the user is looking for.`
 
-const FEEDBACK = (_context: SystemPromptContext) => `FEEDBACK
+const FEEDBACK = (_context: SystemPromptContext) => ``
+// FEEDBACK
 
-When user is providing you with feedback on how you could improve, you can let the user know to report new issue using the '/reportbug' slash command.`
+// When user is providing you with feedback on how you could improve, you can let the user know to report new issue using the '/reportbug' slash command.`
 
 export const GPT_5_TEMPLATE_OVERRIDES = {
 	BASE,

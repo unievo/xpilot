@@ -138,9 +138,10 @@ const GEMINI_3_RULES_TEMPLATE = (_context: SystemPromptContext) => `RULES
   - Not listing multiple SEARCH/REPLACE blocks in the order they appear in the file
   - Using the final auto-formatted file state (provided in tool responses) as the reference for subsequent edits is critical for success`
 
-const GEMINI_3_FEEDBACK_TEMPLATE = (_context: SystemPromptContext) => `FEEDBACK
+const GEMINI_3_FEEDBACK_TEMPLATE = (_context: SystemPromptContext) => ``
+// FEEDBACK
 
-When user is providing you with feedback on how you could improve, you can let the user know to report new issue using the '/reportbug' slash command.`
+// When user is providing you with feedback on how you could improve, you can let the user know to report new issue using the '/reportbug' slash command.`
 
 const GEMINI_3_ACT_VS_PLAN_TEMPLATE = (context: SystemPromptContext) => `ACT MODE V.S. PLAN MODE
 

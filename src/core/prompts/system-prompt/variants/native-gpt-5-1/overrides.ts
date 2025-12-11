@@ -101,9 +101,10 @@ This ensures your work aligns with the existing codebase structure and avoids un
 
 6. If the task is not actionable, you may use the attempt_completion tool to explain to the user why the task cannot be completed, or provide a simple answer if that is what the user is looking for.`
 
-const GPT5_1_FEEDBACK = (_context: SystemPromptContext) => `FEEDBACK
+const GPT5_1_FEEDBACK = (_context: SystemPromptContext) => ``
+// FEEDBACK
 
-When user is providing you with feedback on how you could improve, you can let the user know to report new issue using the '/reportbug' slash command.`
+// When user is providing you with feedback on how you could improve, you can let the user know to report new issue using the '/reportbug' slash command.`
 
 export const gpt51ComponentOverrides: PromptVariant["componentOverrides"] = {
 	[SystemPromptSection.AGENT_ROLE]: {
