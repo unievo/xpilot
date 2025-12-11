@@ -159,15 +159,22 @@ const CodeBlock = memo(({ source, forceWrap = false, maxHeight, fontSize = codeB
 	return (
 		<div
 			style={{
-				overflowY: maxHeight ? "scroll" : forceWrap ? "visible" : "auto",
 				maxHeight: maxHeight ?? (forceWrap ? "none" : "100%"),
 				backgroundColor: CODE_BLOCK_BG_COLOR,
 				borderRadius: defaultBorderRadius,
-				fontSize: fontSize,
+				overflow: "hidden",
 			}}>
-			<StyledMarkdown className="markdown" fontSize={fontSize} forceWrap={forceWrap}>
-				{reactContent}
-			</StyledMarkdown>
+			<div
+				style={{
+					overflowY: maxHeight ? "scroll" : forceWrap ? "visible" : "auto",
+					overflowX: "auto",
+					maxHeight: maxHeight ?? (forceWrap ? "none" : "100%"),
+					fontSize: fontSize,
+				}}>
+				<StyledMarkdown className="markdown" fontSize={fontSize} forceWrap={forceWrap}>
+					{reactContent}
+				</StyledMarkdown>
+			</div>
 		</div>
 	)
 })

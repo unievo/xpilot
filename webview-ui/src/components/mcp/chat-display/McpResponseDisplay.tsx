@@ -64,15 +64,19 @@ const ResponseContainer = styled.div`
 
 
 	.response-content {
-		overflow-x: auto;
-		overflow-y: auto;
 		max-width: 100%;
 		max-height: ${rowItemExpandedMaxHeight}px;
-		padding: 8px;
-		// margin: 4px 0px 0px 0px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
 		border-radius: ${defaultBorderRadius}px;
 		font-size: ${codeBlockFontSize}px;
+		overflow: hidden;
+		
+		> * {
+			overflow-x: auto;
+			overflow-y: auto;
+			max-height: ${rowItemExpandedMaxHeight}px;
+			padding: 8px;
+		}
 	}
 `
 
