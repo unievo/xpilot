@@ -40,6 +40,7 @@ export const config = createVariant(ModelFamily.NATIVE_NEXT_GEN)
 		SystemPromptSection.RULES,
 		SystemPromptSection.SYSTEM_INFO,
 		SystemPromptSection.OBJECTIVE,
+		SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS,
 		SystemPromptSection.USER_INSTRUCTIONS,
 	)
 	.tools(

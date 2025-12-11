@@ -41,6 +41,10 @@ export const BASE = `{{${SystemPromptSection.AGENT_ROLE}}}
 
 ====
 
+{{${SystemPromptSection.AGENT_CUSTOM_INSTRUCTIONS}}}
+
+====
+
 {{${SystemPromptSection.USER_INSTRUCTIONS}}}`
 
 export const GPT_5_1_TEMPLATE_OVERRIDES = {

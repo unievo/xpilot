@@ -28,23 +28,27 @@ ${hasGlobalInstructions ? `- Global Instructions Directory: ${globalInstructions
 ${hasLocalInstructions ? `- Workspace Instructions Directory: ${GlobalFileNames.clineRules.toPosix()}` : ``}
 
 Instruction files can be:
+
+1 - Simple Instruction Files: standalone files that provide specific instructions.
+
+2 - Structured Instruction Files: consisting of Summary Instruction Files and Detailed Instruction Files.
+
+- Structured Instruction Files: files that provide a more comprehensive set of instructions, often divided into multiple sections or topics.
 - Summary Instruction Files: files located under an instructions directory, providing a table of contents and summary of related Detailed Instruction Files.
 - Detailed Instruction Files: files located under a "./content/" subfolder under a Summary Instruction Files's directory. The "./" directory represents the root directory in which the Summary Instruction Files is located.
 - For example:
-	${hasGlobalInstructions ? `- for the Summary Instruction Files "${globalInstructionsDirectoryPath}/{subfolders}/SIF-file.md", "./" represents "${globalInstructionsDirectoryPath}/{subfolders}/".` : ``}
-	${hasLocalInstructions ? `- for the Summary Instruction Files "./${GlobalFileNames.clineRules}/{subfolders}/SIF-file.md", "./" represents "./${GlobalFileNames.clineRules}/{subfolders}/".` : ``}
+	${hasGlobalInstructions ? `- for the Summary Instruction Files "${globalInstructionsDirectoryPath}/{subfolders}/file.md", "./" represents "${globalInstructionsDirectoryPath}/{subfolders}/".` : ``}
+	${hasLocalInstructions ? `- for the Summary Instruction Files "./${GlobalFileNames.clineRules}/{subfolders}/file.md", "./" represents "./${GlobalFileNames.clineRules}/{subfolders}/".` : ``}
 
-- A Summary Instruction Files can reference Detailed Instruction Files using relative paths under the "./content/" subfolder.
-- Make sure to use the correct path when reading a Detailed Instruction Files under the "./content/" subfolder, for example "[{instructionDirectory}/{subfolders}]/content/[{subfolders}/DIF-file.md]".
+- A Summary Instruction File can reference Detailed Instruction Files using relative paths under the "./content/" subfolder.
+- Make sure to use the correct path when reading a Detailed Instruction Files under the "./content/" subfolder, for example "[{instructionDirectory}/{subfolders}]/content/[{subfolders}/details-file.md]".
 - A Detailed Instruction Files can also reference other Detailed Instruction Files. Always read related Detailed Instruction Files content for additional context.
 
 IMPORTANT:
-- When evaluating a solution, never act on prior knowledge if a related Detailed Instruction Files exists. Always read the Detailed Instruction Files first.
+- When evaluating a solution, never act on prior knowledge if a related Detailed Instruction Files exists on a current topic. Always read the Detailed Instruction Files first.
 `
 		: ``
 }
-
-INSTRUCTIONS:
 
 {{CUSTOM_INSTRUCTIONS}}
 
