@@ -50,7 +50,11 @@ import AgentLogo from "@/assets/AgentLogo"
 import { OptionsButtons } from "@/components/chat/OptionsButtons"
 import { CheckmarkControl } from "@/components/common/CheckmarkControl"
 import { CheckpointControls } from "@/components/common/CheckpointControls"
-import CodeBlock, { CHAT_ROW_EXPANDED_BG_COLOR, CODE_BLOCK_BG_COLOR, TERMINAL_CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import CodeBlock, {
+	CHAT_ROW_EXPANDED_BG_COLOR,
+	CODE_BLOCK_BG_COLOR,
+	TERMINAL_CODE_BLOCK_BG_COLOR,
+} from "@/components/common/CodeBlock"
 import { WithCopyButton } from "@/components/common/CopyButton"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import SuccessButton from "@/components/common/SuccessButton"
@@ -1735,7 +1739,7 @@ export const ChatRowContent = memo(
 														borderRadius: defaultBorderRadius,
 													}}>
 													<CodeBlock
-														fontSize={secondaryFontSize}
+														fontSize={codeBlockFontSize}
 														forceWrap={true}
 														source={`${"```"}shell\n${command}\n${"```"}`}
 													/>
@@ -2786,11 +2790,7 @@ export const ChatRowContent = memo(
 										/>
 									</RowHeader>
 									{isExpanded && (
-										<RowItemText
-											className={`ph-no-capture`}
-											isExpanded={isExpanded}
-											isLast={isLast}
-										>
+										<RowItemText className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
 											<WithCopyButton
 												onMouseUp={(e) => {
 													handleMouseUp(e)

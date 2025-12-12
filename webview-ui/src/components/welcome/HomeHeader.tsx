@@ -368,7 +368,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										The task context is stored in a context window (active task memory) which grows with each
 										new task request as new information is added. Different AI models/providers support
 										different context window sizes, and there is always a limit to the amount of information a
-										task context cannot grow beyond.
+										task context can contain.
 										<br />
 										<br />
 										The context window content translates into AI model tokens. Token usage information is
