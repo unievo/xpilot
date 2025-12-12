@@ -1739,7 +1739,7 @@ export const ChatRowContent = memo(
 														borderRadius: defaultBorderRadius,
 													}}>
 													<CodeBlock
-														fontSize={secondaryFontSize}
+														fontSize={codeBlockFontSize}
 														forceWrap={true}
 														source={`${"```"}shell\n${command}\n${"```"}`}
 													/>

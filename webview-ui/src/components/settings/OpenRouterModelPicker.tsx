@@ -410,7 +410,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 								Recommended
 							</Tab>
 							<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
-								Free
+								<span style={{ color: "var(--vscode-terminal-ansiGreen)" }}>Free</span>
 							</Tab>
 						</TabsContainer>
 

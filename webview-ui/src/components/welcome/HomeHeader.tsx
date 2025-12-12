@@ -348,14 +348,14 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 											</li>
 											<li style={{ marginBottom: "3px" }}>Open a workspace folder</li>
 											<li style={{ marginBottom: "3px" }}>
-												Type <b>/Git Instructions</b> to get the latest{" "}
+												Type <b>/git-instructions</b> to get the latest{" "}
 												<a href="https://github.com/unievo/xpilot-instructions.git">
 													instructions library
 												</a>{" "}
-												from Git into the workspace
+												from GitHub into the workspace or global instructions folder.
 											</li>
 											<li style={{ marginBottom: "3px" }}>
-												Use the Instructions chat menu to activate relevant task instructions:{" "}
+												Use the Instructions chat menu to activate relevant instructions for each task:{" "}
 												<span
 													className="codicon codicon-folder-active"
 													style={{ verticalAlign: "middle" }}
@@ -382,7 +382,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 										The task context is stored in a context window (active task memory) which grows with each
 										new task request as new information is added. Different AI models/providers support
 										different context window sizes, and there is always a limit to the amount of information a
-										task context cannot grow beyond.
+										task context can contain.
 										<br />
 										<br />
 										The context window content translates into AI model tokens. Token usage information is
