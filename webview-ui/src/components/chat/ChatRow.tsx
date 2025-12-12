@@ -1,3 +1,33 @@
+import {
+	codeBlockFontSize,
+	defaultBorderRadius,
+	defaultDuration,
+	errorColor,
+	hideApiRequestCompletedRow,
+	hideReasoningRow,
+	hideResponseRow,
+	iconHighlightColor,
+	mcpSectionsPadding,
+	normalColor,
+	primaryFontSize,
+	responseTextCollapsedOpacity,
+	responseTextFontSize,
+	responseTextLineClamp,
+	rowHeaderGap,
+	rowHideDuration,
+	rowIconFontSize,
+	rowIconVisible,
+	rowItemBackgroundOpacity,
+	rowItemExpandedMaxHeight,
+	rowPaddingBottom,
+	rowPaddingLeft,
+	rowPaddingRight,
+	rowPaddingTop,
+	secondaryColor,
+	secondaryFontSize,
+	showTextResponseHeader,
+	successColor,
+} from "@components/config"
 import { agentName } from "@shared/Configuration"
 import { COMMAND_OUTPUT_STRING, COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
 import {
@@ -6,50 +36,95 @@ import {
 	ClineAskUseMcpServer,
 	ClineMessage,
 	ClinePlanModeResponse,
+	ClineSayGenerateExplanation,
 	ClineSayTool,
 	COMPLETION_RESULT_CHANGES_FLAG,
 } from "@shared/ExtensionMessage"
-import { Int64Request, StringRequest } from "@shared/proto/cline/common"
-import { VSCodeBadge, VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
+import { BooleanRequest, Int64Request, StringRequest } from "@shared/proto/cline/common"
+import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import deepEqual from "fast-deep-equal"
 import React, { MouseEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSize } from "react-use"
 import styled from "styled-components"
+import AgentLogo from "@/assets/AgentLogo"
 import { OptionsButtons } from "@/components/chat/OptionsButtons"
-import TaskFeedbackButtons from "@/components/chat/TaskFeedbackButtons"
 import { CheckmarkControl } from "@/components/common/CheckmarkControl"
-import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import { CheckpointControls } from "@/components/common/CheckpointControls"
+import CodeBlock, {
+	CHAT_ROW_EXPANDED_BG_COLOR,
+	CODE_BLOCK_BG_COLOR,
+	TERMINAL_CODE_BLOCK_BG_COLOR,
+} from "@/components/common/CodeBlock"
 import { WithCopyButton } from "@/components/common/CopyButton"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import SuccessButton from "@/components/common/SuccessButton"
-import McpResponseDisplay from "@/components/mcp/chat-display/McpResponseDisplay"
 import McpResourceRow from "@/components/mcp/configuration/tabs/installed/server-row/McpResourceRow"
 import McpToolRow from "@/components/mcp/configuration/tabs/installed/server-row/McpToolRow"
+import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { FileServiceClient, TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
+import { TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { findMatchingResourceOrTemplate, getMcpServerDisplayName } from "@/utils/mcp"
-import { CheckpointControls } from "../common/CheckpointControls"
-import CodeAccordian, { cleanPathPrefix } from "../common/CodeAccordian"
-import { itemIconColor } from "../theme"
+import CodeAccordian from "../common/CodeAccordian"
+import HeroTooltip from "../common/HeroTooltip"
+import McpResponseDisplay from "../mcp/chat-display/McpResponseDisplay"
+import { ApprovalContainer } from "./ApprovalContainer"
+import {
+	CommandRow,
+	CompletionRow,
+	CompletionRowContainer,
+	HighlightRowContainer,
+	MarkdownContainer,
+	McpResponseRow,
+	McpRow,
+	OptionsRow,
+	PrimaryRowStyle,
+	ResponseRowContainer,
+	RowHeader,
+	RowIcon,
+	RowItem,
+	RowItemExpandable,
+	RowItemText,
+	RowTitle,
+	RowVisibility,
+	SecondaryRowStyle,
+	SpacingRowContainer,
+} from "./ChatRowStyles"
 import { ErrorBlockTitle } from "./ErrorBlockTitle"
 import ErrorRow from "./ErrorRow"
+import HookMessage from "./HookMessage"
 import NewTaskPreview from "./NewTaskPreview"
 import QuoteButton from "./QuoteButton"
 import ReportBugPreview from "./ReportBugPreview"
 import SearchResultsDisplay from "./SearchResultsDisplay"
 import UserMessage from "./UserMessage"
 
-const normalColor = "var(--vscode-foreground)"
-const errorColor = "var(--vscode-editorWarning-foreground)" // "var(--vscode-errorForeground)"
-const successColor = "var(--vscode-charts-green)"
-const _cancelledColor = "var(--vscode-descriptionForeground)"
-
-const ChatRowContainer = styled.div`
-	padding: 10px 8px 10px 13px;
+const ChatRowContainer = styled.div<{ hide: boolean }>`
+	padding-top: ${({ hide }) => (hide ? 0 : rowPaddingTop)}px;
+	padding-bottom: ${({ hide }) => (hide ? 0 : rowPaddingBottom)}px;
+	padding-left: ${rowPaddingLeft}px;
+	padding-right: ${rowPaddingRight}px;
 	position: relative;
+	font-size: ${primaryFontSize}px;
+	transition: all ${rowHideDuration}ms;
 
 	&:hover ${CheckpointControls} {
 		opacity: 1;
+	}
+
+	/* Fade-in animation for hook messages being inserted */
+	&.hook-message-animate {
+		animation: hookFadeSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes hookFadeSlideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 `
 
@@ -63,6 +138,7 @@ interface ChatRowProps {
 	inputValue?: string
 	sendMessageFromChatRow?: (text: string, images: string[], files: string[]) => void
 	onSetQuote: (text: string) => void
+	onCancelCommand?: () => void
 }
 
 interface QuoteButtonState {
@@ -77,32 +153,263 @@ interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
 export const ProgressIndicator = () => (
 	<div
 		style={{
-			width: "16px",
-			height: "16px",
+			width: rowIconFontSize,
+			height: rowIconFontSize,
 			display: "flex",
 			alignItems: "center",
 			justifyContent: "center",
 		}}>
-		<div style={{ transform: "scale(0.55)", transformOrigin: "center" }}>
+		<div style={{ transform: "scale(0.4)", transformOrigin: "center" }}>
 			<VSCodeProgressRing />
 		</div>
 	</div>
 )
 
-const Markdown = memo(({ markdown }: { markdown?: string }) => {
-	return (
-		<div
-			style={{
-				wordBreak: "break-word",
-				overflowWrap: "anywhere",
-				marginBottom: -15,
-				marginTop: -15,
-				overflow: "hidden", // contain child margins so that parent diff matches height of children
-			}}>
-			<MarkdownBlock markdown={markdown} />
-		</div>
-	)
-})
+const Markdown = memo(
+	({
+		markdown,
+		opacity,
+		fontSize,
+		maxHeight,
+		lineClamp,
+	}: {
+		markdown?: string
+		opacity?: number
+		fontSize?: string | number
+		maxHeight?: number
+		lineClamp?: number
+	}) => {
+		const contentRef = useRef<HTMLDivElement>(null)
+		const textRef = useRef<HTMLDivElement>(null)
+		const [isTruncated, setIsTruncated] = useState(false)
+		const [canOverflow, setCanOverflow] = useState(false)
+		const [isOverflowing, setIsOverflowing] = useState(false)
+		const [textLineClamp, setTextLineClamp] = useState<number | undefined>(lineClamp)
+		const [textMaxHeight, setTextMaxHeight] = useState<number | undefined>(maxHeight)
+
+		useEffect(() => {
+			setTextLineClamp(lineClamp)
+		}, [lineClamp])
+
+		useEffect(() => {
+			setTextMaxHeight(maxHeight)
+		}, [maxHeight])
+
+		useEffect(() => {
+			if (textRef.current && contentRef.current) {
+				const checkTruncation = () => {
+					// Use requestAnimationFrame to ensure DOM is fully updated
+					requestAnimationFrame(() => {
+						// Check if refs are still valid
+						if (textRef.current && contentRef.current) {
+							let contentHeight = contentRef.current.clientHeight
+							if (!contentHeight) {
+								contentHeight = contentRef.current.getBoundingClientRect().height
+							}
+							// Add a small threshold to account for rounding differences
+							const isOverflowing = textRef.current.scrollHeight > contentHeight + 1
+							setIsOverflowing(isOverflowing)
+							isOverflowing && setCanOverflow(true)
+							setIsTruncated(lineClamp ? isOverflowing : false)
+						}
+					})
+				}
+
+				// Check immediately
+				checkTruncation()
+
+				// Use ResizeObserver to detect when the content size changes
+				// This handles window resizing and dynamic content changes
+				let resizeObserver: ResizeObserver | undefined
+				if (contentRef.current) {
+					resizeObserver = new ResizeObserver(() => {
+						checkTruncation()
+					})
+					resizeObserver.observe(contentRef.current)
+				}
+
+				return () => {
+					if (resizeObserver) {
+						resizeObserver.disconnect()
+					}
+				}
+			}
+		}, [lineClamp, textLineClamp, maxHeight, textMaxHeight, isOverflowing, isTruncated, markdown])
+
+		return (
+			<div
+				ref={contentRef}
+				style={{
+					wordBreak: "break-word",
+					overflowWrap: "anywhere",
+					overflow: "hidden", // contain child margins so that parent diff matches height of children
+					fontSize: fontSize || "inherit",
+					opacity: opacity || 1,
+				}}>
+				<MarkdownContainer
+					ref={textRef}
+					style={{
+						maxHeight: textMaxHeight,
+						overflow: "auto",
+						...(lineClamp &&
+							textLineClamp && {
+								display: "-webkit-box",
+								WebkitLineClamp: textLineClamp,
+								WebkitBoxOrient: "vertical",
+								overflow: "hidden",
+							}),
+					}}>
+					<MarkdownBlock markdown={markdown} />
+				</MarkdownContainer>
+
+				{(isOverflowing || canOverflow) && (
+					<>
+						<div style={{ height: "4px" }} />
+						<div
+							// onClick={() => setTextLineClamp((prev) => (prev === lineClamp ? undefined : lineClamp))}
+							onClick={() => {
+								setTextLineClamp((prev) => (prev === lineClamp ? undefined : lineClamp))
+								setTextMaxHeight((prev) => (prev === maxHeight ? undefined : maxHeight))
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.opacity = "1"
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.opacity = "0.5"
+							}}
+							style={{
+								// position: "absolute",
+								// bottom: "0px",
+								// left: "50%",
+								// transform: "translateX(-50%)",
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
+								padding: "0px calc(50% - 10px)",
+								cursor: "pointer",
+								opacity: 0.5,
+								borderBottom: "0.5px dashed var(--vscode-descriptionForeground)",
+								borderRadius: "0px 0px 8px 8px",
+								transition: "opacity 0.1s ease",
+								// border: "1px solid rgba(0, 0, 0, 0.1)",
+							}}>
+							<span
+								className={`codicon codicon-triangle-${(maxHeight && !textMaxHeight) || (lineClamp && !textLineClamp) ? "up" : "down"}`}
+								style={{
+									fontSize: "13px",
+									color: "var(--vscode-editor-foreground)",
+								}}
+							/>
+						</div>
+					</>
+				)}
+			</div>
+		)
+	},
+)
+
+const CommandOutput = memo(
+	({
+		output,
+		isOutputFullyExpanded,
+		onToggle,
+		isContainerExpanded,
+	}: {
+		output: string
+		isOutputFullyExpanded: boolean
+		onToggle: () => void
+		isContainerExpanded: boolean
+	}) => {
+		const outputLines = output.split("\n")
+		const lineCount = outputLines.length
+		const shouldAutoShow = lineCount <= 5
+		const outputRef = useRef<HTMLDivElement>(null)
+
+		// Auto-scroll to bottom when output changes (only when showing limited output)
+		useEffect(() => {
+			if (!isOutputFullyExpanded && outputRef.current) {
+				// Direct scrollTop manipulation
+				outputRef.current.scrollTop = outputRef.current.scrollHeight
+
+				// Another attempt with more delay (for slower renders) to ensure scrolling works
+				setTimeout(() => {
+					if (outputRef.current) {
+						outputRef.current.scrollTop = outputRef.current.scrollHeight
+					}
+				}, 50)
+			}
+		}, [output, isOutputFullyExpanded])
+
+		// Don't render anything if container is collapsed
+		if (!isContainerExpanded) {
+			return null
+		}
+
+		return (
+			<div
+				style={{
+					width: "100%",
+					position: "relative",
+					paddingBottom: lineCount > 5 ? "16px" : "0",
+					overflow: "visible",
+					// borderTop: "1px solid rgba(255,255,255,.07)",
+					backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR,
+					borderRadius: defaultBorderRadius,
+					borderBottomLeftRadius: defaultBorderRadius,
+					borderBottomRightRadius: defaultBorderRadius,
+				}}>
+				<div
+					ref={outputRef}
+					style={{
+						color: "#FFFFFF",
+						maxHeight: shouldAutoShow ? "none" : isOutputFullyExpanded ? "200px" : "75px",
+						overflowY: shouldAutoShow ? "visible" : "auto",
+						scrollBehavior: "smooth",
+						backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR,
+						borderRadius: defaultBorderRadius,
+					}}>
+					<div style={{ backgroundColor: TERMINAL_CODE_BLOCK_BG_COLOR, borderRadius: defaultBorderRadius }}>
+						<CodeBlock fontSize={codeBlockFontSize} forceWrap={true} source={`${"```"}shell\n${output}\n${"```"}`} />
+					</div>
+				</div>
+				{/* Show notch only if there's more than 5 lines */}
+				{lineCount > 5 && (
+					<div
+						onClick={onToggle}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.opacity = "0.8"
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.opacity = "1"
+						}}
+						style={{
+							position: "absolute",
+							bottom: "-4px",
+							left: "50%",
+							transform: "translateX(-50%)",
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							padding: "0px 14px",
+							cursor: "pointer",
+							backgroundColor: "var(--vscode-descriptionForeground)",
+							borderRadius: isOutputFullyExpanded ? "6px 6px 3px 3px" : "3px 3px 6px 6px",
+							transition: "opacity 0.1s ease",
+							// border: "1px solid rgba(0, 0, 0, 0.1)",
+						}}>
+						<span
+							className={`codicon codicon-triangle-${isOutputFullyExpanded ? "up" : "down"}`}
+							style={{
+								fontSize: "11px",
+								color: "var(--vscode-editor-background)",
+							}}
+						/>
+					</div>
+				)}
+			</div>
+		)
+	},
+)
 
 const ChatRow = memo(
 	(props: ChatRowProps) => {
@@ -111,10 +418,46 @@ const ChatRow = memo(
 		// This allows us to detect changes without causing re-renders
 		const prevHeightRef = useRef(0)
 
+		// Hide rows based on message type and settings
+		const hideRow = useMemo(() => {
+			const type = message.type === "ask" ? message.ask : message.say
+			switch (type) {
+				case "api_req_started":
+					const messageText = message.text || "{}"
+					let cost: number | undefined
+					let apiReqCancelReason: string | undefined
+					let apiRequestFailedMessage: string | undefined
+					let retryStatus: any | undefined
+
+					try {
+						const info = JSON.parse(messageText)
+						cost = info.cost
+						apiReqCancelReason = info.cancelReason
+						retryStatus = info.retryStatus
+					} catch {
+						// Invalid JSON, default visibility
+					}
+
+					// If completed (has cost), hide API request completed row based on setting
+					if (cost != null && apiReqCancelReason == null && !apiRequestFailedMessage && !retryStatus) {
+						return hideApiRequestCompletedRow
+					}
+					return false
+				case "reasoning":
+					return hideReasoningRow
+				case "text":
+					return hideResponseRow
+				default:
+					return false
+			}
+		}, [message.type, message.ask, message.say, message.text])
+
 		const [chatrow, { height }] = useSize(
-			<ChatRowContainer>
-				<ChatRowContent {...props} />
-			</ChatRowContainer>,
+			<RowVisibility hide={hideRow}>
+				<ChatRowContainer hide={hideRow}>
+					<ChatRowContent {...props} />
+				</ChatRowContainer>
+			</RowVisibility>,
 		)
 
 		useEffect(() => {
@@ -149,9 +492,11 @@ export const ChatRowContent = memo(
 		inputValue,
 		sendMessageFromChatRow,
 		onSetQuote,
+		onCancelCommand,
 	}: ChatRowContentProps) => {
-		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl } = useExtensionState()
+		const { mcpServers, mcpMarketplaceCatalog, onRelinquishControl, vscodeTerminalExecutionMode } = useExtensionState()
 		const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
+		const [explainChangesDisabled, setExplainChangesDisabled] = useState(false)
 		const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
 			visible: false,
 			top: 0,
@@ -159,6 +504,10 @@ export const ChatRowContent = memo(
 			selectedText: "",
 		})
 		const contentRef = useRef<HTMLDivElement>(null)
+
+		// Command output expansion state (for all messages, but only used by command messages)
+		const [isOutputFullyExpanded, setIsOutputFullyExpanded] = useState(false)
+		const prevCommandExecutingRef = useRef<boolean>(false)
 		const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, retryStatus] = useMemo(() => {
 			if (message.text != null && message.say === "api_req_started") {
 				const info: ClineApiReqInfo = JSON.parse(message.text)
@@ -166,6 +515,9 @@ export const ChatRowContent = memo(
 			}
 			return [undefined, undefined, undefined, undefined, undefined]
 		}, [message.text, message.say])
+
+		// Get auto approval settings from context
+		const { autoApprovalSettings } = useExtensionState()
 
 		// Get saved collapsed state from localStorage or default to false
 		const getMcpArgumentsCollapsedState = () => {
@@ -177,6 +529,9 @@ export const ChatRowContent = memo(
 			}
 		}
 		const [mcpArgumentsCollapsed, setMcpArgumentsCollapsed] = useState<boolean>(getMcpArgumentsCollapsedState())
+
+		// Add state for toggling maxLines between maxLines and undefined
+		// const [maxLines, setMaxLines] = useState<number | undefined>(responseTextLineClamp)
 
 		// Update the saved state when the collapsed state changes
 		useEffect(() => {
@@ -193,12 +548,23 @@ export const ChatRowContent = memo(
 				? lastModifiedMessage?.text
 				: undefined
 
-		const isCommandExecuting =
-			isLast &&
-			(lastModifiedMessage?.ask === "command" || lastModifiedMessage?.say === "command") &&
-			lastModifiedMessage?.text?.includes(COMMAND_OUTPUT_STRING)
+		const isCommandMessage = message.ask === "command" || message.say === "command"
+		// Check if command has output to determine if it's actually executing
+		const commandHasOutput = message.text?.includes(COMMAND_OUTPUT_STRING) ?? false
+		// A command is executing if it has output but hasn't completed yet
+		const isCommandExecuting = isCommandMessage && isLast && !message.commandCompleted && commandHasOutput
+		// A command is pending if it hasn't started (no output) and hasn't completed
+		const isCommandPending = isCommandMessage && isLast && !message.commandCompleted && !commandHasOutput
+		const isCommandCompleted = isCommandMessage && message.commandCompleted === true
 
 		const isMcpServerResponding = isLast && lastModifiedMessage?.say === "mcp_server_request_started"
+
+		const isReasoning = isLast && lastModifiedMessage?.say === "reasoning"
+		const isResponding = isLast && lastModifiedMessage?.say === "text"
+
+		const isLastProcessing = isLast && lastModifiedMessage?.ts === message.ts
+
+		const [isProcessed, setIsProcessed] = useState(false)
 
 		const type = message.type === "ask" ? message.ask : message.say
 
@@ -210,6 +576,7 @@ export const ChatRowContent = memo(
 		useEffect(() => {
 			return onRelinquishControl(() => {
 				setSeeNewChangesDisabled(false)
+				setExplainChangesDisabled(false)
 			})
 		}, [onRelinquishControl])
 
@@ -288,114 +655,169 @@ export const ChatRowContent = memo(
 			switch (type) {
 				case "error":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-error"
-							style={{
-								color: errorColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Error</span>,
+							color={errorColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={errorColor} isLast={isLast}>
+							Error
+						</RowTitle>,
 					]
 				case "mistake_limit_reached":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-error"
-							style={{
-								color: errorColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>
+							color={errorColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={errorColor} fontWeight="bold" isLast={isLast}>
 							{agentName} is having trouble...
-						</span>,
-					]
-				case "auto_approval_max_req_reached":
-					return [
-						<span
-							className="codicon codicon-warning"
-							style={{
-								color: errorColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: errorColor, fontSize: 11, fontWeight: "bold" }}>Maximum Requests Reached</span>,
+						</RowTitle>,
 					]
 				case "command":
 					return [
-						isCommandExecuting ? (
-							<ProgressIndicator />
+						isLastProcessing || isCommandExecuting ? (
+							<>
+								{isCommandExecuting && setIsProcessed(true)}
+								<ProgressIndicator />
+							</>
 						) : (
-							<span
-								className="codicon codicon-terminal"
-								style={{
-									color: normalColor,
-									marginBottom: "-1.5px",
-								}}></span>
+							<RowIcon
+								className={`codicon codicon-${isProcessed ? "check" : "terminal"}`}
+								color={isProcessed ? successColor : ""}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
 						),
-						<span style={{ color: normalColor, fontWeight: "bold" }}>
-							{agentName} wants to execute this command:
-						</span>,
+						<RowTitle isLast={isLast}>Execute command</RowTitle>,
+					]
+				case "reasoning":
+					return [
+						isReasoning ? (
+							<RowIcon
+								className="codicon codicon-sparkle-filled"
+								color={normalColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize + 3 }}
+							/>
+						) : (
+							<RowIcon
+								className="codicon codicon-sparkle"
+								color={normalColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
+						),
+						<RowTitle isExpanded={isExpanded} isLast={isLast}>
+							{isReasoning ? "Thinking" : "Thought"}
+						</RowTitle>,
+					]
+				case "text":
+					return [
+						isResponding ? (
+							<RowIcon
+								className="codicon codicon-sparkle-filled"
+								color={iconHighlightColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize + 3 }}
+							/>
+						) : (
+							<RowIcon
+								className="codicon codicon-sparkle"
+								color={iconHighlightColor}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
+						),
+						<RowTitle isExpanded={isExpanded} isLast={isLast}>
+							{isResponding ? "Responding" : "Response"}
+						</RowTitle>,
 					]
 				case "use_mcp_server":
 					const mcpServerUse = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
 					return [
-						isMcpServerResponding ? (
-							<ProgressIndicator />
+						isLastProcessing || isMcpServerResponding ? (
+							<>
+								{isMcpServerResponding && setIsProcessed(true)}
+								<ProgressIndicator />
+							</>
 						) : (
-							<span
-								className="codicon codicon-server"
-								style={{
-									color: normalColor,
-									marginBottom: "-1.5px",
-								}}></span>
+							<RowIcon
+								className={`codicon codicon-${isProcessed ? "check" : "server"}`}
+								color={isProcessed ? successColor : ""}
+								isLast={isLast}
+								style={{ fontSize: rowIconFontSize }}
+							/>
 						),
-						<span
-							className="ph-no-capture"
-							style={{ color: normalColor, fontWeight: "bold", wordBreak: "break-word" }}>
-							{agentName} wants to {mcpServerUse.type === "use_mcp_tool" ? "use a tool" : "access a resource"} on
-							the{" "}
+						<RowTitle className="ph-no-capture" isLast={isLast} wordBreak="break-word">
+							{mcpServerUse.type === "use_mcp_tool" ? "Call tool" : "Read resource"} from{" "}
 							<code style={{ wordBreak: "break-all" }}>
 								{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
-							</code>{" "}
-							MCP server:
-						</span>,
+							</code>
+						</RowTitle>,
 					]
 				case "completion_result":
 					return [
-						<span
+						<RowIcon
 							className="codicon codicon-check"
-							style={{
-								color: successColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: successColor, fontWeight: "bold" }}>Task Completed</span>,
+							color={successColor}
+							isLast={isLast}
+							style={{ fontSize: rowIconFontSize }}
+						/>,
+						<RowTitle color={successColor} fontWeight={"bold"} isLast={isLast}>
+							Task Completed
+						</RowTitle>,
 					]
 				case "api_req_started":
-					return ErrorBlockTitle({
+					const [icon, title] = ErrorBlockTitle({
 						cost,
 						apiReqCancelReason,
 						apiRequestFailedMessage,
 						retryStatus,
 					})
+					return [
+						<RowIcon isLast={isLast} style={{ fontSize: rowIconFontSize }}>
+							{icon}
+						</RowIcon>,
+						<RowTitle isExpanded={isExpanded} isLast={isLast}>
+							{title}
+						</RowTitle>,
+					]
 				case "followup":
 					return [
-						<span
-							className="codicon codicon-question"
-							style={{
-								color: normalColor,
-								marginBottom: "-1.5px",
-							}}></span>,
-						<span style={{ color: normalColor, fontWeight: "bold" }}>{agentName} has a question:</span>,
+						<RowIcon className="codicon codicon-question" isLast={isLast} style={{ fontSize: rowIconFontSize }} />,
+						<RowTitle color={normalColor} fontWeight={"bold"} isLast={isLast}>
+							Question:
+						</RowTitle>,
+					]
+				case "plan_mode_respond":
+					return [
+						<RowIcon className="codicon codicon-info" isLast={isLast} style={{ fontSize: rowIconFontSize }} />,
+						<RowTitle color={normalColor} fontWeight={"bold"} isLast={isLast}>
+							Plan Response
+						</RowTitle>,
 					]
 				default:
 					return [null, null]
 			}
-		}, [type, cost, apiRequestFailedMessage, isCommandExecuting, apiReqCancelReason, isMcpServerResponding, message.text])
-
-		const headerStyle: React.CSSProperties = {
-			display: "flex",
-			alignItems: "center",
-			gap: "6px",
-			marginBottom: "8px",
-		}
+		}, [
+			type,
+			cost,
+			apiRequestFailedMessage,
+			isCommandExecuting,
+			isCommandPending,
+			apiReqCancelReason,
+			isMcpServerResponding,
+			isReasoning,
+			isResponding,
+			isLastProcessing,
+			isExpanded,
+			isLast,
+			message.text,
+		])
 
 		const _pStyle: React.CSSProperties = {
 			margin: 0,
@@ -428,9 +850,9 @@ export const ChatRowContent = memo(
 				<span
 					className={`codicon codicon-${name} ph-no-capture`}
 					style={{
-						color: color ? colorMap[color as keyof typeof colorMap] || color : "var(--vscode-foreground)",
-						marginBottom: "-1.5px",
+						color: color ? colorMap[color as keyof typeof colorMap] || color : "",
 						transform: rotation ? `rotate(${rotation}deg)` : undefined,
+						fontSize: rowIconFontSize,
 					}}
 					title={title}></span>
 			)
@@ -438,329 +860,623 @@ export const ChatRowContent = memo(
 			switch (tool.tool) {
 				case "editedExistingFile":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("edit")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>{agentName} wants to edit this file:</span>
-							</div>
-							<CodeAccordian
-								// isLoading={message.partial}
-								code={tool.content}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.editFilesExternally
+										: autoApprovalSettings.actions.editFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && (
+												<RowIcon isLast={isLast}>
+													{toolIcon("file")}
+													{/* {toolIcon("check", "green")} */}
+												</RowIcon>
+											)
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Edit
+										</RowTitle>
+										{tool.operationIsLocatedInWorkspace === false && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+											</RowIcon>
+										)}
+
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable fullWidth={true} isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													// isLoading={message.partial}
+													code={tool.content}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									</RowHeader>
+								</HighlightRowContainer>
+							</ApprovalContainer>
+						</PrimaryRowStyle>
+					)
+				case "fileDeleted":
+					return (
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.editFilesExternally
+										: autoApprovalSettings.actions.editFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && <RowIcon isLast={isLast}>{toolIcon("diff-removed")}</RowIcon>
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Delete
+										</RowTitle>
+										{tool.operationIsLocatedInWorkspace === false && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+											</RowIcon>
+										)}
+
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable fullWidth={true} isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													// isLoading={message.partial}
+													code={tool.content}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									</RowHeader>
+								</HighlightRowContainer>
+							</ApprovalContainer>
+						</PrimaryRowStyle>
 					)
 				case "newFileCreated":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("new-file")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>{agentName} wants to create a new file:</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								isLoading={message.partial}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.editFilesExternally
+										: autoApprovalSettings.actions.editFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && (
+												<RowIcon isLast={isLast}>
+													{toolIcon("new-file")}
+													{/* {toolIcon("check", "green")} */}
+												</RowIcon>
+											)
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Create
+										</RowTitle>
+										{tool.operationIsLocatedInWorkspace === false && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+											</RowIcon>
+										)}
+
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable fullWidth={true} isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													isLoading={message.partial}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									</RowHeader>
+								</HighlightRowContainer>
+							</ApprovalContainer>
+						</PrimaryRowStyle>
 					)
 				case "readFile":
 					const isImage = isImageFile(tool.path || "")
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon(isImage ? "file-media" : "file-code")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{/* {message.type === "ask" ? "" : "{agentName} read this file:"} */}
-									{agentName} wants to read this file:
-								</span>
-							</div>
-							<div
-								style={{
-									borderRadius: 3,
-									backgroundColor: CODE_BLOCK_BG_COLOR,
-									overflow: "hidden",
-									border: "1px solid var(--vscode-editorGroup-border)",
-								}}>
-								<div
-									onClick={
-										isImage
-											? undefined
-											: () => {
-													FileServiceClient.openFile(
-														StringRequest.create({ value: tool.content }),
-													).catch((err) => console.error("Failed to open file:", err))
-												}
-									}
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										display: "flex",
-										alignItems: "center",
-										padding: "9px 10px",
-										cursor: isImage ? "default" : "pointer",
-										userSelect: isImage ? "text" : "none",
-										WebkitUserSelect: isImage ? "text" : "none",
-										MozUserSelect: isImage ? "text" : "none",
-										msUserSelect: isImage ? "text" : "none",
-									}}>
-									{tool.path?.startsWith(".") && <span>.</span>}
-									{tool.path && !tool.path.startsWith(".") && <span>/</span>}
-									<span
-										className="ph-no-capture"
-										style={{
-											whiteSpace: "nowrap",
-											overflow: "hidden",
-											textOverflow: "ellipsis",
-											marginRight: "8px",
-											direction: "rtl",
-											textAlign: "left",
-										}}>
-										{cleanPathPrefix(tool.path ?? "") + "\u200E"}
-									</span>
-									<div style={{ flexGrow: 1 }}></div>
-									{!isImage && (
-										<span
-											className={`codicon codicon-link-external`}
-											style={{
-												fontSize: 13.5,
-												margin: "1px 0",
-											}}></span>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon(isImage ? "file-media" : "file-code")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
 									)}
-								</div>
-							</div>
-						</>
+									<RowTitle isLast={isLast}>Read</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+										</RowIcon>
+									)}
+
+									<HeroTooltip content={tool.path!}>
+										<RowItem isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												isLoading={message.partial}
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+												showExpand={false}
+											/>
+										</RowItem>
+									</HeroTooltip>
+								</RowHeader>
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "listFilesTopLevel":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("folder-opened")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{message.type === "ask"
-										? `${agentName} wants to view the top level files in this directory:`
-										: `${agentName} viewed the top level files in this directory:`}
-								</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								language="shell-session"
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("folder-opened")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `List top level:` : `Listed top level:`}
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													language="shell-session"
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												language="shell-session"
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "listFilesRecursive":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("folder-opened")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{message.type === "ask"
-										? `${agentName} wants to recursively view all files in this directory:`
-										: `${agentName} recursively viewed all files in this directory:`}
-								</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								language="shell-session"
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("folder-opened")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `List recursive:` : `Listed recursive:`}
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													language="shell-session"
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												language="shell-session"
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "listCodeDefinitionNames":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("file-code")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{message.type === "ask"
-										? `${agentName} wants to view source code definition names used in this directory:`
-										: `${agentName} viewed source code definition names used in this directory:`}
-								</span>
-							</div>
-							<CodeAccordian
-								code={tool.content!}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("file-code")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `List definitions:` : `Listed definitions:`}
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<CodeAccordian
+													code={tool.content!}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<CodeAccordian
+												code={tool.content!}
+												isExpanded={isExpanded}
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "searchFiles":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("search")}
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
-								<span style={{ fontWeight: "bold" }}>
-									{agentName} wants to search this directory for{" "}
-									<code style={{ wordBreak: "break-all" }}>{tool.regex}</code>:
-								</span>
-							</div>
-							<SearchResultsDisplay
-								content={tool.content!}
-								filePattern={tool.filePattern}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggle}
-								path={tool.path!}
-							/>
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={
+									tool.operationIsLocatedInWorkspace === false
+										? autoApprovalSettings.actions.readFilesExternally
+										: autoApprovalSettings.actions.readFiles
+								}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("search")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isLast={isLast}>
+										Search for <code style={{ wordBreak: "break-word" }}>{tool.regex}</code>:
+									</RowTitle>
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
+										</RowIcon>
+									)}
+									{!isExpanded && (
+										<HeroTooltip content={tool.path!}>
+											<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+												<SearchResultsDisplay
+													content={tool.content!}
+													filePattern={tool.filePattern}
+													isExpanded={isExpanded}
+													maxHeight={rowItemExpandedMaxHeight}
+													onToggleExpand={handleToggle}
+													path={tool.path!}
+												/>
+											</RowItemExpandable>
+										</HeroTooltip>
+									)}
+								</RowHeader>
+								{isExpanded && (
+									<HeroTooltip content={tool.path!}>
+										<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+											<SearchResultsDisplay
+												content={tool.content!}
+												filePattern={tool.filePattern}
+												isExpanded={isExpanded}
+												maxHeight={rowItemExpandedMaxHeight}
+												onToggleExpand={handleToggle}
+												path={tool.path!}
+											/>
+										</RowItemExpandable>
+									</HeroTooltip>
+								)}
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				case "summarizeTask":
 					return (
-						<>
-							<div style={headerStyle}>
-								{toolIcon("book")}
-								<span style={{ fontWeight: "bold" }}>{agentName} is condensing the conversation:</span>
-							</div>
-							<div
-								style={{
-									borderRadius: 3,
-									backgroundColor: CODE_BLOCK_BG_COLOR,
-									overflow: "hidden",
-									border: "1px solid var(--vscode-editorGroup-border)",
-								}}>
-								<div
-									onClick={handleToggle}
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										padding: "9px 10px",
-										cursor: "pointer",
-										userSelect: "none",
-										WebkitUserSelect: "none",
-										MozUserSelect: "none",
-										msUserSelect: "none",
-									}}>
-									{isExpanded ? (
-										<div>
-											<div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-												<span style={{ fontWeight: "bold", marginRight: "4px" }}>Summary:</span>
-												<div style={{ flexGrow: 1 }}></div>
-												<span
-													className="codicon codicon-chevron-up"
-													style={{
-														fontSize: 13.5,
-														margin: "1px 0",
-													}}></span>
-											</div>
-											<span
-												className="ph-no-capture"
-												style={{
-													whiteSpace: "pre-wrap",
-													wordBreak: "break-word",
-													overflowWrap: "anywhere",
-												}}>
-												{tool.content}
-											</span>
+						<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+							<SpacingRowContainer>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader>
+										{isLastProcessing ? (
+											<ProgressIndicator />
+										) : (
+											rowIconVisible && (
+												<RowIcon isLast={isLast}>
+													{toolIcon("book")}
+													{/* {toolIcon("check", "green")} */}
+												</RowIcon>
+											)
+										)}
+										<RowTitle isExpanded={isExpanded} isLast={isLast}>
+											Condensing task
+										</RowTitle>
+									</RowHeader>
+									<RowItemExpandable
+										isExpanded={isExpanded}
+										isLast={isLast}
+										linkOnHover={false}
+										style={{
+											width: "auto",
+										}}>
+										<div
+											onClick={handleToggle}
+											style={{
+												// color: "var(--vscode-descriptionForeground)",
+												maxHeight: rowItemExpandedMaxHeight,
+												overflowY: "auto",
+												padding: "5px 5px",
+												cursor: "pointer",
+												userSelect: "none",
+												WebkitUserSelect: "none",
+												MozUserSelect: "none",
+												msUserSelect: "none",
+											}}>
+											{isExpanded ? (
+												<div>
+													<div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+														<span style={{ fontWeight: "bold", marginRight: "4px" }}>Summary:</span>
+														<div style={{ flexGrow: 1 }}></div>
+														<span
+															className="codicon codicon-chevron-up"
+															style={{
+																fontSize: "inherit",
+																margin: "1px 0",
+															}}></span>
+													</div>
+													<span
+														className="ph-no-capture"
+														style={{
+															whiteSpace: "pre-wrap",
+															wordBreak: "break-word",
+															overflowWrap: "anywhere",
+														}}>
+														{tool.content}
+													</span>
+												</div>
+											) : (
+												<div style={{ display: "flex", alignItems: "center" }}>
+													<span
+														className="ph-no-capture"
+														style={{
+															width: "auto",
+															whiteSpace: "nowrap",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															marginRight: "8px",
+															direction: "rtl",
+															textAlign: "left",
+															flex: 1,
+														}}>
+														{tool.content + "\u200E"}
+													</span>
+													<span
+														className="codicon codicon-chevron-down"
+														style={{
+															fontSize: 13.5,
+															margin: "1px 0",
+															flexShrink: 0,
+														}}></span>
+												</div>
+											)}
 										</div>
-									) : (
-										<div style={{ display: "flex", alignItems: "center" }}>
-											<span
-												className="ph-no-capture"
-												style={{
-													whiteSpace: "nowrap",
-													overflow: "hidden",
-													textOverflow: "ellipsis",
-													marginRight: "8px",
-													direction: "rtl",
-													textAlign: "left",
-													flex: 1,
-												}}>
-												{tool.content + "\u200E"}
-											</span>
-											<span
-												className="codicon codicon-chevron-down"
-												style={{
-													fontSize: 13.5,
-													margin: "1px 0",
-													flexShrink: 0,
-												}}></span>
-										</div>
-									)}
-								</div>
-							</div>
-						</>
+									</RowItemExpandable>
+								</HighlightRowContainer>
+							</SpacingRowContainer>
+						</PrimaryRowStyle>
 					)
 				case "webFetch":
 					return (
-						<>
-							<div style={headerStyle}>
-								<span
-									className="codicon codicon-link"
-									style={{ color: normalColor, marginBottom: "-1.5px" }}></span>
-								{tool.operationIsLocatedInWorkspace === false &&
-									toolIcon("sign-out", "yellow", -90, "This URL is external")}
-								<span style={{ fontWeight: "bold" }}>
-									{message.type === "ask"
-										? `${agentName} wants to fetch content from this URL:`
-										: `${agentName} fetched content from this URL:`}
-								</span>
-							</div>
-							<div
-								onClick={() => {
-									// Open the URL in the default browser using gRPC
-									if (tool.path) {
-										UiServiceClient.openUrl(StringRequest.create({ value: tool.path })).catch((err) => {
-											console.error("Failed to open URL:", err)
-										})
-									}
-								}}
-								style={{
-									borderRadius: 3,
-									backgroundColor: CODE_BLOCK_BG_COLOR,
-									overflow: "hidden",
-									border: "1px solid var(--vscode-editorGroup-border)",
-									padding: "9px 10px",
-									cursor: "pointer",
-									userSelect: "none",
-									WebkitUserSelect: "none",
-									MozUserSelect: "none",
-									msUserSelect: "none",
-								}}>
-								<span
-									className="ph-no-capture"
-									style={{
-										whiteSpace: "nowrap",
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-										marginRight: "8px",
-										direction: "rtl",
-										textAlign: "left",
-										color: "var(--vscode-textLink-foreground)",
-										textDecoration: "underline",
-										display: "block",
-									}}>
-									{tool.path + "\u200E"}
-								</span>
-							</div>
-							{/* Displaying the 'content' which now holds "Fetching URL: [URL]" */}
-							{/* <div style={{ paddingTop: 5, fontSize: '0.9em', opacity: 0.8 }}>{tool.content}</div> */}
-						</>
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={autoApprovalSettings.actions.useBrowser}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												{toolIcon("link")}
+												{/* {toolIcon("check", "green")} */}
+											</RowIcon>
+										)
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `Fetch:` : isLastProcessing ? `Fetching:` : `Fetched:`}
+									</RowTitle>
+
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This URL is external")}
+										</RowIcon>
+									)}
+
+									<HeroTooltip content={tool.path || ""}>
+										<RowItem isLast={isLast}>
+											<div
+												onClick={() => {
+													// Open the URL in the default browser using gRPC
+													if (tool.path) {
+														UiServiceClient.openUrl(StringRequest.create({ value: tool.path })).catch(
+															(err) => {
+																console.error("Failed to open URL:", err)
+															},
+														)
+													}
+												}}
+												style={{
+													overflow: "hidden",
+													cursor: "pointer",
+													userSelect: "none",
+													WebkitUserSelect: "none",
+													MozUserSelect: "none",
+													msUserSelect: "none",
+												}}>
+												<span
+													className="ph-no-capture"
+													style={{
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														marginRight: "8px",
+														// direction: "rtl",
+														textAlign: "left",
+														color: "var(--vscode-textLink-foreground)",
+														textDecoration: "underline",
+														opacity: 0.8,
+														display: "block",
+													}}>
+													{tool.path + "\u200E"}
+												</span>
+											</div>
+										</RowItem>
+									</HeroTooltip>
+								</RowHeader>
+							</ApprovalContainer>
+						</SecondaryRowStyle>
 					)
 				default:
 					return null
 			}
 		}
+
+		// Reset output expansion state when command stops (completes or is cancelled)
+		useEffect(() => {
+			// If command was executing and now isn't, clean up
+			if (isCommandMessage && prevCommandExecutingRef.current && !isCommandExecuting) {
+				setIsOutputFullyExpanded(false)
+			}
+
+			// Update ref for next render
+			prevCommandExecutingRef.current = isCommandExecuting
+		}, [isCommandMessage, isCommandExecuting])
+
+		// Auto-expand when command starts executing (only if running > 500ms)
+		useEffect(() => {
+			if (isCommandMessage && isCommandExecuting && !isExpanded) {
+				// Wait 500ms before auto-expanding to avoid animating fast commands
+				const timer = setTimeout(() => {
+					// Expand after 500ms
+					onToggleExpand(message.ts)
+				}, 500)
+
+				return () => clearTimeout(timer)
+			}
+		}, [isCommandMessage, isCommandExecuting, isExpanded, onToggleExpand, message.ts])
 
 		if (message.ask === "command" || message.say === "command") {
 			const splitMessage = (text: string) => {
@@ -796,144 +1512,369 @@ export const ChatRowContent = memo(
 
 			const requestsApproval = rawCommand.endsWith(COMMAND_REQ_APP_STRING)
 			const command = requestsApproval ? rawCommand.slice(0, -COMMAND_REQ_APP_STRING.length) : rawCommand
+			const showCancelButton =
+				isLastProcessing &&
+				(isCommandExecuting || isCommandPending) &&
+				typeof onCancelCommand === "function" &&
+				vscodeTerminalExecutionMode === "backgroundExec"
+
+			// Check if this is a Cline subagent command (only on VSCode platform, not JetBrains/standalone)
+			const isSubagentCommand = PLATFORM_CONFIG.type === PlatformType.VSCODE && command.trim().startsWith("cline ")
+			let subagentPrompt: string | undefined
+
+			if (isSubagentCommand) {
+				// Parse the cline command to extract prompt
+				// Format: cline "prompt"
+				const clineCommandRegex = /^cline\s+"([^"]+)"(?:\s+--no-interactive)?/
+				const match = command.match(clineCommandRegex)
+
+				if (match) {
+					subagentPrompt = match[1]
+				}
+			}
+
+			// Compact Cline SVG icon component
+			const ClineIcon = () => (
+				<svg height="16" style={{ marginBottom: "-1.5px" }} viewBox="0 0 92 96" width="16">
+					<g fill="currentColor">
+						<path d="M65.4492701,16.3 C76.3374701,16.3 85.1635558,25.16479 85.1635558,36.1 L85.1635558,42.7 L90.9027661,54.1647464 C91.4694141,55.2966923 91.4668177,56.6300535 90.8957658,57.7597839 L85.1635558,69.1 L85.1635558,75.7 C85.1635558,86.63554 76.3374701,95.5 65.4492701,95.5 L26.0206986,95.5 C15.1328272,95.5 6.30641291,86.63554 6.30641291,75.7 L6.30641291,69.1 L0.448507752,57.7954874 C-0.14693501,56.6464093 -0.149634367,55.2802504 0.441262896,54.1288283 L6.30641291,42.7 L6.30641291,36.1 C6.30641291,25.16479 15.1328272,16.3 26.0206986,16.3 L65.4492701,16.3 Z M62.9301895,22 L29.189529,22 C19.8723267,22 12.3191987,29.5552188 12.3191987,38.875 L12.3191987,44.5 L7.44288578,53.9634655 C6.84794449,55.1180686 6.85066096,56.4896598 7.45017099,57.6418974 L12.3191987,67 L12.3191987,72.625 C12.3191987,81.9450625 19.8723267,89.5 29.189529,89.5 L62.9301895,89.5 C72.2476729,89.5 79.8005198,81.9450625 79.8005198,72.625 L79.8005198,67 L84.5682187,57.6061395 C85.1432011,56.473244 85.1458141,55.1345713 84.5752587,53.9994398 L79.8005198,44.5 L79.8005198,38.875 C79.8005198,29.5552188 72.2476729,22 62.9301895,22 Z" />
+						<ellipse cx="45.7349843" cy="11" rx="12" ry="14" />
+						<ellipse cx="33.5" cy="55.5" rx="8" ry="9" />
+						<ellipse cx="57.5" cy="55.5" rx="8" ry="9" />
+					</g>
+				</svg>
+			)
+
+			// Customize icon and title for subagent commands
+			const displayIcon = isSubagentCommand ? (
+				isLastProcessing ? (
+					<ProgressIndicator />
+				) : (
+					<RowIcon isLast={isLast}>
+						<AgentLogo color="currentColor" size={rowIconFontSize} />
+						{/* <ClineIcon /> */}
+					</RowIcon>
+				)
+			) : (
+				icon
+			)
+
+			const displayTitle = isSubagentCommand ? <RowTitle isLast={isLast}>Use subagent</RowTitle> : title
+
+			// const commandHeader = (
+			// 	<div style={headerStyle}>
+			// 		{displayIcon}
+			// 		{displayTitle}
+			// 	</div>
+			// )
 
 			return (
-				<>
-					<div style={headerStyle}>
-						{icon}
-						{title}
-					</div>
-					<div
-						style={{
-							borderRadius: 3,
-							border: "1px solid var(--vscode-editorGroup-border)",
-							overflow: "hidden",
-							backgroundColor: CODE_BLOCK_BG_COLOR,
-						}}>
-						<CodeBlock forceWrap={true} source={`${"```"}shell\n${command}\n${"```"}`} />
-						{output.length > 0 && (
-							<div style={{ width: "100%" }}>
+				<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+					<SpacingRowContainer>
+						<RowHeader>
+							{rowIconVisible && displayIcon}
+							{displayTitle}
+						</RowHeader>
+						<CommandRow isExpanded={isExpanded} isLast={isLast}>
+							<ApprovalContainer
+								approvalRequested={requestsApproval}
+								autoApproveSetting={autoApprovalSettings.actions.executeSafeCommands}
+								isExecuting={isCommandExecuting}
+								isLastProcessing={isLastProcessing}>
 								<div
-									onClick={handleToggle}
 									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: "4px",
-										width: "100%",
-										justifyContent: "flex-start",
-										cursor: "pointer",
-										padding: `2px 8px ${isExpanded ? 0 : 8}px 8px`,
+										padding: "0px 3px 3px 3px",
+										// borderRadius: defaultBorderRadius,
+										// border: "1px solid var(--vscode-editorGroup-border)",
+										overflow: "visible",
+										// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+										transition: "all 0.3s ease-in-out",
 									}}>
-									<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
-									<span style={{ fontSize: "0.8em" }}>Command Output</span>
+									{command && (
+										<div
+											style={{
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "space-between",
+												padding: "4px 6px",
+												// backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+												// borderBottom: "1px solid var(--vscode-editorGroup-border)",
+												borderTopLeftRadius: defaultBorderRadius,
+												borderTopRightRadius: defaultBorderRadius,
+												borderBottomLeftRadius: 0,
+												borderBottomRightRadius: 0,
+											}}>
+											<div
+												style={{
+													display: "flex",
+													alignItems: "center",
+													gap: "8px",
+													flex: 1,
+													minWidth: 0,
+												}}>
+												<div
+													style={{
+														width: "8px",
+														height: "8px",
+														borderRadius: "50%",
+														backgroundColor: isCommandExecuting
+															? successColor
+															: isCommandPending
+																? "var(--vscode-editorWarning-foreground)"
+																: "var(--vscode-descriptionForeground)",
+														animation: isCommandExecuting ? "pulse 2s ease-in-out infinite" : "none",
+														flexShrink: 0,
+													}}
+												/>
+												<span
+													style={{
+														color: isCommandExecuting
+															? successColor
+															: isCommandPending
+																? "var(--vscode-editorWarning-foreground)"
+																: "var(--vscode-descriptionForeground)",
+														// fontWeight: 500,
+														fontSize: secondaryFontSize,
+														flexShrink: 0,
+													}}>
+													{isCommandExecuting
+														? "Running"
+														: isCommandPending && isLastProcessing
+															? "Pending"
+															: isCommandCompleted
+																? "Completed"
+																: "Not Completed"}
+												</span>
+											</div>
+											<div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+												{showCancelButton && (
+													<button
+														onClick={(e) => {
+															e.stopPropagation()
+															if (vscodeTerminalExecutionMode === "backgroundExec") {
+																onCancelCommand?.()
+															} else {
+																// For regular terminal mode, show a message
+																alert(
+																	"This command is running in the VSCode terminal. You can manually stop it using Ctrl+C in the terminal, or switch to Background Execution mode in settings for cancellable commands.",
+																)
+															}
+														}}
+														onMouseEnter={(e) => {
+															e.currentTarget.style.background =
+																"var(--vscode-button-secondaryHoverBackground)"
+														}}
+														onMouseLeave={(e) => {
+															e.currentTarget.style.background =
+																"var(--vscode-button-secondaryBackground)"
+														}}
+														style={{
+															background: "var(--vscode-button-secondaryBackground)",
+															color: "var(--vscode-button-secondaryForeground)",
+															border: "none",
+															borderRadius: "2px",
+															padding: "0px 10px",
+															fontSize: secondaryFontSize,
+															cursor: "pointer",
+															fontFamily: "inherit",
+														}}>
+														{vscodeTerminalExecutionMode === "backgroundExec" ? "cancel" : "stop"}
+													</button>
+												)}
+											</div>
+										</div>
+									)}
+									{isSubagentCommand && subagentPrompt && (
+										<div
+											style={{
+												padding: "2px",
+												// borderBottom: "1px solid var(--vscode-editorGroup-border)",
+											}}>
+											<div style={{ fontSize: secondaryFontSize }}>
+												<strong>Prompt:</strong>{" "}
+												<span
+													className="ph-no-capture"
+													style={{ fontFamily: "var(--vscode-editor-font-family)" }}>
+													{subagentPrompt}
+												</span>
+											</div>
+										</div>
+									)}
+									{/* {output.length > 0 && (
+											<div style={{ width: "100%" }}>
+												<div
+													onClick={handleToggle}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: "4px",
+														width: "100%",
+														justifyContent: "flex-start",
+														cursor: "pointer",
+														padding: `2px 8px ${isExpanded ? 0 : 8}px 8px`,
+													}}>
+													<span
+														className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
+													<span style={{ fontSize: "0.8em" }}>
+														{isSubagentCommand ? "Subagent Output" : "Command Output"}
+													</span>
+												</div>
+											</div>
+										)} */}
+									<WithCopyButton
+										onMouseUp={handleMouseUp}
+										position="top-right"
+										ref={contentRef}
+										textToCopy={command}>
+										{!isSubagentCommand && (
+											<div
+												style={{
+													// opacity: 0.8,
+													backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+													borderRadius: defaultBorderRadius,
+												}}>
+												<div
+													style={{
+														backgroundColor: CHAT_ROW_EXPANDED_BG_COLOR,
+														borderRadius: defaultBorderRadius,
+													}}>
+													<CodeBlock
+														fontSize={secondaryFontSize}
+														forceWrap={true}
+														source={`${"```"}shell\n${command}\n${"```"}`}
+													/>
+												</div>
+											</div>
+										)}
+									</WithCopyButton>
+									{output.length > 0 && (
+										<div style={{ marginTop: "8px" }}>
+											<CommandOutput
+												isContainerExpanded={true}
+												isOutputFullyExpanded={isOutputFullyExpanded}
+												onToggle={() => setIsOutputFullyExpanded(!isOutputFullyExpanded)}
+												output={output}
+											/>
+										</div>
+									)}
 								</div>
-								{isExpanded && <CodeBlock source={`${"```"}shell\n${output}\n${"```"}`} />}
-							</div>
-						)}
-					</div>
-					{requestsApproval && (
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 10,
-								padding: 8,
-								fontSize: "12px",
-								color: "var(--vscode-editorWarning-foreground)",
-							}}>
-							<i className="codicon codicon-warning"></i>
-							<span>The model has determined this command requires explicit approval.</span>
-						</div>
-					)}
-				</>
+								{/* {requestsApproval && (
+										<div
+											style={{
+												display: "flex",
+												alignItems: "center",
+												gap: 10,
+												padding: 8,
+												fontSize: "12px",
+												color: "var(--vscode-editorWarning-foreground)",
+											}}>
+											<i className="codicon codicon-warning"></i>
+											<span>The model has determined this command requires explicit approval.</span>
+										</div>
+									)} */}
+							</ApprovalContainer>
+						</CommandRow>
+					</SpacingRowContainer>
+				</PrimaryRowStyle>
 			)
 		}
 
 		if (message.ask === "use_mcp_server" || message.say === "use_mcp_server") {
 			const useMcpServer = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
+
+			// Find the server (this is used throughout the component for descriptions and resources)
 			const server = mcpServers.find((server) => server.name === useMcpServer.serverName)
+
+			// Get the autoApprove value - default to false (require approval) to prevent flickering
+			// ApprovalContainer treats undefined as true, so we must always pass a boolean
+			const autoApprove = server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove ?? false
+
 			return (
-				<>
-					<div style={headerStyle}>
-						{icon}
-						{title}
-					</div>
-
-					<div
-						style={{
-							background: "var(--vscode-textCodeBlock-background)",
-							borderRadius: "6px 6px 0 0",
-							padding: "8px 6px",
-							marginTop: "8px",
-						}}>
-						{useMcpServer.type === "access_mcp_resource" && (
-							<McpResourceRow
-								item={{
-									...(findMatchingResourceOrTemplate(
-										useMcpServer.uri || "",
-										server?.resources,
-										server?.resourceTemplates,
-									) || {
-										name: "",
-										mimeType: "",
-										description: "",
-									}),
-									uri: useMcpServer.uri || "",
-								}}
-							/>
-						)}
-
-						{useMcpServer.type === "use_mcp_tool" && (
-							<>
-								<div onClick={(e) => e.stopPropagation()}>
-									<McpToolRow
-										serverName={useMcpServer.serverName}
-										tool={{
-											name: useMcpServer.toolName || "",
-											description:
-												server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.description ||
-												"",
-											autoApprove:
-												server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove ||
-												false,
+				<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+					<SpacingRowContainer>
+						<RowHeader>
+							{rowIconVisible && icon}
+							{title}
+						</RowHeader>
+						<McpRow isLast={isLast}>
+							<ApprovalContainer
+								autoApproveSetting={autoApprovalSettings.actions.useMcp}
+								autoApproveToolSetting={autoApprove}
+								isLastProcessing={isLastProcessing}>
+								{useMcpServer.type === "access_mcp_resource" && (
+									<McpResourceRow
+										collapseDescription={true}
+										item={{
+											...(findMatchingResourceOrTemplate(
+												useMcpServer.uri || "",
+												server?.resources,
+												server?.resourceTemplates,
+											) || {
+												name: "",
+												mimeType: "",
+												description: "",
+											}),
+											uri: useMcpServer.uri || "",
 										}}
 									/>
-								</div>
-								{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
-									<div style={{ marginTop: "8px" }}>
-										<div
-											onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}
-											style={{
-												display: "flex",
-												alignItems: "center",
-												cursor: "pointer",
-											}}>
-											<span
-												className={`codicon codicon-chevron-${!mcpArgumentsCollapsed ? "down" : "right"}`}
-												style={{ marginRight: "4px" }}></span>
-											<span
-												style={{
-													opacity: 0.8,
-													fontSize: "12px",
-													color: itemIconColor,
-												}}>
-												Arguments
-											</span>
-										</div>
-										{!mcpArgumentsCollapsed && (
-											<CodeAccordian
-												code={useMcpServer.arguments}
-												isExpanded={true}
-												language="json"
-												onToggleExpand={handleToggle}
-											/>
-										)}
-									</div>
 								)}
-							</>
-						)}
-					</div>
-				</>
+								{useMcpServer.type === "use_mcp_tool" && (
+									<>
+										<div style={{ color: normalColor }}>
+											<McpToolRow
+												collapseDescription={true}
+												serverName={useMcpServer.serverName}
+												tool={{
+													name: useMcpServer.toolName || "",
+													description:
+														server?.tools?.find((tool) => tool.name === useMcpServer.toolName)
+															?.description || "",
+													autoApprove:
+														server?.tools?.find((tool) => tool.name === useMcpServer.toolName)
+															?.autoApprove || false,
+												}}
+											/>
+										</div>
+
+										{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
+											<div style={{ padding: mcpSectionsPadding }}>
+												<div
+													onClick={() => setMcpArgumentsCollapsed(!mcpArgumentsCollapsed)}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														cursor: "pointer",
+													}}>
+													<span
+														className={`codicon codicon-chevron-${!mcpArgumentsCollapsed ? "down" : "right"}`}
+														style={{ marginRight: "4px", fontSize: "inherit" }}></span>
+													<span
+														style={{
+															fontSize: "0.85em",
+															textTransform: "uppercase",
+															color: secondaryColor,
+														}}>
+														Arguments
+													</span>
+												</div>
+												{!mcpArgumentsCollapsed && (
+													<div style={{ marginTop: "7px" }}>
+														<CodeAccordian
+															code={useMcpServer.arguments}
+															isExpanded={true}
+															language="json"
+															onToggleExpand={handleToggle}
+														/>
+													</div>
+												)}
+											</div>
+										)}
+									</>
+								)}
+							</ApprovalContainer>
+						</McpRow>
+					</SpacingRowContainer>
+				</PrimaryRowStyle>
 			)
 		}
 
@@ -942,13 +1883,13 @@ export const ChatRowContent = memo(
 				switch (message.say) {
 					case "api_req_started":
 						return (
-							<>
-								<div
+							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+								<RowHeader
+									className={`group`}
 									onClick={handleToggle}
 									style={{
-										...headerStyle,
 										marginBottom:
-											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : 0,
+											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : "",
 										justifyContent: "space-between",
 										cursor: "pointer",
 										userSelect: "none",
@@ -958,22 +1899,38 @@ export const ChatRowContent = memo(
 									}}>
 									<div
 										style={{
+											marginTop: 2,
+											marginBottom: 2,
 											display: "flex",
 											alignItems: "center",
-											gap: "10px",
+											gap: rowHeaderGap,
 										}}>
 										{icon}
 										{title}
-										{/* Need to render this every time since it affects height of row by 2px */}
-										<VSCodeBadge
-											style={{
-												opacity: cost != null && cost > 0 ? 1 : 0,
-											}}>
-											${Number(cost || 0)?.toFixed(4)}
-										</VSCodeBadge>
+										{cost != null && cost > 0 && (
+											<span
+												style={{
+													position: "relative",
+													display: "flex",
+													alignItems: "center",
+													marginLeft: 5,
+													fontSize: primaryFontSize - 2,
+													border: "1px solid var(--vscode-editorGroup-border)",
+													padding: "0px 3px",
+													marginBottom: -1.5,
+													borderRadius: defaultBorderRadius,
+													fontFamily: "var(--vscode-editor-font-family)",
+													backgroundColor: "var(--vscode-editor-background)",
+													opacity: cost != null && cost >= 0 ? 1 : 0,
+												}}>
+												${Number(cost || 0)?.toFixed(4)}
+											</span>
+										)}
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 0} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}></span>
 									</div>
-									<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
-								</div>
+								</RowHeader>
 								{((cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage) && (
 									<ErrorRow
 										apiReqStreamingFailedMessage={apiReqStreamingFailedMessage}
@@ -982,106 +1939,137 @@ export const ChatRowContent = memo(
 										message={message}
 									/>
 								)}
-
 								{isExpanded && (
-									<div style={{ marginTop: "10px" }}>
+									<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
 										<CodeAccordian
 											code={JSON.parse(message.text || "{}").request}
-											isExpanded={true}
+											isExpanded={isExpanded}
 											language="markdown"
+											maxHeight={rowItemExpandedMaxHeight}
 											onToggleExpand={handleToggle}
 										/>
-									</div>
+									</RowItemExpandable>
 								)}
-							</>
+							</SecondaryRowStyle>
 						)
 					case "api_req_finished":
 						return null // we should never see this message type
 					case "mcp_server_response":
-						return <McpResponseDisplay responseText={message.text || ""} />
+						return (
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<McpResponseRow isLast={isLast}>
+									<McpResponseDisplay responseText={message.text || ""} />
+								</McpResponseRow>
+							</PrimaryRowStyle>
+						)
 					case "mcp_notification":
 						return (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "flex-start",
-									gap: "8px",
-									padding: "8px 12px",
-									backgroundColor: "var(--vscode-textBlockQuote-background)",
-									borderRadius: "4px",
-									fontSize: "13px",
-									color: "var(--vscode-foreground)",
-									opacity: 0.9,
-									marginBottom: "8px",
-								}}>
-								<i
-									className="codicon codicon-bell"
-									style={{
-										marginTop: "2px",
-										fontSize: "14px",
-										color: "var(--vscode-notificationsInfoIcon-foreground)",
-										flexShrink: 0,
-									}}
-								/>
-								<div style={{ flex: 1, wordBreak: "break-word" }}>
-									<span style={{ fontWeight: 500 }}>MCP Notification: </span>
-									<span className="ph-no-capture">{message.text}</span>
-								</div>
-							</div>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader className="group" onClick={handleToggle} style={{ cursor: "pointer" }}>
+										<RowIcon isLast={isLast}>
+											<i
+												className="codicon codicon-bell"
+												style={{
+													fontSize: "inherit",
+													color: "var(--vscode-notificationsInfoIcon-foreground)",
+													flexShrink: 0,
+												}}
+											/>
+										</RowIcon>
+										<RowTitle isLast={isLast}>MCP Notification</RowTitle>
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}
+										/>
+									</RowHeader>
+									{isExpanded && (
+										<RowItemText className="ph-no-capture" isExpanded={isExpanded} isLast={isLast}>
+											<Markdown
+												// lineClamp={responseTextLineClamp}
+												markdown={message.text}
+												maxHeight={rowItemExpandedMaxHeight}
+											/>
+										</RowItemText>
+									)}
+								</HighlightRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "text":
 						return (
-							<WithCopyButton
-								onMouseUp={handleMouseUp}
-								position="bottom-right"
-								ref={contentRef}
-								textToCopy={message.text}>
-								<Markdown markdown={message.text} />
-								{quoteButtonState.visible && (
-									<QuoteButton
-										left={quoteButtonState.left}
-										onClick={() => {
-											handleQuoteClick()
-										}}
-										top={quoteButtonState.top}
-									/>
+							<>
+								{message.text?.trim() && (
+									<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+										<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+											<RowHeader
+												className={`group`}
+												onClick={showTextResponseHeader ? handleToggle : undefined}
+												style={{ cursor: showTextResponseHeader ? "pointer" : "default" }}>
+												{isExpanded && showTextResponseHeader && (
+													<>
+														<HeroTooltip content={title}>{icon}</HeroTooltip>
+														{title}
+													</>
+												)}
+												{!isExpanded && <HeroTooltip content={title}>{icon}</HeroTooltip>}
+
+												{showTextResponseHeader && (isResponding || !isExpanded) && (
+													<RowItemText
+														className="ph-no-capture"
+														isExpanded={isExpanded}
+														isLast={isLast}
+														opacity={responseTextCollapsedOpacity}
+														style={{
+															whiteSpace: "nowrap",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															direction: "rtl",
+															textAlign: "left",
+															flex: 1,
+														}}>
+														{message.text + "\u200E"}
+													</RowItemText>
+												)}
+												{(showTextResponseHeader || !isExpanded) && (
+													<span
+														className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 30} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+														style={{ fontSize: "inherit" }}
+													/>
+												)}
+											</RowHeader>
+
+											{isExpanded && (
+												<RowItemText className="ph-no-capture" isExpanded={isExpanded} isLast={isLast}>
+													<MarkdownContainer>
+														<Markdown
+															fontSize={responseTextFontSize}
+															// lineClamp={responseTextLineClamp}
+															markdown={message.text}
+															// maxHeight={rowItemExpandedMaxHeight}
+														/>
+													</MarkdownContainer>
+												</RowItemText>
+											)}
+										</ResponseRowContainer>
+									</PrimaryRowStyle>
 								)}
-							</WithCopyButton>
+							</>
 						)
 					case "reasoning":
 						return (
 							<>
-								{message.text && (
-									<div
-										onClick={handleToggle}
-										style={{
-											// marginBottom: 15,
-											cursor: "pointer",
-											color: "var(--vscode-descriptionForeground)",
-
-											fontStyle: "italic",
-											overflow: "hidden",
-										}}>
-										{isExpanded ? (
-											<div style={{ marginTop: -3 }}>
-												<span style={{ fontWeight: "bold", display: "block", marginBottom: "4px" }}>
-													Thinking
-													<span
-														className="codicon codicon-chevron-down"
-														style={{
-															display: "inline-block",
-															transform: "translateY(3px)",
-															marginLeft: "1.5px",
-														}}
-													/>
-												</span>
-												<span className="ph-no-capture">{message.text}</span>
-											</div>
-										) : (
-											<div style={{ display: "flex", alignItems: "center" }}>
-												<span style={{ fontWeight: "bold", marginRight: "4px" }}>Thinking:</span>
-												<span
-													className="ph-no-capture"
+								{message.text?.trim() && (
+									<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+										{/* <ResponseRowContainer isExpanded={isExpanded} isLast={isLast}> */}
+										<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+											{rowIconVisible && icon}
+											{title}
+											{isReasoning && !isExpanded && (
+												<RowItemText
+													className={`ph-no-capture`}
+													isExpanded={isExpanded}
+													isLast={isLast}
+													opacity={rowItemBackgroundOpacity}
 													style={{
 														whiteSpace: "nowrap",
 														overflow: "hidden",
@@ -1091,45 +2079,56 @@ export const ChatRowContent = memo(
 														flex: 1,
 													}}>
 													{message.text + "\u200E"}
-												</span>
-												<span
-													className="codicon codicon-chevron-right"
-													style={{
-														marginLeft: "4px",
-														flexShrink: 0,
-													}}
+												</RowItemText>
+											)}
+											<span
+												className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+												style={{ fontSize: "inherit" }}
+											/>
+										</RowHeader>
+
+										{isExpanded && (
+											<RowItemText className="ph-no-capture" isExpanded={isExpanded} isLast={isLast}>
+												<Markdown
+													// lineClamp={responseTextLineClamp}
+													markdown={message.text}
+													maxHeight={rowItemExpandedMaxHeight}
 												/>
-											</div>
+											</RowItemText>
 										)}
-									</div>
+										{/* </ResponseRowContainer> */}
+									</SecondaryRowStyle>
 								)}
 							</>
 						)
 					case "user_feedback":
 						return (
-							<UserMessage
-								files={message.files}
-								images={message.images}
-								messageTs={message.ts}
-								sendMessageFromChatRow={sendMessageFromChatRow}
-								text={message.text}
-							/>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<UserMessage
+									files={message.files}
+									images={message.images}
+									messageTs={message.ts}
+									sendMessageFromChatRow={sendMessageFromChatRow}
+									text={message.text}
+								/>
+							</PrimaryRowStyle>
 						)
 					case "user_feedback_diff":
 						const tool = JSON.parse(message.text || "{}") as ClineSayTool
 						return (
-							<div
-								style={{
-									marginTop: -10,
-									width: "100%",
-								}}>
-								<CodeAccordian
-									diff={tool.diff!}
-									isExpanded={isExpanded}
-									isFeedback={true}
-									onToggleExpand={handleToggle}
-								/>
-							</div>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<HighlightRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowItemExpandable isExpanded={isExpanded} isLast={isLast}>
+										<CodeAccordian
+											diff={tool.diff!}
+											isExpanded={isExpanded}
+											isFeedback={true}
+											maxHeight={rowItemExpandedMaxHeight}
+											onToggleExpand={handleToggle}
+										/>
+									</RowItemExpandable>
+								</HighlightRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "error":
 						return <ErrorRow errorType="error" message={message} />
@@ -1141,103 +2140,236 @@ export const ChatRowContent = memo(
 						return <CheckmarkControl isCheckpointCheckedOut={message.isCheckpointCheckedOut} messageTs={message.ts} />
 					case "load_mcp_documentation":
 						return (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "center",
-									color: "var(--vscode-foreground)",
-									opacity: 0.7,
-									fontSize: 12,
-									padding: "4px 0",
-								}}>
-								<i className="codicon codicon-book" style={{ marginRight: 6 }} />
-								Loading MCP documentation
-							</div>
+							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{rowIconVisible && (
+										<RowIcon isLast={isLast}>
+											<i className="codicon codicon-book" style={{ fontSize: "inherit" }} />
+										</RowIcon>
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										Load MCP documentation
+									</RowTitle>
+								</RowHeader>
+							</SecondaryRowStyle>
 						)
 					case "get_mcp_tool_input_schema":
+						const toolMessage = message.text?.split("///")
+						const toolName = toolMessage?.[0] || "tool"
+						const serverName = toolMessage?.[1] || "MCP Server"
+						return (
+							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+								<RowHeader style={{ flexWrap: "nowrap" }}>
+									<RowIcon isLast={isLast}>
+										<i className="codicon codicon-bracket-dot" style={{ fontSize: "inherit" }} />
+									</RowIcon>
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										Read <code style={{ wordBreak: "break-word" }}>{toolName}</code> schema from{" "}
+										<code style={{ wordBreak: "break-word" }}>{serverName}</code>
+									</RowTitle>
+								</RowHeader>
+							</SecondaryRowStyle>
+						)
+					case "generate_explanation": {
+						let explanationInfo: ClineSayGenerateExplanation = {
+							title: "code changes",
+							fromRef: "",
+							toRef: "",
+							status: "generating",
+						}
+						try {
+							if (message.text) {
+								explanationInfo = JSON.parse(message.text)
+							}
+						} catch {
+							// Use defaults if parsing fails
+						}
+						// Check if generation was interrupted:
+						// 1. If status is "generating" but this isn't the last message, it was interrupted
+						// 2. If status is "generating" and lastModifiedMessage is a resume ask, task was just cancelled
+						const wasCancelled =
+							explanationInfo.status === "generating" &&
+							(!isLast ||
+								lastModifiedMessage?.ask === "resume_task" ||
+								lastModifiedMessage?.ask === "resume_completed_task")
+						const isGenerating = explanationInfo.status === "generating" && !wasCancelled
+						const isError = explanationInfo.status === "error"
 						return (
 							<div
 								style={{
 									display: "flex",
-									alignItems: "center",
-									color: "var(--vscode-foreground)",
-									opacity: 0.7,
+									flexDirection: "column",
+									backgroundColor: CODE_BLOCK_BG_COLOR,
+									border: "1px solid var(--vscode-editorGroup-border)",
+									borderRadius: 5,
+									padding: "10px 12px",
 									fontSize: 12,
-									padding: "4px 0",
 								}}>
-								<i className="codicon codicon-bracket-dot" style={{ marginRight: 6 }} />
-								{message.text}
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+									}}>
+									{isGenerating ? (
+										<span style={{ marginRight: 8 }}>
+											<ProgressIndicator />
+										</span>
+									) : isError ? (
+										<i
+											className="codicon codicon-error"
+											style={{ marginRight: 8, color: "var(--vscode-errorForeground)" }}
+										/>
+									) : wasCancelled ? (
+										<i
+											className="codicon codicon-circle-slash"
+											style={{ marginRight: 8, color: "var(--vscode-descriptionForeground)" }}
+										/>
+									) : (
+										<i
+											className="codicon codicon-check"
+											style={{ marginRight: 8, color: "var(--vscode-charts-green)" }}
+										/>
+									)}
+									<span style={{ fontWeight: 500 }}>
+										{isGenerating
+											? "Generating explanation"
+											: isError
+												? "Failed to generate explanation"
+												: wasCancelled
+													? "Explanation cancelled"
+													: "Generated explanation"}
+									</span>
+								</div>
+								{isError && explanationInfo.error && (
+									<div
+										style={{
+											opacity: 0.8,
+											marginLeft: 24,
+											marginTop: 6,
+											color: "var(--vscode-errorForeground)",
+											wordBreak: "break-word",
+										}}>
+										{explanationInfo.error}
+									</div>
+								)}
+								{!isError && (explanationInfo.title || explanationInfo.fromRef) && (
+									<div style={{ opacity: 0.8, marginLeft: 24, marginTop: 6 }}>
+										<div>{explanationInfo.title}</div>
+										{explanationInfo.fromRef && (
+											<div
+												style={{
+													fontSize: 11,
+													opacity: 0.7,
+													marginTop: 4,
+													marginLeft: -3,
+													wordBreak: "break-all",
+												}}>
+												<code
+													style={{
+														background: "var(--vscode-textBlockQuote-background)",
+														padding: "2px 6px",
+														borderRadius: 3,
+													}}>
+													{explanationInfo.fromRef}
+												</code>
+												<span style={{ margin: "0 6px" }}>→</span>
+												<code
+													style={{
+														background: "var(--vscode-textBlockQuote-background)",
+														padding: "2px 6px",
+														borderRadius: 3,
+													}}>
+													{explanationInfo.toRef || "working directory"}
+												</code>
+											</div>
+										)}
+									</div>
+								)}
 							</div>
 						)
+					}
 					case "completion_result":
 						const hasChanges = message.text?.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
 						const text = hasChanges ? message.text?.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length) : message.text
 						return (
-							<>
-								<div
-									style={{
-										...headerStyle,
-										marginBottom: "10px",
-									}}>
-									{icon}
-									{title}
-									{/* <TaskFeedbackButtons
-										isFromHistory={
-											!isLast ||
-											lastModifiedMessage?.ask === "resume_completed_task" ||
-											lastModifiedMessage?.ask === "resume_task"
-										}
-										messageTs={message.ts}
-										style={{
-											marginLeft: "auto",
-										}}
-									/> */}
-								</div>
-								<WithCopyButton
-									onMouseUp={handleMouseUp}
-									position="bottom-right"
-									ref={contentRef}
-									style={{
-										color: "var(--vscode-charts-white)",
-										paddingTop: 10,
-									}}
-									textToCopy={text}>
-									<Markdown markdown={text} />
-									{quoteButtonState.visible && (
-										<QuoteButton
-											left={quoteButtonState.left}
-											onClick={handleQuoteClick}
-											top={quoteButtonState.top}
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<CompletionRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+										{rowIconVisible && icon}
+										{title}
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}
 										/>
+									</RowHeader>
+									{isExpanded && (
+										<CompletionRow className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
+											<Markdown
+												lineClamp={isLast ? undefined : responseTextLineClamp}
+												markdown={text}
+												// maxHeight={isLast ? undefined : rowItemExpandedMaxHeight}
+											/>
+										</CompletionRow>
 									)}
-								</WithCopyButton>
-								{message.partial !== true && hasChanges && (
-									<div style={{ paddingTop: 17 }}>
-										<SuccessButton
-											disabled={seeNewChangesDisabled}
-											onClick={() => {
-												setSeeNewChangesDisabled(true)
-												TaskServiceClient.taskCompletionViewChanges(
-													Int64Request.create({
-														value: message.ts,
-													}),
-												).catch((err) =>
-													console.error("Failed to show task completion view changes:", err),
-												)
-											}}
+									{message.partial !== true && hasChanges && (
+										<div
 											style={{
-												cursor: seeNewChangesDisabled ? "wait" : "pointer",
-												marginLeft: "2px",
-												marginRight: "2px",
-												display: "block",
-												textAlign: "center",
+												paddingTop: 10,
+												paddingBottom: 10,
+												display: "flex",
+												flexDirection: "row",
+												gap: 8,
 											}}>
-											<i className="codicon codicon-new-file" style={{ marginRight: 6 }} />
-											See new changes
-										</SuccessButton>
-									</div>
-								)}
-							</>
+											<SuccessButton
+												disabled={seeNewChangesDisabled}
+												onClick={() => {
+													setSeeNewChangesDisabled(true)
+													TaskServiceClient.taskCompletionViewChanges(
+														Int64Request.create({
+															value: message.ts,
+														}),
+													).catch((err) =>
+														console.error("Failed to show task completion view changes:", err),
+													)
+												}}
+												style={{
+													cursor: seeNewChangesDisabled ? "wait" : "pointer",
+													width: "100%",
+													textAlign: "center",
+												}}>
+												<i className="codicon codicon-diff-single" style={{ marginRight: 6 }} />
+												View Changes
+											</SuccessButton>
+											{PLATFORM_CONFIG.type === PlatformType.VSCODE && (
+												<SuccessButton
+													disabled={explainChangesDisabled}
+													onClick={() => {
+														setExplainChangesDisabled(true)
+														TaskServiceClient.explainChanges({
+															metadata: {},
+															messageTs: message.ts,
+														}).catch((err) => {
+															console.error("Failed to explain changes:", err)
+															setExplainChangesDisabled(false)
+														})
+													}}
+													style={{
+														cursor: explainChangesDisabled ? "wait" : "pointer",
+														width: "100%",
+														backgroundColor: "var(--vscode-button-secondaryBackground)",
+														borderColor: "var(--vscode-button-secondaryBackground)",
+													}}>
+													<i
+														className="codicon codicon-comment-discussion"
+														style={{ marginRight: 6 }}
+													/>
+													{explainChangesDisabled ? "Explaining..." : "Explain Changes"}
+												</SuccessButton>
+											)}
+										</div>
+									)}
+								</CompletionRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "shell_integration_warning":
 						return (
@@ -1287,99 +2419,255 @@ export const ChatRowContent = memo(
 								</div>
 							</div>
 						)
+					case "error_retry":
+						try {
+							const retryInfo = JSON.parse(message.text || "{}")
+							const { attempt, maxAttempts, delaySeconds, failed } = retryInfo
+							const isFailed = failed === true
+
+							return (
+								<div
+									style={{
+										display: "flex",
+										flexDirection: "column",
+										backgroundColor: "var(--vscode-textBlockQuote-background)",
+										padding: "6px 10px",
+										borderRadius: defaultBorderRadius,
+										fontSize: secondaryFontSize,
+									}}>
+									<div
+										style={{
+											display: "flex",
+											alignItems: "center",
+											marginBottom: 4,
+										}}>
+										<i
+											className={isFailed ? "codicon codicon-warning" : "codicon codicon-sync"}
+											style={{
+												marginRight: 8,
+												fontSize: 14,
+												color: "var(--vscode-descriptionForeground)",
+											}}></i>
+										<span
+											style={{
+												fontWeight: 500,
+												color: "var(--vscode-foreground)",
+											}}>
+											{isFailed ? "Auto-Retry Failed" : "Auto-Retry in Progress"}
+										</span>
+									</div>
+									<div style={{ color: "var(--vscode-foreground)", opacity: 0.8 }}>
+										{isFailed ? (
+											<>
+												Auto-retry failed after <strong>{maxAttempts}</strong> attempts. Manual
+												intervention required.
+											</>
+										) : (
+											<>
+												Attempt <strong>{attempt}</strong> of <strong>{maxAttempts}</strong> - Retrying in{" "}
+												{delaySeconds} seconds...
+											</>
+										)}
+									</div>
+								</div>
+							)
+						} catch (_e) {
+							// Fallback if JSON parsing fails
+							return (
+								<div style={{ color: "var(--vscode-foreground)" }}>
+									<Markdown markdown={message.text} />
+								</div>
+							)
+						}
+					case "hook":
+						return <HookMessage CommandOutput={CommandOutput} isLast={isLast} message={message} />
+					case "hook_output":
+						// hook_output messages are combined with hook messages, so we don't render them separately
+						return null
+					case "shell_integration_warning_with_suggestion":
+						const isBackgroundModeEnabled = vscodeTerminalExecutionMode === "backgroundExec"
+						return (
+							<div
+								style={{
+									padding: 8,
+									backgroundColor: "rgba(0, 122, 204, 0.1)",
+									borderRadius: 3,
+									border: "1px solid rgba(0, 122, 204, 0.3)",
+								}}>
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+										marginBottom: 4,
+									}}>
+									<i
+										className="codicon codicon-lightbulb"
+										style={{
+											marginRight: 6,
+											fontSize: 14,
+											color: "var(--vscode-textLink-foreground)",
+										}}></i>
+									<span
+										style={{
+											fontWeight: 500,
+											color: "var(--vscode-foreground)",
+										}}>
+										Shell integration issues
+									</span>
+								</div>
+								<div style={{ color: "var(--vscode-foreground)", opacity: 0.9, marginBottom: 8 }}>
+									Since you're experiencing repeated shell integration issues, we recommend switching to
+									Background Terminal mode for better reliability.
+								</div>
+								<button
+									disabled={isBackgroundModeEnabled}
+									onClick={async () => {
+										try {
+											// Enable background terminal execution mode
+											await UiServiceClient.setTerminalExecutionMode(BooleanRequest.create({ value: true }))
+										} catch (error) {
+											console.error("Failed to enable background terminal:", error)
+										}
+									}}
+									onMouseEnter={(e) => {
+										if (!isBackgroundModeEnabled) {
+											e.currentTarget.style.background = "var(--vscode-button-hoverBackground)"
+										}
+									}}
+									onMouseLeave={(e) => {
+										if (!isBackgroundModeEnabled) {
+											e.currentTarget.style.background = isBackgroundModeEnabled
+												? "var(--vscode-charts-green)"
+												: "var(--vscode-button-background)"
+										}
+									}}
+									style={{
+										background: isBackgroundModeEnabled
+											? "var(--vscode-charts-green)"
+											: "var(--vscode-button-background)",
+										color: "var(--vscode-button-foreground)",
+										border: "none",
+										borderRadius: 2,
+										padding: "6px 12px",
+										fontSize: 12,
+										cursor: isBackgroundModeEnabled ? "default" : "pointer",
+										fontFamily: "inherit",
+										display: "flex",
+										alignItems: "center",
+										gap: 6,
+										opacity: isBackgroundModeEnabled ? 0.8 : 1,
+									}}>
+									<i className="codicon codicon-settings-gear"></i>
+									{isBackgroundModeEnabled
+										? "Background Terminal Enabled"
+										: "Enable Background Terminal (Recommended)"}
+								</button>
+							</div>
+						)
 					case "task_progress":
 						return null // task_progress messages should be displayed in TaskHeader only, not in chat
 					default:
 						return (
-							<>
-								{title && (
-									<div style={headerStyle}>
-										{icon}
-										{title}
-									</div>
-								)}
-								<div style={{ paddingTop: 10 }}>
-									<Markdown markdown={message.text} />
-								</div>
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+									{title && (
+										<RowHeader>
+											{rowIconVisible && icon}
+											{title}
+										</RowHeader>
+									)}
+									<RowItemText isExpanded={true} isLast={isLast}>
+										<Markdown markdown={message.text} />
+									</RowItemText>
+								</ResponseRowContainer>
+							</PrimaryRowStyle>
 						)
 				}
 			case "ask":
 				switch (message.ask) {
 					case "mistake_limit_reached":
 						return <ErrorRow errorType="mistake_limit_reached" message={message} />
-					case "auto_approval_max_req_reached":
-						return <ErrorRow errorType="auto_approval_max_req_reached" message={message} />
 					case "completion_result":
 						if (message.text) {
-							const hasChanges = message.text.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
-							const text = hasChanges ? message.text.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length) : message.text
+							const hasChanges = message.text?.endsWith(COMPLETION_RESULT_CHANGES_FLAG) ?? false
+							const text = hasChanges
+								? message.text?.slice(0, -COMPLETION_RESULT_CHANGES_FLAG.length)
+								: message.text
 							return (
-								<div>
-									<div
-										style={{
-											...headerStyle,
-											marginBottom: "10px",
-										}}>
-										{icon}
-										{title}
-										<TaskFeedbackButtons
-											isFromHistory={
-												!isLast ||
-												lastModifiedMessage?.ask === "resume_completed_task" ||
-												lastModifiedMessage?.ask === "resume_task"
-											}
-											messageTs={message.ts}
-											style={{
-												marginLeft: "auto",
-											}}
-										/>
-									</div>
-									<WithCopyButton
-										onMouseUp={handleMouseUp}
-										position="bottom-right"
-										ref={contentRef}
-										style={{
-											color: "var(--vscode-charts-green)",
-											paddingTop: 10,
-										}}
-										textToCopy={text}>
-										<Markdown markdown={text} />
-										{quoteButtonState.visible && (
-											<QuoteButton
-												left={quoteButtonState.left}
-												onClick={handleQuoteClick}
-												top={quoteButtonState.top}
+								<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+									<CompletionRowContainer isExpanded={isExpanded} isLast={isLast}>
+										<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+											{rowIconVisible && icon}
+											{title}
+											<span
+												className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+												style={{ fontSize: "inherit" }}
 											/>
+										</RowHeader>
+										{isExpanded && (
+											<CompletionRow className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
+												<Markdown markdown={text} />
+											</CompletionRow>
 										)}
-									</WithCopyButton>
-									{message.partial !== true && hasChanges && (
-										<div style={{ marginTop: 15 }}>
-											<SuccessButton
-												appearance="icon"
-												disabled={seeNewChangesDisabled}
-												onClick={() => {
-													setSeeNewChangesDisabled(true)
-													TaskServiceClient.taskCompletionViewChanges(
-														Int64Request.create({
-															value: message.ts,
-														}),
-													).catch((err) =>
-														console.error("Failed to show task completion view changes:", err),
-													)
+										{message.partial !== true && hasChanges && (
+											<div
+												style={{
+													paddingTop: 10,
+													paddingBottom: 10,
+													display: "flex",
+													flexDirection: "column",
+													gap: 8,
 												}}>
-												<i
-													className="codicon codicon-new-file"
-													style={{
-														marginRight: 6,
-														cursor: seeNewChangesDisabled ? "wait" : "pointer",
+												<SuccessButton
+													disabled={seeNewChangesDisabled}
+													onClick={() => {
+														setSeeNewChangesDisabled(true)
+														TaskServiceClient.taskCompletionViewChanges(
+															Int64Request.create({
+																value: message.ts,
+															}),
+														).catch((err) =>
+															console.error("Failed to show task completion view changes:", err),
+														)
 													}}
-												/>
-												See new changes
-											</SuccessButton>
-										</div>
-									)}
-								</div>
+													style={{
+														cursor: seeNewChangesDisabled ? "wait" : "pointer",
+														marginLeft: "2px",
+														marginRight: "2px",
+														display: "block",
+														textAlign: "center",
+													}}>
+													<i className="codicon codicon-diff-single" style={{ marginRight: 6 }} />
+													View Changes
+												</SuccessButton>
+												{PLATFORM_CONFIG.type === PlatformType.VSCODE && (
+													<SuccessButton
+														appearance="secondary"
+														disabled={explainChangesDisabled}
+														onClick={() => {
+															setExplainChangesDisabled(true)
+															TaskServiceClient.explainChanges({
+																metadata: {},
+																messageTs: message.ts,
+															}).catch((err) => {
+																console.error("Failed to explain changes:", err)
+																setExplainChangesDisabled(false)
+															})
+														}}>
+														<i
+															className="codicon codicon-comment-discussion"
+															style={{
+																marginRight: 6,
+																cursor: explainChangesDisabled ? "wait" : "pointer",
+															}}
+														/>
+														{explainChangesDisabled ? "Explaining..." : "Explain Changes"}
+													</SuccessButton>
+												)}
+											</div>
+										)}
+									</CompletionRowContainer>
+								</PrimaryRowStyle>
 							)
 						} else {
 							return null // Don't render anything when we get a completion_result ask without text
@@ -1399,91 +2687,83 @@ export const ChatRowContent = memo(
 						}
 
 						return (
-							<>
-								{title && (
-									<div style={headerStyle}>
-										{icon}
-										{title}
-									</div>
-								)}
-								<WithCopyButton
-									onMouseUp={handleMouseUp}
-									position="bottom-right"
-									ref={contentRef}
-									style={{ paddingTop: 10 }}
-									textToCopy={question}>
-									<Markdown markdown={question} />
-									<OptionsButtons
-										inputValue={inputValue}
-										isActive={
-											(isLast && lastModifiedMessage?.ask === "followup") ||
-											(!selected && options && options.length > 0)
-										}
-										options={options}
-										selected={selected}
-									/>
-									{quoteButtonState.visible && (
-										<QuoteButton
-											left={quoteButtonState.left}
-											onClick={() => {
-												handleQuoteClick()
-											}}
-											top={quoteButtonState.top}
-										/>
-									)}
-								</WithCopyButton>
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && icon}
+										<RowTitle isLast={isLast}>{title}</RowTitle>
+									</RowHeader>
+									<span>
+										<RowItemText isExpanded={true} isLast={isLast}>
+											<Markdown markdown={question} />
+										</RowItemText>
+										<OptionsRow isLast={isLast}>
+											<OptionsButtons
+												inputValue={inputValue}
+												isActive={isLast && !selected && options && options.length > 0}
+												options={options}
+												selected={selected}
+											/>
+										</OptionsRow>
+									</span>
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "new_task":
 						return (
-							<>
-								<div style={headerStyle}>
-									<span
-										className="codicon codicon-new-file"
-										style={{
-											color: normalColor,
-											marginBottom: "-1.5px",
-										}}></span>
-									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										{agentName} wants to start a new task:
-									</span>
-								</div>
-								<NewTaskPreview context={message.text || ""} />
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && (
+											<RowIcon isLast={isLast}>
+												<span className="codicon codicon-add" style={{ fontSize: "inherit" }} />
+											</RowIcon>
+										)}
+										<RowTitle isLast={isLast}>Start a new task:</RowTitle>
+									</RowHeader>
+									<RowItemText isExpanded={true} isLast={isLast}>
+										<NewTaskPreview context={message.text || ""} />
+									</RowItemText>
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "condense":
 						return (
-							<>
-								<div style={headerStyle}>
-									<span
-										className="codicon codicon-new-file"
-										style={{
-											color: normalColor,
-											marginBottom: "-1.5px",
-										}}></span>
-									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										{agentName} wants to compact your conversation:
-									</span>
-								</div>
-								<NewTaskPreview context={message.text || ""} />
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && (
+											<RowIcon
+												className="codicon codicon-fold-down"
+												isLast={isLast}
+												style={{ fontSize: "inherit" }}></RowIcon>
+										)}
+										<RowTitle isLast={isLast} style={{ color: normalColor, fontWeight: "bold" }}>
+											Compact task:
+										</RowTitle>
+									</RowHeader>
+									<RowItemText isExpanded={true} isLast={isLast}>
+										<NewTaskPreview context={message.text || ""} />
+									</RowItemText>
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "report_bug":
 						return (
-							<>
-								<div style={headerStyle}>
-									<span
-										className="codicon codicon-new-file"
-										style={{
-											color: normalColor,
-											marginBottom: "-1.5px",
-										}}></span>
-									<span style={{ color: normalColor, fontWeight: "bold" }}>
-										{agentName} wants to create a Github issue:
-									</span>
-								</div>
-								<ReportBugPreview data={message.text || ""} />
-							</>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<SpacingRowContainer>
+									<RowHeader>
+										{rowIconVisible && (
+											<RowIcon
+												className="codicon codicon-new-file"
+												isLast={isLast}
+												style={{ fontSize: "inherit" }}></RowIcon>
+										)}
+										<RowTitle isLast={isLast}>Create a Github issue:</RowTitle>
+									</RowHeader>
+									<ReportBugPreview data={message.text || ""} />
+								</SpacingRowContainer>
+							</PrimaryRowStyle>
 						)
 					case "plan_mode_respond": {
 						let response: string | undefined
@@ -1499,31 +2779,53 @@ export const ChatRowContent = memo(
 							response = message.text
 						}
 						return (
-							<WithCopyButton
-								onMouseUp={handleMouseUp}
-								position="bottom-right"
-								ref={contentRef}
-								textToCopy={response}>
-								<Markdown markdown={response} />
-								<OptionsButtons
-									inputValue={inputValue}
-									isActive={
-										(isLast && lastModifiedMessage?.ask === "plan_mode_respond") ||
-										(!selected && options && options.length > 0)
-									}
-									options={options}
-									selected={selected}
-								/>
-								{quoteButtonState.visible && (
-									<QuoteButton
-										left={quoteButtonState.left}
-										onClick={() => {
-											handleQuoteClick()
-										}}
-										top={quoteButtonState.top}
-									/>
-								)}
-							</WithCopyButton>
+							<PrimaryRowStyle isExpanded={isExpanded} isLast={isLast}>
+								<ResponseRowContainer isExpanded={isExpanded} isLast={isLast}>
+									<RowHeader className={`group`} onClick={handleToggle} style={{ cursor: "pointer" }}>
+										{rowIconVisible && icon}
+										{title}
+										<span
+											className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} opacity-${isExpanded ? 100 : 50} group-hover:opacity-100 transition-opacity duration-${defaultDuration}`}
+											style={{ fontSize: "inherit" }}
+										/>
+									</RowHeader>
+									{isExpanded && (
+										<RowItemText className={`ph-no-capture`} isExpanded={isExpanded} isLast={isLast}>
+											<WithCopyButton
+												onMouseUp={(e) => {
+													handleMouseUp(e)
+													e.stopPropagation()
+												}}
+												position="top-right"
+												ref={contentRef}
+												textToCopy={response}>
+												<Markdown
+													lineClamp={isLast ? undefined : responseTextLineClamp}
+													markdown={response}
+												/>
+												{quoteButtonState.visible && (
+													<QuoteButton
+														left={quoteButtonState.left}
+														onClick={() => {
+															handleQuoteClick()
+														}}
+														top={quoteButtonState.top}
+													/>
+												)}
+											</WithCopyButton>
+											<OptionsButtons
+												inputValue={inputValue}
+												isActive={
+													(isLast && lastModifiedMessage?.ask === "plan_mode_respond") ||
+													(!selected && options && options.length > 0)
+												}
+												options={options}
+												selected={selected}
+											/>
+										</RowItemText>
+									)}
+								</ResponseRowContainer>
+							</PrimaryRowStyle>
 						)
 					}
 					default:

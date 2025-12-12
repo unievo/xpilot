@@ -1,10 +1,10 @@
+import { chatInputSectionBackground, chatInputSectionQuoteBackground } from "@components/config"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React from "react"
 import styled from "styled-components"
-import { chatTextAreaBackground, chatTextAreaQuoteBackground } from "../theme"
 
 const PreviewContainer = styled.div`
-	background-color: ${chatTextAreaBackground}; /* Outer box matches text area */
+	background-color: ${chatInputSectionBackground}; /* Outer box matches text area */
 	/* border-left: 3px solid var(--vscode-textBlockQuote-border); */ /* Remove left border */
 	/* border-top: 1px solid var(--vscode-editorGroup-border); */ /* Remove top border */
 	padding: 4px 10px 4px 10px; /* Removed bottom padding */
@@ -19,7 +19,7 @@ const PreviewContainer = styled.div`
 
 const ContentRow = styled.div`
 	/* Mix outer background with white to ensure a much lighter inner box */
-	background-color: ${chatTextAreaQuoteBackground};
+	background-color: ${chatInputSectionQuoteBackground};
 	border-radius: 7px 7px 7px 7px; /* Round top corners, square bottom corners */
 	padding: 8px 10px 8px 8px; /* Reduced left padding */
 	margin-bottom: 7px;
@@ -30,7 +30,7 @@ const ContentRow = styled.div`
 `
 
 const TextContainer = styled.div`
-	flex-grow: 1;
+	grow: 1;
 	margin: 0 2px; /* Further reduced space around text */
 	white-space: pre-wrap;
 	word-break: break-word;
@@ -47,7 +47,7 @@ const TextContainer = styled.div`
 
 const DismissButton = styled(VSCodeButton)`
 	/* margin-left: auto; */ /* Removed as ContentRow handles spacing */
-	flex-shrink: 0; /* Prevent button from shrinking */
+	shrink: 0; /* Prevent button from shrinking */
 	min-width: 22px;
 	height: 22px;
 	padding: 0;
@@ -60,7 +60,7 @@ const DismissButton = styled(VSCodeButton)`
 const ReplyIcon = styled.span`
 	color: var(--vscode-descriptionForeground);
 	margin-right: 2px; /* Further reduced space between icon and text */
-	flex-shrink: 0;
+	shrink: 0;
 	font-size: 13px; /* Make icon even smaller */
 	/* transform: translateY(-1px); */ /* Removed vertical transform */
 `

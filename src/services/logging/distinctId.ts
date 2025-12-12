@@ -1,7 +1,7 @@
+import { machineId } from "node-machine-id"
 import { v4 as uuidv4 } from "uuid"
 import { ExtensionContext } from "vscode"
-import { HostProvider } from "@/hosts/host-provider"
-import { EmptyRequest } from "@/shared/proto/cline/common"
+import { productName } from "@/shared/Configuration"
 
 /*
  * Unique identifier for the current installation.
@@ -12,7 +12,7 @@ let _distinctId: string = ""
  * Some environments don't return a value for the machine ID. For these situations we generated
  * a unique ID and store it locally.
  */
-export const _GENERATED_MACHINE_ID_KEY = "cline.generatedMachineId"
+export const _GENERATED_MACHINE_ID_KEY = `${productName}.generatedMachineId`
 
 export async function initializeDistinctId(context: ExtensionContext, uuid: () => string = uuidv4) {
 	// Try to read the ID from storage.
@@ -36,14 +36,17 @@ export async function initializeDistinctId(context: ExtensionContext, uuid: () =
 }
 
 /*
- * Host-provided UUID when running via HostBridge; fall back to VS Code's machineId
+ * Get machine ID using node-machine-id package
+ * This works across all platforms (VS Code, JetBrains, CLI)
  */
 async function getMachineId(): Promise<string | undefined> {
 	try {
-		const response = await HostProvider.env.getMachineId(EmptyRequest.create({}))
-		return response.value
+		// Get the machine ID using node-machine-id package
+		// This provides a deterministic ID across different operating systems
+		const id = await machineId()
+		return id
 	} catch (error) {
-		console.log("Failed to get machine ID", error)
+		console.log("Failed to get machine ID from node-machine-id", error)
 		return undefined
 	}
 }

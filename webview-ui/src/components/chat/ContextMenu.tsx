@@ -1,7 +1,15 @@
+import {
+	chatInputSectionBorder,
+	iconHighlightColor,
+	isHighContrastTheme,
+	menuBackground,
+	menuFontSize,
+	menuTopBorder,
+	primaryFontSize,
+} from "@components/config"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { cleanPathPrefix } from "@/components/common/CodeAccordian"
 import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
-import { dropdownBackground, itemIconColor } from "../theme"
 
 interface ContextMenuProps {
 	onSelect: (type: ContextMenuOptionType, value?: string) => void
@@ -87,7 +95,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.Terminal:
 				return <span>Terminal</span>
 			case ContextMenuOptionType.URL:
-				return <span>Paste URL for web content</span>
+				return <span>Paste URL to fetch content</span>
 			case ContextMenuOptionType.NoResults:
 				return <span>No results found</span>
 			case ContextMenuOptionType.Git:
@@ -100,7 +108,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							<span
 								className="ph-no-capture"
 								style={{
-									fontSize: "11px",
+									fontSize: primaryFontSize - 1,
 									opacity: 0.7,
 									whiteSpace: "nowrap",
 									overflow: "hidden",
@@ -117,20 +125,24 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.File:
 			case ContextMenuOptionType.Folder:
 				if (option.value) {
+					// Use label if it differs from just the basename (indicates workspace prefix or custom label)
+					const displayText =
+						option.label && option.label !== option.value.split("/").pop() ? option.label : option.value
+
 					return (
 						<>
-							<span>/</span>
-							{option.value?.startsWith("/.") && <span>.</span>}
+							{!displayText.includes(":") && <span>/</span>}
+							{displayText.startsWith("/.") && <span>.</span>}
 							<span
 								className="ph-no-capture"
 								style={{
 									whiteSpace: "nowrap",
 									overflow: "hidden",
 									textOverflow: "ellipsis",
-									direction: "rtl",
+									direction: displayText.includes(":") ? "ltr" : "rtl",
 									textAlign: "left",
 								}}>
-								{cleanPathPrefix(option.value || "") + "\u200E"}
+								{displayText.includes(":") ? displayText : cleanPathPrefix(displayText) + "\u200E"}
 							</span>
 						</>
 					)
@@ -153,7 +165,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			case ContextMenuOptionType.URL:
 				return "link"
 			case ContextMenuOptionType.Git:
-				return "git-merge"
+				return "git-commit"
 			case ContextMenuOptionType.NoResults:
 				return "info"
 			default:
@@ -169,20 +181,21 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 		<div
 			onMouseDown={onMouseDown}
 			style={{
-				fontSize: "12px",
+				// fontSize: menuFontSize,
 				position: "absolute",
 				bottom: "calc(100% - 7px)",
-				left: 7,
-				right: 7,
+				left: 0,
+				right: 0,
 				overflowX: "hidden",
 				zIndex: 1001,
 			}}>
 			<div
-				className="border border-[var(--vscode-editorGroup-border)] mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				className="mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
 				style={{
-					backgroundColor: dropdownBackground,
-					// border: "1px solid var(--vscode-editorGroup-border)",
+					backgroundColor: menuBackground,
+					border: chatInputSectionBorder,
+					borderTop: menuTopBorder,
 					// borderRadius: "6px",
 					// boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
 					// zIndex: 1000,
@@ -205,78 +218,98 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						<span>Searching...</span>
 					</div>
 				)}
-				{filteredOptions.map((option, index) => (
-					<div
-						key={`${option.type}-${option.value || index}`}
-						onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
-						onMouseEnter={() => isOptionSelectable(option) && setSelectedIndex(index)}
-						style={{
-							padding: "4px 3px",
-							cursor: isOptionSelectable(option) ? "pointer" : "default",
-							color:
-								index === selectedIndex && isOptionSelectable(option)
-									? "var(--vscode-quickInputList-focusForeground)"
-									: "",
-							//borderBottom: "1px solid var(--vscode-editorGroup-border)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-							backgroundColor:
-								index === selectedIndex && isOptionSelectable(option)
-									? "var(--vscode-quickInputList-focusBackground)"
-									: "",
-						}}>
+				{filteredOptions.map((option, index) => {
+					// Include workspace name in key for files/folders to handle duplicates across workspaces
+					const workspacePrefix = option.workspaceName ? `${option.workspaceName}:` : ""
+					const generatedKey = `${option.type}-${workspacePrefix}${option.value || index}`
+
+					return (
 						<div
+							key={generatedKey}
+							onClick={() => {
+								if (isOptionSelectable(option)) {
+									// Use label if it contains workspace prefix, otherwise use value
+									const mentionValue = option.label?.includes(":") ? option.label : option.value
+									onSelect(option.type, mentionValue)
+								}
+							}}
+							onMouseEnter={() => isOptionSelectable(option) && setSelectedIndex(index)}
 							style={{
+								padding: "4px 3px",
+								cursor: isOptionSelectable(option) ? "pointer" : "default",
+								borderRadius: 6,
+								textDecoration:
+									index === selectedIndex && isOptionSelectable(option) && isHighContrastTheme()
+										? "underline"
+										: "",
+								color:
+									index === selectedIndex && isOptionSelectable(option)
+										? isHighContrastTheme()
+											? "var(--vscode-sash-hoverBorder)"
+											: "var(--vscode-quickInputList-focusForeground)"
+										: "",
+								// borderBottom: "1px solid var(--vscode-editorGroup-border)",
 								display: "flex",
 								alignItems: "center",
-								flex: 1,
-								minWidth: 0,
-								overflow: "hidden",
+								justifyContent: "space-between",
+								backgroundColor:
+									index === selectedIndex && isOptionSelectable(option)
+										? "var(--vscode-quickInputList-focusBackground)"
+										: "",
 							}}>
-							<i
-								className={`codicon codicon-${getIconForOption(option)}`}
+							<div
 								style={{
-									color: itemIconColor,
-									marginRight: "5px",
-									flexShrink: 0,
-									fontSize: "13px",
-								}}
-							/>
-							{renderOptionContent(option)}
-						</div>
-						{(option.type === ContextMenuOptionType.File ||
-							option.type === ContextMenuOptionType.Folder ||
-							option.type === ContextMenuOptionType.Git) &&
-							!option.value && (
+									fontSize: menuFontSize,
+									display: "flex",
+									alignItems: "center",
+									flex: 1,
+									minWidth: 0,
+									overflow: "hidden",
+								}}>
 								<i
-									className="codicon codicon-chevron-right"
+									className={`codicon codicon-${getIconForOption(option)}`}
+									style={{
+										color: iconHighlightColor,
+										marginRight: "5px",
+										flexShrink: 0,
+										fontSize: "14px",
+									}}
+								/>
+								{renderOptionContent(option)}
+							</div>
+							{(option.type === ContextMenuOptionType.File ||
+								option.type === ContextMenuOptionType.Folder ||
+								option.type === ContextMenuOptionType.Git) &&
+								!option.value && (
+									<i
+										className="codicon codicon-chevron-right"
+										style={{
+											opacity: 0.5,
+											fontSize: menuFontSize,
+											flexShrink: 0,
+											marginLeft: 8,
+										}}
+									/>
+								)}
+							{(option.type === ContextMenuOptionType.Problems ||
+								option.type === ContextMenuOptionType.Terminal ||
+								((option.type === ContextMenuOptionType.File ||
+									option.type === ContextMenuOptionType.Folder ||
+									option.type === ContextMenuOptionType.Git) &&
+									option.value)) && (
+								<i
+									className="codicon codicon-add"
 									style={{
 										opacity: 0.5,
-										fontSize: "12px",
+										fontSize: menuFontSize,
 										flexShrink: 0,
 										marginLeft: 8,
 									}}
 								/>
 							)}
-						{(option.type === ContextMenuOptionType.Problems ||
-							option.type === ContextMenuOptionType.Terminal ||
-							((option.type === ContextMenuOptionType.File ||
-								option.type === ContextMenuOptionType.Folder ||
-								option.type === ContextMenuOptionType.Git) &&
-								option.value)) && (
-							<i
-								className="codicon codicon-add"
-								style={{
-									opacity: 0.5,
-									fontSize: "12px",
-									flexShrink: 0,
-									marginLeft: 8,
-								}}
-							/>
-						)}
-					</div>
-				))}
+						</div>
+					)
+				})}
 			</div>
 		</div>
 	)

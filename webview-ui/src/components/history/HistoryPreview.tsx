@@ -7,6 +7,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber } from "@/utils/format"
 import HeroTooltip from "../common/HeroTooltip"
+import { primaryFontSize } from "../config"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -16,25 +17,18 @@ type HistoryPreviewProps = {
 interface CustomFilterRadioProps {
 	checked: boolean
 	onChange: () => void
-	icon: string
+	icon?: string
 	label: string
 }
 
 const CustomFilterRadio = ({ checked, onChange, icon, label }: CustomFilterRadioProps) => {
 	return (
-		<div
-			className="flex items-center cursor-pointer py-[0em] px-0 mr-[10px] text-[var(--vscode-font-size)] select-none"
-			onClick={onChange}>
-			<div
-				className={`scale-90 w-[14px] h-[14px] border border-[var(--vscode-checkbox-border)] relative flex justify-center items-center mr-[6px] ${
-					checked ? "bg-[var(--vscode-checkbox-background)]" : "bg-transparent"
-				}`}>
-				{checked && <div className="w-[6px] h-[6px] bg-[var(--vscode-checkbox-foreground)]" />}
+		<div className="flex items-center cursor-pointer select-none text-xs" onClick={onChange}>
+			<div className="scale-90 w-[14px] h-[14px] border border-(--vscode-checkbox-border) bg-(--vscode-checkbox-background) relative flex justify-center items-center mr-[6px]">
+				{checked && <div className="w-[6px] h-[6px] bg-(--vscode-checkbox-foreground)" />}
 			</div>
-			<span className="flex items-center gap-[3px]">
-				<div className={`codicon codicon-${icon} text-[var(--vscode-button-background)] text-base`} />
-				{label}
-			</span>
+			<div className={`codicon codicon-${icon}`} />
+			{label}
 		</div>
 	)
 }
@@ -157,17 +151,19 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 				className="history-header"
 				onClick={toggleExpanded}
 				style={{
-					//color: "var(--vscode-descriptionForeground)",
+					// color: "var(--vscode-descriptionForeground)",
 					margin: "10px 20px 15px 20px",
 					display: "flex",
 					alignItems: "center",
 				}}>
 				<span
 					className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
-					style={{
-						marginRight: "0px",
-						//transform: "scale(0.9)",
-					}}></span>
+					style={
+						{
+							// marginRight: "6px",
+							// transform: "scale(0.9)",
+						}
+					}></span>
 				<span
 					className="codicon codicon-tasklist"
 					style={{
@@ -185,52 +181,34 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 			</div>
 
 			{isExpanded && (
-				<div
-					style={{
-						fontSize: "0.8em",
-						padding: "0 10px 8px 20px",
-						marginLeft: "0px",
-						marginBottom: "0px",
-						marginTop: "-5px",
-						display: "flex",
-						justifyContent: "flex-start",
-						opacity: 0.7,
-					}}>
+				<div className="flex mb-2 ml-7 text-(--vscode-descriptionForeground)">
 					<CustomFilterRadio
 						checked={showCurrentWorkspaceOnly}
-						icon=""
 						label="Current workspace"
 						onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
 					/>
 					<HeroTooltip content="Show only tasks from the current workspace">
-						<span
-							className="codicon codicon-info"
-							style={{
-								marginLeft: "-5px",
-								opacity: 0.8,
-								fontSize: "12px",
-							}}
-						/>
+						<span className="codicon codicon-info ml-1 opacity-70 cursor-pointer" style={{ fontSize: "12px" }} />
 					</HeroTooltip>
 				</div>
 			)}
 
 			{isExpanded && (
-				<div style={{ padding: "5px 3px 0 20px" }}>
+				<div style={{ padding: "5px 8px 0 20px" }}>
 					{tasksToDisplay.length > 0 ? (
 						<>
 							{tasksToDisplay.map((item) => (
 								<div className="history-preview-item" key={item.id} onClick={() => handleHistorySelect(item.id)}>
-									<div style={{ padding: "5px", paddingLeft: "12px", paddingRight: "12px" }}>
+									<div style={{ padding: "3px 8px" }}>
 										<div
 											className="history-preview-task"
 											id={`history-preview-task-${item.id}`}
 											style={{
-												fontSize: "var(--vscode-font-size)",
+												fontSize: primaryFontSize,
 												opacity: 0.9,
-												marginBottom: "3px",
-												marginTop: "1px",
-												marginLeft: "0px",
+												marginBottom: "2px",
+												// marginTop: "1px",
+												// marginLeft: "0px",
 												marginRight: "15px",
 												display: "-webkit-box",
 												WebkitLineClamp: 1,
@@ -246,7 +224,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 											<div
 												style={{
 													position: "absolute",
-													top: "6px",
+													top: "4px",
 													right: "6px",
 													color: "var(--vscode-button-background)",
 												}}>
@@ -263,8 +241,8 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 													style={{
 														color: "var(--vscode-descriptionForeground)",
 														//fontWeight: "bold",
-														fontSize: "0.95em",
-														opacity: 0.7,
+														fontSize: "0.90em",
+														// opacity: 0.7,
 														//textTransform: "uppercase",
 													}}>
 													{formatTime(item.ts)}
@@ -275,7 +253,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 													marginLeft: "0px",
 													fontSize: "0.85em",
 													//fontWeight: "bold",
-													opacity: 0.7,
+													opacity: 0.8,
 													color: "var(--vscode-descriptionForeground)",
 												}}>
 												<span>
@@ -334,7 +312,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								fontSize: "11px",
 								padding: "10px 0",
 							}}>
-							No task history available.
+							No task history available {showCurrentWorkspaceOnly ? "for the current workspace." : "."}
 						</div>
 					)}
 				</div>

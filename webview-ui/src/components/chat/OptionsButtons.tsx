@@ -1,23 +1,32 @@
+import {
+	defaultBorderRadius,
+	optionBackground,
+	optionBorder,
+	optionPadding,
+	optionSelectedBackground,
+	primaryFontSize,
+} from "@components/config"
 import { AskResponseRequest } from "@shared/proto/cline/task"
 import styled from "styled-components"
-import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { TaskServiceClient } from "@/services/grpc-client"
 
 const OptionButton = styled.button<{ isSelected?: boolean; isNotSelectable?: boolean }>`
-	padding: 8px 12px;
-	background: ${(props) => (props.isSelected ? "var(--vscode-focusBorder)" : CODE_BLOCK_BG_COLOR)};
+	padding: ${optionPadding};
+	background: ${(props) => (props.isSelected ? optionSelectedBackground : optionBackground)};
 	color: ${(props) => (props.isSelected ? "white" : "var(--vscode-input-foreground)")};
-	border: 1px solid var(--vscode-editorGroup-border);
-	border-radius: 2px;
+	border: ${optionBorder};
+	border-radius: ${defaultBorderRadius}px;
 	cursor: ${(props) => (props.isNotSelectable ? "default" : "pointer")};
 	text-align: left;
-	font-size: 12px;
+	font-size: ${primaryFontSize}px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 
 	${(props) =>
 		!props.isNotSelectable &&
 		`
 		&:hover {
-			background: var(--vscode-focusBorder);
+			background: ${optionSelectedBackground};
 			color: white;
 		}
 	`}
@@ -45,13 +54,14 @@ export const OptionsButtons = ({
 			style={{
 				display: "flex",
 				flexDirection: "column",
-				gap: "8px",
-				paddingTop: 15,
+				gap: 10,
+				paddingTop: 12,
+
 				// marginTop: "22px",
 			}}>
-			{/* <div style={{ color: "var(--vscode-descriptionForeground)", fontSize: "11px", textTransform: "uppercase" }}>
-				SELECT ONE:
-			</div> */}
+			<div style={{ color: "var(--vscode-descriptionForeground)", fontSize: `${primaryFontSize}px` }}>
+				Select an option:
+			</div>
 			{options.map((option, index) => (
 				<OptionButton
 					className="options-button"
@@ -74,7 +84,8 @@ export const OptionsButtons = ({
 						} catch (error) {
 							console.error("Error sending option response:", error)
 						}
-					}}>
+					}}
+					style={{ borderLeft: option === selected ? "3px solid var(--vscode-inputOption-activeBorder)" : undefined }}>
 					<span className="ph-no-capture">{option}</span>
 				</OptionButton>
 			))}

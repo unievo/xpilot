@@ -74,3 +74,20 @@ export function formatSeconds(seconds?: number): string {
 
 	return `${mins}:${secs}`
 }
+
+export function extractFileName(filePath: string): string {
+	// Remove trailing path separators
+	const trimmedPath = filePath.replace(/[/\\]+$/, "")
+
+	const lastSlashIndex = Math.max(trimmedPath.lastIndexOf("/"), trimmedPath.lastIndexOf("\\"))
+	if (lastSlashIndex === -1) {
+		return trimmedPath
+	}
+	return trimmedPath.substring(lastSlashIndex + 1)
+}
+
+export function hasValidFileName(filePath: string): boolean {
+	const fileName = extractFileName(filePath)
+	const hasExtension = fileName.includes(".") && fileName.lastIndexOf(".") > 0
+	return fileName.length > 0 && fileName !== "." && fileName !== ".." && /^[a-zA-Z0-9._-]+$/.test(fileName) && hasExtension
+}

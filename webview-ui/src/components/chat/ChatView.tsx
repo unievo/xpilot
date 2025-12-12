@@ -1,11 +1,21 @@
+import {
+	chatInputSectionBackground,
+	chatInputSectionBorder,
+	chatInputSectionMargin,
+	defaultBorderRadius,
+	menuTopBorder,
+} from "@components/config"
 import { findLast } from "@shared/array"
 import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
+import { combineErrorRetryMessages } from "@shared/combineErrorRetryMessages"
+import { combineHookSequences } from "@shared/combineHookSequences"
 import type { ClineApiReqInfo, ClineMessage } from "@shared/ExtensionMessage"
 import { getApiMetrics } from "@shared/getApiMetrics"
 import { BooleanRequest, StringRequest } from "@shared/proto/cline/common"
 import { useCallback, useEffect, useMemo } from "react"
 import { useMount } from "react-use"
+import styled from "styled-components"
 import { normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useShowNavbar } from "@/context/PlatformContext"
@@ -29,6 +39,14 @@ import {
 	WelcomeSection,
 } from "./chat-view"
 
+const ChatInputSection = styled.div`
+	background: ${chatInputSectionBackground};
+	border: ${chatInputSectionBorder};
+	border-radius: ${defaultBorderRadius}px;
+	border-top: ${menuTopBorder};
+	margin: ${chatInputSectionMargin};
+`
+
 interface ChatViewProps {
 	isHidden: boolean
 	showAnnouncement: boolean
@@ -51,13 +69,20 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		mode,
 		userInfo,
 		currentFocusChainChecklist,
+		hooksEnabled,
 	} = useExtensionState()
 	const isProdHostedApp = userInfo?.apiBaseUrl === "https://app.cline.bot"
 	const shouldShowQuickWins = isProdHostedApp && (!taskHistory || taskHistory.length < QUICK_WINS_HISTORY_THRESHOLD)
 
 	//const task = messages.length > 0 ? (messages[0].say === "task" ? messages[0] : undefined) : undefined) : undefined
 	const task = useMemo(() => messages.at(0), [messages]) // leaving this less safe version here since if the first message is not a task, then the extension is in a bad state and needs to be debugged (see Cline.abort)
-	const modifiedMessages = useMemo(() => combineApiRequests(combineCommandSequences(messages.slice(1))), [messages])
+	const modifiedMessages = useMemo(() => {
+		const slicedMessages = messages.slice(1)
+		// Only combine hook sequences if hooks are enabled (both user setting and feature flag)
+		const areHooksEnabled = hooksEnabled?.user
+		const withHooks = areHooksEnabled ? combineHookSequences(slicedMessages) : slicedMessages
+		return combineErrorRetryMessages(combineApiRequests(combineCommandSequences(withHooks)))
+	}, [messages, hooksEnabled])
 	// has to be after api_req_finished are all reduced into api_req_started messages
 	const apiMetrics = useMemo(() => getApiMetrics(modifiedMessages), [modifiedMessages])
 
@@ -324,9 +349,9 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 	const placeholderText = useMemo(() => {
 		if (task) {
-			return mode === "plan" ? "Type a message to plan" : "Type a message to execute"
+			return mode === "plan" ? "Type a message to plan" : "Type a message"
 		}
-		return mode === "plan" ? "Type to plan a task" : "Type to execute a task"
+		return mode === "plan" ? "Type to plan a new task" : "Type a new task"
 	}, [task, mode])
 
 	return (
@@ -339,7 +364,6 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						lastApiReqTotalTokens={lastApiReqTotalTokens}
 						lastProgressMessageText={_lastProgressMessageText}
 						messageHandlers={messageHandlers}
-						scrollBehavior={scrollBehavior}
 						selectedModelInfo={{
 							supportsPromptCache: selectedModelInfo.supportsPromptCache,
 							supportsImages: selectedModelInfo.supportsImages || false,
@@ -382,16 +406,17 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				}}
 				task={task}
 			/>
-			<AutoApproveBar />
-
-			<InputSection
-				chatState={chatState}
-				messageHandlers={messageHandlers}
-				placeholderText={placeholderText}
-				scrollBehavior={scrollBehavior}
-				selectFilesAndImages={selectFilesAndImages}
-				shouldDisableFilesAndImages={shouldDisableFilesAndImages}
-			/>
+			<ChatInputSection>
+				<AutoApproveBar />
+				<InputSection
+					chatState={chatState}
+					messageHandlers={messageHandlers}
+					placeholderText={placeholderText}
+					scrollBehavior={scrollBehavior}
+					selectFilesAndImages={selectFilesAndImages}
+					shouldDisableFilesAndImages={shouldDisableFilesAndImages}
+				/>
+			</ChatInputSection>
 		</ChatLayout>
 	)
 }

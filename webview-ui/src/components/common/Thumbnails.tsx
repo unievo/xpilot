@@ -1,9 +1,9 @@
+import { iconHighlightColor } from "@components/config"
 import { cn } from "@heroui/react"
 import { StringRequest } from "@shared/proto/cline/common"
 import React, { memo, useLayoutEffect, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
 import { FileServiceClient } from "@/services/grpc-client"
-import { itemIconColor } from "../theme"
 
 interface ThumbnailsProps {
 	images: string[]
@@ -77,7 +77,7 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 							onClick={() => handleImageClick(image)}
 							style={{
 								minWidth: 30,
-								height: 16,
+								height: 20,
 								paddingRight: 3,
 								paddingTop: 3,
 								paddingBottom: 3,
@@ -144,7 +144,7 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 							onClick={() => handleFileClick(filePath)}
 							style={{
 								minWidth: 30,
-								height: 16,
+								height: 20,
 								paddingRight: 3,
 								paddingTop: 3,
 								paddingBottom: 3,
@@ -168,12 +168,12 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 										: undefined
 								}
 								style={{
-									fontSize: 16,
+									fontSize: 12,
 									paddingRight: 2,
 									color:
 										hoveredIndex === `file-${index}` && isDeletableFiles
 											? "var(--vscode-textColor)"
-											: itemIconColor,
+											: iconHighlightColor,
 								}}></span>
 							<span
 								style={{

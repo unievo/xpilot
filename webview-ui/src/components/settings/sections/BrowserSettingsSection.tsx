@@ -170,12 +170,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 							}>
 							Disable browser tool usage
 						</VSCodeCheckbox>
-						<p
-							style={{
-								fontSize: "12px",
-								color: "var(--vscode-descriptionForeground)",
-								margin: "4px 0 0 0px",
-							}}>
+						<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
 							Prevent {agentName} from using browser actions (e.g. launch, click, type).
 						</p>
 					</div>
@@ -203,12 +198,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									))}
 								</VSCodeDropdown>
 							</div>
-							<p
-								style={{
-									fontSize: "12px",
-									color: "var(--vscode-descriptionForeground)",
-									margin: 0,
-								}}>
+							<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
 								Set the size of the browser viewport for screenshots and interactions.
 							</p>
 						</div>
@@ -241,12 +231,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									remoteBrowserEnabled={browserSettings.remoteBrowserEnabled}
 								/>
 							</div>
-							<p
-								style={{
-									fontSize: "12px",
-									color: "var(--vscode-descriptionForeground)",
-									margin: "0 0 6px 0px",
-								}}>
+							<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
 								Enable {agentName} to use your Chrome
 								{isBundled
 									? "(not detected on your machine)"
@@ -330,12 +315,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									placeholder="e.g., /usr/bin/google-chrome or C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 									style={{ width: "100%" }}
 								/>
-								<p
-									style={{
-										fontSize: "12px",
-										color: "var(--vscode-descriptionForeground)",
-										margin: "4px 0 0 0",
-									}}>
+								<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
 									Leave blank to auto-detect.
 								</p>
 							</div>
@@ -353,12 +333,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									placeholder="e.g., --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --no-first-run --no-zygote"
 									style={{ width: "100%" }}
 								/>
-								<p
-									style={{
-										fontSize: "12px",
-										color: "var(--vscode-descriptionForeground)",
-										margin: "4px 0 0 0",
-									}}>
+								<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
 									Space-separated arguments to pass to the browser executable.
 								</p>
 							</div>

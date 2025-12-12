@@ -1,6 +1,7 @@
 import { getRuleFilesTotalContent, synchronizeRuleToggles } from "@core/context/instructions/user-instructions/rule-helpers"
 import { formatResponse } from "@core/prompts/responses"
 import { ensureGlobalInstructionsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
+import { StateManager } from "@core/storage/StateManager"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import { fileExistsAtPath, isDirectory, readDirectory } from "@utils/fs"
 import fs from "fs/promises"
@@ -9,6 +10,9 @@ import { Controller } from "@/core/controller"
 import { instructionsExcludedDirectories, instructionsExcludedFiles, instructionsFilesExtension } from "@/shared/Configuration"
 
 export const getGlobalClineRules = async (globalClineRulesFilePath: string, toggles: ClineRulesToggles) => {
+	let combinedContent = ""
+
+	// 1. Get file-based rules
 	if (await fileExistsAtPath(globalClineRulesFilePath)) {
 		if (await isDirectory(globalClineRulesFilePath)) {
 			try {
@@ -32,19 +36,37 @@ export const getGlobalClineRules = async (globalClineRulesFilePath: string, togg
 					toggles,
 				)
 				if (rulesFilesTotalContent) {
-					const clineRulesFileInstructions = formatResponse.clineRulesGlobalDirectoryInstructions(
-						globalClineRulesFilePath,
-						rulesFilesTotalContent,
-					)
-					return clineRulesFileInstructions
+					combinedContent = rulesFilesTotalContent
 				}
 			} catch {
 				console.error(`Failed to read instructions directory at ${globalClineRulesFilePath}`)
 			}
 		} else {
 			console.error(`${globalClineRulesFilePath} is not a directory`)
-			return undefined
 		}
+	}
+
+	// 2. Append remote config rules
+	const stateManager = StateManager.get()
+	const remoteConfigSettings = stateManager.getRemoteConfigSettings()
+	const remoteRules = remoteConfigSettings.remoteGlobalRules || []
+	const remoteToggles = stateManager.getGlobalStateKey("remoteRulesToggles") || {}
+
+	for (const rule of remoteRules) {
+		// If alwaysEnabled, always include; otherwise check toggle
+		const isEnabled = rule.alwaysEnabled || remoteToggles[rule.name] !== false
+
+		if (isEnabled) {
+			if (combinedContent) {
+				combinedContent += "\n\n"
+			}
+			combinedContent += `${rule.name}\n${rule.contents}`
+		}
+	}
+
+	// 3. Return formatted instructions
+	if (combinedContent) {
+		return formatResponse.clineRulesGlobalDirectoryInstructions(globalClineRulesFilePath, combinedContent)
 	}
 
 	return undefined

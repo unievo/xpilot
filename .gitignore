@@ -24,6 +24,7 @@ coverage-unit
 !.github/scripts/coverage/
 
 *evals.env
+.env
 
 ## Generated files ##
 src/generated/
@@ -32,6 +33,3 @@ webview-ui/src/services/grpc-client.ts
 
 # E2E Tests
 test-results
-
-## CLI pre-release  ##
-/cli 

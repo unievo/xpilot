@@ -1,16 +1,22 @@
 import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
+import { combineHookSequences } from "@shared/combineHookSequences"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { Virtuoso } from "react-virtuoso"
+import {
+	taskHeaderTimelineBlockBorderRadius,
+	taskHeaderTimelineBlockGap,
+	taskHeaderTimelineBlockWidth,
+	taskHeaderTimelineHeight,
+} from "@/components/config"
 import TaskTimelineTooltip from "./TaskTimelineTooltip"
 import { getColor } from "./util"
 
 // Timeline dimensions and spacing
-const TIMELINE_HEIGHT = "13px"
-const BLOCK_WIDTH = "10px"
-const BLOCK_GAP = "1px"
-const _TOOLTIP_MARGIN = 32 // 32px margin on each side
+const TIMELINE_HEIGHT = taskHeaderTimelineHeight
+const BLOCK_WIDTH = taskHeaderTimelineBlockWidth
+const BLOCK_GAP = taskHeaderTimelineBlockGap
 
 interface TaskTimelineProps {
 	messages: ClineMessage[]
@@ -26,7 +32,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 			return { taskTimelinePropsMessages: [], messageIndexMap: [] }
 		}
 
-		const processed = combineApiRequests(combineCommandSequences(messages.slice(1)))
+		const processed = combineApiRequests(combineCommandSequences(combineHookSequences(messages.slice(1))))
 		const indexMap: number[] = []
 
 		const filtered = processed.filter((msg, _processedIndex) => {
@@ -70,7 +76,8 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 	}, [taskTimelinePropsMessages])
 
 	// Calculate the item size (width of block + gap)
-	const itemWidth = parseInt(BLOCK_WIDTH.replace("px", ""), 10) + parseInt(BLOCK_GAP.replace("px", ""), 10)
+	// const itemWidth = parseInt(BLOCK_WIDTH.replace("px", ""), 10) + parseInt(BLOCK_GAP.replace("px", ""), 10)
+	const itemWidth = BLOCK_WIDTH + BLOCK_GAP
 
 	// Virtuoso requires a reference to scroll to the end
 	const virtuosoRef = useRef<any>(null)
@@ -89,7 +96,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 							flexShrink: 0,
 							marginRight: BLOCK_GAP,
 							opacity: 0.5,
-							borderRadius: "20%",
+							borderRadius: taskHeaderTimelineBlockBorderRadius,
 						}}
 					/>
 				)
@@ -107,7 +114,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 			return (
 				<TaskTimelineTooltip message={message}>
 					<div
-						className="hover:brightness-120"
+						className="rounded-xs hover:brightness-120"
 						onClick={handleClick}
 						style={{
 							width: BLOCK_WIDTH,
@@ -117,7 +124,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 							cursor: "pointer",
 							marginRight: BLOCK_GAP,
 							transition: "opacity 0.2s ease",
-							borderRadius: "20%",
+							borderRadius: taskHeaderTimelineBlockBorderRadius,
 						}}
 					/>
 				</TaskTimelineTooltip>
@@ -143,7 +150,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 				style={{
 					position: "relative",
 					width: "100%",
-					// marginBottom: "6px",
+					marginBottom: 3,
 					overflow: "hidden",
 				}}>
 				<div
@@ -175,8 +182,11 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({ messages, onBlockClick }) =
 			style={{
 				position: "relative",
 				width: "100%",
-				height: TIMELINE_HEIGHT,
+				height: taskTimelinePropsMessages.length > 0 ? TIMELINE_HEIGHT : 0,
+				marginTop: 1,
+				marginBottom: 2,
 				overflow: "hidden",
+				opacity: 0.7,
 			}}>
 			<style>
 				{`

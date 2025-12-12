@@ -1,12 +1,13 @@
-import { agentName } from "@shared/Configuration"
-import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useRef, useState } from "react"
 import { useClickAway, useWindowSize } from "react-use"
 import HeroTooltip from "@/components/common/HeroTooltip"
+import { chatInputSectionBackground, chatInputSectionBorder, menuTopBorder } from "@/components/config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
-import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
+import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
 import AutoApproveMenuItem from "./AutoApproveMenuItem"
+import { updateAutoApproveSettings } from "./AutoApproveSettingsAPI"
 import { ActionMetadata } from "./types"
 
 const breakpoint = 500
@@ -16,19 +17,11 @@ interface AutoApproveModalProps {
 	setIsVisible: (visible: boolean) => void
 	buttonRef: React.RefObject<HTMLDivElement>
 	ACTION_METADATA: ActionMetadata[]
-	NOTIFICATIONS_SETTING: ActionMetadata
 }
 
-const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
-	isVisible,
-	setIsVisible,
-	buttonRef,
-	ACTION_METADATA,
-	NOTIFICATIONS_SETTING,
-}) => {
+const AutoApproveModal: React.FC<AutoApproveModalProps> = ({ isVisible, setIsVisible, buttonRef, ACTION_METADATA }) => {
 	const { autoApprovalSettings } = useExtensionState()
-	const { isChecked, isFavorited, toggleFavorite, updateAction, updateMaxRequests } = useAutoApproveActions()
-
+	const { isChecked, updateAction } = useAutoApproveActions()
 	const modalRef = useRef<HTMLDivElement>(null)
 	const itemsContainerRef = useRef<HTMLDivElement>(null)
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
@@ -123,7 +116,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 	// Calculate safe positioning to prevent overflow while preserving original position
 	const calculateModalStyle = () => {
 		// Original positioning: bottom: calc(100vh - ${menuPosition}px + 6px)
-		const originalBottom = viewportHeight - menuPosition + 1
+		const originalBottom = viewportHeight - menuPosition + 1.5
 
 		// Calculate the available space from the button to the top of the viewport
 		const availableSpace = viewportHeight - originalBottom
@@ -150,25 +143,30 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 		return {
 			bottom: `${originalBottom}px`,
 			maxHeight: `${Math.max(finalMaxHeight, 200)}px`, // Ensure minimum usable height
-			background: "var(--vscode-input-background)",
+			background: chatInputSectionBackground,
 			overscrollBehavior: "contain" as const,
+			border: chatInputSectionBorder,
+			borderTop: menuTopBorder,
 		}
 	}
 
 	return (
-		<div className="overflow-hidden" ref={modalRef}>
+		<div ref={modalRef}>
+			{/* Expanded menu content - renders directly below the bar */}
 			<div
-				className="fixed left-[16px] right-[16px] border border-[var(--vscode-editorGroup-border)] p-2.5 rounded z-[1000] overflow-hidden"
+				className={`fixed left-[13px] right-[14px] p-2.5 rounded-t-lg z-[1000] overflow-hidden`}
 				style={calculateModalStyle()}>
 				<div className="flex justify-between items-center mb-3">
 					{/* <div className="text-[color:var(--vscode-foreground)] font-bold">Settings</div> */}
 					<HeroTooltip
-						content="Auto-approve allows performing the following actions without asking for permission. AI can make mistakes, use with caution."
+						content="Perform the following actions without asking for permission. AI can make mistakes, use with caution."
 						placement="top">
 						<div className="mt-0">
-							<div className="text-[color:var(--vscode-foreground)] text-sm font-medium">
-								Auto-approve settings{" "}
-								<span className="codicon codicon-info" style={{ opacity: 0.6, fontSize: "12px" }}></span>
+							<div className="text-[color:var(--vscode-foreground)] font-medium">
+								Auto-approve{" "}
+								<span
+									className="codicon codicon-info"
+									style={{ cursor: "pointer", opacity: 0.6, fontSize: "12px" }}></span>
 							</div>
 						</div>
 					</HeroTooltip>
@@ -208,61 +206,35 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({
 
 					{/* All items in a single list - CSS Grid will handle the column distribution */}
 					{ACTION_METADATA.map((action) => (
-						<AutoApproveMenuItem
-							action={action}
-							isChecked={isChecked}
-							isFavorited={isFavorited}
-							key={action.id}
-							onToggle={updateAction}
-							onToggleFavorite={toggleFavorite}
-						/>
+						<AutoApproveMenuItem action={action} isChecked={isChecked} key={action.id} onToggle={updateAction} />
 					))}
 				</div>
 
-				{/* <div className="mb-2.5">
-					<span className="text-[color:var(--vscode-foreground)] font-medium">Quick Settings</span>
-				</div> */}
-
-				<AutoApproveMenuItem
-					action={NOTIFICATIONS_SETTING}
-					isChecked={isChecked}
-					isFavorited={isFavorited}
-					key={NOTIFICATIONS_SETTING.id}
-					onToggle={updateAction}
-					onToggleFavorite={toggleFavorite}
+				{/* Separator line */}
+				<div
+					style={{
+						height: "0.5px",
+						background: getAsVar(VSC_DESCRIPTION_FOREGROUND),
+						opacity: 0.1,
+						margin: "8px 0",
+					}}
 				/>
 
-				<HeroTooltip
-					content={`${agentName} will automatically make this many API requests before asking for approval to proceed with the task.`}
-					placement="top">
-					<div className="flex items-center pl-7.5 my-0">
-						<span className="codicon codicon-settings text-[#CCCCCC] text-[14px]" />
-						<span className="text-[#CCCCCC] text-xs font-medium ml-2">Max Requests:</span>
-						<span className="max-w-10 ml-1">
-							<VSCodeTextField
-								onInput={async (e) => {
-									const input = e.target as HTMLInputElement
-									// Remove any non-numeric characters
-									input.value = input.value.replace(/[^0-9]/g, "")
-									const value = parseInt(input.value, 10)
-									if (!Number.isNaN(value) && value > 0) {
-										await updateMaxRequests(value)
-									}
-								}}
-								onKeyDown={(e) => {
-									// Prevent non-numeric keys (except for backspace, delete, arrows)
-									if (
-										!/^\d$/.test(e.key) &&
-										!["Backspace", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)
-									) {
-										e.preventDefault()
-									}
-								}}
-								value={autoApprovalSettings.maxRequests.toString()}
-							/>
-						</span>
-					</div>
-				</HeroTooltip>
+				{/* Notifications toggle */}
+				<div className="flex items-center gap-2">
+					<VSCodeCheckbox
+						checked={autoApprovalSettings.enableNotifications}
+						onChange={async (e: any) => {
+							const checked = e.target.checked === true
+							await updateAutoApproveSettings({
+								...autoApprovalSettings,
+								version: (autoApprovalSettings.version ?? 1) + 1,
+								enableNotifications: checked,
+							})
+						}}>
+						<span className="text-sm">Enable notifications</span>
+					</VSCodeCheckbox>
+				</div>
 			</div>
 		</div>
 	)

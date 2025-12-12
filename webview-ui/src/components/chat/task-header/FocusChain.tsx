@@ -2,8 +2,10 @@ import { cn } from "@heroui/react"
 import { isCompletedFocusChainItem, isFocusChainItem } from "@shared/focus-chain-utils"
 import { StringRequest } from "@shared/proto/cline/common"
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
-import React, { memo, useCallback, useMemo, useState } from "react"
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
 import ChecklistRenderer from "@/components/common/ChecklistRenderer"
+import LightMarkdown from "@/components/common/LightMarkdown"
+import { chatInputSectionBorder, defaultBorderRadius } from "@/components/config"
 import { FileServiceClient } from "@/services/grpc-client"
 
 // Optimized interface with readonly properties to prevent accidental mutations
@@ -25,6 +27,9 @@ const COMPLETED_MESSAGE = "All steps have been completed!"
 const TODO_LIST_LABEL = "To-Do list"
 const NEW_STEPS_MESSAGE = "New steps will be generated if you continue the task"
 const CLICK_TO_EDIT_TITLE = "Click to edit to-do list in file"
+const COLLAPSED_PLACEHOLDER_HEIGHT = 32
+const EXPANDED_MAX_HEIGHT = 200
+const SHOW_DURATION_MS = 300
 
 // Optimized header component with minimal re-renders
 const ToDoListHeader = memo<{
@@ -53,22 +58,20 @@ const ToDoListHeader = memo<{
 					width: `${progressPercentage}%`,
 				}}
 			/>
-			<div className="flex items-center justify-between gap-2 z-10 py-2 px-1.5">
-				<div className="flex items-center gap-1.5 flex-1 min-w-0">
+			<div className="flex items-center justify-between gap-2 z-10 py-1.5 px-1.5">
+				<div className="mb-0.5 flex items-center gap-1.5 flex-1 min-w-0 text-sm">
 					<span
 						className={cn(
-							"rounded-lg px-2 py-0.25 text-xs inline-block shrink-0 bg-badge-foreground/20 text-foreground",
+							"rounded-lg px-1 py-0.15 inline-block shrink-0 bg-badge-foreground/20 text-foreground text-xs",
 							{
-								"bg-success text-black": isCompleted,
+								"bg-success text-background": isCompleted,
 							},
 						)}>
 						{currentIndex}/{totalCount}
 					</span>
-					<span
-						className="header-text font-medium break-words overflow-hidden text-ellipsis whitespace-nowrap max-w-[calc(100%-60px)]"
-						style={{ fontSize: 12 }}>
-						{displayText}
-					</span>
+					<div className="header-text text-sm font-medium break-words overflow-hidden text-ellipsis whitespace-nowrap max-w-[calc(100%-60px)]">
+						<LightMarkdown compact text={displayText} />
+					</div>
 				</div>
 				<div className="flex items-center justify-between text-foreground">
 					{isExpanded ? <ChevronDownIcon className="ml-0.25" size="16" /> : <ChevronRightIcon size="16" />}
@@ -167,8 +170,21 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 			[lastProgressMessageText],
 		)
 
+		const hasTodoContent = Boolean(todoInfo)
+
+		useEffect(() => {
+			if (!todoInfo) {
+				setIsExpanded(false)
+			}
+		}, [todoInfo])
+
 		// Static callbacks that don't change
-		const handleToggle = useCallback(() => setIsExpanded((prev) => !prev), [])
+		const handleToggle = useCallback(() => {
+			if (!todoInfo) {
+				return
+			}
+			setIsExpanded((prev) => !prev)
+		}, [todoInfo])
 
 		const handleEditClick = useCallback(
 			(e: React.MouseEvent) => {
@@ -181,27 +197,31 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 			[currentTaskItemId],
 		)
 
-		// Early return for no content
-		if (!todoInfo) {
-			return null
-		}
-
-		const isCompleted = todoInfo.completedCount === todoInfo.totalCount
-
 		return (
 			<div
-				className="relative rounded-md bg-input-background flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
-				onClick={handleToggle}
-				title={CLICK_TO_EDIT_TITLE}>
-				<ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />
-				{isExpanded && (
-					<div className="mx-1 pb-2 px-1 relative" onClick={handleEditClick}>
-						<ChecklistRenderer text={lastProgressMessageText!} />
-						{/* {isCompleted && (
+				className={cn(`overflow-hidden transition-[max-height,opacity] duration-${SHOW_DURATION_MS} ease-in-out`, {
+					"opacity-0 pointer-events-none": !hasTodoContent,
+					"opacity-100": hasTodoContent,
+				})}
+				style={{
+					maxHeight: hasTodoContent ? EXPANDED_MAX_HEIGHT : COLLAPSED_PLACEHOLDER_HEIGHT,
+					// minHeight: COLLAPSED_PLACEHOLDER_HEIGHT,
+				}}>
+				<div
+					className="bg-focuschain-background relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
+					onClick={handleToggle}
+					style={{ borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
+					title={CLICK_TO_EDIT_TITLE}>
+					{todoInfo && <ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />}
+					{todoInfo && isExpanded && (
+						<div className="mx-1 pb-2 px-1 relative" onClick={handleEditClick}>
+							<ChecklistRenderer text={lastProgressMessageText!} />
+							{/* {isCompleted && (
 							<div className="mt-2 text-xxs font-semibold text-muted-foreground">{NEW_STEPS_MESSAGE}</div>
 						)} */}
-					</div>
-				)}
+						</div>
+					)}
+				</div>
 			</div>
 		)
 	},

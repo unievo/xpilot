@@ -4,23 +4,33 @@ import rehypeHighlight, { Options } from "rehype-highlight"
 import styled from "styled-components"
 import { visit } from "unist-util-visit"
 import "./codeblock-parser.css"
+import { codeBlockFontSize, defaultBorderRadius } from "@components/config"
 
 export const CODE_BLOCK_BG_COLOR = "var(--vscode-editor-background, --vscode-sideBar-background, rgb(30 30 30))"
+
+export const TERMINAL_CODE_BLOCK_BG_COLOR = "var(--vscode-editor-background, --vscode-sideBar-background, rgb(30 30 30))"
+
+// Theme-aware background colors for expanded/collapsed states
+export const CHAT_ROW_EXPANDED_BG_COLOR = "var(--vscode-editor-background)"
+export const CHAT_ROW_COLLAPSED_BG_COLOR = "var(--vscode-sideBar-background)"
 
 /*
 overflowX: auto + inner div with padding results in an issue where the top/left/bottom padding renders but the right padding inside does not count as overflow as the width of the element is not exceeded. Once the inner div is outside the boundaries of the parent it counts as overflow.
 https://stackoverflow.com/questions/60778406/why-is-padding-right-clipped-with-overflowscroll/77292459#77292459
 this fixes the issue of right padding clipped off 
-“ideal” size in a given axis when given infinite available space--allows the syntax highlighter to grow to largest possible width including its padding
+"ideal" size in a given axis when given infinite available space--allows the syntax highlighter to grow to largest possible width including its padding
 minWidth: "max-content",
 */
 
 interface CodeBlockProps {
 	source?: string
 	forceWrap?: boolean
+	maxHeight?: number
+	fontSize?: number
 }
 
-const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
+const StyledMarkdown = styled.div<{ forceWrap: boolean; fontSize: number }>`
+
 	${({ forceWrap }) =>
 		forceWrap &&
 		`
@@ -31,12 +41,14 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
     }
   `}
 
+	border-radius: ${defaultBorderRadius}px;
+
 	pre {
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		border-radius: 5px;
+		border-radius: ${defaultBorderRadius}px;
 		margin: 0;
 		min-width: ${({ forceWrap }) => (forceWrap ? "auto" : "max-content")};
-		padding: 10px 10px;
+		padding: 5px 5px;
 	}
 
 	pre > code {
@@ -59,7 +71,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		word-wrap: break-word;
 		border-radius: 5px;
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		font-size: 11px; //var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+		font-size: ${({ fontSize }) => `${fontSize}px`}; // "var(--vscode-editor-font-size, var(--vscode-font-size, 12px))"};
 		font-family: var(--vscode-editor-font-family);
 	}
 
@@ -67,7 +79,7 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		font-family: var(--vscode-editor-font-family);
 		color: #f78383;
 	}
-
+	
 	background-color: ${CODE_BLOCK_BG_COLOR};
 	font-family:
 		var(--vscode-font-family),
@@ -82,7 +94,8 @@ const StyledMarkdown = styled.div<{ forceWrap: boolean }>`
 		"Open Sans",
 		"Helvetica Neue",
 		sans-serif;
-	font-size: var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
+
+	font-size: ${({ fontSize }) => `${fontSize}px`}; // var(--vscode-editor-font-size, var(--vscode-font-size, 12px));
 	color: var(--vscode-editor-foreground, #fff);
 
 	p,
@@ -110,7 +123,7 @@ const StyledPre = styled.pre<{ theme: any }>`
 			.join("")}
 `
 
-const CodeBlock = memo(({ source, forceWrap = false }: CodeBlockProps) => {
+const CodeBlock = memo(({ source, forceWrap = false, maxHeight, fontSize = codeBlockFontSize }: CodeBlockProps) => {
 	const [reactContent, setMarkdownSource] = useRemark({
 		remarkPlugins: [
 			() => {
@@ -146,13 +159,22 @@ const CodeBlock = memo(({ source, forceWrap = false }: CodeBlockProps) => {
 	return (
 		<div
 			style={{
-				overflowY: forceWrap ? "visible" : "auto",
-				maxHeight: forceWrap ? "none" : "100%",
+				maxHeight: maxHeight ?? (forceWrap ? "none" : "100%"),
 				backgroundColor: CODE_BLOCK_BG_COLOR,
+				borderRadius: defaultBorderRadius,
+				overflow: "hidden",
 			}}>
-			<StyledMarkdown className="ph-no-capture" forceWrap={forceWrap}>
-				{reactContent}
-			</StyledMarkdown>
+			<div
+				style={{
+					overflowY: maxHeight ? "scroll" : forceWrap ? "visible" : "auto",
+					overflowX: "auto",
+					maxHeight: maxHeight ?? (forceWrap ? "none" : "100%"),
+					fontSize: fontSize,
+				}}>
+				<StyledMarkdown className="markdown" fontSize={fontSize} forceWrap={forceWrap}>
+					{reactContent}
+				</StyledMarkdown>
+			</div>
 		</div>
 	)
 })

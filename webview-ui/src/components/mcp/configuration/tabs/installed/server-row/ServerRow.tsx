@@ -17,10 +17,21 @@ import {
 	VSCodePanelView,
 	VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react"
+import { Trash2Icon } from "lucide-react"
 import { useCallback, useState } from "react"
 import DangerButton from "@/components/common/DangerButton"
-import { itemIconColor, rowBackground, rowBackgroundDisabled } from "@/components/theme"
+import {
+	chatInputSectionBorder,
+	iconHighlightColor,
+	menuRowBackground,
+	menuRowDetailsBackground,
+	menuRowDisabledBackground,
+	secondaryFontSize,
+} from "@/components/config"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { cn } from "@/lib/utils"
 import { McpServiceClient } from "@/services/grpc-client"
 import { getMcpServerDisplayName } from "@/utils/mcp"
 import McpResourceRow from "./McpResourceRow"
@@ -203,7 +214,7 @@ const ServerRow = ({
 	})
 
 	return (
-		<div style={{ marginBottom: "0px" }}>
+		<div>
 			<div
 				onClick={handleRowClick}
 				style={{
@@ -212,7 +223,7 @@ const ServerRow = ({
 					paddingLeft: !server.error ? "0px" : "15px",
 					paddingRight: "8px",
 					minHeight: "22px",
-					background: server.disabled ? rowBackgroundDisabled : rowBackground,
+					background: server.disabled ? menuRowDisabledBackground : menuRowBackground,
 					cursor: server.error ? "default" : isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || server.error ? "4px 4px 0 0" : "4px",
 					opacity: server.disabled ? 0.7 : 1,
@@ -220,7 +231,7 @@ const ServerRow = ({
 				{!server.error && isExpandable && (
 					<span
 						className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
-						style={{ fontSize: "13px", marginLeft: "2px" }}
+						style={{ marginLeft: "2px", fontSize: "inherit" }}
 					/>
 				)}
 				<span
@@ -236,8 +247,13 @@ const ServerRow = ({
 						padding: "1px ",
 					}}>
 					<span
-						className="codicon codicon-combine"
-						style={{ color: itemIconColor, fontSize: "13px", marginRight: "5px", verticalAlign: "middle" }}
+						className="codicon codicon-server"
+						style={{
+							color: iconHighlightColor,
+							marginRight: "5px",
+							verticalAlign: "middle",
+							fontSize: "inherit",
+						}}
 					/>
 					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
 				</span>
@@ -269,47 +285,21 @@ const ServerRow = ({
 					</div>
 				)} */}
 				{/* Toggle Switch */}
-				<div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", marginLeft: "3px" }}>
-					<div
-						aria-checked={!server.disabled}
-						onClick={() => {
-							handleToggleMcpServer()
-						}}
-						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") {
-								e.preventDefault()
-								handleToggleMcpServer()
-							}
-						}}
-						role="switch"
-						style={{
-							width: "20px",
-							height: "11px",
-							backgroundColor: server.disabled
-								? "var(--vscode-titleBar-inactiveForeground)"
-								: "var(--vscode-testing-iconPassed)",
-							borderRadius: "5px",
-							position: "relative",
-							cursor: "pointer",
-							transition: "background-color 0.2s",
-							opacity: server.disabled ? 0.5 : 0.9,
-						}}
-						tabIndex={0}>
-						<div
-							style={{
-								width: "8px",
-								height: "8px",
-								backgroundColor: "white",
-								border: "1px solid color-mix(in srgb, #666666 65%, transparent)",
-								borderRadius: "50%",
-								position: "absolute",
-								top: "0.5px",
-								left: server.disabled ? "1px" : "10px",
-								transition: "left 0.2s",
-							}}
-						/>
-					</div>
-				</div>
+				<Switch
+					checked={!server.disabled}
+					key={server.name}
+					onClick={(e) => {
+						e.stopPropagation()
+						handleToggleMcpServer()
+					}}
+				/>
+				{/* <div
+					className={cn("h-2 w-2 ml-0.5 rounded-full", {
+						"bg-success": server.status === "connected",
+						"bg-warning": server.status === "connecting",
+						"bg-error": server.status === "disconnected",
+					})}
+				/> */}
 				{
 					<div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "3px", marginRight: "-4px" }}>
 						<VSCodeButton
@@ -320,11 +310,18 @@ const ServerRow = ({
 								handleRestart()
 							}}
 							title="Restart Server">
-							<span className="codicon codicon-sync" style={{ fontSize: "15px", marginBottom: "-1px" }}></span>
+							<span className="codicon codicon-sync" style={{ fontSize: "inherit", marginBottom: "-4px" }}></span>
 						</VSCodeButton>
 					</div>
 				}
 				<div
+					className={cn("h-2 w-2 ml-2 rounded-full", {
+						"bg-success": server.status === "connected",
+						"bg-warning": server.status === "connecting",
+						"bg-error": server.status === "disconnected",
+					})}
+				/>
+				{/* <div
 					style={{
 						width: "8px",
 						height: "8px",
@@ -333,44 +330,44 @@ const ServerRow = ({
 						marginLeft: "7px",
 						marginRight: "-2px",
 					}}
-				/>
+				/> */}
 				{hasTrashIcon && (
 					<div style={{ marginLeft: "3px", marginRight: "-6px" }}>
 						{!showConfirmDelete ? (
-							<VSCodeButton
-								appearance="icon"
+							<Button
+								aria-label="Delete file"
 								disabled={isDeleting}
 								onClick={(e) => {
 									e.stopPropagation()
 									handleDelete()
 								}}
-								title="Delete Server">
-								<span className="codicon codicon-trash" style={{ fontSize: "14px" }}></span>
-							</VSCodeButton>
+								size="xs"
+								title="Delete Server"
+								variant="icon">
+								<Trash2Icon />
+							</Button>
 						) : (
-							<div style={{ display: "flex", gap: "2px", marginRight: "3px", padding: 2, overflow: "hidden" }}>
-								<VSCodeButton
-									appearance="secondary"
+							<div style={{ display: "flex", gap: "2px", padding: 2, overflow: "hidden" }}>
+								<Button
 									aria-label="Confirm delete"
 									onClick={(e) => {
 										e.stopPropagation()
 										handleConfirmDelete()
 									}}
-									style={{ width: "25px", height: "20px" }}
+									style={{ width: "18px", height: "18px" }}
 									title="Confirm delete">
 									✓
-								</VSCodeButton>
-								<VSCodeButton
-									appearance="secondary"
+								</Button>
+								<Button
 									aria-label="Cancel delete"
 									onClick={(e) => {
 										e.stopPropagation()
 										handleCancelDelete()
 									}}
-									style={{ width: "25px", height: "20px" }}
+									style={{ width: "18px", height: "18px" }}
 									title="Cancel delete">
 									✗
-								</VSCodeButton>
+								</Button>
 							</div>
 						)}
 					</div>
@@ -396,17 +393,33 @@ const ServerRow = ({
 						{server.error}
 					</div>
 					<div style={{ display: "flex" }}>
-						<VSCodeButton
-							appearance="secondary"
-							disabled={server.status === "connecting"}
-							onClick={handleRestart}
-							style={{
-								width: "calc(100% - 20px)",
-								margin: "0 10px 10px 10px",
-								scale: "0.9",
-							}}>
-							{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry Connection"}
-						</VSCodeButton>
+						{server.oauthRequired && server.oauthAuthStatus === "unauthenticated" ? (
+							<Button
+								onClick={(e) => {
+									e.stopPropagation()
+									McpServiceClient.authenticateMcpServer(StringRequest.create({ value: server.name }))
+								}}
+								style={{
+									width: "calc(100% - 20px)",
+									height: "24px",
+									margin: "0 10px 10px 10px",
+									fontSize: secondaryFontSize,
+								}}>
+								Authenticate
+							</Button>
+						) : (
+							<Button
+								disabled={server.status === "connecting"}
+								onClick={handleRestart}
+								style={{
+									width: "calc(100% - 20px)",
+									height: "24px",
+									margin: "0 10px 10px 10px",
+									fontSize: secondaryFontSize,
+								}}>
+								{server.status === "connecting" || isRestarting ? "Retrying..." : "Retry"}
+							</Button>
+						)}
 
 						{!showConfirmDelete ? (
 							<DangerButton
@@ -414,23 +427,36 @@ const ServerRow = ({
 								onClick={() => {
 									setShowConfirmDelete(true)
 								}}
-								style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px", scale: "0.9" }}>
+								style={{
+									width: "calc(100% - 20px)",
+									margin: "0 10px 10px 10px",
+									height: "24px",
+									fontSize: secondaryFontSize,
+								}}>
 								{isDeleting ? "Deleting..." : "Delete Server"}
 							</DangerButton>
 						) : (
 							<div style={{ display: "flex", gap: "5px", width: "calc(100% - 20px)", margin: "0 10px 10px 10px" }}>
-								<VSCodeButton
-									appearance="secondary"
+								<Button
 									onClick={handleConfirmDelete}
-									style={{ flex: 1, scale: "0.9" }}>
-									✓ Confirm
-								</VSCodeButton>
-								<VSCodeButton
-									appearance="secondary"
+									style={{
+										width: "calc(100% - 20px)",
+										// margin: "0 10px 10px 10px",
+										height: "24px",
+										fontSize: secondaryFontSize,
+									}}>
+									Confirm
+								</Button>
+								<Button
 									onClick={handleCancelDelete}
-									style={{ flex: 1, scale: "0.9" }}>
-									✗ Cancel
-								</VSCodeButton>
+									style={{
+										width: "calc(100% - 20px)",
+										// margin: "0 10px 10px 10px",
+										height: "24px",
+										fontSize: secondaryFontSize,
+									}}>
+									Cancel
+								</Button>
 							</div>
 						)}
 					</div>
@@ -439,33 +465,35 @@ const ServerRow = ({
 				isExpanded && (
 					<div
 						style={{
-							background: "var(--vscode-textCodeBlock-background)",
+							background: menuRowDetailsBackground,
 							padding: "1px 5px 5px 5px",
-							fontSize: "12px",
 							borderRadius: "0 0 4px 4px",
+							border: chatInputSectionBorder,
+							borderTop: "none",
+							overflow: "hidden",
 						}}>
 						<div style={{ margin: "7px 5px 0", display: "flex", gap: "15px", alignItems: "end" }}>
 							<div style={{ flex: 1 }}>
 								<label
 									style={{
 										display: "block",
-										marginBottom: "8px",
-										fontSize: "11px",
+										margin: "0 0 4px 8px",
+										fontSize: "0.95em",
 										fontWeight: "bold",
 										color: "var(--vscode-foreground)",
 									}}>
-									Search in Tools & Resources
+									Search
 								</label>
 								<VSCodeTextField
 									onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
-									placeholder="Search"
-									style={{ width: "100%", height: "28px" }}
+									placeholder="Name or details"
+									style={{ width: "100%", height: "26px", fontSize: "inherit" }}
 									value={searchQuery}>
 									<div
 										className="codicon codicon-search"
 										slot="start"
 										style={{
-											fontSize: 12,
+											fontSize: "inherit",
 											opacity: 0.8,
 										}}
 									/>
@@ -480,7 +508,6 @@ const ServerRow = ({
 												justifyContent: "center",
 												alignItems: "center",
 												cursor: "pointer",
-												fontSize: 12,
 												opacity: 0.8,
 												padding: "2px",
 											}}
@@ -492,16 +519,16 @@ const ServerRow = ({
 								<label
 									style={{
 										display: "block",
-										marginBottom: "8px",
-										fontSize: "11px",
+										margin: "0 0 4px 8px",
+										fontSize: "0.95em",
 										fontWeight: "bold",
 										color: "var(--vscode-foreground)",
 									}}>
-									Request Timeout
+									Timeout
 								</label>
 								<VSCodeDropdown
 									onChange={handleTimeoutChange}
-									style={{ width: "100%", height: "28px" }}
+									style={{ width: "100%", height: "26px" }}
 									value={timeoutValue}>
 									{TimeoutOptions}
 								</VSCodeDropdown>
@@ -510,13 +537,16 @@ const ServerRow = ({
 
 						<VSCodePanels style={{ fontSize: "inherit" }}>
 							<VSCodePanelTab id="tools" style={{ fontSize: "inherit" }}>
-								<span className="codicon codicon-tools" style={{ color: itemIconColor, marginRight: "6px" }} />
+								<span
+									className="codicon codicon-tools"
+									style={{ color: iconHighlightColor, marginRight: "6px" }}
+								/>
 								Tools ({searchQuery ? filteredTools.length : server.tools?.length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab id="resources" style={{ fontSize: "inherit" }}>
 								<span
 									className={`codicon codicon-symbol-file`}
-									style={{ color: itemIconColor, marginRight: "6px" }}
+									style={{ color: iconHighlightColor, marginRight: "6px" }}
 								/>
 								Resources (
 								{searchQuery
@@ -534,6 +564,7 @@ const ServerRow = ({
 											flexDirection: "column",
 											gap: "8px",
 											width: "100%",
+											paddingTop: "8px",
 										}}>
 										{server.name &&
 											autoApprovalSettings.enabled &&
@@ -543,7 +574,7 @@ const ServerRow = ({
 													checked={server.tools?.every((tool) => tool.autoApprove) || false}
 													data-tool="all-tools"
 													onChange={handleAutoApproveChange}
-													style={{ fontSize: "0.9em", opacity: 0.7, marginBottom: 0 }}>
+													style={{ fontSize: "0.95em", opacity: 0.7, marginBottom: 0 }}>
 													Auto-approve all
 												</VSCodeCheckbox>
 											)}
@@ -570,6 +601,7 @@ const ServerRow = ({
 											flexDirection: "column",
 											gap: "8px",
 											width: "100%",
+											paddingTop: "8px",
 										}}>
 										{filteredResources.map((item) => (
 											<McpResourceRow

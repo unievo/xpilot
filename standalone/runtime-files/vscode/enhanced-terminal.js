@@ -32,12 +32,31 @@ class StandaloneTerminalProcess extends EventEmitter {
 		const shellArgs = this.getShellArgs(shell, command)
 
 		try {
-			// Spawn the process
-			this.childProcess = spawn(shell, shellArgs, {
+			// Create shell options
+			const shellOptions = {
 				cwd: cwd,
-				stdio: ["pipe", "pipe", "pipe"],
-				env: { ...process.env, TERM: "xterm-256color" },
-			})
+				stdio: ["ignore", "pipe", "pipe"], // Disable STDIN to prevent interactivity
+				env: {
+					...process.env,
+					TERM: "xterm-256color",
+					PAGER: "cat", // Prevent less from being used, reducing interactivity
+					EDITOR: process.env.EDITOR || "cat", // Set EDITOR if not already set
+					GIT_PAGER: "cat", // Prevent git from using less
+					SYSTEMD_PAGER: "", // Disable systemd pager
+					MANPAGER: "cat", // Disable man pager
+				},
+			}
+
+			// Enable the shell option for "cmd.exe" to prevent double quotes from being over escaped
+			if (shell.toLowerCase().includes("cmd")) {
+				shellOptions.shell = true
+
+				// Spawn the process with special handling for "cmd.exe"
+				this.childProcess = spawn("cmd.exe", shellArgs, shellOptions)
+			} else {
+				// Spawn the process
+				this.childProcess = spawn(shell, shellArgs, shellOptions)
+			}
 
 			// Track process state
 			let didEmitEmptyLine = false
@@ -340,6 +359,7 @@ class StandaloneTerminalManager {
 		this.shellIntegrationTimeout = 4000
 		this.terminalReuseEnabled = true
 		this.terminalOutputLineLimit = 500
+		this.subagentTerminalOutputLineLimit = 2000
 		this.defaultTerminalProfile = "default"
 	}
 
@@ -436,9 +456,10 @@ class StandaloneTerminalManager {
 		return process ? process.isHot : false
 	}
 
-	processOutput(outputLines) {
-		if (outputLines.length > this.terminalOutputLineLimit) {
-			const halfLimit = Math.floor(this.terminalOutputLineLimit / 2)
+	processOutput(outputLines, overrideLimit, isSubagentCommand) {
+		const limit = isSubagentCommand && overrideLimit ? overrideLimit : this.terminalOutputLineLimit
+		if (outputLines.length > limit) {
+			const halfLimit = Math.floor(limit / 2)
 			const start = outputLines.slice(0, halfLimit)
 			const end = outputLines.slice(outputLines.length - halfLimit)
 			return `${start.join("\n")}\n... (output truncated) ...\n${end.join("\n")}`.trim()
@@ -482,6 +503,12 @@ class StandaloneTerminalManager {
 	setTerminalOutputLineLimit(limit) {
 		this.terminalOutputLineLimit = limit
 		console.log(`[StandaloneTerminalManager] Set terminal output line limit to ${limit}`)
+	}
+
+	// Set subagent terminal output line limit (compatibility method)
+	setSubagentTerminalOutputLineLimit(limit) {
+		this.subagentTerminalOutputLineLimit = limit
+		console.log(`[StandaloneTerminalManager] Set subagent terminal output line limit to ${limit}`)
 	}
 
 	// Set default terminal profile (compatibility method)

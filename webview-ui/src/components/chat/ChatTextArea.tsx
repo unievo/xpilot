@@ -36,12 +36,15 @@ import { isSafari } from "@/utils/platformUtils"
 import {
 	DEFAULT_SLASH_COMMANDS,
 	getMatchingSlashCommands,
+	getSlashCommandAtMenuIndex,
 	getWorkflowCommands,
 	insertSlashCommand,
 	removeSlashCommand,
 	type SlashCommand,
 	shouldShowSlashCommandsMenu,
 	slashCommandDeleteRegex,
+	slashCommandRegexGlobal,
+	validateSlashCommand,
 } from "@/utils/slash-commands"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
@@ -49,9 +52,20 @@ import ServersToggleModal from "./ServersToggleModal"
 
 const { MAX_IMAGES_AND_FILES_PER_MESSAGE } = CHAT_CONSTANTS
 
+import {
+	actModeTextColor,
+	chatInputSectionBackground,
+	chatInputSectionBorder,
+	getActModeColor,
+	getPlanModeColor,
+	iconHighlightColor,
+	inactiveModeTextColor,
+	menuBackground,
+	planModeTextColor,
+	useTheme,
+} from "@components/config"
 import { ignoreWorkspaceDirectories } from "@shared/Configuration"
 import HeroTooltip from "../common/HeroTooltip"
-import { actModeColor, chatTextAreaBackground, itemIconColor, menuBackground, planModeColor } from "../theme"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -98,14 +112,14 @@ interface GitCommit {
 	description: string
 }
 
-const PLAN_MODE_COLOR = planModeColor
-const ACT_MODE_COLOR = actModeColor
+// const PLAN_MODE_COLOR = getPlanModeColor()
+// const ACT_MODE_COLOR = getActModeColor()
 
 const SwitchOption = styled.div.withConfig({
-	shouldForwardProp: (prop) => !["isActive"].includes(prop),
-})<{ isActive: boolean }>`
-	padding: 2px 8px;
-	color: ${(props) => (props.isActive ? "white" : "var(--vscode-input-foreground)")};
+	shouldForwardProp: (prop) => !["isActive", "mode"].includes(prop),
+})<{ isActive: boolean; mode: Mode }>`
+	padding: 0px 8px;
+	color: ${(props) => (props.isActive ? (props.mode === "plan" ? planModeTextColor : actModeTextColor) : inactiveModeTextColor)};
 	z-index: 1;
 	transition: color 0.2s ease;
 	font-size: 12px;
@@ -120,15 +134,15 @@ const SwitchOption = styled.div.withConfig({
 const SwitchContainer = styled.div<{ disabled: boolean }>`
 	display: flex;
 	align-items: center;
-	background-color: var(--vscode-editor-background);
-	border: 0px solid var(--vscode-charts-lines);
+	background-color: transparent;
+	border: 0.5px solid var(--vscode-charts-lines);
 	border-radius: 5px;
 	overflow: hidden;
 	cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
 	opacity: ${(props) => (props.disabled ? 0.5 : 1)};
 	transform: scale(0.9);
 	transform-origin: right center;
-	margin-left: -10px; // compensate for the transform so flex spacing works
+	margin-left: 0;
 	user-select: none; // Prevent text selection
 `
 
@@ -138,7 +152,7 @@ const Slider = styled.div.withConfig({
 	position: absolute;
 	height: 100%;
 	width: 50%;
-	background-color: ${(props) => (props.isPlan ? PLAN_MODE_COLOR : ACT_MODE_COLOR)};
+	background-color: ${(props) => (props.isPlan ? getPlanModeColor() : getActModeColor())};
 	transition: transform 0.2s ease;
 	transform: translateX(${(props) => (props.isAct ? "100%" : "0%")});
 `
@@ -165,10 +179,8 @@ const ControlsContainer = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-top: -5px;
-	padding: 0px 5px 5px 10px;
-	margin-left: 8px;
-	margin-right: 8px;
+	margin-top: 5px;
+	padding: 0px 5px 5px 0px;
 	overflow: hidden;
 `
 
@@ -178,7 +190,8 @@ const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
 	left: 15px;
 	right: 15px;
 	background: ${menuBackground};
-	border: 1px solid var(--vscode-editorGroup-border);
+	border: ${chatInputSectionBorder};
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 	padding: 12px;
 	border-radius: 3px;
 	z-index: 1000;
@@ -197,19 +210,19 @@ const ModelSelectorTooltip = styled.div<ModelSelectorTooltipProps>`
 	}
 
 	// Arrow pointing down
-	&::after {
-		content: "";
-		position: fixed;
-		bottom: ${(props) => `calc(100vh - ${props.menuPosition}px)`};
-		right: ${(props) => props.arrowPosition}px;
-		width: 10px;
-		height: 10px;
-		background: ${menuBackground};
-		border-right: 1px solid var(--vscode-editorGroup-border);
-		border-bottom: 1px solid var(--vscode-editorGroup-border);
-		transform: rotate(45deg);
-		z-index: -1;
-	}
+	// &::after {
+	// 	content: "";
+	// 	position: fixed;
+	// 	bottom: ${(props) => `calc(100vh - ${props.menuPosition}px)`};
+	// 	right: ${(props) => props.arrowPosition}px;
+	// 	width: 10px;
+	// 	height: 10px;
+	// 	background: ${menuBackground};
+	// 	border-right: 1px solid var(--vscode-editorGroup-border);
+	// 	border-bottom: 1px solid var(--vscode-editorGroup-border);
+	// 	transform: rotate(45deg);
+	// 	z-index: -1;
+	// }
 `
 
 const ModelContainer = styled.div`
@@ -268,6 +281,7 @@ const ModelButtonContent = styled.div`
 	white-space: nowrap;
 	direction: rtl;
 	text-align: left;
+	font-size: 12px;
 `
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
@@ -296,11 +310,17 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			platform,
 			localWorkflowToggles,
 			globalWorkflowToggles,
+			remoteWorkflowToggles,
+			remoteConfigSettings,
 			showChatModelSelector: showModelSelector,
 			setShowChatModelSelector: setShowModelSelector,
 			dictationSettings,
 		} = useExtensionState()
 		const { clineUser } = useClineAuth()
+
+		// Theme hook to force re-render on theme changes
+		useTheme()
+
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
 		const [gitCommits, setGitCommits] = useState<GitCommit[]>([])
@@ -560,7 +580,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setSlashCommandsQuery("")
 
 				if (textAreaRef.current) {
-					const { newValue, commandIndex } = insertSlashCommand(textAreaRef.current.value, command.name, queryLength)
+					const { newValue, commandIndex } = insertSlashCommand(
+						textAreaRef.current.value,
+						command.name,
+						queryLength,
+						cursorPosition,
+					)
 					const newCursorPosition = newValue.indexOf(" ", commandIndex + 1 + command.name.length) + 1
 
 					setInputValue(newValue)
@@ -575,7 +600,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					}, 0)
 				}
 			},
-			[setInputValue, slashCommandsQuery],
+			[setInputValue, slashCommandsQuery, cursorPosition],
 		)
 		const handleKeyDown = useCallback(
 			(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -595,6 +620,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								slashCommandsQuery,
 								localWorkflowToggles,
 								globalWorkflowToggles,
+								remoteWorkflowToggles,
+								remoteConfigSettings?.remoteGlobalWorkflows,
 							)
 
 							if (allCommands.length === 0) {
@@ -613,9 +640,18 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 					if ((event.key === "Enter" || event.key === "Tab") && selectedSlashCommandsIndex !== -1) {
 						event.preventDefault()
-						const commands = getMatchingSlashCommands(slashCommandsQuery, localWorkflowToggles, globalWorkflowToggles)
+						const commands = getMatchingSlashCommands(
+							slashCommandsQuery,
+							localWorkflowToggles,
+							globalWorkflowToggles,
+							remoteWorkflowToggles,
+							remoteConfigSettings?.remoteGlobalWorkflows,
+						)
 						if (commands.length > 0) {
-							handleSlashCommandsSelect(commands[selectedSlashCommandsIndex])
+							const selectedCommand = getSlashCommandAtMenuIndex(selectedSlashCommandsIndex, commands)
+							if (selectedCommand) {
+								handleSlashCommandsSelect(selectedCommand)
+							}
 						}
 						return
 					}
@@ -671,7 +707,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							selectedOption.type !== ContextMenuOptionType.URL &&
 							selectedOption.type !== ContextMenuOptionType.NoResults
 						) {
-							handleMentionSelect(selectedOption.type, selectedOption.value)
+							// Use label if it contains workspace prefix, otherwise use value
+							const mentionValue = selectedOption.label?.includes(":") ? selectedOption.label : selectedOption.value
+							handleMentionSelect(selectedOption.type, mentionValue)
 						}
 						return
 					}
@@ -853,12 +891,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setInputValue(newValue)
 				setCursorPosition(newCursorPosition)
 				let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
-				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(
-					newValue,
-					newCursorPosition,
-					localWorkflowToggles,
-					globalWorkflowToggles,
-				)
+				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
 
 				// we do not allow both menus to be shown at the same time
 				// the slash commands menu has precedence bc its a narrower component
@@ -870,7 +903,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setShowContextMenu(showMenu)
 
 				if (showSlashCommandsMenu) {
-					const slashIndex = newValue.indexOf("/")
+					// Find the slash nearest to cursor (before cursor position)
+					const beforeCursor = newValue.slice(0, newCursorPosition)
+					const slashIndex = beforeCursor.lastIndexOf("/")
 					const query = newValue.slice(slashIndex + 1, newCursorPosition)
 					setSlashCommandsQuery(query)
 					setSelectedSlashCommandsIndex(0)
@@ -902,13 +937,23 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									? FileSearchType.FOLDER
 									: undefined
 
+						// Parse workspace hint from query (e.g., "@frontend:/filename")
+						let workspaceHint: string | undefined
+						let searchQuery = query
+						const workspaceHintMatch = query.match(/^([\w-]+):\/(.*)$/)
+						if (workspaceHintMatch) {
+							workspaceHint = workspaceHintMatch[1]
+							searchQuery = workspaceHintMatch[2]
+						}
+
 						// Set a timeout to debounce the search requests
 						searchTimeoutRef.current = setTimeout(() => {
 							FileServiceClient.searchFiles(
 								FileSearchRequest.create({
-									query: query,
+									query: searchQuery,
 									mentionsRequestId: query,
 									selectedType: searchType,
+									workspaceHint: workspaceHint,
 								}),
 							)
 								.then((results) => {
@@ -937,7 +982,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									setSearchLoading(false)
 								})
 						}, 200) // 200ms debounce
-					} else if (query.length > 0 && selectedType) {
+					} else if (selectedType) {
 						// When filtering within a selected type, always highlight the first item
 						setSelectedMenuIndex(0)
 					} else {
@@ -1103,50 +1148,38 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				// highlight @mentions
 				.replace(mentionRegexGlobal, '<mark class="mention-context-textarea-highlight">$&</mark>')
 
-			// check for highlighting /slash-commands
-			if (/^\s*\//.test(processedText)) {
-				const slashIndex = processedText.indexOf("/")
-				const textAfterSlash = processedText.substring(slashIndex + 1)
-
-				// Get all available commands for matching
-				const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
-				const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands]
-
-				// Find the longest matching valid command that is complete
-				let longestMatch = ""
-				let longestMatchLength = 0
-
-				for (const command of allCommands) {
-					const commandName = command.name.toLowerCase()
-					const textToMatch = textAfterSlash.toLowerCase()
-
-					// Check if the command matches exactly at the start of the text
-					if (textToMatch.startsWith(commandName)) {
-						// Ensure the match is followed by a space or end of text (complete command)
-						const nextChar = textAfterSlash[commandName.length]
-						if (!nextChar || nextChar === " ") {
-							if (commandName.length > longestMatchLength) {
-								longestMatch = command.name
-								longestMatchLength = commandName.length
-							}
-						}
-					}
+			// Highlight only the FIRST valid /slash-command in the text
+			// Only one slash command is processed per message, so we only highlight the first one
+			slashCommandRegexGlobal.lastIndex = 0
+			let hasHighlightedSlashCommand = false
+			processedText = processedText.replace(slashCommandRegexGlobal, (match, prefix, command) => {
+				// Only highlight the first valid slash command
+				if (hasHighlightedSlashCommand) {
+					return match
 				}
 
-				// If we found a complete valid command match, highlight only that command
-				if (longestMatch) {
-					const endIndex = slashIndex + 1 + longestMatchLength
-					const fullCommand = processedText.substring(slashIndex, endIndex) // includes slash
+				// Extract just the command name (without the slash)
+				const commandName = command.substring(1)
+				const isValidCommand = validateSlashCommand(
+					commandName,
+					localWorkflowToggles,
+					globalWorkflowToggles,
+					remoteWorkflowToggles,
+					remoteConfigSettings?.remoteGlobalWorkflows,
+				)
 
-					const highlighted = `<mark class="mention-context-textarea-highlight">${fullCommand}</mark>`
-					processedText = processedText.substring(0, slashIndex) + highlighted + processedText.substring(endIndex)
+				if (isValidCommand) {
+					hasHighlightedSlashCommand = true
+					// Keep the prefix (whitespace or empty) and wrap the command in highlight
+					return `${prefix}<mark class="mention-context-textarea-highlight">${command}</mark>`
 				}
-			}
+				return match
+			})
 
 			highlightLayerRef.current.innerHTML = processedText
 			highlightLayerRef.current.scrollTop = textAreaRef.current.scrollTop
 			highlightLayerRef.current.scrollLeft = textAreaRef.current.scrollLeft
-		}, [localWorkflowToggles, globalWorkflowToggles])
+		}, [localWorkflowToggles, globalWorkflowToggles, remoteWorkflowToggles, remoteConfigSettings])
 
 		useLayoutEffect(() => {
 			updateHighlights()
@@ -1600,20 +1633,20 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			.replace(/.$/, (match) => match.toUpperCase())
 
 		return (
-			<div style={{ paddingBottom: "5px" }}>
+			<div>
 				<div
-					className="relative flex transition-colors ease-in-out duration-100 px-3.5 py-2.5"
+					className="relative flex transition-colors ease-in-out duration-100"
 					onDragEnter={handleDragEnter}
 					onDragLeave={handleDragLeave}
 					onDragOver={onDragOver}
 					onDrop={onDrop}
 					style={{
-						padding: "10px 10px",
-						backgroundColor: chatTextAreaBackground,
-						marginLeft: "8px",
-						marginRight: "8px",
-						marginBottom: "0px",
-						marginTop: "-2px",
+						padding: "3px 0px",
+						backgroundColor: chatInputSectionBackground,
+						marginLeft: "5px",
+						marginRight: "5px",
+						// marginBottom: "0px",
+						// marginTop: "-2px",
 						opacity: 1,
 						position: "relative",
 						display: "flex",
@@ -1677,6 +1710,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								onMouseDown={handleMenuMouseDown}
 								onSelect={handleSlashCommandsSelect}
 								query={slashCommandsQuery}
+								remoteWorkflows={remoteConfigSettings?.remoteGlobalWorkflows}
+								remoteWorkflowToggles={remoteWorkflowToggles}
 								selectedIndex={selectedSlashCommandsIndex}
 								setSelectedIndex={setSelectedSlashCommandsIndex}
 							/>
@@ -1698,32 +1733,31 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							/>
 						</div>
 					)}
-					{!isTextAreaFocused && (
+					{/* {!isTextAreaFocused && (
 						<div
 							style={{
 								position: "absolute",
 								inset: "10px 7px",
-								//border: "1px solid var(--vscode-input-border)",
+								border: "1px solid var(--vscode-input-border)",
 								borderRadius: 5,
 								pointerEvents: "none",
 								zIndex: 5,
 							}}
 						/>
-					)}
+					)} */}
 					<div
 						ref={highlightLayerRef}
 						style={{
 							position: "absolute",
-							top: 9,
-							left: 2,
-							right: 8,
-							bottom: 10,
+							top: 0,
+							left: 0,
+							right: 0,
+							bottom: 0,
 							pointerEvents: "none",
 							whiteSpace: "pre-wrap",
 							wordWrap: "break-word",
 							color: "transparent",
 							overflow: "hidden",
-							backgroundColor: chatTextAreaBackground,
 							fontFamily: "var(--vscode-font-family)",
 							fontSize: "var(--vscode-editor-font-size)",
 							lineHeight: "var(--vscode-editor-line-height)",
@@ -1733,7 +1767,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							borderTop: 0,
 							borderColor: "transparent",
 							borderBottom: `${thumbnailsHeight + 6}px solid transparent`,
-							padding: "9px 28px 3px 9px",
+							padding: "7px 0px 0px 5px",
+							margin: "0px 32px 0px 0px",
 							opacity: 0.6,
 						}}
 					/>
@@ -1775,11 +1810,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						style={{
 							width: "100%",
 							boxSizing: "border-box",
-							marginLeft: -4,
-							marginRight: -3,
 							backgroundColor: "transparent",
 							color: "var(--vscode-input-foreground)",
-							//border: "1px solid var(--vscode-input-border)",
+							border: "0px solid var(--vscode-input-border)",
 							borderRadius: 5,
 							fontFamily: "var(--vscode-font-family)",
 							fontSize: "var(--vscode-editor-font-size)",
@@ -1799,7 +1832,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							// borderLeft: "9px solid transparent", // NOTE: react-textarea-autosize doesn't calculate correct height when using borderLeft/borderRight so we need to use horizontal padding instead
 							// Instead of using boxShadow, we use a div with a border to better replicate the behavior when the textarea is focused
 							// boxShadow: "0px 0px 0px 1px var(--vscode-input-border)",
-							padding: "8px 28px 9px 5px",
+							padding: "4px 32px 5px 5px",
 							cursor: "text",
 							flex: 1,
 							zIndex: 1,
@@ -1807,7 +1840,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								isDraggingOver && !showUnsupportedFileError // Only show drag outline if not showing error
 									? "2px dashed var(--vscode-focusBorder)"
 									: isTextAreaFocused
-										? `0px dotted ${mode === "plan" ? PLAN_MODE_COLOR : ACT_MODE_COLOR}`
+										? "none" //`1px dotted ${mode === "plan" ? getPlanModeColor() : getActModeColor()}`
 										: "none",
 							outlineOffset: isDraggingOver && !showUnsupportedFileError ? "1px" : "0px", // Add offset for drag-over outline
 						}}
@@ -1828,8 +1861,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							style={{
 								position: "absolute",
 								paddingTop: 4,
-								bottom: 14,
-								left: 8,
+								bottom: 2,
+								left: 2,
 								right: 34,
 								zIndex: 2,
 							}}
@@ -1874,13 +1907,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								}}
 								style={{
 									fontSize: 24,
-									marginBottom: 4,
-									marginRight: -6,
+									marginBottom: -4,
+									marginRight: -11,
 									color: inputValue
 										? `${
 												mode === "plan"
-													? `color-mix(in srgb, ${PLAN_MODE_COLOR} 20%, var(--vscode-editor-foreground))`
-													: `color-mix(in srgb, ${ACT_MODE_COLOR} 80%, var(--vscode-editor-foreground))`
+													? `color-mix(in srgb, ${getPlanModeColor()} 20%, var(--vscode-editor-foreground))`
+													: `color-mix(in srgb, ${getActModeColor()} 70%, var(--vscode-editor-foreground))`
 											}`
 										: undefined,
 									opacity: inputValue ? 1 : 0.3,
@@ -1890,16 +1923,17 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					</div>
 				</div>
 
-				<ControlsContainer style={{ borderRadius: "0 0 10px 10px", backgroundColor: chatTextAreaBackground }}>
+				<ControlsContainer>
 					<SwitchContainer
 						data-testid="mode-switch"
 						disabled={false}
 						onClick={onModeToggle}
-						style={{ marginTop: "1px", opacity: 0.8 }}>
+						style={{ marginTop: "2px", opacity: 0.8 }}>
 						<Slider isAct={mode === "act"} isPlan={mode === "plan"} />
 						<HeroTooltip content="Switch to Plan Mode" delay={1000}>
 							<SwitchOption
 								isActive={mode === "plan"}
+								mode={mode}
 								onMouseLeave={() => setShownTooltipMode(null)}
 								onMouseOver={() => setShownTooltipMode("plan")}>
 								Plan
@@ -1908,6 +1942,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<HeroTooltip content="Switch to Act Mode" delay={1000}>
 							<SwitchOption
 								isActive={mode === "act"}
+								mode={mode}
 								onMouseLeave={() => setShownTooltipMode(null)}
 								onMouseOver={() => setShownTooltipMode("act")}>
 								Act
@@ -1922,7 +1957,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								aria-label="Add Context"
 								data-testid="context-button"
 								onClick={handleContextButtonClick}
-								style={{ marginLeft: "2px", paddingTop: "0px", height: "20px" }}>
+								style={{ marginLeft: "2px", paddingTop: "1px", height: "20px" }}>
 								<ButtonContainer style={{ opacity: 0.7 }}>
 									<span className="flex items-center" style={{ fontSize: "16px", marginBottom: 1 }}>
 										@
@@ -1941,23 +1976,23 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								<ButtonContainer>
 									<span
 										className="codicon codicon-diff-ignored flex items-center"
-										style={{ fontSize: "15px", marginTop: "2px" }}
+										style={{ fontSize: "15px", marginBottom: -3 }}
 									/>
 								</ButtonContainer>
 							</VSCodeButton>
 						</HeroTooltip>
 
-						<ClineRulesToggleModal textAreaRef={textAreaRef} />
-
 						<ServersToggleModal textAreaRef={textAreaRef} />
 
-						<HeroTooltip content="Select AI Provider / Model" delay={1000}>
+						<ClineRulesToggleModal textAreaRef={textAreaRef} />
+
+						<HeroTooltip content="Select Model / API Provider" delay={1000}>
 							<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>
 								<div
 									className="codicon codicon-sparkle-filled"
 									style={{
 										fontSize: "14px",
-										color: itemIconColor,
+										color: iconHighlightColor,
 										marginLeft: "0px",
 										marginTop: "6px",
 										opacity: 0.7,
@@ -1972,9 +2007,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										isActive={showModelSelector}
 										onClick={handleModelButtonClick}
 										role="button"
-										style={{ fontSize: "11px", marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
-										tabIndex={0}
-										title="Select Model / API Provider">
+										style={{ marginTop: "3px", marginLeft: "3px", marginRight: "3px" }}
+										tabIndex={0}>
 										<ModelButtonContent>{modelDisplayName}</ModelButtonContent>
 									</ModelDisplayButton>
 								</ModelButtonWrapper>
@@ -1984,7 +2018,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										menuPosition={menuPosition}
 										style={{
 											bottom: `calc(100vh - ${menuPosition}px + 6px)`,
-											minHeight: "300px",
+											minHeight: "350px",
 										}}>
 										<div className="relative">
 											<div
@@ -2018,13 +2052,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										style={{ padding: "0px 0px", height: "20px" }}>
 										<ButtonContainer>
 											<span
-												className="codicon codicon-file-add flex items-center"
+												className="codicon codicon-files flex items-center"
 												style={{
 													opacity: 0.6,
-													//color: itemIconColor,
-													fontWeight: "bold",
-													fontSize: "15.5px",
-													marginTop: 6,
+													fontSize: "15px",
+													marginTop: 4,
 													marginRight: 1.5,
 													marginLeft: -2,
 												}}

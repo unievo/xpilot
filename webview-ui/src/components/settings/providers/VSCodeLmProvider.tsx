@@ -43,70 +43,85 @@ export const VSCodeLmProvider = ({ currentMode }: VSCodeLmProviderProps) => {
 	return (
 		<div>
 			<DropdownContainer className="dropdown-container" zIndex={DROPDOWN_Z_INDEX - 2}>
-				<label htmlFor="vscode-lm-model">
-					<span style={{ fontWeight: 500 }}>Language Model</span>
-				</label>
 				{vsCodeLmModels.length > 0 ? (
-					<div>
-						<VSCodeDropdown
-							id="vscode-lm-model"
-							onChange={(e) => {
-								const value = (e.target as HTMLInputElement).value
-								if (!value) {
-									return
-								}
-								const [vendor, family] = value.split("/")
+					<>
+						<label htmlFor="vscode-lm-model">
+							<span style={{ fontWeight: 500 }}>Language Model</span>
+						</label>
+						<div>
+							<VSCodeDropdown
+								id="vscode-lm-model"
+								onChange={(e) => {
+									const value = (e.target as HTMLInputElement).value
+									if (!value) {
+										return
+									}
+									const [vendor, family] = value.split("/")
 
-								handleModeFieldChange(
-									{ plan: "planModeVsCodeLmModelSelector", act: "actModeVsCodeLmModelSelector" },
-									{ vendor, family },
-									currentMode,
-								)
-							}}
-							style={{ width: "100%" }}
-							value={
-								vsCodeLmModelSelector
-									? `${vsCodeLmModelSelector.vendor ?? ""}/${vsCodeLmModelSelector.family ?? ""}`
-									: ""
-							}>
-							<VSCodeOption value="">Select a model...</VSCodeOption>
-							{vsCodeLmModels.map((model) => (
-								<VSCodeOption key={`${model.vendor}/${model.family}`} value={`${model.vendor}/${model.family}`}>
-									{model.vendor} - {model.family}
-								</VSCodeOption>
-							))}
-						</VSCodeDropdown>
-						<ul
-							style={{
-								fontSize: "12px",
-								marginTop: "10px",
-								marginLeft: "-6px",
-								color: "var(--vscode-descriptionForeground)",
-								paddingLeft: "18px",
-							}}>
-							<li>For simpler tasks you can use cost-effective models such as Grok Code, GPT-4.1.</li>
-							<li>For complex coding tasks use premium models such as Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.</li>
-						</ul>
-					</div>
+									handleModeFieldChange(
+										{ plan: "planModeVsCodeLmModelSelector", act: "actModeVsCodeLmModelSelector" },
+										{ vendor, family },
+										currentMode,
+									)
+								}}
+								style={{ width: "100%", marginTop: "6px" }}
+								value={
+									vsCodeLmModelSelector
+										? `${vsCodeLmModelSelector.vendor ?? ""}/${vsCodeLmModelSelector.family ?? ""}`
+										: ""
+								}>
+								<VSCodeOption value="">Select a model...</VSCodeOption>
+								{vsCodeLmModels.map((model) => (
+									<VSCodeOption
+										key={`${model.vendor}/${model.family}`}
+										value={`${model.vendor}/${model.family}`}>
+										{model.vendor} - {model.family}
+									</VSCodeOption>
+								))}
+							</VSCodeDropdown>
+							<div>
+								<ul
+									style={{
+										fontSize: "12px",
+										marginTop: "10px",
+										marginLeft: "-6px",
+										color: "var(--vscode-descriptionForeground)",
+										paddingLeft: "18px",
+									}}>
+									<li>
+										The Copilot models have to be enabled on the{" "}
+										<VSCodeLink
+											href="https://github.com/settings/copilot/features"
+											style={{ display: "inline", fontSize: "inherit" }}>
+											Copilot settings
+										</VSCodeLink>
+										page.
+									</li>
+								</ul>
+							</div>
+						</div>
+					</>
 				) : (
 					<p
 						style={{
 							fontSize: "12px",
-							marginTop: "5px",
-							color: "var(--vscode-descriptionForeground)",
+							marginTop: "16px",
+							// color: "var(--vscode-descriptionForeground)",
 						}}>
-						The VS Code Language Model API allows you to use models provided by other VS Code extensions.
+						{/* The VS Code Language Model API allows you to use models provided by other VS Code extensions.
 						<br />
-						<br />
+						<br /> */}
 						Get started by{" "}
-						<VSCodeLink href="https://code.visualstudio.com/docs/copilot/setup" style={{ display: "inline" }}>
-							setting up
+						<VSCodeLink
+							href="https://code.visualstudio.com/docs/copilot/setup"
+							style={{ display: "inline", fontSize: "inherit" }}>
+							setting up GitHub Copilot
 						</VSCodeLink>{" "}
-						and{" "}
-						<VSCodeLink href="https://github.com/settings/copilot" style={{ display: "inline" }}>
-							enabling
-						</VSCodeLink>{" "}
-						the GitHub Copilot models in the Copilot Chat extension.
+						and enabling the Copilot models in your{" "}
+						<VSCodeLink href="https://github.com/settings/copilot/features" style={{ fontSize: "inherit" }}>
+							GitHub settings
+						</VSCodeLink>
+						.
 					</p>
 				)}
 			</DropdownContainer>

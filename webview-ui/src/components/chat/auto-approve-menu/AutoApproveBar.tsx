@@ -1,48 +1,28 @@
-import { useMemo, useRef, useState } from "react"
-import HeroTooltip from "@/components/common/HeroTooltip"
-import { chatTextAreaBackground } from "@/components/theme"
+import { useRef, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
-import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
-import AutoApproveMenuItem from "./AutoApproveMenuItem"
 import AutoApproveModal from "./AutoApproveModal"
-import { ACTION_METADATA, NOTIFICATIONS_SETTING } from "./constants"
+import { ACTION_METADATA } from "./constants"
 
 interface AutoApproveBarProps {
 	style?: React.CSSProperties
 }
 
 const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
-	const { autoApprovalSettings } = useExtensionState()
-	const { isChecked, isFavorited, updateAction } = useAutoApproveActions()
+	const { autoApprovalSettings, yoloModeToggled, navigateToSettings } = useExtensionState()
 
 	const [isModalVisible, setIsModalVisible] = useState(false)
 	const buttonRef = useRef<HTMLDivElement>(null)
 
-	const favorites = useMemo(() => autoApprovalSettings.favorites || [], [autoApprovalSettings.favorites])
-
-	// Render a favorited item with a checkbox
-	const renderFavoritedItem = (favId: string) => {
-		const actions = [...ACTION_METADATA.flatMap((a) => [a, a.subAction]), NOTIFICATIONS_SETTING]
-		const action = actions.find((a) => a?.id === favId)
-		if (!action) {
-			return null
-		}
-
-		return (
-			<AutoApproveMenuItem
-				action={action}
-				condensed={true}
-				isChecked={isChecked}
-				isFavorited={isFavorited}
-				onToggle={updateAction}
-				showIcon={false}
-			/>
-		)
+	const handleNavigateToFeatures = (e: React.MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		navigateToSettings("features")
 	}
 
-	const getQuickAccessItems = () => {
-		const notificationsEnabled = autoApprovalSettings.enableNotifications
+	const getEnabledActionsText = () => {
+		const baseClasses = isModalVisible
+			? "text-foreground truncate"
+			: "text-muted-foreground group-hover:text-foreground truncate"
 		const enabledActionsNames = Object.keys(autoApprovalSettings.actions).filter(
 			(key) => autoApprovalSettings.actions[key as keyof typeof autoApprovalSettings.actions],
 		)
@@ -50,75 +30,139 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 			return ACTION_METADATA.flatMap((a) => [a, a.subAction]).find((a) => a?.id === action)
 		})
 
-		const minusFavorites = enabledActions.filter((action) => !favorites.includes(action?.id ?? "") && action?.shortName)
+		// Filter out parent actions if their subaction is also enabled (show only subaction)
+		const actionsToShow = enabledActions.filter((action) => {
+			if (!action?.shortName) {
+				return false
+			}
 
-		if (notificationsEnabled) {
-			minusFavorites.push(NOTIFICATIONS_SETTING)
+			// If this is a parent action and its subaction is enabled, skip it
+			if (action.subAction?.id && enabledActionsNames.includes(action.subAction.id)) {
+				return false
+			}
+
+			return true
+		})
+
+		if (actionsToShow.length === 0) {
+			return <span className={baseClasses}>None</span>
 		}
 
-		return [
-			...favorites.map((favId) => renderFavoritedItem(favId)),
-			// minusFavorites.length > 0 ? (
-			// 	<span className="text-[color:var(--vscode-foreground-muted)] pl-[1px] opacity-70" key="separator">
-			// 		-
-			// 	</span>
-			// ) : null,
-			...minusFavorites.map((action, index) => (
-				<span className="text-[color:var(--vscode-foreground-muted)] opacity-70" key={action?.id}>
-					{action?.shortName}
-					{index < minusFavorites.length - 1 && ""}
-				</span>
-			)),
-		]
+		return (
+			<span className={baseClasses}>
+				{actionsToShow.map((action, index) => (
+					<span key={action?.id}>
+						{action?.shortName}
+						{index < actionsToShow.length - 1 && ", "}
+					</span>
+				))}
+			</span>
+		)
 	}
 
+	// const borderColor = `color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`
+	// const borderGradient = `linear-gradient(to bottom, ${borderColor} 0%, transparent 50%)`
+	// const bgGradient = `linear-gradient(to bottom, color-mix(in srgb, var(--vscode-sideBar-background) 96%, white) 0%, transparent 80%)`
+
+	// If YOLO mode is enabled, show disabled message
+	// if (yoloModeToggled) {
+	// 	return (
+	// 		<div
+	// 			className="mx-3.5 select-none break-words relative"
+	// 			style={
+	// 				{
+	// 					borderTop: `0.5px solid ${borderColor}`,
+	// 					borderRadius: "4px 4px 0 0",
+	// 					background: bgGradient,
+	// 					opacity: 0.5,
+	// 					...style,
+	// 				}
+	// 			}>
+	// 			{/* Left border gradient */}
+	// 			{/* <div
+	// 				className="absolute left-0 pointer-events-none"
+	// 				style={{
+	// 					width: 0.5,
+	// 					top: 3,
+	// 					height: "100%",
+	// 					background: borderGradient,
+	// 				}}
+	// 			/> */}
+	// 			{/* Right border gradient */}
+	// 			{/* <div
+	// 				className="absolute right-0 top-0 pointer-events-none"
+	// 				style={{
+	// 					width: 0.5,
+	// 					top: 3,
+	// 					height: "100%",
+	// 					background: borderGradient,
+	// 				}}
+	// 			/> */}
+
+	// 			<div className="pt-4 pb-3.5 px-3.5">
+	// 				<div className="text-sm mb-1">Auto: YOLO</div>
+	// 				<div className="text-muted-foreground text-xs">
+	// 					YOLO mode is enabled.{" "}
+	// 					<span className="underline cursor-pointer hover:text-foreground" onClick={handleNavigateToFeatures}>
+	// 						Disable it in Settings
+	// 					</span>
+	// 					.
+	// 				</div>
+	// 			</div>
+	// 		</div>
+	// 	)
+	// }
+
 	return (
-		<div
-			className="px-[10px] mt-[1px] mx-[8px] -mb-2 select-none rounded-[10px_10px_0_0]"
-			style={{
-				borderTop: `0.5px solid color-mix(in srgb, ${getAsVar(VSC_TITLEBAR_INACTIVE_FOREGROUND)} 20%, transparent)`,
-				backgroundColor: chatTextAreaBackground,
-				//backgroundColor: isModalVisible ? chatTextAreaBackgroundActive : chatTextAreaBackground,
-				...style,
-			}}>
-			<HeroTooltip content="Quick Access Auto-Approve Settings">
+		<div className="px-[10px] select-none">
+			{/* <HeroTooltip content="Quick Access Auto-Approve Settings" delay={1000}> */}
+			<div
+				className={`cursor-${yoloModeToggled ? "" : "pointer"} py-[5px] pr-[0px] flex items-center justify-between gap-[8px]`}
+				onClick={() => {
+					!yoloModeToggled && setIsModalVisible((prev) => !prev)
+				}}
+				ref={buttonRef}>
 				<div
-					className="cursor-pointer py-[8px] pr-[0px] flex items-center justify-between gap-[8px]"
-					onClick={() => {
-						setIsModalVisible((prev) => !prev)
-					}}
-					ref={buttonRef}>
-					<div
-						className="flex flex-nowrap items-center overflow-x-auto gap-[3px] whitespace-nowrap"
-						style={{
-							opacity: isModalVisible ? 1 : 0.7,
-							fontSize: "0.88em",
-							msOverflowStyle: "none",
-							scrollbarWidth: "none",
-							WebkitOverflowScrolling: "touch",
-						}}>
-						<span>Auto:</span>
-						{(() => {
-							if (!autoApprovalSettings.enabled) {
-								return " off"
-							}
-							const items = getQuickAccessItems()
-							return items.length > 0 ? items : " none"
-						})()}
-					</div>
-					{isModalVisible ? (
-						<span className="codicon codicon-chevron-down" />
-					) : (
-						<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
+					className="flex flex-nowrap items-center overflow-x-auto gap-[5px] whitespace-nowrap"
+					style={{
+						// opacity: isModalVisible ? 1 : 0.7,
+						fontSize: "0.88em",
+						msOverflowStyle: "none",
+						scrollbarWidth: "none",
+						WebkitOverflowScrolling: "touch",
+					}}>
+					<span>Auto:</span>
+					{(() => {
+						if (!autoApprovalSettings.enabled) {
+							return " off"
+						}
+						if (yoloModeToggled) {
+							return " YOLO"
+						}
+						return getEnabledActionsText()
+					})()}
+					{yoloModeToggled && (
+						<span
+							className="ml-auto text-muted-foreground cursor-pointer hover:text-foreground"
+							onClick={handleNavigateToFeatures}>
+							[Disable]
+						</span>
 					)}
 				</div>
-			</HeroTooltip>
-
+				<div>
+					{!yoloModeToggled &&
+						(isModalVisible ? (
+							<span className="codicon codicon-chevron-down" />
+						) : (
+							<span className="codicon codicon-chevron-up" style={{ opacity: 0.6 }} />
+						))}
+				</div>
+			</div>
+			{/* </HeroTooltip> */}
 			<AutoApproveModal
 				ACTION_METADATA={ACTION_METADATA}
 				buttonRef={buttonRef}
 				isVisible={isModalVisible}
-				NOTIFICATIONS_SETTING={NOTIFICATIONS_SETTING}
 				setIsVisible={setIsModalVisible}
 			/>
 		</div>

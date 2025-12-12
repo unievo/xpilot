@@ -36,27 +36,17 @@ const WelcomeView = memo(() => {
 	return (
 		<div className="fixed inset-0 p-0 flex flex-col" style={{ scrollbarGutter: "stable" }}>
 			<div className="h-full px-5 pr-1 overflow-auto" style={{ scrollbarGutter: "stable" }}>
-				<div className="flex justify-center mt-15">
-					<AgentLogo size={60} />
+				<div className="flex justify-center mt-15 mb-4">
+					<AgentLogo size={50} />
 				</div>
-				<h2 className="flex mb-10 justify-center">Welcome to {agentName}!</h2>
-				<p>
-					{agentName} can use VS Code as an AI model provider by{" "}
-					<a href="https://code.visualstudio.com/docs/copilot/setup">
-						setting up
-					</a>{" "}
-					the <a href="https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat">GitHub Copilot</a> extension
-					and{" "}
-					<a href="https://github.com/settings/copilot">
-						enabling
-					</a>{" "}
-					the Copilot models.
-				</p>
-				<p>
-					You can also bring your own API keys, or you can sign up below with Cline or OpenRouter, for a variety of model
-					options.
-				</p>
-				{/* <p className="text-[var(--vscode-descriptionForeground)]">
+				<div>
+					<h2 className="flex mb-10 justify-center">Welcome to {agentName}</h2>
+					<p className="leading-6">
+						{agentName} can use the GitHub Copilot extension as a model provider through the VS Code API, or you can
+						sign up with Cline or OpenRouter for a variety of model options.
+					</p>
+					<p className="leading-6">You can also bring your own API keys or settings for the supported providers.</p>
+					{/* <p className="text-(--vscode-descriptionForeground)">
 					Sign up for an account to get started for free, or use an API key that provides access to models like Claude
 					Sonnet.
 				</p>
@@ -64,6 +54,7 @@ const WelcomeView = memo(() => {
 				<VSCodeButton appearance="primary" className="w-full mt-1" onClick={handleLogin}>
 					Get Started for Free
 				</VSCodeButton> */}
+				</div>
 
 				{!showApiOptions && (
 					<VSCodeButton
@@ -78,7 +69,7 @@ const WelcomeView = memo(() => {
 					{showApiOptions && (
 						<div>
 							<ApiOptions currentMode={mode} showModelOptions={false} />
-							<VSCodeButton className="mt-0.75" disabled={disableLetsGoButton} onClick={handleSubmit}>
+							<VSCodeButton className="mt-6" disabled={disableLetsGoButton} onClick={handleSubmit}>
 								Let's go!
 							</VSCodeButton>
 						</div>

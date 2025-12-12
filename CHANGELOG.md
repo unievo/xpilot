@@ -2,6 +2,12 @@
 
 ## [2.0.0]
 
+- Extensive Chat Interface redesign for a more compact and streamlined UI/UX
+
+- Cline Features Update. [v3.40.1](https://github.com/cline/cline/blob/main/CHANGELOG.md#3401) 
+
+## [2.0.0]
+
 - Major update.
 - User interface enhancements.
 - Overview section for quick access to main features and usage recommendations.

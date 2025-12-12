@@ -1,8 +1,11 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-import { TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
+import { EnvironmentMetadataEntry, TaskMetadata } from "@core/context/context-tracking/ContextTrackerTypes"
 import { execa } from "@packages/execa"
 import {
+	agentWorkspaceDirectory,
 	authorName,
+	homeRootDirectory,
+	hooksDirectory,
 	instructionsDirectory,
 	mcpDirectory,
 	mcpServersDirectory,
@@ -10,17 +13,44 @@ import {
 	productName,
 	settingsDirectory,
 	workflowsDirectory,
-	workspaceInstructionsDirectoryPath,
-	workspaceWorkflowsDirectoryPath,
 } from "@shared/Configuration"
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
-import { fileExistsAtPath } from "@utils/fs"
+import { RemoteConfig } from "@shared/remote-config/schema"
+import { GlobalState, Settings } from "@shared/storage/state-keys"
+import { fileExistsAtPath, isDirectory } from "@utils/fs"
 import fs from "fs/promises"
 import os from "os"
 import * as path from "path"
 import { HostProvider } from "@/hosts/host-provider"
-import { GlobalState, Settings } from "./state-keys"
+import { ExtensionRegistryInfo } from "@/registry"
+import { telemetryService } from "@/services/telemetry"
+import { McpMarketplaceCatalog } from "@/shared/mcp"
+import { reconstructTaskHistory } from "../commands/reconstructTaskHistory"
+import { StateManager } from "./StateManager"
+
+/**
+ * Atomically write data to a file using temp file + rename pattern.
+ * This prevents readers from seeing partial/incomplete data by writing to a temporary
+ * file first, then renaming it to the target location. The rename operation is atomic
+ * in most cases on modern systems, though behavior may vary across platforms and filesystems.
+ *
+ * @param filePath - The target file path
+ * @param data - The data to write
+ */
+async function atomicWriteFile(filePath: string, data: string): Promise<void> {
+	const tmpPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).substring(7)}.json`
+	try {
+		// Write to temporary file first
+		await fs.writeFile(tmpPath, data, "utf8")
+		// Rename temp file to target (atomic in most cases)
+		await fs.rename(tmpPath, filePath)
+	} catch (error) {
+		// Clean up temp file if it exists
+		fs.unlink(tmpPath).catch(() => {})
+		throw error
+	}
+}
 
 export const GlobalFileNames = {
 	apiConversationHistory: "api_conversation_history.json",
@@ -30,14 +60,19 @@ export const GlobalFileNames = {
 	vercelAiGatewayModels: "vercel_ai_gateway_models.json",
 	groqModels: "groq_models.json",
 	basetenModels: "baseten_models.json",
+	hicapModels: "hicap_models.json",
 	mcpSettings: mcpSettingsFile,
-	clineRules: workspaceInstructionsDirectoryPath,
-	workflows: workspaceWorkflowsDirectoryPath,
-	cursorRulesDir: ".cursor/rules",
+	clineRules: path.join(agentWorkspaceDirectory, instructionsDirectory),
+	workflows: path.join(agentWorkspaceDirectory, workflowsDirectory),
+	hooksDir: path.join(agentWorkspaceDirectory, hooksDirectory),
+	cursorRulesDir: path.join(".cursor", "rules"),
 	cursorRulesFile: ".cursorrules",
-	windsurfRulesDir: ".windsurf/rules",
+	windsurfRulesDir: path.join(".windsurf", "rules"),
 	windsurfRulesFile: ".windsurfrules",
+	agentsRulesFile: "AGENTS.md",
 	taskMetadata: "task_metadata.json",
+	mcpMarketplaceCatalog: "mcp_marketplace_catalog.json",
+	remoteConfig: (orgId: string) => `remote_config_${orgId}.json`,
 }
 
 export async function getDocumentsPath(): Promise<string> {
@@ -77,7 +112,7 @@ export async function getDocumentsPath(): Promise<string> {
 }
 
 export function getUserProductDirectoryPath(): string {
-	const userProductPath = path.join(os.homedir(), `.${authorName}`, productName)
+	const userProductPath = path.join(os.homedir(), homeRootDirectory, productName)
 	return userProductPath
 }
 
@@ -133,6 +168,16 @@ export async function ensureMcpServersDirectoryExists(): Promise<string> {
 	return mcpServersDir
 }
 
+export async function ensureHooksDirectoryExists(): Promise<string> {
+	const clineHooksDir = path.join(homeRootDirectory, productName, hooksDirectory)
+	try {
+		await fs.mkdir(clineHooksDir, { recursive: true })
+	} catch (_error) {
+		return path.join(os.homedir(), homeRootDirectory, productName, hooksDirectory)
+	}
+	return clineHooksDir
+}
+
 export async function ensureSettingsDirectoryExists(): Promise<string> {
 	const settingsDir = path.join(getUserProductDirectoryPath(), settingsDirectory)
 	await fs.mkdir(settingsDir, { recursive: true })
@@ -151,7 +196,7 @@ export async function getSavedApiConversationHistory(taskId: string): Promise<An
 export async function saveApiConversationHistory(taskId: string, apiConversationHistory: Anthropic.MessageParam[]) {
 	try {
 		const filePath = path.join(await ensureTaskDirectoryExists(taskId), GlobalFileNames.apiConversationHistory)
-		await fs.writeFile(filePath, JSON.stringify(apiConversationHistory))
+		await atomicWriteFile(filePath, JSON.stringify(apiConversationHistory))
 	} catch (error) {
 		// in the off chance this fails, we don't want to stop the task
 		console.error("Failed to save API conversation history:", error)
@@ -178,9 +223,40 @@ export async function saveClineMessages(taskId: string, uiMessages: ClineMessage
 	try {
 		const taskDir = await ensureTaskDirectoryExists(taskId)
 		const filePath = path.join(taskDir, GlobalFileNames.uiMessages)
-		await fs.writeFile(filePath, JSON.stringify(uiMessages))
+		await atomicWriteFile(filePath, JSON.stringify(uiMessages))
 	} catch (error) {
 		console.error("Failed to save ui messages:", error)
+	}
+}
+
+/**
+ * Collects environment metadata for the current system and host.
+ * This information is used for debugging and task portability.
+ * Returns metadata without timestamp - timestamp is added by EnvironmentContextTracker.
+ */
+export async function collectEnvironmentMetadata(): Promise<Omit<EnvironmentMetadataEntry, "ts">> {
+	try {
+		const hostVersion = await HostProvider.env.getHostVersion({})
+
+		return {
+			os_name: os.platform(),
+			os_version: os.release(),
+			os_arch: os.arch(),
+			host_name: hostVersion.platform || "Unknown",
+			host_version: hostVersion.version || "Unknown",
+			cline_version: ExtensionRegistryInfo.version,
+		}
+	} catch (error) {
+		console.error("Failed to collect environment metadata:", error)
+		// Return fallback values if collection fails
+		return {
+			os_name: os.platform(),
+			os_version: os.release(),
+			os_arch: os.arch(),
+			host_name: "Unknown",
+			host_version: "Unknown",
+			cline_version: "Unknown",
+		}
 	}
 }
 
@@ -193,7 +269,7 @@ export async function getTaskMetadata(taskId: string): Promise<TaskMetadata> {
 	} catch (error) {
 		console.error("Failed to read task metadata:", error)
 	}
-	return { files_in_context: [], model_usage: [] }
+	return { files_in_context: [], model_usage: [], environment_history: [] }
 }
 
 export async function saveTaskMetadata(taskId: string, metadata: TaskMetadata) {
@@ -214,6 +290,30 @@ export async function ensureCacheDirectoryExists(): Promise<string> {
 	return getGlobalStorageDir("cache")
 }
 
+export async function readMcpMarketplaceCatalogFromCache(): Promise<McpMarketplaceCatalog | undefined> {
+	try {
+		const mcpMarketplaceCatalogFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.mcpMarketplaceCatalog)
+		const fileExists = await fileExistsAtPath(mcpMarketplaceCatalogFilePath)
+		if (fileExists) {
+			const fileContents = await fs.readFile(mcpMarketplaceCatalogFilePath, "utf8")
+			return JSON.parse(fileContents)
+		}
+		return undefined
+	} catch (error) {
+		console.error("Failed to read MCP marketplace catalog from cache:", error)
+		return undefined
+	}
+}
+
+export async function writeMcpMarketplaceCatalogToCache(catalog: McpMarketplaceCatalog): Promise<void> {
+	try {
+		const mcpMarketplaceCatalogFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.mcpMarketplaceCatalog)
+		await fs.writeFile(mcpMarketplaceCatalogFilePath, JSON.stringify(catalog))
+	} catch (error) {
+		console.error("Failed to write MCP marketplace catalog to cache:", error)
+	}
+}
+
 async function getGlobalStorageDir(...subdirs: string[]) {
 	const fullPath = path.resolve(HostProvider.get().globalStorageFsPath, ...subdirs)
 	await fs.mkdir(fullPath, { recursive: true })
@@ -232,18 +332,31 @@ export async function taskHistoryStateFileExists(): Promise<boolean> {
 export async function readTaskHistoryFromState(): Promise<HistoryItem[]> {
 	try {
 		const filePath = await getTaskHistoryStateFilePath()
-		if (await fileExistsAtPath(filePath)) {
-			const contents = await fs.readFile(filePath, "utf8")
-			try {
-				return JSON.parse(contents)
-			} catch (error) {
-				console.error("[Disk] Failed to parse task history:", error)
-				return []
-			}
+		if (!(await fileExistsAtPath(filePath))) {
+			return []
 		}
-		return []
+
+		const contents = await fs.readFile(filePath, "utf8")
+
+		try {
+			return JSON.parse(contents)
+		} catch (parseError) {
+			telemetryService.captureExtensionStorageError(parseError, "parseError_attemptingRecovery")
+
+			const result = await reconstructTaskHistory(false)
+			if (result && result.reconstructedTasks > 0) {
+				// Read the reconstructed file
+				const newContents = await fs.readFile(filePath, "utf8")
+				return JSON.parse(newContents)
+			}
+
+			// Recovery failed, all we can do is return an empty array or throw an error, thus preventing the app from starting up
+			// This will wipe out the taskHistory
+			return []
+		}
 	} catch (error) {
-		console.error("[Disk] Failed to read task history:", error)
+		// Filesystem or other errors - throw them for the caller to handle
+		telemetryService.captureExtensionStorageError(error, "readTaskHistoryFromState")
 		throw error
 	}
 }
@@ -251,8 +364,7 @@ export async function readTaskHistoryFromState(): Promise<HistoryItem[]> {
 export async function writeTaskHistoryToState(items: HistoryItem[]): Promise<void> {
 	try {
 		const filePath = await getTaskHistoryStateFilePath()
-		// Always create the file; if items is empty, write [] to ensure presence on first startup
-		await fs.writeFile(filePath, JSON.stringify(items))
+		await atomicWriteFile(filePath, JSON.stringify(items))
 	} catch (error) {
 		console.error("[Disk] Failed to write task history:", error)
 		throw error
@@ -294,4 +406,97 @@ export async function writeTaskSettingsToStorage(taskId: string, settings: Parti
 		console.error("[Disk] Failed to write task settings:", error)
 		throw error
 	}
+}
+
+export async function readRemoteConfigFromCache(organizationId: string): Promise<RemoteConfig | undefined> {
+	try {
+		const remoteConfigFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.remoteConfig(organizationId))
+		const fileExists = await fileExistsAtPath(remoteConfigFilePath)
+		if (fileExists) {
+			const fileContents = await fs.readFile(remoteConfigFilePath, "utf8")
+			return JSON.parse(fileContents)
+		}
+		return undefined
+	} catch (error) {
+		console.error("Failed to read remote config from cache:", error)
+		return undefined
+	}
+}
+
+export async function writeRemoteConfigToCache(organizationId: string, config: RemoteConfig): Promise<void> {
+	try {
+		const remoteConfigFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.remoteConfig(organizationId))
+		await fs.writeFile(remoteConfigFilePath, JSON.stringify(config))
+	} catch (error) {
+		console.error("Failed to write remote config to cache:", error)
+	}
+}
+
+export async function deleteRemoteConfigFromCache(organizationId: string): Promise<void> {
+	try {
+		const remoteConfigFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.remoteConfig(organizationId))
+		const fileExists = await fileExistsAtPath(remoteConfigFilePath)
+		if (fileExists) {
+			await fs.unlink(remoteConfigFilePath)
+		}
+	} catch (error) {
+		console.error("Failed to delete remote config from cache:", error)
+	}
+}
+
+/**
+ * Gets the path to the global hooks directory if it exists.
+ * Returns undefined if the directory doesn't exist.
+ */
+export async function getGlobalHooksDir(): Promise<string | undefined> {
+	const globalHooksDir = await ensureHooksDirectoryExists()
+	return (await isDirectory(globalHooksDir)) ? globalHooksDir : undefined
+}
+
+/**
+ * Gets the paths to all hooks directories to search for hooks, including:
+ * 1. The global hooks directory (if it exists)
+ * 2. Each workspace root's .clinerules/hooks directory (if they exist)
+ *
+ * Note: Hooks from different directories may be executed concurrently.
+ * No execution order is guaranteed between hooks from different directories.
+ * A workspace may not use hooks, and the resulting array will be empty. A
+ * multi-root workspace may have multiple hooks directories.
+ */
+export async function getAllHooksDirs(): Promise<string[]> {
+	const hooksDirs: string[] = []
+
+	// Add global hooks directory (if it exists)
+	const globalHooksDir = await getGlobalHooksDir()
+	if (globalHooksDir) {
+		hooksDirs.push(globalHooksDir)
+	}
+
+	// Add workspace hooks directories
+	const workspaceHooksDirs = await getWorkspaceHooksDirs()
+	hooksDirs.push(...workspaceHooksDirs)
+
+	return hooksDirs
+}
+
+/**
+ * Gets the paths to the workspace's .clinerules/hooks directories to search for
+ * hooks. A workspace may not use hooks, and the resulting array will be empty. A
+ * multi-root workspace may have multiple hooks directories.
+ */
+export async function getWorkspaceHooksDirs(): Promise<string[]> {
+	const workspaceRootPaths =
+		StateManager.get()
+			.getGlobalStateKey("workspaceRoots")
+			?.map((root) => root.path) || []
+
+	return (
+		await Promise.all(
+			workspaceRootPaths.map(async (workspaceRootPath) => {
+				// Look for a .clinerules/hooks folder in this workspace root.
+				const candidate = path.join(workspaceRootPath, GlobalFileNames.hooksDir)
+				return (await isDirectory(candidate)) ? candidate : undefined
+			}),
+		)
+	).filter((path): path is string => Boolean(path))
 }

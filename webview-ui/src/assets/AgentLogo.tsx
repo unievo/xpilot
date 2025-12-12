@@ -2,9 +2,10 @@ import { SVGProps, useEffect, useState } from "react"
 
 interface AgentLogoProps extends SVGProps<SVGSVGElement> {
 	size?: number // Size in points (pt)
+	color?: string
 }
 
-const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
+const AgentLogo = ({ size = 50, color, ...props }: AgentLogoProps) => {
 	const [scale, setScale] = useState(0.6)
 	const [isTransitioning, setIsTransitioning] = useState(true)
 
@@ -55,7 +56,7 @@ const AgentLogo = ({ size = 50, ...props }: AgentLogoProps) => {
 			viewBox="0 0 512.000000 512.000000"
 			xmlns="http://www.w3.org/2000/svg">
 			<g
-				fill="var(--vscode-editorGhostText-foreground)"
+				fill={color ?? "var(--vscode-editorGhostText-foreground)"}
 				stroke="none"
 				transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)">
 				<path

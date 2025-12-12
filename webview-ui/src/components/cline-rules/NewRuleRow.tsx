@@ -1,22 +1,40 @@
-import { RuleFileRequest } from "@shared/proto/index.cline"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { useEffect, useRef, useState } from "react"
+import { CreateHookRequest, RuleFileRequest } from "@shared/proto/index.cline"
+import { PlusIcon } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useClickAway } from "react-use"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { FileServiceClient } from "@/services/grpc-client"
-import { rowBackground } from "../theme"
+import { menuFontSize } from "../config"
 
 interface NewRuleRowProps {
 	isGlobal: boolean
 	ruleType?: string
+	existingHooks?: string[]
+	workspaceName?: string
 }
 
-const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
+const HOOK_TYPES = [
+	{ name: "TaskStart", description: "Executes when a new task begins" },
+	{ name: "TaskResume", description: "Executes when a task is resumed" },
+	{ name: "TaskCancel", description: "Executes when a task is cancelled" },
+	{ name: "TaskComplete", description: "Executes when a task completes" },
+	{ name: "PreToolUse", description: "Executes before any tool is used" },
+	{ name: "PostToolUse", description: "Executes after any tool is used" },
+	{ name: "UserPromptSubmit", description: "Executes when user submits a prompt" },
+	{ name: "PreCompact", description: "Executes before conversation compaction" },
+]
+
+const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHooks = [], workspaceName }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [filename, setFilename] = useState("")
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState<string | null>(null)
 
 	const componentRef = useRef<HTMLDivElement>(null)
+
+	// Calculate available hook types by filtering out existing hooks
+	const availableHookTypes = useMemo(() => HOOK_TYPES.filter((type) => !existingHooks.includes(type.name)), [existingHooks])
 
 	// Focus the input when expanded
 	useEffect(() => {
@@ -43,6 +61,22 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 
 	const isValidExtension = (ext: string): boolean => {
 		return ext === "" || ext === ".md" // || ext === ".txt"
+	}
+
+	const handleCreateHook = async (hookName: string) => {
+		if (!hookName) return
+
+		try {
+			await FileServiceClient.createHook(
+				CreateHookRequest.create({
+					hookName,
+					isGlobal,
+					workspaceName,
+				}),
+			)
+		} catch (err) {
+			console.error("Error creating hook:", err)
+		}
 	}
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -89,71 +123,111 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType }) => {
 
 	return (
 		<div
-			className={`mb-0 overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
-			onClick={() => !isExpanded && setIsExpanded(true)}
+			className={cn(
+				"mt-1 mb-1 h-6 border-1 border-menu-border rounded overflow-hidden transition-all duration-200 ease-in-out",
+				{
+					"opacity-100": isExpanded,
+					"opacity-50 hover:opacity-80": !isExpanded,
+				},
+			)}
+			onClick={() => !isExpanded && ruleType !== "hook" && setIsExpanded(true)}
 			ref={componentRef}>
 			<div
-				className={`flex items-center p-0 rounded transition-all duration-300 ease-in-out min-h-[12px] ${
-					isExpanded ? "shadow-sm" : ""
-				}`}
-				style={{
-					border: `0.5px solid overflow-ellipsis ${rowBackground}`,
-					marginTop: "3px",
-					paddingLeft: "2px",
-					overflow: "hidden",
-				}}>
-				<span
-					className="codicon codicon-markdown"
-					style={{ fontSize: "14px", marginRight: "0px", opacity: 0.5, verticalAlign: "middle" }}></span>
-				{isExpanded ? (
-					<form className="flex flex-1 items-center" onSubmit={handleSubmit}>
-						<input
-							className="flex-1 bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent"
-							onChange={(e) => setFilename(e.target.value)}
-							onKeyDown={handleKeyDown}
-							placeholder={"filename(.md)"}
-							ref={inputRef}
-							style={{
-								outline: "none",
-								fontSize: "12px",
+				className={cn("flex items-center p-0 rounded bg-input-background transition-all duration-300 ease-in-out h-3", {
+					"shadow-sm": isExpanded,
+				})}>
+				{ruleType === "hook" ? (
+					<>
+						<label className="sr-only" htmlFor="hook-type-select">
+							Select hook type to create
+						</label>
+						<span className="sr-only" id="hook-select-description">
+							Choose a hook type to create. Hooks execute at specific points in the lifecycle. Available:{" "}
+							{availableHookTypes.map((h) => h.name).join(", ")}
+						</span>
+						<select
+							aria-describedby="hook-select-description"
+							aria-label="Select hook type to create"
+							className="flex-1 bg-input-background text-input-foreground border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent px-2 cursor-pointer"
+							disabled={availableHookTypes.length === 0}
+							id="hook-type-select"
+							onChange={(e) => {
+								if (e.target.value) {
+									handleCreateHook(e.target.value)
+									// Reset selection after creating
+									e.target.value = ""
+								}
 							}}
+							style={{
+								// fontStyle: "italic",
+								marginTop: "6px",
+								appearance: "none",
+								backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23cccccc' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+								backgroundRepeat: "no-repeat",
+								backgroundPosition: "right 8px center",
+								paddingRight: "24px",
+							}}
+							value="">
+							<option disabled value="">
+								{availableHookTypes.length === 0 ? "All hooks created" : "New hook..."}
+							</option>
+							{availableHookTypes.map((hook) => (
+								<option key={hook.name} title={hook.description} value={hook.name}>
+									{hook.name}
+								</option>
+							))}
+						</select>
+					</>
+				) : (
+					<form className="mt-2 ml-1 flex flex-1 items-center" onSubmit={handleSubmit}>
+						<input
+							className={cn(
+								"flex-1 bg-input-background text-input-foreground border-0 outline-0 rounded focus:outline-none focus:ring-0 focus:border-transparent",
+								{
+									// italic: !isExpanded,
+								},
+							)}
+							onChange={(e) => setFilename(e.target.value)}
+							placeholder={
+								isExpanded
+									? ruleType === "workflow"
+										? "file-name (.md)"
+										: "file-name (.md)"
+									: ruleType === "workflow"
+										? "New workflow file..."
+										: "New rule file..."
+							}
+							ref={inputRef}
+							style={{ fontSize: menuFontSize }}
 							type="text"
-							value={filename}
+							value={isExpanded ? filename : ""}
 						/>
 
-						<div className="flex items-center ml-2 space-x-2">
-							<VSCodeButton
-								appearance="icon"
-								aria-label="Add file"
-								//style={{ padding: "0px" }}
-								title="Add file"
-								type="submit">
-								<span className="codicon codicon-add" />
-							</VSCodeButton>
-						</div>
-					</form>
-				) : (
-					<>
-						<div className="ml-0.5 overflow-ellipsis overflow-hidden flex-1 text-[var(--vscode-descriptionForeground)] bg-[var(--vscode-input-background)]">
-							{ruleType === "workflow" ? "New workflow file..." : "New instructions file..."}
-						</div>
-						<div className="flex overflow-hidden items-center ml-2 space-x-2">
-							<VSCodeButton
-								appearance="icon"
-								aria-label="Add file..."
-								onClick={(e) => {
-									e.stopPropagation()
+						<Button
+							aria-label={
+								isExpanded
+									? "Create file"
+									: ruleType === "workflow"
+										? "New workflow file..."
+										: "New instructions file..."
+							}
+							className="mx-0.5"
+							onClick={(e) => {
+								e.stopPropagation()
+								if (!isExpanded) {
 									setIsExpanded(true)
-								}}
-								style={{ opacity: 0.7, padding: "0px" }}
-								title="Add file">
-								<span className="codicon codicon-add" />
-							</VSCodeButton>
-						</div>
-					</>
+								}
+							}}
+							size="icon"
+							title={isExpanded ? "Create file" : "New file"}
+							type={isExpanded ? "submit" : "button"}
+							variant="icon">
+							<PlusIcon />
+						</Button>
+					</form>
 				)}
 			</div>
-			{isExpanded && error && <div className="text-[var(--vscode-errorForeground)] mt-1 ml-2">{error}</div>}
+			{isExpanded && error && <div className="text-error text-xs mt-1 ml-2">{error}</div>}
 		</div>
 	)
 }

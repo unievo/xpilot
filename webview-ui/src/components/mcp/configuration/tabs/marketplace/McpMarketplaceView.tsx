@@ -14,7 +14,9 @@ import { McpServiceClient } from "@/services/grpc-client"
 import McpMarketplaceCard from "./McpMarketplaceCard"
 
 const McpMarketplaceView = () => {
-	const { mcpServers, mcpMarketplaceCatalog, setMcpMarketplaceCatalog, mcpMarketplaceEnabled } = useExtensionState()
+	const { mcpServers, mcpMarketplaceCatalog, setMcpMarketplaceCatalog, remoteConfigSettings } = useExtensionState()
+
+	const showMarketplace = remoteConfigSettings?.mcpMarketplaceEnabled !== false
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [isRefreshing, setIsRefreshing] = useState(false)
@@ -78,7 +80,7 @@ const McpMarketplaceView = () => {
 		}
 		setError(null)
 
-		if (mcpMarketplaceEnabled) {
+		if (showMarketplace) {
 			McpServiceClient.refreshMcpMarketplace(EmptyRequest.create({}))
 				.then((response) => {
 					setMcpMarketplaceCatalog(response)
@@ -257,6 +259,15 @@ const McpMarketplaceView = () => {
 				}
 			`}
 			</style>
+
+			{/* Remote config banner */}
+			{remoteConfigSettings?.allowedMCPServers && (
+				<div className="flex items-center gap-2 px-5 py-3 mx-5 mb-4 bg-vscode-textBlockQuote-background border-l-[3px] border-vscode-textLink-foreground">
+					<i className="codicon codicon-lock text-sm" />
+					<span className="text-[13px]">Your organization has pre-configured the available MCP servers</span>
+				</div>
+			)}
+
 			<div style={{ display: "flex", flexDirection: "column" }}>
 				{filteredItems.length === 0 ? (
 					<div

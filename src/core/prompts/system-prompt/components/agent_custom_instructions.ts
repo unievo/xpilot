@@ -5,8 +5,7 @@ import { SystemPromptSection } from "../templates/placeholders"
 import { TemplateEngine } from "../templates/TemplateEngine"
 import type { PromptVariant, SystemPromptContext } from "../types"
 
-const AGENT_CUSTOM_INSTRUCTIONS_TEMPLATE_TEXT = `
-GUIDELINES
+const AGENT_CUSTOM_INSTRUCTIONS_TEMPLATE_TEXT = `GUIDELINES
 
 ${mxApiMcpUseGuide}
 ${mxDataFormatGuide}

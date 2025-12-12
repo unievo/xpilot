@@ -2,8 +2,9 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as diff from "diff"
 import * as path from "path"
 import { Mode } from "@/shared/storage/types"
-import { ignoreFile, workspaceInstructionsDirectoryPath } from "../../shared/Configuration"
+import { ignoreFile } from "../../shared/Configuration"
 import { ClineIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/ClineIgnoreController"
+import { GlobalFileNames } from "../storage/disk"
 
 export const formatResponse = {
 	duplicateFileReadNotice: () =>
@@ -12,15 +13,8 @@ export const formatResponse = {
 	contextTruncationNotice: () =>
 		`[NOTE] Some previous conversation history with the user has been removed to maintain optimal context window length. The initial user task has been retained for continuity, while intermediate conversation history has been removed. Keep this in mind as you continue assisting the user. Pay special attention to the user's latest messages.`,
 
-	processFirstUserMessageForTruncation: (originalContent: string) => {
-		const MAX_CHARS = 400_000
-
-		if (originalContent.length <= MAX_CHARS) {
-			return originalContent
-		}
-
-		const truncated = originalContent.substring(0, MAX_CHARS)
-		return truncated + "\n\n[[NOTE] This message was truncated past this point to preserve context window space.]"
+	processFirstUserMessageForTruncation: () => {
+		return "[Continue assisting the user!]"
 	},
 
 	condense: () =>
@@ -33,8 +27,10 @@ export const formatResponse = {
 	clineIgnoreError: (path: string) =>
 		`Access to ${path} is blocked by the ${ignoreFile} file settings. You must try to continue in the task without using this file, or ask the user to update the ${ignoreFile} file.`,
 
-	noToolsUsed: () =>
-		`[ERROR] You did not use a tool in your previous response! Please retry with a tool use.
+	noToolsUsed: (usingNativeToolCalls: boolean) =>
+		usingNativeToolCalls
+			? "[ERROR] You did not use a tool in your previous response! Please retry with a tool use."
+			: `[ERROR] You did not use a tool in your previous response! Please retry with a tool use.
 
 ${toolUseInstructionsReminder}
 
@@ -47,9 +43,6 @@ Otherwise, if you have not completed the task and do not need additional informa
 
 	tooManyMistakes: (feedback?: string) =>
 		`You seem to be having trouble proceeding. The user has provided the following feedback to help guide you:\n<feedback>\n${feedback}\n</feedback>`,
-
-	autoApprovalMaxReached: (feedback?: string) =>
-		`Auto-approval limit reached. The user has provided the following feedback to help guide you:\n<feedback>\n${feedback}\n</feedback>`,
 
 	missingToolParameterError: (paramName: string) =>
 		`Missing value for required parameter '${paramName}'. Please retry with complete response.\n\n${toolUseInstructionsReminder}`,
@@ -238,13 +231,13 @@ Otherwise, if you have not completed the task and do not need additional informa
 		`Tool [${toolName}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
 
 	clineIgnoreInstructions: (content: string) =>
-		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n${workspaceInstructionsDirectoryPath}`,
+		`# ${ignoreFile}\n\n(The following is provided by a root-level ${ignoreFile} file where the user has specified files and directories that should not be accessed. When using list_files, you'll notice a ${LOCK_TEXT_SYMBOL} next to files that are blocked. Attempting to access the file's contents e.g. through read_file will result in an error.)\n\n${content}\n`,
 
 	clineRulesGlobalDirectoryInstructions: (globalClineRulesFilePath: string, content: string) =>
 		`# Global instructions - (${globalClineRulesFilePath.toPosix()}/)\n\n${content}`,
 
 	clineRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# Workspace instructions - (${workspaceInstructionsDirectoryPath})\n\nThe following content is from instruction files applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
+		`# Workspace instructions - (${GlobalFileNames.clineRules})\n\nThe following content is from instruction files applicable for the current workspace (${cwd.toPosix()})\n\n${content}`,
 
 	clineRulesFileInstructions: (cwd: string, content: string) =>
 		`# The following content is provided by an instruction file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
@@ -252,14 +245,17 @@ Otherwise, if you have not completed the task and do not need additional informa
 	windsurfRulesLocalFileInstructions: (cwd: string, content: string) =>
 		`# .windsurfrules\n\nThe following is provided by a root-level .windsurfrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
+	windsurfRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
+		`# .windsurf/rules\n\nThe following is provided by a root-level .windsurf/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+
 	cursorRulesLocalFileInstructions: (cwd: string, content: string) =>
 		`# .cursorrules\n\nThe following is provided by a root-level .cursorrules file where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
 	cursorRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
 		`# .cursor/rules\n\nThe following is provided by a root-level .cursor/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
 
-	windsurfRulesLocalDirectoryInstructions: (cwd: string, content: string) =>
-		`# .windsurf/rules\n\nThe following is provided by a root-level .windsurf/rules directory where the user has specified instructions for this working directory (${cwd.toPosix()})\n\n${content}`,
+	agentsRulesLocalFileInstructions: (cwd: string, content: string) =>
+		`# AGENTS.md\n\nThe following is provided by AGENTS.md files found recursively throughout this working directory (${cwd.toPosix()}) where the user has specified instructions. Nested AGENTS.md will be combined below, and you should only apply the instructions for each AGENTS.md file that is directly applicable to the current task, i.e. if you are reading or writing to a file in that directory.\n\n${content}`,
 
 	fileContextWarning: (editedFiles: string[]): string => {
 		const fileCount = editedFiles.length
@@ -295,21 +291,16 @@ const formatImagesIntoBlocks = (images?: string[]): Anthropic.ImageBlockParam[] 
 }
 
 const toolUseInstructionsReminder = `# Reminder: Instructions for Tool Use
-
 Tool uses are formatted using XML-style tags. The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags. Here's the structure:
-
 <tool_name>
 <parameter1_name>value1</parameter1_name>
 <parameter2_name>value2</parameter2_name>
 ...
 </tool_name>
-
 For example:
-
 <attempt_completion>
 <result>
 I have completed the task...
 </result>
 </attempt_completion>
-
 Always adhere to this format for all tool uses to ensure proper parsing and execution.`

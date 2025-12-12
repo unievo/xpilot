@@ -1,11 +1,13 @@
-import { cn, Progress, Tooltip } from "@heroui/react"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import debounce from "debounce"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { updateSetting } from "@/components/settings/utils/settingsHandlers"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { Progress } from "@/components/ui/progress"
 import { formatLargeNumber as formatTokenNumber } from "@/utils/format"
 import { AutoCondenseMarker } from "./AutoCondenseMarker"
 import CompactTaskButton from "./buttons/CompactTaskButton"
+import { ContextWindowSummary } from "./ContextWindowSummary"
 
 // Type definitions
 interface ContextWindowInfoProps {
@@ -14,6 +16,7 @@ interface ContextWindowInfoProps {
 	cacheWrites?: number
 	cacheReads?: number
 	size?: number
+	showCondenseButton?: boolean
 }
 
 interface ContextWindowProgressProps extends ContextWindowInfoProps {
@@ -28,13 +31,13 @@ const ConfirmationDialog = memo<{
 	onConfirm: (e: React.MouseEvent) => void
 	onCancel: (e: React.MouseEvent) => void
 }>(({ onConfirm, onCancel }) => (
-	<div className="text-xs my-2 flex items-center gap-0 justify-between text-[var(--vscode-editor-foreground)] bg-[var(--vscode-editor-background)] border border-[var(--vscode-editor-border)] rounded-md px-2 py-1">
+	<div className="text-xs my-2 flex items-center gap-0 justify-between text-[var(--vscode-editor-foreground)] bg-[var(--vscode-editor-background)] border-0 border-[var(--vscode-editor-border)] rounded-md px-2 py-1">
 		<span className="text-s pr-2">Compact current task? This action cannot be undone.</span>
 		<span className="flex gap-1 h-5 scale-90">
 			<VSCodeButton
 				appearance="primary"
 				autoFocus={true}
-				className="text-xs"
+				className="text-sm"
 				onClick={onConfirm}
 				title="Yes, compact the task"
 				type="button">
@@ -59,6 +62,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 	autoCondenseThreshold = 0.75,
 	onSendMessage,
 	useAutoCondense,
+	showCondenseButton = true,
 	tokensIn,
 	tokensOut,
 	cacheWrites,
@@ -105,7 +109,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 		(e: React.MouseEvent) => {
 			e.preventDefault()
 			e.stopPropagation()
-			onSendMessage?.("/Compact Task", [], [])
+			onSendMessage?.("/compact", [], [])
 			setConfirmationNeeded(false)
 		},
 		[onSendMessage],
@@ -202,78 +206,63 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 	}
 
 	return (
-		<div className="flex flex-col -mt-1 mb-0 opacity-90" onMouseLeave={debounceCloseHover}>
+		<div className="flex flex-col mr-0 opacity-90" onMouseLeave={debounceCloseHover}>
 			<div className="flex gap-1 flex-row @max-xs:flex-col @max-xs:items-start items-center text-sm">
-				<div className="flex items-center gap-1.5 flex-1 whitespace-nowrap text-xs">
-					<span className="cursor-pointer" title="Current tokens used in this request">
+				<div className="flex items-center gap-1.5 flex-1 whitespace-nowrap">
+					<span className="cursor-pointer text-sm" title="Current tokens used in this request">
 						{formatTokenNumber(tokenData.used)}
 					</span>
 					<div className="flex relative items-center gap-1 flex-1 w-full h-full" onMouseEnter={() => setIsOpened(true)}>
-						<Tooltip
-							closeDelay={0}
-							// content={
-							// 	<ContextWindowSummary
-							// 		autoCompactThreshold={useAutoCondense ? threshold : undefined}
-							// 		cacheReads={cacheReads}
-							// 		cacheWrites={cacheWrites}
-							// 		contextWindow={tokenData.max}
-							// 		percentage={tokenData.percentage}
-							// 		tokensIn={tokensIn}
-							// 		tokensOut={tokensOut}
-							// 		tokenUsed={tokenData.used}
-							// 	/>
-							// }
-							disableAnimation={true}
-							isOpen={isOpened}
-							offset={-2}
-							placement="bottom"
-							shouldCloseOnBlur={false}
-							shouldCloseOnInteractOutside={() => false}
-							showArrow={true}>
-							<div
-								aria-label="Auto condense threshold"
-								aria-valuemax={100}
-								aria-valuemin={0}
-								aria-valuenow={Math.round(threshold * 100)}
-								aria-valuetext={`${Math.round(threshold * 100)}% threshold`}
-								className="relative w-full text-foreground context-window-progress brightness-100"
-								onFocus={handleFocus}
-								onKeyDown={handleKeyDown}
-								ref={progressBarRef}
-								role="slider"
-								tabIndex={useAutoCondense ? 0 : -1}>
-								<Progress
-									aria-label="Context window usage progress"
-									classNames={{
-										base: "drop-shadow-md w-full", // cursor-pointer",
-										track: cn("rounded max-h-2 h-3 bg-foreground/10"),
-										indicator: "bg-foreground rounded-r",
-										label: "tracking-wider font-medium text-foreground/80",
-										value: "text-description",
-									}}
-									color="success"
-									disableAnimation={true}
-									onClick={handleContextWindowBarClick}
-									size="md"
-									value={tokenData.percentage}
+						<HoverCard>
+							<HoverCardContent className="bg-menu rounded-lg shadow-sm">
+								<ContextWindowSummary
+									autoCompactThreshold={useAutoCondense ? threshold : undefined}
+									cacheReads={cacheReads}
+									cacheWrites={cacheWrites}
+									contextWindow={tokenData.max}
+									percentage={tokenData.percentage}
+									tokensIn={tokensIn}
+									tokensOut={tokensOut}
+									tokenUsed={tokenData.used}
 								/>
-								{useAutoCondense && (
-									<AutoCondenseMarker
-										isContextWindowHoverOpen={isOpened}
-										shouldAnimate={shouldAnimateMarker}
-										threshold={threshold}
-										usage={tokenData.percentage}
+							</HoverCardContent>
+							<HoverCardTrigger asChild>
+								<div
+									aria-label="Auto condense threshold"
+									aria-valuemax={100}
+									aria-valuemin={0}
+									aria-valuenow={Math.round(threshold * 100)}
+									aria-valuetext={`${Math.round(threshold * 100)}% threshold`}
+									className="relative w-full text-foreground context-window-progress brightness-100"
+									onFocus={handleFocus}
+									onKeyDown={handleKeyDown}
+									ref={progressBarRef}
+									role="slider"
+									tabIndex={useAutoCondense ? 0 : -1}>
+									<Progress
+										aria-label="Context window usage progress"
+										color="success"
+										onClick={handleContextWindowBarClick}
+										value={tokenData.percentage}
 									/>
-								)}
-								{isOpened}
-							</div>
-						</Tooltip>
+									{useAutoCondense && (
+										<AutoCondenseMarker
+											isContextWindowHoverOpen={isOpened}
+											shouldAnimate={shouldAnimateMarker}
+											threshold={threshold}
+											usage={tokenData.percentage}
+										/>
+									)}
+									{isOpened}
+								</div>
+							</HoverCardTrigger>
+						</HoverCard>
 					</div>
-					<span className="cursor-pointer" title="Maximum context window size for this model">
+					<span className="cursor-pointer text-sm" title="Maximum context window size for this model">
 						{formatTokenNumber(tokenData.max)}
 					</span>
 				</div>
-				<CompactTaskButton onClick={handleCompactClick} />
+				{showCondenseButton && <CompactTaskButton onClick={handleCompactClick} />}
 			</div>
 			{confirmationNeeded && <ConfirmationDialog onCancel={handleCancel} onConfirm={handleConfirm} />}
 		</div>

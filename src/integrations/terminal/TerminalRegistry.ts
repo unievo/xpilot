@@ -1,4 +1,4 @@
-import { agentName, extensionIconDarkPath, extensionIconLightPath, pathSeparator } from "@shared/Configuration"
+import { agentName, extensionIconDarkPath, extensionIconLightPath } from "@shared/Configuration"
 import * as vscode from "vscode"
 import { ExtensionRegistryInfo } from "@/registry"
 
@@ -29,10 +29,10 @@ export class TerminalRegistry {
 			name: agentName,
 			iconPath: {
 				light: extensionUri
-					? vscode.Uri.joinPath(extensionUri, ...extensionIconLightPath.split(pathSeparator))
+					? vscode.Uri.joinPath(extensionUri, ...extensionIconLightPath)
 					: new vscode.ThemeIcon("terminal"),
 				dark: extensionUri
-					? vscode.Uri.joinPath(extensionUri, ...extensionIconDarkPath.split(pathSeparator))
+					? vscode.Uri.joinPath(extensionUri, ...extensionIconDarkPath)
 					: new vscode.ThemeIcon("terminal"),
 			},
 			env: {
