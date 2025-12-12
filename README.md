@@ -1,11 +1,10 @@
-# Welcome to xPilot
+# xPilot
 
 xPilot is an AI coding agent with a specialized knowledge base and tools for [MultiversX](https://www.multiversx.com).
-It is able to assist with coding any type of application, while also having specialized knowledge for handling MultiversX projects and tasks, using the dedicated instructions library, MCP tools, and built-in features.
 
-It can use VS Code as an AI provider, by [setting up](https://code.visualstudio.com/docs/copilot/setup) and [enabling](https://github.com/settings/copilot) the GitHub Copilot models. 
+It can assist with any type of applications, while also having specialized knowledge for MultiversX tasks and projects using a dedicated instructions library, MCP Servers, and built-in features.
 
-You can also bring your own AI API keys, or you can easily sign up with providers such as Cline or OpenRouter, for a variety of model options.
+You can use AI model providers such as Cline or OpenRouter for a variety of model options, VS Code with the GitHub Copilot Extension models, or you can bring your own API keys for many supported providers. 
 
 <table border="0" cellspacing="0" cellpadding="0">
     <tr>
@@ -14,7 +13,7 @@ You can also bring your own AI API keys, or you can easily sign up with provider
         <td></td>
     </tr>
     <tr>
-        <td align="center">Main interface</td>
+        <td align="center">Home</td>
         <td></td>
         <td align="center">Instructions Library</td>
     </tr>
@@ -27,15 +26,10 @@ You can also bring your own AI API keys, or you can easily sign up with provider
             <img src="https://raw.githubusercontent.com/unievo/xpilot/main/assets/img/instructions.png" alt="Instructions" width="250">
         </td>
     </tr>
-        <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-    </tr>
     <tr>
-        <td align="center">Using instructions</td>
+        <td align="center">Using the instructions library</td>
         <td></td>
-        <td align="center">MCP Library</td>
+        <td align="center">MCP Servers Library</td>
     </tr>
     <tr>
         <td>
@@ -46,16 +40,10 @@ You can also bring your own AI API keys, or you can easily sign up with provider
             <img src="https://raw.githubusercontent.com/unievo/xpilot/main/assets/img/mcp-library.png" alt="MCP Library" width="250">
         </td>
     </tr>
-    </tr>
-        <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-    </tr>
     <tr>
         <td align="center">Using the API MCP Server</td>
         <td></td>
-        <td align="center">Recent tasks</td>
+        <td align="center">Recent Tasks</td>
     </tr>
     <tr>
         <td>

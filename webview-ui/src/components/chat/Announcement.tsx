@@ -1,4 +1,4 @@
-import { baseName, baseVersion, baseVersionUrl, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
+import { discordUrl, repoUrl, xUrl } from "@shared/Configuration"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INPUT_BACKGROUND } from "@/utils/vscStyles"
@@ -52,16 +52,15 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</div>
 			{
 				<ul style={ulStyle}>
-					<li>Extensive Chat Interface redesign for a more compact and streamlined UI/UX</li>
-					<div className="mt-2" />
-					<b style={{ fontSize: 12 }}>
-						{baseName} Features Update: <a href={`${baseVersionUrl}`}>{baseVersion}</a>
-					</b>
-					<div className="mt-2 mb-4" />
+					<li>Chat Interface redesign</li>
+					<li>New models, AI providers and features</li>
 					{/* <li>
-						<b>Update to </b> -{" "}
-						<a href={`${baseVersionUrl}`}>{baseVersion}</a>
+						<div className="mt-0" />
+						<b style={{ fontSize: 12 }}>
+							{baseName} Features Update to <a href={`${baseVersionUrl}`}>{baseVersion}</a>
+						</b>
 					</li> */}
+					<div className="mt-2 mb-4" />
 				</ul>
 			}
 

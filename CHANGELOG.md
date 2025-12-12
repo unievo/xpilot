@@ -1,14 +1,14 @@
 # Changelog
 
+## [2.1.0]
+
+- Chat Interface redesign for a more compact and streamlined UI/UX
+- New models, AI providers and features
+
+- Base Features Update. [v2.0.0](https://github.com/unievo/astro/blob/main/CHANGELOG.md#200) 
+
 ## [2.0.0]
 
-- Extensive Chat Interface redesign for a more compact and streamlined UI/UX
-
-- Cline Features Update. [v3.40.1](https://github.com/cline/cline/blob/main/CHANGELOG.md#3401) 
-
-## [2.0.0]
-
-- Major update.
 - User interface enhancements.
 - Overview section for quick access to main features and usage recommendations.
 - Instructions and Workflows enhancements, allowing for an expandable and collaborative knowledge bases using Git.
