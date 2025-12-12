@@ -144,7 +144,7 @@ export async function ensureGlobalInstructionsDirectoryExists(): Promise<string>
 	return clineRulesDir
 }
 
-export async function getGlobalWorkflowsDirectoryPath(): Promise<string> {
+export function getGlobalWorkflowsDirectoryPath(): string {
 	return path.join(getUserProductDirectoryPath(), workflowsDirectory)
 }
 
