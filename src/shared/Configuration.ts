@@ -3,8 +3,8 @@ import { name, publisher } from "../../package.json"
 
 // Base
 export const baseName = "Cline"
-export const baseVersion = "v3.40.1"
-export const baseVersionUrl = `https://github.com/cline/cline/blob/main/CHANGELOG.md#3401`
+export const baseVersion = "v3.32.5"
+export const baseVersionUrl = `https://github.com/cline/cline/blob/main/CHANGELOG.md#3325`
 
 // Product
 export const agentName = "Astro"
@@ -44,8 +44,8 @@ export const mcpDirectory = `mcp`
 export const mcpServersDirectory = `servers`
 export const mcpSettingsFile = `mcp_settings.json`
 export const ignoreFile = `.${productName}ignore`
-export const extensionIconLightPath = ["assets", "icons", "icon_light.png"]
-export const extensionIconDarkPath = ["assets", "icons", "icon_dark.png"]
+export const extensionIconLightPath = ["assets","icons","icon_light.png"]
+export const extensionIconDarkPath = ["assets","icons","icon_dark.png"]
 export const ignoreWorkspaceDirectories = [
 	agentWorkspaceDirectory,
 	".git",
