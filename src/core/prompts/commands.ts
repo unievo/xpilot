@@ -1,6 +1,6 @@
 import type { ApiProviderInfo } from "@/core/api"
 import { gitInstructionsRepo, gitWorkflowsRepo } from "@/shared/Configuration"
-import { GlobalFileNames, getGlobalInstructionsDirectoryPath } from "../storage/disk"
+import { GlobalFileNames, getGlobalInstructionsDirectoryPath, getGlobalWorkflowsDirectoryPath } from "../storage/disk"
 import { getDeepPlanningPrompt } from "./commands/deep-planning"
 
 export const newTaskToolResponse = () =>
@@ -346,8 +346,8 @@ Arguments are the following, specify possible choices and use default values if 
 - Git repository source {repository}, default: {${gitWorkflowsRepo}} (optional)
 - Location, in the Workspace Instructions Directory or the Global Instructions Directory {workspace, global}, default: {workspace}  (optional)
 
-- Workspace Instructions Directory relative workspace path: {${GlobalFileNames.clineRules}}
-- Global Instructions Directory absolute path: {${getGlobalInstructionsDirectoryPath()}}
+- Workspace Instructions Directory relative workspace path: {${GlobalFileNames.workflows}}
+- Global Instructions Directory absolute path: {${getGlobalWorkflowsDirectoryPath()}}
 
 Before executing any command confirm with the user any default values, using options (not by pressing any keys).
 
