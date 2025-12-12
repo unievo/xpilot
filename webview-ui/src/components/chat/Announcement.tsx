@@ -1,4 +1,3 @@
-import { Accordion, AccordionItem } from "@heroui/react"
 import { baseVersion, baseVersionUrl, discordUrl, repoUrl, xUrl } from "@shared/Configuration"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo } from "react"
@@ -18,7 +17,7 @@ const containerStyle: CSSProperties = {
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "15px", fontWeight: "bold" }
+const h3TitleStyle: CSSProperties = { margin: "5px 14px 8px", fontSize: "14px", fontWeight: "bold" }
 const h4TitleStyle: CSSProperties = { margin: "0 0 8px", fontWeight: "bold" }
 const ulStyle: CSSProperties = { fontSize: "12px", listStyle: "disc", margin: "4px", marginBottom: "-10px", paddingLeft: "10px" }
 const _accountIconStyle: CSSProperties = { fontSize: 11 }
@@ -29,7 +28,7 @@ const hrStyle: CSSProperties = {
 	marginTop: "10px",
 	marginBottom: "5px",
 }
-const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "12px", textAlign: "right" }
+const linkContainerStyle: CSSProperties = { margin: "0 0 0 14px", fontSize: "12px", textAlign: "left" }
 const linkStyle: CSSProperties = { display: "inline", fontSize: "11px" }
 
 /*
@@ -53,21 +52,20 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</div>
 			{
 				<ul style={ulStyle}>
-					<li>
-						<b>Task Header:</b> Design update for better usability
-					</li>
-					<div className="mt-4" />
-					<b style={{ fontSize: 13 }}>Base Features Update: </b>
+					<li>Extensive Chat Interface redesign for a more compact and streamlined UI/UX</li>
 					<div className="mt-2" />
-
-					<li>
-						<b>Claude Sonnet 4.5:</b> Support for Sonnet 4.5 in multiple API providers -{" "}
+					<b style={{ fontSize: 12 }}>
+						Cline Features Update: <a href={`${baseVersionUrl}`}>{baseVersion}</a>
+					</b>
+					<div className="mt-2 mb-4" />
+					{/* <li>
+						<b>Update to </b> -{" "}
 						<a href={`${baseVersionUrl}`}>{baseVersion}</a>
-					</li>
+					</li> */}
 				</ul>
 			}
 
-			<Accordion className="" isCompact>
+			{/* <Accordion className="" isCompact>
 				<AccordionItem
 					aria-label="Previous Updates"
 					classNames={{
@@ -81,33 +79,25 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					title="Previous Updates:">
 					<ul style={ulStyle}>
 						<li>
-							<b>Overview section:</b> for quick access to main features and usage recommendations.
-						</li>
-						<li>
-							<b>Instructions and Workflows enhancements:</b> allowing for an expandable and collaborative knowledge
-							bases using Git, with the "/Git Instructions" and "/Git Workflows" slash commands.
-						</li>
-						<li>
 							<b>On demand MCP tools schema loading:</b> performance and cost optimization when using MCP servers
 							with a large number of tools, reducing the system prompt size and token usage.
 						</li>
 					</ul>
 				</AccordionItem>
-			</Accordion>
+			</Accordion> */}
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
+				<VSCodeLink href={repoUrl} style={linkStyle}>
+					GitHub
+				</VSCodeLink>
 				{xUrl && (
 					<span>
+						{" | "}
 						<VSCodeLink href={xUrl} style={linkStyle}>
 							X.com
 						</VSCodeLink>
 					</span>
 				)}
-
-				{" | "}
-				<VSCodeLink href={repoUrl} style={linkStyle}>
-					GitHub
-				</VSCodeLink>
 
 				{discordUrl && (
 					<span>
