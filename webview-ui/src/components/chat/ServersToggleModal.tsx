@@ -1,4 +1,3 @@
-import { chatInputSectionBorder, iconHighlightColor, menuBackground, menuFontSize, menuTopBorder } from "@components/config"
 import { mcpLibraryEnabled } from "@shared/Configuration"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { McpServers } from "@shared/proto/cline/mcp"
@@ -10,6 +9,7 @@ import ServersToggleList from "@/components/mcp/configuration/tabs/installed/Ser
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 import HeroTooltip from "../common/HeroTooltip"
+import { chatInputSectionBorder, iconHighlightColor, menuBackground, menuFontSize, menuTopBorder } from "../config"
 
 interface ServersToggleModalProps {
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
@@ -23,6 +23,21 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 	const [arrowPosition, setArrowPosition] = useState(0)
 	const [menuPosition, setMenuPosition] = useState(0)
+
+	useEffect(() => {
+		if (isVisible) {
+			McpServiceClient.getLatestMcpServers(EmptyRequest.create({}))
+				.then((response: McpServers) => {
+					if (response.mcpServers) {
+						const mcpServers = convertProtoMcpServersToMcpServers(response.mcpServers)
+						setMcpServers(mcpServers)
+					}
+				})
+				.catch((error) => {
+					console.error("Failed to fetch MCP servers:", error)
+				})
+		}
+	}, [isVisible, setMcpServers])
 
 	// Close modal when clicking outside
 	useClickAway(modalRef, () => {
@@ -63,21 +78,6 @@ const ServersToggleModal: React.FC<ServersToggleModalProps> = ({ textAreaRef }) 
 			setMenuPosition(buttonRect.top + 1)
 		}
 	}, [isVisible, viewportWidth, viewportHeight])
-
-	useEffect(() => {
-		if (isVisible) {
-			McpServiceClient.getLatestMcpServers(EmptyRequest.create({}))
-				.then((response: McpServers) => {
-					if (response.mcpServers) {
-						const mcpServers = convertProtoMcpServersToMcpServers(response.mcpServers)
-						setMcpServers(mcpServers)
-					}
-				})
-				.catch((error) => {
-					console.error("Failed to fetch MCP servers:", error)
-				})
-		}
-	}, [isVisible])
 
 	return (
 		<div ref={modalRef}>
