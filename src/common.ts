@@ -1,29 +1,30 @@
-import * as vscode from "vscode";
+import * as vscode from "vscode"
 import {
 	cleanupMcpMarketplaceCatalogFromGlobalState,
 	migrateCustomInstructionsToGlobalRules,
+	migrateHooksEnabledToBoolean,
 	migrateTaskHistoryToFile,
 	migrateWelcomeViewCompleted,
 	migrateWorkspaceToGlobalStorage,
-} from "./core/storage/state-migrations";
-import { WebviewProvider } from "./core/webview";
-import { Logger } from "./services/logging/Logger";
-import "./utils/path"; // necessary to have access to String.prototype.toPosix
+} from "./core/storage/state-migrations"
+import { WebviewProvider } from "./core/webview"
+import { Logger } from "./services/logging/Logger"
+import "./utils/path" // necessary to have access to String.prototype.toPosix
 
-import { HostProvider } from "@/hosts/host-provider";
-import { FileContextTracker } from "./core/context/context-tracking/FileContextTracker";
-import { StateManager } from "./core/storage/StateManager";
-import { ExtensionRegistryInfo } from "./registry";
-import { BannerService } from "./services/banner/BannerService";
-import { audioRecordingService } from "./services/dictation/AudioRecordingService";
-import { ErrorService } from "./services/error";
-import { featureFlagsService } from "./services/feature-flags";
-import { initializeDistinctId } from "./services/logging/distinctId";
-import { telemetryService } from "./services/telemetry";
-import { PostHogClientProvider } from "./services/telemetry/providers/posthog/PostHogClientProvider";
-import { agentName } from "./shared/Configuration";
-import { ShowMessageType } from "./shared/proto/host/window";
-import { getLatestAnnouncementId } from "./utils/announcements";
+import { HostProvider } from "@/hosts/host-provider"
+import { FileContextTracker } from "./core/context/context-tracking/FileContextTracker"
+import { StateManager } from "./core/storage/StateManager"
+import { ExtensionRegistryInfo } from "./registry"
+import { BannerService } from "./services/banner/BannerService"
+import { audioRecordingService } from "./services/dictation/AudioRecordingService"
+import { ErrorService } from "./services/error"
+import { featureFlagsService } from "./services/feature-flags"
+import { initializeDistinctId } from "./services/logging/distinctId"
+import { telemetryService } from "./services/telemetry"
+import { PostHogClientProvider } from "./services/telemetry/providers/posthog/PostHogClientProvider"
+import { agentName } from "./shared/Configuration"
+import { ShowMessageType } from "./shared/proto/host/window"
+import { getLatestAnnouncementId } from "./utils/announcements"
 /**
  * Performs intialization for Cline that is common to all platforms.
  *
@@ -62,6 +63,9 @@ export async function initialize(context: vscode.ExtensionContext): Promise<Webv
 
 	// Ensure taskHistory.json exists and migrate legacy state (runs once)
 	await migrateTaskHistoryToFile(context)
+
+	// Migrate hooksEnabled from ClineFeatureSetting to boolean (one-time cleanup)
+	await migrateHooksEnabledToBoolean(context)
 
 	// Clean up MCP marketplace catalog from global state (moved to disk cache)
 	await cleanupMcpMarketplaceCatalogFromGlobalState(context)

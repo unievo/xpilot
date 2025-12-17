@@ -21,9 +21,10 @@ type McpViewProps = {
 type LocalMcpViewTab = McpViewTab | "install"
 
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
-	const {remoteConfigSettings, setMcpServers, setMcpTab, environment } = useExtensionState()
+	const { remoteConfigSettings, setMcpServers, setMcpTab, environment } = useExtensionState()
 	// Show marketplace by default unless remote config explicitly disables it
 	const showMarketplace = remoteConfigSettings?.mcpMarketplaceEnabled !== false
+	const showRemoteServers = remoteConfigSettings?.blockPersonalRemoteMCPServers !== true
 	const [activeTab, setActiveTab] = useState<LocalMcpViewTab>(initialTab || "configure")
 	const [installSubTab, setInstallSubTab] = useState<McpViewTab>("library")
 
@@ -59,7 +60,10 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 			// If marketplace is disabled by remote config and we're on marketplace tab, switch to configure
 			setActiveTab("configure")
 		}
-	}, [showMarketplace, installSubTab])
+		// if (!showRemoteServers && activeTab === "addRemote") {
+		// 	setActiveTab("configure")
+		// }
+	}, [showMarketplace, showRemoteServers, installSubTab])
 
 	// Get setter for MCP marketplace catalog from context
 	const { setMcpMarketplaceCatalog } = useExtensionState()
@@ -134,6 +138,14 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 							<b>Install</b>
 						</TabButton>
 					)}
+					{/* {showRemoteServers && (
+						<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
+							Remote Servers
+						</TabButton>
+					)} */}
+					{/* <TabButton isActive={activeTab === "configure"} onClick={() => handleTabChange("configure")}>
+						Configure
+					</TabButton> */}
 				</div>
 
 				{/* Sub-tabs for Install */}
@@ -168,9 +180,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 				{/* Content container */}
 				<div style={{ width: "100%" }}>
 					{activeTab === "install" && installSubTab === "library" && mcpLibraryEnabled && <McpLibraryView />}
-					{activeTab === "install" && installSubTab === "marketplace" && showMarketplace && (
-						<McpMarketplaceView />
-					)}
+					{activeTab === "install" && installSubTab === "marketplace" && showMarketplace && <McpMarketplaceView />}
 					{activeTab === "configure" && <ConfigureServersView />}
 				</div>
 			</div>

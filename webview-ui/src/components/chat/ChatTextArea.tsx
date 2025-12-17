@@ -4,18 +4,18 @@ import { FileSearchRequest, FileSearchType, RelativePathsRequest } from "@shared
 import { UpdateApiConfigurationRequest } from "@shared/proto/cline/models"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/cline/state"
 import { convertApiConfigurationToProto } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { type SlashCommand } from "@shared/slashCommands"
 import { Mode } from "@shared/storage/types"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import type React from "react"
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import DynamicTextArea from "react-textarea-autosize"
-import { useClickAway, useWindowSize } from "react-use"
+import { useWindowSize } from "react-use"
 import styled from "styled-components"
 import ContextMenu from "@/components/chat/ContextMenu"
 import { CHAT_CONSTANTS } from "@/components/chat/chat-view/constants"
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import Thumbnails from "@/components/common/Thumbnails"
-import ApiOptions from "@/components/settings/ApiOptions"
 import { getModeSpecificFields, normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -40,7 +40,6 @@ import {
 	getWorkflowCommands,
 	insertSlashCommand,
 	removeSlashCommand,
-	type SlashCommand,
 	shouldShowSlashCommandsMenu,
 	slashCommandDeleteRegex,
 	slashCommandRegexGlobal,
@@ -66,6 +65,7 @@ import {
 } from "@components/config"
 import { ignoreWorkspaceDirectories } from "@shared/Configuration"
 import HeroTooltip from "../common/HeroTooltip"
+import ApiOptions from "../settings/ApiOptions"
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -891,10 +891,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				setInputValue(newValue)
 				setCursorPosition(newCursorPosition)
 				let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
-				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(
-					newValue,
-					newCursorPosition
-				)
+				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
 
 				// we do not allow both menus to be shown at the same time
 				// the slash commands menu has precedence bc its a narrower component
@@ -1319,25 +1316,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			return
 		}, [inputValue, handleInputChange, updateHighlights])
 
-		// Use an effect to detect menu close
-		useEffect(() => {
-			if (prevShowModelSelector.current && !showModelSelector) {
-				// Menu was just closed
-				submitApiConfig()
-			}
-			prevShowModelSelector.current = showModelSelector
-		}, [showModelSelector, submitApiConfig])
-
-		// Remove the handleApiConfigSubmit callback
-		// Update click handler to just toggle the menu
 		const handleModelButtonClick = () => {
 			setShowModelSelector(!showModelSelector)
 		}
-
-		// Update click away handler to just close menu
-		useClickAway(modelSelectorRef, () => {
-			setShowModelSelector(false)
-		})
 
 		// Get model display name
 		const modelDisplayName = useMemo(() => {
@@ -1988,7 +1969,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<ServersToggleModal textAreaRef={textAreaRef} />
 
 						<ClineRulesToggleModal textAreaRef={textAreaRef} />
-			
 
 						<HeroTooltip content="Select Model / API Provider" delay={1000}>
 							<ModelContainer ref={modelSelectorRef} style={{ overflow: "hidden", position: "relative" }}>

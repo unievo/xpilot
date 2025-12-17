@@ -1449,6 +1449,71 @@ export const ChatRowContent = memo(
 							</ApprovalContainer>
 						</SecondaryRowStyle>
 					)
+				case "webSearch":
+					return (
+						<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
+							<ApprovalContainer
+								autoApproveSetting={autoApprovalSettings.actions.useBrowser}
+								isLastProcessing={isLastProcessing}>
+								<RowHeader>
+									{isLastProcessing ? (
+										<ProgressIndicator />
+									) : (
+										rowIconVisible && <RowIcon isLast={isLast}>{toolIcon("link")}</RowIcon>
+									)}
+									<RowTitle isExpanded={isExpanded} isLast={isLast}>
+										{message.type === "ask" ? `Search:` : isLastProcessing ? `Searching:` : `Searched:`}
+									</RowTitle>
+
+									{tool.operationIsLocatedInWorkspace === false && (
+										<RowIcon isLast={isLast}>
+											{toolIcon("sign-out", "yellow", -90, "This URL is external")}
+										</RowIcon>
+									)}
+
+									<HeroTooltip content={tool.path || ""}>
+										<RowItem isLast={isLast}>
+											<div
+												onClick={() => {
+													// Open the URL in the default browser using gRPC
+													if (tool.path) {
+														UiServiceClient.openUrl(StringRequest.create({ value: tool.path })).catch(
+															(err) => {
+																console.error("Failed to open URL:", err)
+															},
+														)
+													}
+												}}
+												style={{
+													overflow: "hidden",
+													cursor: "pointer",
+													userSelect: "none",
+													WebkitUserSelect: "none",
+													MozUserSelect: "none",
+													msUserSelect: "none",
+												}}>
+												<span
+													className="ph-no-capture"
+													style={{
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														marginRight: "8px",
+														textAlign: "left",
+														color: "var(--vscode-textLink-foreground)",
+														textDecoration: "underline",
+														opacity: 0.8,
+														display: "block",
+													}}>
+													{tool.path + "\u200E"}
+												</span>
+											</div>
+										</RowItem>
+									</HeroTooltip>
+								</RowHeader>
+							</ApprovalContainer>
+						</SecondaryRowStyle>
+					)
 				default:
 					return null
 			}
@@ -1885,8 +1950,16 @@ export const ChatRowContent = memo(
 						return (
 							<SecondaryRowStyle isExpanded={isExpanded} isLastProcessing={isLastProcessing}>
 								<RowHeader
+									aria-label={isExpanded ? "Collapse API request" : "Expand API request"}
 									className={`group`}
 									onClick={handleToggle}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault()
+											e.stopPropagation()
+											handleToggle()
+										}
+									}}
 									style={{
 										marginBottom:
 											(cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage ? 10 : "",
@@ -1896,7 +1969,8 @@ export const ChatRowContent = memo(
 										WebkitUserSelect: "none",
 										MozUserSelect: "none",
 										msUserSelect: "none",
-									}}>
+									}}
+									tabIndex={0}>
 									<div
 										style={{
 											marginTop: 2,

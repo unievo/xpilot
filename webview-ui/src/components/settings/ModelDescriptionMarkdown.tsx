@@ -52,7 +52,7 @@ export const ModelDescriptionMarkdown = memo(({ markdown, key, isPopup }: ModelD
 							}}
 						/>
 						<Button
-							className={cn("p-0 m-0 -mb-0.5 text-sm")}
+							className={cn("p-0 m-0 -mb-0.5 text-sm cursor-pointer")}
 							onClick={() => setIsExpanded(!isExpanded)}
 							style={{ backgroundColor: isPopup ? menuBackground : "var(--color-code-block-background)" }}
 							variant="link">

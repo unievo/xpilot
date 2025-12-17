@@ -13,7 +13,7 @@ import { WebviewProvider } from "./core/webview"
 import { createClineAPI } from "./exports"
 import { Logger } from "./services/logging/Logger"
 import { cleanupTestMode, initializeTestMode } from "./services/test/TestMode"
-import "./utils/path"; // necessary to have access to String.prototype.toPosix
+import "./utils/path" // necessary to have access to String.prototype.toPosix
 
 import path from "node:path"
 import { agentName, productName } from "@shared/Configuration"
@@ -38,6 +38,7 @@ import {
 	disposeVscodeCommentReviewController,
 	getVscodeCommentReviewController,
 } from "./hosts/vscode/review/VscodeCommentReviewController"
+import { VscodeTerminalManager } from "./hosts/vscode/terminal/VscodeTerminalManager"
 import { VscodeDiffViewProvider } from "./hosts/vscode/VscodeDiffViewProvider"
 import { VscodeWebviewProvider } from "./hosts/vscode/VscodeWebviewProvider"
 import { ExtensionRegistryInfo } from "./registry"
@@ -440,6 +441,7 @@ function setupHostProvider(context: ExtensionContext) {
 	const createWebview = () => new VscodeWebviewProvider(context)
 	const createDiffView = () => new VscodeDiffViewProvider()
 	const createCommentReview = () => getVscodeCommentReviewController()
+	const createTerminalManager = () => new VscodeTerminalManager()
 	const outputChannel = vscode.window.createOutputChannel(agentName)
 	context.subscriptions.push(outputChannel)
 
@@ -448,6 +450,7 @@ function setupHostProvider(context: ExtensionContext) {
 		createWebview,
 		createDiffView,
 		createCommentReview,
+		createTerminalManager,
 		vscodeHostBridgeClient,
 		outputChannel.appendLine,
 		getCallbackUrl,

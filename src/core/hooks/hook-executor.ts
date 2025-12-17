@@ -99,6 +99,8 @@ export async function executeHook<Name extends keyof Hooks>(options: HookExecuti
 			hookName,
 			streamCallback,
 			isCancellable ? abortController.signal : undefined,
+			taskId,
+			options.toolName,
 		)
 
 		const result = await hook.run({

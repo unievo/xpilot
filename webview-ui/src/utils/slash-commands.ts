@@ -1,63 +1,5 @@
 import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
-
-export interface SlashCommand {
-	name: string
-	description?: string
-	section?: "task" | "instructions" | "workflows" //| "default"
-}
-
-const BASE_SLASH_COMMANDS: SlashCommand[] = [
-	{
-		name: "newtask",
-		description: "Start task with current context",
-		section: "task",
-	},
-	{
-		name: "compact",
-		description: "Summarize current task context",
-		section: "task",
-	},
-	{
-		name: "deep-planning",
-		description: "Create a comprehensive implementation plan before coding",
-		section: "task",
-	},
-	{
-		name: "subagent",
-		description: "Invoke a Cline CLI subagent for focused research tasks",
-		section: "task",
-	},
-	{
-		name: "new-instructions",
-		description: "Create task based instructions",
-		section: "instructions",
-	},
-	{
-		name: "git-instructions",
-		description: "Get instructions from git",
-		section: "instructions",
-	},
-	{
-		name: "git-workflows",
-		description: "Get workflows from git",
-		section: "workflows",
-	},
-
-	// {
-	// 	name: "reportbug",
-	// 	description: "Create a Github issue",
-	// 	section: "default",
-	// },
-]
-
-// VS Code-only slash commands
-const VSCODE_ONLY_COMMANDS: SlashCommand[] = [
-	{
-		name: "explain-changes",
-		description: "Explain code changes between git refs (PRs, commits, branches, etc.)",
-		section: "task",
-	},
-]
+import { BASE_SLASH_COMMANDS, type SlashCommand, VSCODE_ONLY_COMMANDS } from "../../../src/shared/slashCommands.ts"
 
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] =
 	PLATFORM_CONFIG.type === PlatformType.VSCODE ? [...BASE_SLASH_COMMANDS, ...VSCODE_ONLY_COMMANDS] : BASE_SLASH_COMMANDS
@@ -171,10 +113,7 @@ export function removeSlashCommand(text: string, position: number): { newText: s
  * Only shows for the FIRST valid slash command position in the message - subsequent
  * slash commands won't trigger suggestions since only one is processed per message.
  */
-export function shouldShowSlashCommandsMenu(
-	text: string,
-	cursorPosition: number,
-): boolean {
+export function shouldShowSlashCommandsMenu(text: string, cursorPosition: number): boolean {
 	const beforeCursor = text.slice(0, cursorPosition)
 
 	// first check if there is a slash before the cursor
@@ -250,7 +189,7 @@ export interface SlashCommandSection {
 /**
  * Organizes filtered slash commands into menu sections.
  * This ensures consistent organization across components.
- * 
+ *
  * @param filteredCommands The filtered list of commands
  * @returns Array of sections with commands, titles, and display options
  */
@@ -270,15 +209,12 @@ export function getSlashCommandSections(filteredCommands: SlashCommand[]): Slash
  * Maps a visual index from the menu (accounting for section organization) to the correct SlashCommand.
  * The menu organizes commands into sections, so the visual index
  * needs to be mapped through these sections to find the actual command.
- * 
+ *
  * @param menuIndex The index as displayed in the menu (accounting for sections)
  * @param filteredCommands The filtered list of commands
  * @returns The SlashCommand at the menu index, or undefined if out of bounds
  */
-export function getSlashCommandAtMenuIndex(
-	menuIndex: number,
-	filteredCommands: SlashCommand[],
-): SlashCommand | undefined {
+export function getSlashCommandAtMenuIndex(menuIndex: number, filteredCommands: SlashCommand[]): SlashCommand | undefined {
 	const sections = getSlashCommandSections(filteredCommands)
 	let commandIndex = menuIndex
 
