@@ -29,12 +29,14 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		yoloModeToggled,
 		dictationSettings,
 		useAutoCondense,
+		clineWebToolsEnabled,
 		focusChainSettings,
 		multiRootSetting,
 		hooksEnabled,
 		remoteConfigSettings,
 		subagentsEnabled,
 		nativeToolCallSetting,
+		enableParallelToolCalling,
 	} = useExtensionState()
 
 	const [isClineCliInstalled, setIsClineCliInstalled] = useState(false)
@@ -336,6 +338,19 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							</a>
 						</p>
 					</div>
+					{clineWebToolsEnabled?.featureFlag && (
+						<div style={{ marginTop: 10 }}>
+							<VSCodeCheckbox
+								checked={clineWebToolsEnabled?.user}
+								onChange={(e: any) => {
+									const checked = e.target.checked === true
+									updateSetting("clineWebToolsEnabled", checked)
+								}}>
+								Enable Web Tools
+							</VSCodeCheckbox>
+							<p className="text-xs text-(--vscode-descriptionForeground)">Enables websearch and webfetch tools.</p>
+						</div>
+					)}
 					<div className="mt-2.5">
 						<VSCodeCheckbox
 							checked={nativeToolCallSetting}
@@ -348,6 +363,22 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 						<p className="text-xs text-(--vscode-descriptionForeground)">
 							Uses the model's native tool calling API instead of XML-based tool parsing. This will improve
 							performance for supported models.
+						</p>
+					</div>
+					<div className="mt-2.5">
+						<VSCodeCheckbox
+							checked={enableParallelToolCalling}
+							onChange={(e) => {
+								const enabled = (e?.target as HTMLInputElement).checked
+								updateSetting("enableParallelToolCalling", enabled)
+							}}>
+							Enable Parallel Tool Calling
+						</VSCodeCheckbox>
+						<p className="text-xs">
+							<span className="text-(--vscode-editorWarning-foreground)">Experimental: </span>{" "}
+							<span className="text-description">
+								Allows models to call multiple tools in a single response. Automatically enabled for GPT-5 models.
+							</span>
 						</p>
 					</div>
 					{multiRootSetting.featureFlag && (
@@ -368,7 +399,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 					)}
 					<div className="mt-2.5">
 						<VSCodeCheckbox
-							checked={hooksEnabled?.user}
+							checked={hooksEnabled}
 							disabled={!isMacOSOrLinux()}
 							onChange={(e: any) => {
 								const checked = e.target.checked === true

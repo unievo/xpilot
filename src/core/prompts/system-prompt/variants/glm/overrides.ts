@@ -86,6 +86,18 @@ Parameters: None
 <load_mcp_documentation>
 </load_mcp_documentation>
 
+**get_mcp_tool_input_schema**
+Description: Request to get the input schema for a specific tool provided by a connected MCP server.
+It is a built-in tool, call directly, not as an MCP tool. It returns the JSON schema that defines the expected input parameters for the tool.
+IMPORTANT: If an MCP tool does not have an input schema provided, always call this tool before using it to expose all tool functionality and available parameters.
+Parameters:
+- server_name: (required) The name of the MCP server providing the tool
+- tool_name: (required) The name of the tool to get the input schema for
+Usage:
+<get_mcp_tool_input_schema>
+<server_name>server name here</server_name>
+<tool_name>tool name here</tool_name>
+</get_mcp_tool_input_schema>
 
 **use_mcp_tool** - Request to use a tool provided by a connected MCP server. Each MCP server can provide multiple tools with different capabilities. Tools have defined input schemas that specify required and optional parameters.
 Parameters: server_name, tool_name, arguments

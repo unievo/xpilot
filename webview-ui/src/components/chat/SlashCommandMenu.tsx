@@ -6,8 +6,11 @@ import {
 	menuFontSize,
 	menuTopBorder,
 } from "@components/config"
+import { type SlashCommand } from "@shared/slashCommands"
 import React, { useCallback, useEffect, useRef } from "react"
-import { getMatchingSlashCommands, getSlashCommandSections, SlashCommand } from "@/utils/slash-commands"
+import { useMenuAnnouncement } from "@/hooks/useMenuAnnouncement"
+import { getMatchingSlashCommands, getSlashCommandSections } from "@/utils/slash-commands"
+import ScreenReaderAnnounce from "../common/ScreenReaderAnnounce"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -34,6 +37,29 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 }) => {
 	const menuRef = useRef<HTMLDivElement>(null)
 
+	// Filter commands based on query
+	const filteredCommands = getMatchingSlashCommands(
+		query,
+		localWorkflowToggles,
+		globalWorkflowToggles,
+		remoteWorkflowToggles,
+		remoteWorkflows,
+	)
+	// const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "default" || !cmd.section)
+	// const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "custom")
+
+	// Screen reader announcements
+	const getCommandLabel = useCallback((command: SlashCommand) => {
+		const description = command.description ? `, ${command.description}` : ""
+		return `${command.name}${description}`
+	}, [])
+
+	const { announcement } = useMenuAnnouncement({
+		items: filteredCommands,
+		selectedIndex,
+		getItemLabel: getCommandLabel,
+	})
+
 	const handleClick = useCallback(
 		(command: SlashCommand) => {
 			onSelect(command)
@@ -57,14 +83,6 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 		}
 	}, [selectedIndex])
 
-	// Filter commands based on query
-	const filteredCommands = getMatchingSlashCommands(
-		query,
-		localWorkflowToggles,
-		globalWorkflowToggles,
-		remoteWorkflowToggles,
-		remoteWorkflows,
-	)
 	const sections = getSlashCommandSections(filteredCommands)
 
 	// Create a reusable function for rendering a command section
@@ -75,11 +93,14 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 		return (
 			<>
-				<div className="text-[var(--vscode-descriptionForeground)] px-1 py-1 font-normal">{title}</div>
+				<div className="text-[var(--vscode-descriptionForeground)] px-1 py-1 font-normal" role="presentation">
+					{title}
+				</div>
 				{commands.map((command, index) => {
 					const itemIndex = index + indexOffset
 					return (
 						<div
+							aria-selected={itemIndex === selectedIndex}
 							className={`slash-command-menu-item py-0.5 px-1.5 cursor-pointer flex flex-col rounded-md ${
 								itemIndex === selectedIndex
 									? isHighContrastTheme()
@@ -90,7 +111,8 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 							id={`slash-command-menu-item-${itemIndex}`}
 							key={command.name}
 							onClick={() => handleClick(command)}
-							onMouseEnter={() => setSelectedIndex(itemIndex)}>
+							onMouseEnter={() => setSelectedIndex(itemIndex)}
+							role="option">
 							<div
 								className="font-normal whitespace-nowrap overflow-hidden text-ellipsis"
 								style={{ fontSize: menuFontSize }}>
@@ -120,9 +142,13 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 			data-testid="slash-commands-menu"
 			onMouseDown={onMouseDown}
 			style={{ fontSize: menuFontSize }}>
+			<ScreenReaderAnnounce message={announcement} />
 			<div
+				aria-activedescendant={filteredCommands.length > 0 ? `slash-command-menu-item-${selectedIndex}` : undefined}
+				aria-label="Slash commands"
 				className="mb-1.5 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
+				role="listbox"
 				style={{
 					border: chatInputSectionBorder,
 					borderTop: menuTopBorder,
@@ -146,7 +172,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 						})
 					})()
 				) : (
-					<div className="py-2 px-3 cursor-default flex flex-col">
+					<div aria-selected="false" className="py-2 px-3 cursor-default flex flex-col" role="option">
 						<div className="text-[0.85em] text-[var(--vscode-descriptionForeground)]">No matches found</div>
 					</div>
 				)}

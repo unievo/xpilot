@@ -1,4 +1,10 @@
-import { ModelInfo, OpenAiNativeModelId, openAiNativeDefaultModelId, openAiNativeModels } from "@shared/api"
+import {
+	ModelInfo,
+	OpenAiCompatibleModelInfo,
+	OpenAiNativeModelId,
+	openAiNativeDefaultModelId,
+	openAiNativeModels,
+} from "@shared/api"
 import { calculateApiCostOpenAI } from "@utils/cost"
 import OpenAI from "openai"
 import type { ChatCompletionReasoningEffort, ChatCompletionTool } from "openai/resources/chat/completions"
@@ -6,6 +12,7 @@ import { Logger } from "@/services/logging/Logger"
 import { ClineStorageMessage } from "@/shared/messages/content"
 import { fetch } from "@/shared/net"
 import { ApiFormat } from "@/shared/proto/cline/models"
+import { isGPT5ModelFamily } from "@/utils/model-utils"
 import { ApiHandler, CommonApiHandlerOptions } from "../"
 import { withRetry } from "../retry"
 import { convertToOpenAiMessages } from "../transform/openai-format"
@@ -16,6 +23,7 @@ import { getOpenAIToolParams, ToolCallProcessor } from "../transform/tool-call-p
 interface OpenAiNativeHandlerOptions extends CommonApiHandlerOptions {
 	openAiNativeApiKey?: string
 	reasoningEffort?: string
+	thinkingBudgetTokens?: number
 	apiModelId?: string
 }
 
@@ -64,7 +72,10 @@ export class OpenAiNativeHandler implements ApiHandler {
 	@withRetry()
 	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: ChatCompletionTool[]): ApiStream {
 		// Responses API requires tool format to be set to OPENAI_RESPONSES with native tools calling enabled
-		if (tools?.length && this.getModel()?.info?.apiFormat === ApiFormat.OPENAI_RESPONSES) {
+		if (this.getModel()?.info?.apiFormat === ApiFormat.OPENAI_RESPONSES) {
+			if (!tools?.length) {
+				throw new Error("Native Tool Call must be enabled in your setting for OpenAI Responses API")
+			}
 			yield* this.createResponseStream(systemPrompt, messages, tools)
 		} else {
 			yield* this.createCompletionStream(systemPrompt, messages, tools)
@@ -81,7 +92,7 @@ export class OpenAiNativeHandler implements ApiHandler {
 		const toolCallProcessor = new ToolCallProcessor()
 
 		// Handle o1 models separately as they don't support streaming
-		if (model.id.startsWith("o1")) {
+		if (model.info.supportsStreaming === false) {
 			const response = await client.chat.completions.create({
 				model: model.id,
 				messages: [{ role: "user", content: systemPrompt }, ...convertToOpenAiMessages(messages)],
@@ -94,39 +105,21 @@ export class OpenAiNativeHandler implements ApiHandler {
 			return
 		}
 
-		let systemRole: "developer" | "system" = "system"
-		let includeReasoning = false
-		let includeTools = true
-
-		switch (model.id) {
-			case "o4-mini":
-			case "o3":
-			case "o3-mini":
-				systemRole = "developer"
-				includeReasoning = true
-				includeTools = false
-				break
-			case "gpt-5-2025-08-07":
-			case "gpt-5-mini-2025-08-07":
-			case "gpt-5-nano-2025-08-07":
-			case "gpt-5.1-2025-11-13":
-			case "gpt-5.1-chat-latest":
-			case "gpt-5.1":
-				systemRole = "developer"
-				includeReasoning = true
-				break
-		}
+		const systemRole = model.info.systemRole ?? "system"
+		const includeReasoning = this.options.thinkingBudgetTokens && model.info.supportsReasoningEffort
+		const includeTools = model.info.supportsTools ?? true
+		const reasoningEffort = includeReasoning
+			? (this.options.reasoningEffort as ChatCompletionReasoningEffort) || "medium"
+			: undefined
 
 		const stream = await client.chat.completions.create({
 			model: model.id,
 			messages: [{ role: systemRole, content: systemPrompt }, ...convertToOpenAiMessages(messages)],
 			stream: true,
 			stream_options: { include_usage: true },
-			...(includeReasoning && {
-				reasoning_effort: (this.options.reasoningEffort as ChatCompletionReasoningEffort) || "medium",
-			}),
-			...(model.info.temperature !== undefined && { temperature: model.info.temperature }),
-			...(includeTools && getOpenAIToolParams(tools)),
+			reasoning_effort: reasoningEffort,
+			...(model.info.temperature !== undefined ? { temperature: model.info.temperature } : {}),
+			...(includeTools ? getOpenAIToolParams(tools, isGPT5ModelFamily(model.id)) : {}),
 		})
 
 		for await (const chunk of stream) {
@@ -156,7 +149,7 @@ export class OpenAiNativeHandler implements ApiHandler {
 	private async *createResponseStream(
 		systemPrompt: string,
 		messages: ClineStorageMessage[],
-		tools?: ChatCompletionTool[],
+		tools: ChatCompletionTool[],
 	): ApiStream {
 		const client = this.ensureClient()
 		const model = this.getModel()
@@ -355,16 +348,16 @@ export class OpenAiNativeHandler implements ApiHandler {
 		}
 	}
 
-	getModel(): { id: OpenAiNativeModelId; info: ModelInfo } {
+	getModel(): { id: OpenAiNativeModelId; info: OpenAiCompatibleModelInfo } {
 		const modelId = this.options.apiModelId
 		if (modelId && modelId in openAiNativeModels) {
 			const id = modelId as OpenAiNativeModelId
-			const info: ModelInfo = { ...openAiNativeModels[id] }
-			return { id, info }
+			const info = openAiNativeModels[id]
+			return { id, info: { ...info } }
 		}
 		return {
 			id: openAiNativeDefaultModelId,
-			info: openAiNativeModels[openAiNativeDefaultModelId],
+			info: { ...openAiNativeModels[openAiNativeDefaultModelId] },
 		}
 	}
 }

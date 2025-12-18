@@ -199,6 +199,7 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 
 		return (
 			<div
+				aria-label={isExpanded ? "Collapse focus chain" : "Expand focus chain"}
 				className={cn(`overflow-hidden transition-[max-height,opacity] duration-${SHOW_DURATION_MS} ease-in-out`, {
 					"opacity-0 pointer-events-none": !hasTodoContent,
 					"opacity-100": hasTodoContent,
@@ -210,7 +211,15 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 				<div
 					className="bg-focuschain-background relative rounded-md flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200 cursor-pointer"
 					onClick={handleToggle}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault()
+							e.stopPropagation()
+							handleToggle()
+						}
+					}}
 					style={{ borderRadius: defaultBorderRadius, border: chatInputSectionBorder }}
+					tabIndex={0}
 					title={CLICK_TO_EDIT_TITLE}>
 					{todoInfo && <ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />}
 					{todoInfo && isExpanded && (

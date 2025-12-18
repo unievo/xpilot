@@ -183,7 +183,7 @@ export async function createOpenRouterStream(
 		openRouterProviderSorting = undefined
 	}
 
-	// Skip reasoning for models that don't support it (e.g., microwave, grok-4)
+	// Skip reasoning for models that don't support it (e.g., devstral, grok-4)
 	const includeReasoning = !shouldSkipReasoningForModel(model.id)
 
 	// @ts-expect-error-next-line

@@ -12,13 +12,17 @@ const WelcomeView = memo(() => {
 	const { apiConfiguration, mode } = useExtensionState()
 	const [apiErrorMessage, setApiErrorMessage] = useState<string | undefined>(undefined)
 	const [showApiOptions, setShowApiOptions] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 
 	const disableLetsGoButton = apiErrorMessage != null
 
-	const _handleLogin = () => {
-		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
-			console.error("Failed to get login URL:", err),
-		)
+	const handleLogin = () => {
+		setIsLoading(true)
+		AccountServiceClient.accountLoginClicked(EmptyRequest.create())
+			.catch((err) => console.error("Failed to get login URL:", err))
+			.finally(() => {
+				setIsLoading(false)
+			})
 	}
 
 	const handleSubmit = async () => {
@@ -51,8 +55,13 @@ const WelcomeView = memo(() => {
 					Sonnet.
 				</p>
 
-				<VSCodeButton appearance="primary" className="w-full mt-1" onClick={handleLogin}>
+				<VSCodeButton appearance="primary" className="w-full mt-1" disabled={isLoading} onClick={handleLogin}>
 					Get Started for Free
+					{isLoading && (
+						<span className="ml-1 animate-spin">
+							<span className="codicon codicon-refresh"></span>
+						</span>
+					)}
 				</VSCodeButton> */}
 				</div>
 

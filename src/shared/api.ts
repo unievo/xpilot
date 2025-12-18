@@ -268,6 +268,10 @@ export interface ModelInfo {
 export interface OpenAiCompatibleModelInfo extends ModelInfo {
 	temperature?: number
 	isR1FormatRequired?: boolean
+	systemRole?: "developer" | "system"
+	supportsReasoningEffort?: boolean
+	supportsTools?: boolean
+	supportsStreaming?: boolean
 }
 
 export interface OcaModelInfo extends OpenAiCompatibleModelInfo {
@@ -631,6 +635,18 @@ export const bedrockModels = {
 		// cacheWritesPrice: 0.24, // not written
 		cacheReadsPrice: 0.015,
 	},
+	"amazon.nova-2-lite-v1:0": {
+		maxTokens: 5000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+
+		supportsPromptCache: true,
+		inputPrice: 0.3,
+		outputPrice: 2.5,
+		// cacheWritesPrice: 2.5, // not written
+		cacheReadsPrice: 0.075,
+		supportsGlobalEndpoint: true,
+	},
 	"amazon.nova-micro-v1:0": {
 		maxTokens: 5000,
 		contextWindow: 128_000,
@@ -774,8 +790,8 @@ export const openRouterDefaultModelInfo: ModelInfo = {
 		"Claude Sonnet 4.5 delivers superior intelligence across coding, agentic search, and AI agent capabilities. It's a powerful choice for agentic coding, and can complete tasks across the entire software development lifecycle—from initial planning to bug fixes, maintenance to large refactors. It offers strong performance in both planning and solving for complex coding tasks, making it an ideal choice to power end-to-end software development processes.\n\nRead more in the [blog post here](https://www.anthropic.com/claude/sonnet)",
 }
 
-// Cline custom model - Microwave
-export const clineMicrowaveModelInfo: ModelInfo = {
+// Cline custom model - Devstral
+export const clineDevstralModelInfo: ModelInfo = {
 	contextWindow: 256000,
 	supportsImages: false,
 	supportsPromptCache: false,
@@ -887,6 +903,23 @@ export const vertexModels = {
 		inputPrice: 2.0,
 		outputPrice: 12.0,
 		temperature: 1.0,
+		supportsReasoning: true,
+		thinkingConfig: {
+			geminiThinkingLevel: "high",
+			supportsThinkingLevel: true,
+		},
+	},
+	"gemini-3-flash-preview": {
+		maxTokens: 65536,
+		contextWindow: 1_048_576,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 0.5,
+		outputPrice: 3.0,
+		cacheWritesPrice: 0.05,
+		temperature: 1.0,
+		supportsReasoning: true,
 		thinkingConfig: {
 			geminiThinkingLevel: "high",
 			supportsThinkingLevel: true,
@@ -901,6 +934,7 @@ export const vertexModels = {
 		outputPrice: 15.0,
 		cacheWritesPrice: 3.75,
 		cacheReadsPrice: 0.3,
+		supportsReasoning: true,
 	},
 	"claude-sonnet-4@20250514": {
 		maxTokens: 8192,
@@ -911,6 +945,7 @@ export const vertexModels = {
 		outputPrice: 15.0,
 		cacheWritesPrice: 3.75,
 		cacheReadsPrice: 0.3,
+		supportsReasoning: true,
 	},
 	"claude-haiku-4-5@20251001": {
 		maxTokens: 8192,
@@ -921,6 +956,7 @@ export const vertexModels = {
 		outputPrice: 5.0,
 		cacheWritesPrice: 1.25,
 		cacheReadsPrice: 0.1,
+		supportsReasoning: true,
 	},
 	"claude-opus-4-5@20251101": {
 		maxTokens: 8192,
@@ -931,6 +967,7 @@ export const vertexModels = {
 		outputPrice: 25.0,
 		cacheWritesPrice: 6.25,
 		cacheReadsPrice: 0.5,
+		supportsReasoning: true,
 	},
 	"claude-opus-4-1@20250805": {
 		maxTokens: 8192,
@@ -941,6 +978,7 @@ export const vertexModels = {
 		outputPrice: 75.0,
 		cacheWritesPrice: 18.75,
 		cacheReadsPrice: 1.5,
+		supportsReasoning: true,
 	},
 	"claude-opus-4@20250514": {
 		maxTokens: 8192,
@@ -951,6 +989,7 @@ export const vertexModels = {
 		outputPrice: 75.0,
 		cacheWritesPrice: 18.75,
 		cacheReadsPrice: 1.5,
+		supportsReasoning: true,
 	},
 	"claude-3-7-sonnet@20250219": {
 		maxTokens: 8192,
@@ -965,6 +1004,7 @@ export const vertexModels = {
 			maxBudget: 64000,
 			outputPrice: 15.0,
 		},
+		supportsReasoning: true,
 	},
 	"claude-3-5-sonnet-v2@20241022": {
 		maxTokens: 8192,
@@ -1282,6 +1322,35 @@ export const geminiModels = {
 			},
 		],
 	},
+	"gemini-3-flash-preview": {
+		maxTokens: 65536,
+		contextWindow: 1_048_576,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 0.5,
+		outputPrice: 3.0,
+		cacheWritesPrice: 0.05,
+		supportsReasoning: true,
+		thinkingConfig: {
+			geminiThinkingLevel: "low",
+			supportsThinkingLevel: true,
+		},
+		tiers: [
+			{
+				contextWindow: 200000,
+				inputPrice: 0.3,
+				outputPrice: 2.5,
+				cacheReadsPrice: 0.03,
+			},
+			{
+				contextWindow: Infinity,
+				inputPrice: 0.3,
+				outputPrice: 2.5,
+				cacheReadsPrice: 0.03,
+			},
+		],
+	},
 	"gemini-2.5-pro": {
 		maxTokens: 65536,
 		contextWindow: 1_048_576,
@@ -1595,8 +1664,21 @@ export const geminiCliModels = {
 // OpenAI Native
 // https://openai.com/api/pricing/
 export type OpenAiNativeModelId = keyof typeof openAiNativeModels
-export const openAiNativeDefaultModelId: OpenAiNativeModelId = "gpt-5.1-2025-11-13"
+export const openAiNativeDefaultModelId: OpenAiNativeModelId = "gpt-5.2"
 export const openAiNativeModels = {
+	"gpt-5.2": {
+		maxTokens: 8_192,
+		contextWindow: 272000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 1.75,
+		outputPrice: 14.0,
+		cacheReadsPrice: 0.175,
+		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
+	},
 	"gpt-5.1-2025-11-13": {
 		maxTokens: 8_192,
 		contextWindow: 272000,
@@ -1606,6 +1688,9 @@ export const openAiNativeModels = {
 		outputPrice: 10.0,
 		cacheReadsPrice: 0.125,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5.1": {
 		maxTokens: 8_192, // 128000 breaks context window truncation
@@ -1616,6 +1701,9 @@ export const openAiNativeModels = {
 		outputPrice: 10.0,
 		cacheReadsPrice: 0.125,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5.1-codex": {
 		maxTokens: 8_192, // 128000 breaks context window truncation
@@ -1627,6 +1715,9 @@ export const openAiNativeModels = {
 		cacheReadsPrice: 0.125,
 		apiFormat: ApiFormat.OPENAI_RESPONSES,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5.1-chat-latest": {
 		maxTokens: 8_192,
@@ -1637,6 +1728,9 @@ export const openAiNativeModels = {
 		outputPrice: 10,
 		cacheReadsPrice: 0.125,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5-2025-08-07": {
 		maxTokens: 8_192, // 128000 breaks context window truncation
@@ -1647,6 +1741,9 @@ export const openAiNativeModels = {
 		outputPrice: 10.0,
 		cacheReadsPrice: 0.125,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5-codex": {
 		maxTokens: 8_192, // 128000 breaks context window truncation
@@ -1658,6 +1755,9 @@ export const openAiNativeModels = {
 		cacheReadsPrice: 0.125,
 		apiFormat: ApiFormat.OPENAI_RESPONSES,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5-mini-2025-08-07": {
 		maxTokens: 8_192,
@@ -1668,6 +1768,9 @@ export const openAiNativeModels = {
 		outputPrice: 2.0,
 		cacheReadsPrice: 0.025,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5-nano-2025-08-07": {
 		maxTokens: 8_192,
@@ -1678,6 +1781,9 @@ export const openAiNativeModels = {
 		outputPrice: 0.4,
 		cacheReadsPrice: 0.005,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	"gpt-5-chat-latest": {
 		maxTokens: 8_192,
@@ -1688,6 +1794,9 @@ export const openAiNativeModels = {
 		outputPrice: 10,
 		cacheReadsPrice: 0.125,
 		temperature: 1,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
 	},
 	o3: {
 		maxTokens: 100_000,
@@ -1697,6 +1806,10 @@ export const openAiNativeModels = {
 		inputPrice: 2.0,
 		outputPrice: 8.0,
 		cacheReadsPrice: 0.5,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
+		supportsTools: false,
 	},
 	"o4-mini": {
 		maxTokens: 100_000,
@@ -1706,6 +1819,10 @@ export const openAiNativeModels = {
 		inputPrice: 1.1,
 		outputPrice: 4.4,
 		cacheReadsPrice: 0.275,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
+		supportsTools: false,
 	},
 	"gpt-4.1": {
 		maxTokens: 32_768,
@@ -1745,6 +1862,10 @@ export const openAiNativeModels = {
 		inputPrice: 1.1,
 		outputPrice: 4.4,
 		cacheReadsPrice: 0.55,
+		systemRole: "developer",
+		supportsReasoning: true,
+		supportsReasoningEffort: true,
+		supportsTools: false,
 	},
 	// don't support tool use yet
 	o1: {
@@ -1755,6 +1876,7 @@ export const openAiNativeModels = {
 		inputPrice: 15,
 		outputPrice: 60,
 		cacheReadsPrice: 7.5,
+		supportsStreaming: false,
 	},
 	"o1-preview": {
 		maxTokens: 32_768,
@@ -1764,6 +1886,7 @@ export const openAiNativeModels = {
 		inputPrice: 15,
 		outputPrice: 60,
 		cacheReadsPrice: 7.5,
+		supportsStreaming: false,
 	},
 	"o1-mini": {
 		maxTokens: 65_536,
@@ -1773,6 +1896,7 @@ export const openAiNativeModels = {
 		inputPrice: 1.1,
 		outputPrice: 4.4,
 		cacheReadsPrice: 0.55,
+		supportsStreaming: false,
 	},
 	"gpt-4o": {
 		maxTokens: 4_096,
@@ -2656,8 +2780,40 @@ export const doubaoModels = {
 // Mistral
 // https://docs.mistral.ai/getting-started/models/models_overview/
 export type MistralModelId = keyof typeof mistralModels
-export const mistralDefaultModelId: MistralModelId = "devstral-small-2505"
+export const mistralDefaultModelId: MistralModelId = "devstral-2512"
 export const mistralModels = {
+	"devstral-2512": {
+		maxTokens: 256_000,
+		contextWindow: 256_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0,
+		outputPrice: 0,
+	},
+	"labs-devstral-small-2512": {
+		maxTokens: 256_000,
+		contextWindow: 256_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0,
+		outputPrice: 0,
+	},
+	"mistral-large-2512": {
+		maxTokens: 256_000,
+		contextWindow: 256_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0.5,
+		outputPrice: 1.5,
+	},
+	"ministral-14b-2512": {
+		maxTokens: 256_000,
+		contextWindow: 256_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+		inputPrice: 0.2,
+		outputPrice: 0.2,
+	},
 	"mistral-large-2411": {
 		maxTokens: 128_000,
 		contextWindow: 128_000,

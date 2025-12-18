@@ -76,8 +76,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 
 	// Auto-switch to rules tab if hooks become disabled while viewing hooks tab
 	useEffect(() => {
-		const areHooksEnabled = hooksEnabled?.user
-		if (currentView === "hooks" && !areHooksEnabled) {
+		if (currentView === "hooks" && !hooksEnabled) {
 			setCurrentView("rules")
 		}
 	}, [currentView, hooksEnabled])
@@ -480,7 +479,7 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 								/>
 								Workflows
 							</TabButton>
-							{hooksEnabled?.user && (
+							{hooksEnabled && (
 								<TabButton isActive={currentView === "hooks"} onClick={() => setCurrentView("hooks")}>
 									<span
 										className="codicon codicon-symbol-event flex items-center"
@@ -622,149 +621,151 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 						)}
 					</div> */}
 
-					{currentView === "rules" ? (
-						<>
-							{/* Remote Rules Section */}
-							{hasRemoteRules && (
-								<div className="mb-3">
-									<div className="font-normal mb-2">Remote</div>
-									<div className="flex flex-col gap-0">
-										{remoteGlobalRules.map((rule) => {
-											const enabled = rule.alwaysEnabled || remoteRulesToggles[rule.name] === true
-											return (
-												<RuleRow
-													alwaysEnabled={rule.alwaysEnabled}
-													enabled={enabled}
-													isGlobal={false}
-													isRemote={true}
-													key={rule.name}
-													rulePath={rule.name}
-													ruleType="cline"
-													toggleRule={toggleRemoteRule}
-												/>
-											)
-										})}
+					{/* Scrollable content area */}
+					<div className="flex-1 overflow-y-auto px-2 pb-3" style={{ minHeight: 0 }}>
+						{currentView === "rules" ? (
+							<>
+								{/* Remote Rules Section */}
+								{hasRemoteRules && (
+									<div className="mb-3">
+										<div className="font-normal mb-2">Remote</div>
+										<div className="flex flex-col gap-0">
+											{remoteGlobalRules.map((rule) => {
+												const enabled = rule.alwaysEnabled || remoteRulesToggles[rule.name] === true
+												return (
+													<RuleRow
+														alwaysEnabled={rule.alwaysEnabled}
+														enabled={enabled}
+														isGlobal={false}
+														isRemote={true}
+														key={rule.name}
+														rulePath={rule.name}
+														ruleType="cline"
+														toggleRule={toggleRemoteRule}
+													/>
+												)
+											})}
+										</div>
 									</div>
+								)}
+
+								{/* Global Rules Section */}
+								<div style={{ marginBottom: 2 }}>
+									<div className="font-normal mt-3 mb-2">Global</div>
+
+									{/* File-based Global Rules */}
+									<RulesToggleList
+										isGlobal={true}
+										listGap="small"
+										rules={globalRules}
+										ruleType={"cline"}
+										showNewRule={true}
+										showNoRules={false}
+										toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
+									/>
 								</div>
-							)}
 
-							{/* Global Rules Section */}
-							<div style={{ marginBottom: 2 }}>
-								<div className="font-normal mt-3 mb-2">Global</div>
+								{/* Local Rules Section */}
+								<div style={{ marginBottom: 2 }}>
+									<div className="font-normal mt-3 mb-2">Workspace </div>
+									<RulesToggleList
+										isGlobal={false}
+										listGap="small"
+										rules={localRules}
+										ruleType={"cline"}
+										showNewRule={false}
+										showNoRules={false}
+										toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
+									/>
 
-								{/* File-based Global Rules */}
-								<RulesToggleList
-									isGlobal={true}
-									listGap="small"
-									rules={globalRules}
-									ruleType={"cline"}
-									showNewRule={true}
-									showNoRules={false}
-									toggleRule={(rulePath, enabled) => toggleRule(true, rulePath, enabled)}
-								/>
-							</div>
-
-							{/* Local Rules Section */}
-							<div style={{ marginBottom: 2 }}>
-								<div className="font-normal mt-3 mb-2">Workspace </div>
-								<RulesToggleList
-									isGlobal={false}
-									listGap="small"
-									rules={localRules}
-									ruleType={"cline"}
-									showNewRule={false}
-									showNoRules={false}
-									toggleRule={(rulePath, enabled) => toggleRule(false, rulePath, enabled)}
-								/>
-
-								<RulesToggleList
-									isGlobal={false}
-									listGap="small"
-									rules={cursorRules}
-									ruleType={"cursor"}
-									showNewRule={false}
-									showNoRules={false}
-									toggleRule={toggleCursorRule}
-								/>
-								<RulesToggleList
-									isGlobal={false}
-									listGap="small"
-									rules={windsurfRules}
-									ruleType={"windsurf"}
-									showNewRule={false}
-									showNoRules={false}
-									toggleRule={toggleWindsurfRule}
-								/>
-								<RulesToggleList
-									isGlobal={false}
-									listGap="small"
-									rules={agentsRules}
-									ruleType={"agents"}
-									showNewRule={true}
-									showNoRules={false}
-									toggleRule={toggleAgentsRule}
-								/>
-							</div>
-						</>
-					) : currentView === "workflows" ? (
-						<>
-							{/* Remote Workflows Section */}
-							{hasRemoteWorkflows && (
-								<div className="mb-3">
-									<div className="text-sm font-normal mb-2">Enterprise Workflows</div>
-									<div className="flex flex-col gap-0">
-										{remoteGlobalWorkflows.map((workflow) => {
-											const enabled =
-												workflow.alwaysEnabled || remoteWorkflowToggles[workflow.name] === true
-											return (
-												<RuleRow
-													alwaysEnabled={workflow.alwaysEnabled}
-													enabled={enabled}
-													isGlobal={false}
-													isRemote={true}
-													key={workflow.name}
-													rulePath={workflow.name}
-													ruleType="workflow"
-													toggleRule={toggleRemoteWorkflow}
-												/>
-											)
-										})}
+									<RulesToggleList
+										isGlobal={false}
+										listGap="small"
+										rules={cursorRules}
+										ruleType={"cursor"}
+										showNewRule={false}
+										showNoRules={false}
+										toggleRule={toggleCursorRule}
+									/>
+									<RulesToggleList
+										isGlobal={false}
+										listGap="small"
+										rules={windsurfRules}
+										ruleType={"windsurf"}
+										showNewRule={false}
+										showNoRules={false}
+										toggleRule={toggleWindsurfRule}
+									/>
+									<RulesToggleList
+										isGlobal={false}
+										listGap="small"
+										rules={agentsRules}
+										ruleType={"agents"}
+										showNewRule={true}
+										showNoRules={false}
+										toggleRule={toggleAgentsRule}
+									/>
+								</div>
+							</>
+						) : currentView === "workflows" ? (
+							<>
+								{/* Remote Workflows Section */}
+								{hasRemoteWorkflows && (
+									<div className="mb-3">
+										<div className="text-sm font-normal mb-2">Enterprise Workflows</div>
+										<div className="flex flex-col gap-0">
+											{remoteGlobalWorkflows.map((workflow) => {
+												const enabled =
+													workflow.alwaysEnabled || remoteWorkflowToggles[workflow.name] === true
+												return (
+													<RuleRow
+														alwaysEnabled={workflow.alwaysEnabled}
+														enabled={enabled}
+														isGlobal={false}
+														isRemote={true}
+														key={workflow.name}
+														rulePath={workflow.name}
+														ruleType="workflow"
+														toggleRule={toggleRemoteWorkflow}
+													/>
+												)
+											})}
+										</div>
 									</div>
+								)}
+
+								{/* Global Workflows Section */}
+								<div style={{ marginBottom: 2 }}>
+									<div className="font-normal mt-3 mb-2">Global</div>
+
+									{/* File-based Global Workflows */}
+									<RulesToggleList
+										isGlobal={true}
+										listGap="small"
+										rules={globalWorkflows}
+										ruleType={"workflow"}
+										showNewRule={true}
+										showNoRules={false}
+										toggleRule={(rulePath, enabled) => toggleWorkflow(true, rulePath, enabled)}
+									/>
 								</div>
-							)}
-
-							{/* Global Workflows Section */}
-							<div style={{ marginBottom: 2 }}>
-								<div className="font-normal mt-3 mb-2">Global</div>
-
-								{/* File-based Global Workflows */}
-								<RulesToggleList
-									isGlobal={true}
-									listGap="small"
-									rules={globalWorkflows}
-									ruleType={"workflow"}
-									showNewRule={true}
-									showNoRules={false}
-									toggleRule={(rulePath, enabled) => toggleWorkflow(true, rulePath, enabled)}
-								/>
-							</div>
-							{/* Local Workflows Section */}
-							<div style={{ marginBottom: 2 }}>
-								<div className="font-normal mt-3 mb-2">Workspace</div>
-								<RulesToggleList
-									isGlobal={false}
-									listGap="small"
-									rules={localWorkflows}
-									ruleType={"workflow"}
-									showNewRule={true}
-									showNoRules={false}
-									toggleRule={(rulePath, enabled) => toggleWorkflow(false, rulePath, enabled)}
-								/>
-							</div>
-						</>
-					) : (
-						<>
-							{/* <div className="text-xs text-description mb-4">
+								{/* Local Workflows Section */}
+								<div style={{ marginBottom: 2 }}>
+									<div className="font-normal mt-3 mb-2">Workspace</div>
+									<RulesToggleList
+										isGlobal={false}
+										listGap="small"
+										rules={localWorkflows}
+										ruleType={"workflow"}
+										showNewRule={true}
+										showNoRules={false}
+										toggleRule={(rulePath, enabled) => toggleWorkflow(false, rulePath, enabled)}
+									/>
+								</div>
+							</>
+						) : (
+							<>
+								{/* <div className="text-xs text-description mb-4">
 								<p>
 									Toggle to enable/disable (chmod +x/-x).{" "}
 									<VSCodeLink
@@ -775,87 +776,92 @@ const ClineRulesToggleModal: React.FC<ClineRulesToggleModalProps> = ({ textAreaR
 									</VSCodeLink>
 								</p>
 							</div> */}
-							{/* Hooks Tab */}
-							{/* Windows warning banner */}
-							{isWindows && (
-								<div className="flex items-center gap-2 px-5 py-3 mb-4 bg-vscode-inputValidation-warningBackground border-l-[3px] border-vscode-inputValidation-warningBorder">
-									<i className="codicon codicon-warning text-sm" />
-									<span className="text-base">
-										Hook toggling is not supported on Windows. Hooks can be created, edited, and deleted, but
-										cannot be enabled/disabled and will not execute.
-									</span>
-								</div>
-							)}
-
-							{/* Global Hooks */}
-							<div className="mb-3">
-								<div className="text-sm font-normal mb-2">Global</div>
-								<div className="flex flex-col gap-0">
-									{globalHooks
-										.sort((a, b) => a.name.localeCompare(b.name))
-										.map((hook) => (
-											<HookRow
-												absolutePath={hook.absolutePath}
-												enabled={hook.enabled}
-												hookName={hook.name}
-												isGlobal={true}
-												isWindows={isWindows}
-												key={hook.name}
-												onDelete={(hooksToggles) => {
-													// Use response data directly, no need to refresh
-													setGlobalHooks(hooksToggles.globalHooks || [])
-													setWorkspaceHooks(hooksToggles.workspaceHooks || [])
-												}}
-												onToggle={(name: string, newEnabled: boolean) =>
-													toggleHook(true, name, newEnabled)
-												}
-											/>
-										))}
-									<NewRuleRow existingHooks={globalHooks.map((h) => h.name)} isGlobal={true} ruleType="hook" />
-								</div>
-							</div>
-
-							{/* Workspace Hooks - one section per workspace */}
-							{workspaceHooks.map((workspace, index) => (
-								<div
-									key={workspace.workspaceName}
-									style={{ marginBottom: index === workspaceHooks.length - 1 ? -10 : 12 }}>
-									<div className="text-sm font-normal mb-2">
-										{workspace.workspaceName}/{agentWorkspaceDirectory}/{hooksDirectory}
+								{/* Hooks Tab */}
+								{/* Windows warning banner */}
+								{isWindows && (
+									<div className="flex items-center gap-2 px-5 py-3 mb-4 bg-vscode-inputValidation-warningBackground border-l-[3px] border-vscode-inputValidation-warningBorder">
+										<i className="codicon codicon-warning text-sm" />
+										<span className="text-base">
+											Hook toggling is not supported on Windows. Hooks can be created, edited, and deleted,
+											but cannot be enabled/disabled and will not execute.
+										</span>
 									</div>
+								)}
+
+								{/* Global Hooks */}
+								<div className="mb-3">
+									<div className="text-sm font-normal mb-2">Global</div>
 									<div className="flex flex-col gap-0">
-										{workspace.hooks
+										{globalHooks
 											.sort((a, b) => a.name.localeCompare(b.name))
 											.map((hook) => (
 												<HookRow
 													absolutePath={hook.absolutePath}
 													enabled={hook.enabled}
 													hookName={hook.name}
-													isGlobal={false}
+													isGlobal={true}
 													isWindows={isWindows}
-													key={hook.absolutePath}
+													key={hook.name}
 													onDelete={(hooksToggles) => {
 														// Use response data directly, no need to refresh
 														setGlobalHooks(hooksToggles.globalHooks || [])
 														setWorkspaceHooks(hooksToggles.workspaceHooks || [])
 													}}
 													onToggle={(name: string, newEnabled: boolean) =>
-														toggleHook(false, name, newEnabled, workspace.workspaceName)
+														toggleHook(true, name, newEnabled)
 													}
-													workspaceName={workspace.workspaceName}
 												/>
 											))}
 										<NewRuleRow
-											existingHooks={workspace.hooks.map((h) => h.name)}
-											isGlobal={false}
+											existingHooks={globalHooks.map((h) => h.name)}
+											isGlobal={true}
 											ruleType="hook"
-											workspaceName={workspace.workspaceName}
 										/>
 									</div>
 								</div>
-							))}
-						</>
-					)}
+
+								{/* Workspace Hooks - one section per workspace */}
+								{workspaceHooks.map((workspace, index) => (
+									<div
+										key={workspace.workspaceName}
+										style={{ marginBottom: index === workspaceHooks.length - 1 ? -10 : 12 }}>
+										<div className="text-sm font-normal mb-2">
+											{workspace.workspaceName}/{agentWorkspaceDirectory}/{hooksDirectory}
+										</div>
+										<div className="flex flex-col gap-0">
+											{workspace.hooks
+												.sort((a, b) => a.name.localeCompare(b.name))
+												.map((hook) => (
+													<HookRow
+														absolutePath={hook.absolutePath}
+														enabled={hook.enabled}
+														hookName={hook.name}
+														isGlobal={false}
+														isWindows={isWindows}
+														key={hook.absolutePath}
+														onDelete={(hooksToggles) => {
+															// Use response data directly, no need to refresh
+															setGlobalHooks(hooksToggles.globalHooks || [])
+															setWorkspaceHooks(hooksToggles.workspaceHooks || [])
+														}}
+														onToggle={(name: string, newEnabled: boolean) =>
+															toggleHook(false, name, newEnabled, workspace.workspaceName)
+														}
+														workspaceName={workspace.workspaceName}
+													/>
+												))}
+											<NewRuleRow
+												existingHooks={workspace.hooks.map((h) => h.name)}
+												isGlobal={false}
+												ruleType="hook"
+												workspaceName={workspace.workspaceName}
+											/>
+										</div>
+									</div>
+								))}
+							</>
+						)}
+					</div>
 				</div>
 			)}
 		</div>

@@ -134,15 +134,48 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 					}
 					.history-preview-item:hover {
 						background-color: color-mix(in srgb, var(--vscode-toolbar-hoverBackground) 100%, transparent);
-						opacity: 1;
 						pointer-events: auto;
 					}
-					.history-header {
-						cursor: pointer;
-						user-select: none;
+					.history-task-content {
+						flex: 1;
+						display: flex;
+						align-items: flex-start;
+						gap: 8px;
+						min-width: 0;
+					}
+					.history-task-description {
+						flex: 1;
+						overflow: hidden;
+						display: -webkit-box;
+						-webkit-line-clamp: 2;
+						-webkit-box-orient: vertical;
+						color: var(--vscode-foreground);
+						font-size: var(--vscode-font-size);
+						line-height: 1.4;
+					}
+					.history-meta-stack {
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						gap: 4px;
+						flex-shrink: 0;
 					}
 					.history-header:hover {
 						opacity: 0.8;
+					}
+					.history-date {
+						color: var(--vscode-descriptionForeground);
+						font-size: 0.85em;
+						white-space: nowrap;
+					}
+					.history-cost-chip {
+						background-color: var(--vscode-badge-background);
+						color: var(--vscode-badge-foreground);
+						padding: 2px 8px;
+						border-radius: 12px;
+						font-size: 0.85em;
+						font-weight: 500;
+						white-space: nowrap;
 					}
 				`}
 			</style>
@@ -155,6 +188,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 					margin: "10px 20px 15px 20px",
 					display: "flex",
 					alignItems: "center",
+					cursor: "pointer",
 				}}>
 				<span
 					className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}
@@ -284,7 +318,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								style={{
 									display: "flex",
 									alignItems: "center",
-									justifyContent: "center",
+									justifyContent: "flex-start",
 								}}>
 								<VSCodeButton
 									appearance="icon"
@@ -299,7 +333,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 											//fontSize: "var(--vscode-font-size)",
 											color: "var(--vscode-descriptionForeground)",
 										}}>
-										View all history
+										View All
 									</div>
 								</VSCodeButton>
 							</div>

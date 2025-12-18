@@ -60,7 +60,7 @@ export async function parseSlashCommands(
 	const willUseNativeTools = isNativeToolCallingConfig(providerInfo!, enableNativeToolCalls || false)
 
 	const commandReplacements: Record<string, string> = {
-		newtask: newTaskToolResponse(),
+		newtask: newTaskToolResponse(willUseNativeTools),
 		smol: condenseToolResponse(focusChainSettings),
 		compact: condenseToolResponse(focusChainSettings),
 		"new-instructions": newRuleToolResponse(),

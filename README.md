@@ -1,4 +1,4 @@
-# xPilot
+# Welcome to xPilot
 
 xPilot is an AI coding agent with a specialized knowledge base and tools for [MultiversX](https://www.multiversx.com).
 
