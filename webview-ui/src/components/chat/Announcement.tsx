@@ -56,7 +56,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					<li>New free models in the Cline provider</li>
 					<div className="mt-2" />
 					<b style={{ fontSize: 12 }}>
-						{baseName} Features Update: <a href={`${baseVersionUrl}`}>{baseVersion}</a>
+						{baseName} Features Update: <a href={`${baseVersionUrl}`}>v{baseVersion}</a>
 					</b>
 					<div className="mt-2 mb-4" />
 					{/* <li>

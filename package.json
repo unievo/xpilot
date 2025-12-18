@@ -2,7 +2,7 @@
 	"name": "xpilot",
 	"displayName": "xPilot",
 	"description": "AI coding agent for MultiversX",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"icon": "assets/icons/icon_color.png",
 	"engines": {
 		"vscode": "^1.84.0"

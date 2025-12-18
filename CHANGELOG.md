@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0]
+
+ - GPT-5.2, Gemini 3 Flash Preview
+ - New free models in the Cline provider
+
+ - Base Features Update. [v2.1.0](https://github.com/unievo/astro/blob/main/CHANGELOG.md#210) 
+
 ## [2.1.0]
 
 - Chat Interface redesign for a more compact and streamlined UI/UX

@@ -4,8 +4,6 @@ xPilot is an AI coding agent with a specialized knowledge base and tools for [Mu
 
 It can assist with any type of applications, while also having specialized knowledge for MultiversX tasks and projects using a dedicated instructions library, MCP Servers, and built-in features.
 
-You can use AI model providers such as Cline or OpenRouter for a variety of model options, VS Code with the GitHub Copilot Extension models, or you can bring your own API keys for many supported providers. 
-
 <table border="0" cellspacing="0" cellpadding="0">
     <tr>
         <td></td>

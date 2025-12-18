@@ -3,8 +3,8 @@ import { name, publisher } from "../../package.json"
 
 // Base
 export const baseName = "Astro"
-export const baseVersion = "2.0.0"
-export const baseVersionUrl = `https://github.com/unievo/astro/blob/main/CHANGELOG.md#200`
+export const baseVersion = "2.1.0"
+export const baseVersionUrl = `https://github.com/unievo/astro/blob/main/CHANGELOG.md#210`
 
 // Product
 export const agentName = "xPilot"
