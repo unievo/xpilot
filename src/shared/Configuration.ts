@@ -3,8 +3,8 @@ import { name, publisher } from "../../package.json"
 
 // Base
 export const baseName = "Cline"
-export const baseVersion = "v3.40.1"
-export const baseVersionUrl = `https://github.com/cline/cline/blob/main/CHANGELOG.md#3401`
+export const baseVersion = "v3.45.0"
+export const baseVersionUrl = `https://github.com/cline/cline/blob/main/CHANGELOG.md#3450`
 
 // Product
 export const agentName = "Astro"

@@ -1,10 +1,8 @@
-## Welcome to Astro
+## Welcome to Astro (Code)
 
-Astro is an AI software agent based on [Cline](https://cline.bot), a powerful open-source coding agent designed to support many AI providers and models, and to handle a wide range of tasks.
+Astro is an AI software agent based on Cline, a powerful open-source coding agent, designed to support many AI providers and models, and to handle a wide range of tasks.
 
-Astro is a foundation for custom software agents that can have specialized functionalities and capabilities applicable to different domains. 
-
-It includes Cline's general functionality, with an enhanced UI and additional customizations and features.
+Astro is a foundation for custom software agents that can have specialized functionalities, with additional customizations, features and capabilities applicable in different domains.
 
 
 ---

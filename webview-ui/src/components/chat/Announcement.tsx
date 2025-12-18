@@ -52,7 +52,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			</div>
 			{
 				<ul style={ulStyle}>
-					<li>Extensive Chat Interface redesign for a more compact and streamlined UI/UX</li>
+					<li>GPT-5.2, Gemini 3 Flash Preview</li>
+					<li>New free models in the Cline provider</li>
 					<div className="mt-2" />
 					<b style={{ fontSize: 12 }}>
 						Cline Features Update: <a href={`${baseVersionUrl}`}>{baseVersion}</a>

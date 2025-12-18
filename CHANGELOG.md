@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0]
+
+- GPT-5.2, Gemini 3 Flash Preview
+- New free models in the Cline provider
+
+- Cline Features Update. [v3.45.0](https://github.com/cline/cline/blob/main/CHANGELOG.md#3450) 
+
 ## [2.0.0]
 
 - Extensive Chat Interface redesign for a more compact and streamlined UI/UX

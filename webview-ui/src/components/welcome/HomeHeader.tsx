@@ -34,9 +34,9 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 	const [isOverviewExpanded, setIsOverviewExpanded] = useState(() => {
 		try {
 			const saved = localStorage.getItem("overview-isExpanded")
-			return saved ? JSON.parse(saved) : true
+			return saved ? JSON.parse(saved) : false
 		} catch {
-			return true
+			return false
 		}
 	})
 
