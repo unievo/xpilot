@@ -346,11 +346,9 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 									const checked = e.target.checked === true
 									updateSetting("clineWebToolsEnabled", checked)
 								}}>
-								Enable Cline Web Tools
+								Enable Web Tools
 							</VSCodeCheckbox>
-							<p className="text-xs text-(--vscode-descriptionForeground)">
-								Enables websearch and webfetch tools while using the Cline provider.
-							</p>
+							<p className="text-xs text-(--vscode-descriptionForeground)">Enables websearch and webfetch tools.</p>
 						</div>
 					)}
 					<div className="mt-2.5">

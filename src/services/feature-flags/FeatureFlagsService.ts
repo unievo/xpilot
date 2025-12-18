@@ -96,7 +96,7 @@ export class FeatureFlagsService {
 	}
 
 	public getWebtoolsEnabled(): boolean {
-		return this.getBooleanFlagEnabled(FeatureFlag.WEBTOOLS)
+		return true // this.getBooleanFlagEnabled(FeatureFlag.WEBTOOLS)
 	}
 
 	public getOnboardingOverrides() {

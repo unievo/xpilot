@@ -16,7 +16,7 @@ const GENERIC: ClineToolSpec = {
 - The prompt must be at least 2 characters
 - HTTP URLs will be automatically upgraded to HTTPS
 - This tool is read-only and does not modify any files`,
-	contextRequirements: (context) => context.providerInfo.providerId === "cline" && context.clineWebToolsEnabled === true,
+	contextRequirements: (context) => context.clineWebToolsEnabled === true,
 	parameters: [
 		{
 			name: "url",
@@ -39,7 +39,7 @@ const NATIVE_NEXT_GEN: ClineToolSpec = {
 	id: ClineDefaultTool.WEB_FETCH,
 	name: "web_fetch",
 	description: "Fetches and analyzes content from a specified URL.",
-	contextRequirements: (context) => context.providerInfo.providerId === "cline" && context.clineWebToolsEnabled === true,
+	contextRequirements: (context) => context.clineWebToolsEnabled === true,
 	parameters: [
 		{
 			name: "url",

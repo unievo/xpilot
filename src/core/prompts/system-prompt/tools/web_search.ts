@@ -16,7 +16,7 @@ const GENERIC: ClineToolSpec = {
 - You may provide either allowed_domains OR blocked_domains, but NOT both
 - Domains should be provided as a JSON array of strings
 - This tool is read-only and does not modify any files`,
-	contextRequirements: (context) => context.providerInfo.providerId === "cline" && context.clineWebToolsEnabled === true,
+	contextRequirements: (context) => context.clineWebToolsEnabled === true,
 	parameters: [
 		{
 			name: "query",
@@ -45,7 +45,7 @@ const NATIVE_NEXT_GEN: ClineToolSpec = {
 	id: ClineDefaultTool.WEB_SEARCH,
 	name: "web_search",
 	description: "Performs a web search and returns relevant results with titles and URLs.",
-	contextRequirements: (context) => context.providerInfo.providerId === "cline" && context.clineWebToolsEnabled === true,
+	contextRequirements: (context) => context.clineWebToolsEnabled === true,
 	parameters: [
 		{
 			name: "query",

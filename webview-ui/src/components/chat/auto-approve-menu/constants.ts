@@ -42,7 +42,7 @@ export const ACTION_METADATA: ActionMetadata[] = [
 	},
 	{
 		id: "useBrowser",
-		label: "Use the browser",
+		label: "Search, Fetch, Use the browser",
 		shortName: "Browse",
 		icon: "codicon-globe",
 	},
